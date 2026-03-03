@@ -519,6 +519,38 @@ jobs:
       - name: shellcheck
         run: shellcheck install.sh
 
+  cursor-cockpit-lint:
+    name: Cursor Cockpit Lint (shellcheck)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: bash -n
+        run: |
+          bash -n scripts/cursor-brenner-session.sh
+          bash -n scripts/lint-artifact.sh
+          bash -n tests/test-compile-fixture.sh
+
+      - name: Install shellcheck
+        run: sudo apt-get update && sudo apt-get install -y shellcheck
+
+      - name: shellcheck
+        run: shellcheck scripts/cursor-brenner-session.sh scripts/lint-artifact.sh tests/test-compile-fixture.sh
+
+  cursor-cockpit-test:
+    name: Cursor Cockpit Fixture Test
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install jq
+        run: command -v jq || { sudo apt-get update && sudo apt-get install -y jq; }
+
+      - name: Run fixture-based compilation test
+        run: bash tests/test-compile-fixture.sh
+
   installer-lint-pwsh:
     name: Installer Lint (install.ps1)
     runs-on: windows-latest

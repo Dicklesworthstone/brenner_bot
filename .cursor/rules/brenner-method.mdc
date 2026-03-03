@@ -1,0 +1,75 @@
+---
+description: Activate Brenner Protocol methodology for research questions, hypothesis generation, experimental design, and scientific reasoning tasks.
+globs:
+  - "artifacts/**"
+  - "specs/**"
+  - "scripts/prompts/**"
+alwaysApply: false
+---
+
+# Brenner Protocol — Cognitive Operator Framework
+
+When the user asks a research question, frames a hypothesis, or requests experimental design, apply the Brenner Protocol methodology.
+
+## Axioms
+
+1. **Reality has a generative grammar.** Prefer causal machinery over description or curve-fitting.
+2. **To understand is to be able to reconstruct.** An explanation requires specifying how to build the phenomenon from primitives.
+3. **Machine-language constraint.** Express explanations in the system's own primitives.
+4. **Levels are types.** Separate program/interpreter, message/machine, specification/execution.
+
+## Objective Function
+
+Maximize **evidence per week**: discrimination × speed / (ambiguity × cost).
+
+## Core Operators (invoke by symbol)
+
+| Symbol | Name | Action |
+|--------|------|--------|
+| ⊘ | Level-Split | Separate program/interpreter, message/machine |
+| ✂ | Exclusion-Test | Derive forbidden patterns; design lethal tests |
+| ⌂ | Materialize | Theory → "what would I see?" |
+| ⟂ | Object-Transpose | Change substrate until test is easy |
+| ⊞ | Scale-Check | Calculate; stay physically imprisoned |
+| ◊ | Paradox-Hunt | Find contradictions → missing rules |
+| ΔE | Exception-Quarantine | Isolate anomalies; track Occam's broom |
+| † | Theory-Kill | Discard hypotheses when ugly |
+| ⊕ | Cross-Domain | Import patterns from unrelated fields |
+
+## Always-On Guards
+
+- **Third alternative**: always include "both could be wrong"
+- **Potency**: distinguish "won't" from "can't" before killing hypotheses
+- **Scale**: calculate orders of magnitude before accepting mechanisms
+- **Anomaly hygiene**: quarantine exceptions explicitly
+
+## Delta Output Format
+
+When producing structured research output, use fenced delta blocks:
+
+~~~
+```delta
+{
+  "operation": "ADD",
+  "section": "hypothesis_slate",
+  "target_id": null,
+  "payload": { ... },
+  "rationale": "..."
+}
+```
+~~~
+
+Valid sections: `hypothesis_slate`, `predictions_table`, `discriminative_tests`, `assumption_ledger`, `anomaly_register`, `adversarial_critique`.
+
+## Running a Full Session
+
+For multi-model Brenner sessions, use the orchestration script:
+
+```bash
+./scripts/cursor-brenner-session.sh \
+  --thread-id RS-YYYYMMDD-topic \
+  --question "Your research question" \
+  --excerpt-file path/to/excerpt.md
+```
+
+See `specs/cursor_cockpit_v0.1.md` for details.

@@ -77,6 +77,7 @@ Deployed on Vercel with Cloudflare DNS at **`brennerbot.org`**.
   - [Dashboard Metrics](#dashboard-metrics)
 - [Experiment Capture & Encoding](#experiment-capture--encoding)
 - [Cockpit Runtime](#cockpit-runtime)
+- [Running with Cursor](#running-with-cursor)
 - [Web Application Pages](#web-application-pages)
 - [Specification Reference](#specification-reference)
 - [Storage & Schema Architecture](#storage--schema-architecture)
@@ -2120,6 +2121,43 @@ The cockpit:
 5. Manages round transitions and convergence
 
 See [`specs/cockpit_start_command_v0.1.md`](./specs/cockpit_start_command_v0.1.md) and [`specs/cockpit_runbook_v0.1.md`](./specs/cockpit_runbook_v0.1.md) for detailed documentation.
+
+---
+
+## Running with Cursor
+
+The Cursor Cockpit provides an alternative runtime that requires only the Cursor CLI and a single Cursor subscription.
+
+### Quick Start (Interactive — Tier 1)
+
+Open `brenner_bot/` in Cursor IDE and ask:
+
+> "Run a Brenner session on: How should a researcher choose the right experimental system?"
+
+The Brenner session skill (`.cursor/skills/brenner-session/SKILL.md`) orchestrates hypothesis generation, test design, and adversarial critique using the current model.
+
+### Full Multi-Model Session (Headless — Tier 2)
+
+Run three models in parallel — GPT for hypothesis generation, Claude for test design, Gemini for adversarial critique:
+
+```bash
+# Verify setup
+agent --version && agent models
+
+# Run a session
+./scripts/cursor-brenner-session.sh \
+  --thread-id RS-20260303-my-topic \
+  --question "Your research question here" \
+  --excerpt-file path/to/excerpt.md
+```
+
+Output:
+- `artifacts/{thread-id}/artifact.md` — compiled 7-section Brenner artifact
+- `artifacts/{thread-id}/deltas/` — raw output from each agent
+
+Override default models with `--hyp-model`, `--test-model`, `--critic-model`. Run `agent models` to see available options.
+
+See [`specs/cursor_cockpit_v0.1.md`](./specs/cursor_cockpit_v0.1.md) for full documentation.
 
 ---
 

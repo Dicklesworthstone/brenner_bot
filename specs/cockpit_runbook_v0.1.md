@@ -4,6 +4,8 @@
 >
 > **Non‑negotiable constraint**: no vendor AI APIs are called from code. Agents run locally (Codex CLI / Claude Code / Gemini CLI) and coordinate by posting messages.
 
+> **Alternative runtime**: See [`cursor_cockpit_v0.1.md`](./cursor_cockpit_v0.1.md) for running Brenner sessions with the Cursor CLI — single subscription, no ntm or Agent Mail required.
+
 ---
 
 ## 0) Preconditions

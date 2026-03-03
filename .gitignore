@@ -20,6 +20,9 @@ node_modules/
 # Local research workspace state
 .research/
 
+# Cursor Cockpit session artifacts (generated, not tracked)
+artifacts/*/
+
 # Build/test outputs
 .next/
 out/

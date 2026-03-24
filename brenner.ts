@@ -1484,6 +1484,16 @@ Commands:
   session nudge [--project-key <abs-path>] --thread-id <id> [--sender <AgentName>] --to <A,B>
                [--operator <s>] [--ack-required] [--dry-run] [--json]
   session diagnose [--project-key <abs-path>] --thread-id <id> [--json]
+  session robot-step --session-dir <path> --question <s> --round <n>
+               [--context-file <path>] [--excerpt-file <path>]
+               [--claude-bin <path>] [--codex-bin <path>] [--gemini-bin <path>]
+               [--sequential]
+
+    Run one round of a robot mode session. Outputs JSON to stdout with round
+    results (adds, kills, converged, etc). Between rounds, write operator notes
+    to operator_notes_round_N.md — they are injected into the next round's
+    prompts for all agents. This enables HITL (human-in-the-loop) orchestration.
+
   session robot --session-dir <path> --question <s>
                [--context-file <path>] [--excerpt-file <path>] [--max-rounds <n>]
                [--claude-bin <path>] [--codex-bin <path>] [--gemini-bin <path>]
@@ -7619,6 +7629,510 @@ ${JSON.stringify(delta, null, 2)}
   }
 
   // ============================================================================
+  // Session Robot-Step Command — single round execution for HITL orchestration
+  // ============================================================================
+  if (normalizedTop === "session" && sub === "robot-step") {
+    const sessionDirRaw = asStringFlag(flags, "session-dir");
+    if (!sessionDirRaw) throw new Error("Missing --session-dir.");
+    const sessionDir = resolve(sessionDirRaw);
+
+    const question = asStringFlag(flags, "question");
+    if (!question) throw new Error("Missing --question.");
+
+    const round = asIntFlag(flags, "round");
+    if (!round || round < 1) throw new Error("Missing or invalid --round (must be >= 1).");
+
+    const contextFile = asStringFlag(flags, "context-file") ?? join(sessionDir, "context.md");
+    const excerptFile = asStringFlag(flags, "excerpt-file") ?? join(sessionDir, "excerpt.md");
+    const sequential = asBoolFlag(flags, "sequential");
+
+    // Extract session ID from directory name
+    const sessionId = sessionDir.split("/").pop() ?? `RS-robot-${Date.now()}`;
+
+    // Create session directory if it doesn't exist
+    if (!existsSync(sessionDir)) mkdirSync(sessionDir, { recursive: true });
+
+    // Validate required files
+    if (!existsSync(contextFile)) {
+      throw new Error(
+        `Missing context file: ${contextFile}\n` +
+        `Create it with your research question, background, and evaluation criteria.`,
+      );
+    }
+    if (!existsSync(excerptFile)) {
+      throw new Error(
+        `Missing excerpt file: ${excerptFile}\n` +
+        `Build one with: brenner excerpt build --sections <A,B> > ${excerptFile}\n` +
+        `Or: touch ${excerptFile}  (to skip)`,
+      );
+    }
+
+    const contextText = readFileSync(contextFile, "utf-8");
+    const excerptText = readFileSync(excerptFile, "utf-8");
+
+    // Resolve agent binaries (reuse same logic as session robot)
+    const claudeBin = asStringFlag(flags, "claude-bin") ?? process.env.BRENNER_CLAUDE_BIN ?? "claude";
+    const codexBin = asStringFlag(flags, "codex-bin") ?? process.env.BRENNER_CODEX_BIN ?? "codex";
+    const geminiBin = asStringFlag(flags, "gemini-bin") ?? process.env.BRENNER_GEMINI_BIN ?? "gemini";
+
+    const augmentedPath = `${homedir()}/.local/bin:/usr/local/bin:${process.env.PATH ?? ""}`;
+
+    // Agent configuration (same as session robot)
+    type RobotAgent = {
+      name: string;
+      slug: string;
+      role: { role: string; displayName: string; description: string };
+      bin: string;
+      buildArgs: (prompt: string, outFile: string) => string[];
+      buildEnv: () => Record<string, string | undefined>;
+      readOutput: (stdout: string, outFile: string) => string;
+    };
+
+    const ROLE_CONFIGS: Record<string, { role: string; displayName: string; description: string }> = {
+      claude: { role: "test_designer", displayName: "Test Designer", description: "Design discriminative tests that kill hypotheses. Score experiments by evidence-per-week." },
+      codex: { role: "hypothesis_generator", displayName: "Hypothesis Generator", description: "Generate hypotheses, hunt paradoxes, import cross-domain patterns. Always include a third alternative." },
+      gemini: { role: "adversarial_critic", displayName: "Adversarial Critic", description: "Attack the framing, run scale checks, quarantine anomalies, kill theories that go ugly." },
+    };
+
+    const agents: RobotAgent[] = [
+      {
+        name: "BlueLake",
+        slug: "bluelake",
+        bin: claudeBin,
+        role: ROLE_CONFIGS.claude,
+        buildArgs: (prompt: string, _outFile: string) => [
+          "--dangerously-skip-permissions", "--output-format", "text", "-p", prompt,
+        ],
+        buildEnv: () => ({
+          ...process.env,
+          PATH: augmentedPath,
+          AGENT_NAME: "BlueLake",
+          CLAUDECODE: "",
+          CLAUDE_CODE_ENTRYPOINT: "",
+        }),
+        readOutput: (stdout: string, _outFile: string) => stdout,
+      },
+      {
+        name: "RedForest",
+        slug: "redforest",
+        bin: codexBin,
+        role: ROLE_CONFIGS.codex,
+        buildArgs: (prompt: string, outFile: string) => [
+          "exec", "--full-auto", "--output-last-message", outFile, prompt,
+        ],
+        buildEnv: () => ({
+          ...process.env,
+          PATH: augmentedPath,
+          AGENT_NAME: "RedForest",
+        }),
+        readOutput: (_stdout: string, outFile: string) =>
+          existsSync(outFile) ? readFileSync(outFile, "utf-8") : "",
+      },
+      {
+        name: "GreenMountain",
+        slug: "greenmountain",
+        bin: geminiBin,
+        role: ROLE_CONFIGS.gemini,
+        buildArgs: (prompt: string, _outFile: string) => [
+          "--sandbox", "--output-format", "text", "-p", prompt,
+        ],
+        buildEnv: () => ({
+          ...process.env,
+          PATH: augmentedPath,
+          AGENT_NAME: "GreenMountain",
+        }),
+        readOutput: (stdout: string, _outFile: string) => stdout,
+      },
+    ];
+
+    // -------------------------------------------------------------------
+    // Prompt builders (same as session robot but with operator notes)
+    // -------------------------------------------------------------------
+    function buildRound1PromptStep(agent: RobotAgent): string {
+      const kernel = getTriangulatedBrennerKernelMarkdown();
+      const roleSection = getRolePromptMarkdown(agent.role.role);
+
+      const parts: string[] = [];
+      parts.push(`You are ${agent.name} (${agent.role.displayName}) in a Brenner Protocol session.\n`);
+
+      if (kernel) {
+        parts.push(`## Triangulated Brenner Kernel\n\n${kernel}\n`);
+      }
+      if (roleSection) {
+        parts.push(`## Role Prompt (System)\n\n${roleSection}\n`);
+      } else {
+        parts.push(`## Your Role\n${agent.role.description}\n`);
+      }
+
+      parts.push(`## Research Question\n\n${question}\n`);
+      if (contextText.trim()) {
+        parts.push(`## Context\n\n${contextText}\n`);
+      }
+      if (excerptText.trim()) {
+        parts.push(`## Brenner Excerpt\n\n${excerptText}\n`);
+      }
+
+      parts.push(buildDeltaFormatInstructionsStep());
+      return parts.join("\n");
+    }
+
+    function buildRoundNPromptStep(agent: RobotAgent, art: Artifact, r: number, operatorNotes: string): string {
+      const kernel = getTriangulatedBrennerKernelMarkdown();
+      const roleSection = getRolePromptMarkdown(agent.role.role);
+      const artifactMd = renderArtifactMarkdown(art);
+
+      const parts: string[] = [];
+      parts.push(`You are ${agent.name} (${agent.role.displayName}) in a Brenner Protocol session.\n`);
+
+      if (kernel) {
+        parts.push(`## Triangulated Brenner Kernel\n\n${kernel}\n`);
+      }
+      if (roleSection) {
+        parts.push(`## Role Prompt (System)\n\n${roleSection}\n`);
+      } else {
+        parts.push(`## Your Role\n${agent.role.description}\n`);
+      }
+
+      // Round-specific instructions
+      if (r === 2) {
+        parts.push(`## Round ${r} Instructions\n`);
+        parts.push(`Review other agents' findings from the previous round (in the artifact below).`);
+        parts.push(`Make your first kill attempts — identify weak hypotheses and KILL them with explicit reasons.`);
+        parts.push(`You may ADD refinements, but kills are the priority.\n`);
+      } else {
+        parts.push(`## Round ${r} Instructions (Convergence)\n`);
+        parts.push(`KILLS MUST EXCEED ADDS. Provide final verdicts on all surviving hypotheses.`);
+        parts.push(`Kill any hypothesis that cannot withstand scrutiny. Fewer strong beats more weak.\n`);
+      }
+
+      // Operator notes from previous round
+      if (operatorNotes.trim()) {
+        parts.push(`## Operator Notes (from previous round)\n\nThe human operator reviewed the previous round and provided the following corrections and guidance. Treat these as ground truth — they override any agent assumptions.\n\n${operatorNotes}\n`);
+      }
+
+      parts.push(`## Current Artifact (v${art.metadata.version})\n\n${artifactMd}\n`);
+      parts.push(buildDeltaFormatInstructionsStep());
+      return parts.join("\n");
+    }
+
+    // -------------------------------------------------------------------
+    // Agent invocation (same as session robot)
+    // -------------------------------------------------------------------
+    async function invokeAgentStep(agent: RobotAgent, prompt: string, roundDir: string): Promise<string> {
+      const outFile = join(roundDir, `${agent.slug}_out.md`);
+
+      // Write prompt to file
+      writeFileSync(join(roundDir, `${agent.slug}_prompt.md`), prompt);
+
+      stderrLine(`  -> Invoking ${agent.name} (${agent.role.displayName})...`);
+
+      return new Promise<string>((resolve) => {
+        const args = agent.buildArgs(prompt, outFile);
+        const env = agent.buildEnv();
+
+        let stdout = "";
+        let stderr = "";
+
+        const child = spawn(agent.bin, args, {
+          env,
+          stdio: ["ignore", "pipe", "pipe"],
+          cwd: sessionDir,
+        });
+
+        child.stdout.on("data", (chunk: Buffer) => { stdout += chunk.toString(); });
+        child.stderr.on("data", (chunk: Buffer) => { stderr += chunk.toString(); });
+
+        // Timeout: 5 minutes
+        const timeout = setTimeout(() => {
+          stderrLine(`  [!] ${agent.name} timed out after 5 minutes`);
+          child.kill("SIGTERM");
+          // Escalate to SIGKILL after 10s
+          const killTimeout = setTimeout(() => { child.kill("SIGKILL"); }, 10_000);
+          child.on("exit", () => clearTimeout(killTimeout));
+        }, 300_000);
+
+        child.on("error", (err) => {
+          clearTimeout(timeout);
+          stderrLine(`  [!] ${agent.name} failed to launch: ${err.message}`);
+          resolve("");
+        });
+
+        child.on("exit", (code) => {
+          clearTimeout(timeout);
+          const output = agent.readOutput(stdout, outFile);
+          const deltaCount = (output.match(/```(?:delta|json\s+brenner-delta)/g) ?? []).length;
+          if (output.trim()) {
+            stderrLine(`  [ok] ${agent.name} done (${deltaCount} delta blocks)`);
+            // Show first few deltas as preview
+            const lines = output.split("\n");
+            for (const line of lines.slice(0, 20)) {
+              if (line.includes("[delta]") || line.startsWith("```delta") || line.startsWith("```json")) {
+                stderrLine(`       ${line.slice(0, 80)}`);
+              }
+            }
+          } else {
+            stderrLine(`  [!] ${agent.name}: no output (exit code ${code})`);
+          }
+
+          // Write output to file
+          writeFileSync(outFile, output);
+          resolve(output);
+        });
+      });
+    }
+
+    // -------------------------------------------------------------------
+    // Shared utilities (duplicated from session robot scope)
+    // -------------------------------------------------------------------
+    function buildDeltaFormatInstructionsStep(): string {
+      return `## Output Format
+
+Respond ONLY with delta blocks. Each delta is a JSON object in a \`\`\`delta fence.
+One JSON object per fence. No arrays. No prose outside delta blocks.
+
+Valid operations: ADD (target_id: null), EDIT (target_id required), KILL (target_id required).
+Valid sections: hypothesis_slate, discriminative_tests, assumption_ledger, anomaly_register,
+  adversarial_critique, research_thread, predictions_table.
+
+The compiler assigns IDs (H1, H2, T1, A1, C1, etc.). Do not invent your own IDs.
+For KILL, use the "reason" field (not "kill_reason").
+
+**Your full argument MUST go in the payload content fields** — rationale is metadata only
+and will NOT be visible to other agents. Write reasoning in mechanism (hypotheses),
+attack/evidence (critiques), procedure/discriminates (tests), reason (kills).
+
+**Predictions table mandate:** For every hypothesis you ADD, you MUST also ADD a
+predictions_table row specifying what observable outcome it predicts differently
+from alternatives.
+
+Example ADD (hypothesis):
+\`\`\`delta
+{
+  "operation": "ADD",
+  "section": "hypothesis_slate",
+  "target_id": null,
+  "payload": {
+    "name": "Short descriptive name",
+    "claim": "One falsifiable sentence.",
+    "mechanism": "Full causal argument with evidence and failure modes.",
+    "anchors": ["[inference]"],
+    "third_alternative": false
+  },
+  "rationale": "[inference]"
+}
+\`\`\`
+
+Example KILL:
+\`\`\`delta
+{
+  "operation": "KILL",
+  "section": "hypothesis_slate",
+  "target_id": "H1",
+  "payload": { "reason": "Full kill argument: which evidence rules this out and why no rescue is possible." },
+  "rationale": "[inference]"
+}
+\`\`\`
+`;
+    }
+
+    function parseAgentDeltasStep(
+      agentName: string,
+      output: string,
+      timestamp: string,
+    ): Array<ValidDelta & { timestamp: string; agent: string }> {
+      const deltas = extractValidDeltas(output);
+      return deltas.map((d) => ({ ...d, timestamp, agent: agentName }));
+    }
+
+    function checkConvergenceStep(
+      roundDeltas: Array<ValidDelta & { timestamp: string; agent: string }>,
+      r: number,
+      art: Artifact,
+    ): { converged: boolean; reason: string } {
+      const a = roundDeltas.filter((d) => d.operation === "ADD").length;
+      const k = roundDeltas.filter((d) => d.operation === "KILL").length;
+
+      if (r === 1) {
+        return { converged: false, reason: `Round 1: ${a} adds, ${k} kills` };
+      }
+
+      const active = (art.sections.hypothesis_slate as any[])
+        .filter((h: any) => !h.killed).length;
+
+      if (k > 0 && k >= a) {
+        return {
+          converged: true,
+          reason: `Kill-rate (${k}) >= add-rate (${a}), ${active} active hypotheses remain`,
+        };
+      }
+
+      if (roundDeltas.length === 0) {
+        return { converged: true, reason: "No deltas produced — agents have converged" };
+      }
+
+      return {
+        converged: false,
+        reason: `Adds (${a}) > Kills (${k}), ${active} active hypotheses`,
+      };
+    }
+
+    // -------------------------------------------------------------------
+    // Execute one round
+    // -------------------------------------------------------------------
+    stderrLine(`\n========================================`);
+    stderrLine(`  Brenner Robot Step — Round ${round}`);
+    stderrLine(`========================================`);
+    stderrLine(`Session:  ${sessionId}`);
+    stderrLine(`Question: ${question.slice(0, 80)}${question.length > 80 ? "..." : ""}`);
+    stderrLine(`Agents:   BlueLake (${claudeBin}), RedForest (${codexBin}), GreenMountain (${geminiBin})`);
+    stderrLine(`Mode:     ${sequential ? "sequential" : "parallel"}`);
+    stderrLine(`========================================\n`);
+
+    // Load or create artifact
+    let artifact: Artifact;
+    const stateFile = join(sessionDir, "session_state.json");
+    if (round === 1) {
+      artifact = createEmptyArtifact(sessionId);
+    } else {
+      if (!existsSync(stateFile)) {
+        throw new Error(`Cannot run round ${round}: session_state.json not found. Run round 1 first.`);
+      }
+      artifact = JSON.parse(readFileSync(stateFile, "utf-8"));
+    }
+
+    // Read operator notes from previous round (if any)
+    let operatorNotes = "";
+    if (round > 1) {
+      const notesFile = join(sessionDir, `operator_notes_round_${round - 1}.md`);
+      if (existsSync(notesFile)) {
+        operatorNotes = readFileSync(notesFile, "utf-8");
+        stderrLine(`  Loaded operator notes from round ${round - 1}\n`);
+      }
+    }
+
+    const roundDir = join(sessionDir, `round_${round}`);
+    if (!existsSync(roundDir)) mkdirSync(roundDir, { recursive: true });
+
+    // Build prompts
+    const prompts = new Map<RobotAgent, string>();
+    for (const agent of agents) {
+      const prompt = round === 1
+        ? buildRound1PromptStep(agent)
+        : buildRoundNPromptStep(agent, artifact, round, operatorNotes);
+      prompts.set(agent, prompt);
+    }
+
+    // Invoke agents
+    const outputs = new Map<RobotAgent, string>();
+    if (sequential) {
+      for (const agent of agents) {
+        const prompt = prompts.get(agent)!;
+        const output = await invokeAgentStep(agent, prompt, roundDir);
+        outputs.set(agent, output);
+      }
+    } else {
+      const results = await Promise.allSettled(
+        agents.map(async (agent) => {
+          const prompt = prompts.get(agent)!;
+          const output = await invokeAgentStep(agent, prompt, roundDir);
+          return { agent, output };
+        })
+      );
+      for (const result of results) {
+        if (result.status === "fulfilled") {
+          outputs.set(result.value.agent, result.value.output);
+        } else {
+          stderrLine(`  [!] Agent invocation failed: ${result.reason}`);
+        }
+      }
+    }
+
+    // Parse deltas from all agent outputs
+    const ts = new Date().toISOString();
+    const allRoundDeltas: Array<ValidDelta & { timestamp: string; agent: string }> = [];
+    for (const agent of agents) {
+      const output = outputs.get(agent) ?? "";
+      if (!output.trim()) {
+        stderrLine(`  [!] ${agent.name}: no output`);
+        continue;
+      }
+      const agentDeltas = parseAgentDeltasStep(agent.name, output, ts);
+      stderrLine(`  ${agent.name}: ${agentDeltas.length} valid deltas`);
+      allRoundDeltas.push(...agentDeltas);
+    }
+
+    // Save raw deltas
+    writeFileSync(join(roundDir, "deltas.json"), JSON.stringify(allRoundDeltas, null, 2));
+
+    // Merge deltas into artifact
+    const mergeResult = mergeArtifactWithTimestamps(artifact, allRoundDeltas);
+    let mergeErrors = 0;
+    artifact = mergeResult.artifact;
+    if (!mergeResult.ok) {
+      mergeErrors = mergeResult.errors.length;
+      stderrLine(`  Merge: ${mergeErrors} errors (${mergeResult.applied_count} deltas applied successfully)`);
+      for (const err of mergeResult.errors.slice(0, 5)) {
+        stderrLine(`    - ${err.message}`);
+      }
+    }
+
+    // Lint
+    const lintReport = lintArtifact(artifact);
+    if (lintReport.violations.length > 0) {
+      const errorCount = lintReport.violations.filter((v) => v.severity === "error").length;
+      const warnCount = lintReport.violations.filter((v) => v.severity === "warning").length;
+      stderrLine(`  Lint: ${errorCount} errors, ${warnCount} warnings`);
+    } else {
+      stderrLine(`  Lint: clean`);
+    }
+
+    // Persist artifact and state
+    writeFileSync(join(sessionDir, "artifact.md"), renderArtifactMarkdown(artifact));
+    writeFileSync(join(sessionDir, "session_state.json"), JSON.stringify(artifact, null, 2));
+
+    // Count operations and check convergence
+    const adds = allRoundDeltas.filter((d) => d.operation === "ADD").length;
+    const kills = allRoundDeltas.filter((d) => d.operation === "KILL").length;
+    const edits = allRoundDeltas.filter((d) => d.operation === "EDIT").length;
+    const convergence = checkConvergenceStep(allRoundDeltas, round, artifact);
+
+    const activeHypotheses = (artifact.sections.hypothesis_slate as any[])
+      .filter((h: any) => !h.killed);
+    const killedHypotheses = (artifact.sections.hypothesis_slate as any[])
+      .filter((h: any) => h.killed);
+
+    stderrLine(`\n  Round ${round} summary: +${adds} adds, -${kills} kills, ~${edits} edits`);
+    stderrLine(`  ${convergence.reason}`);
+    stderrLine(`  Active hypotheses: ${activeHypotheses.length}`);
+    stderrLine(`  Killed hypotheses: ${killedHypotheses.length}`);
+
+    if (convergence.converged) {
+      stderrLine(`\n  >>> Session converged after round ${round} <<<\n`);
+    }
+
+    // Output JSON result to stdout
+    stdoutLine(JSON.stringify({
+      ok: true,
+      sessionId,
+      sessionDir,
+      round,
+      adds,
+      kills,
+      edits,
+      mergeErrors,
+      converged: convergence.converged,
+      convergenceReason: convergence.reason,
+      activeHypotheses: activeHypotheses.length,
+      killedHypotheses: killedHypotheses.length,
+      artifactVersion: artifact.metadata.version,
+      artifactFile: join(sessionDir, "artifact.md"),
+      stateFile: join(sessionDir, "session_state.json"),
+      operatorNotesFile: join(sessionDir, `operator_notes_round_${round}.md`),
+    }, null, 2));
+
+    process.exit(0);
+  }
+
   // Session Robot Command — fully automated multi-agent, no Agent Mail
   // ============================================================================
   if (normalizedTop === "session" && sub === "robot") {

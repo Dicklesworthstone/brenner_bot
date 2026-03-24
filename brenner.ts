@@ -7734,7 +7734,7 @@ ${JSON.stringify(delta, null, 2)}
         bin: geminiBin,
         role: ROLE_CONFIGS.gemini,
         buildArgs: (prompt: string, _outFile: string) => [
-          "--sandbox", "--output-format", "text", "-p", prompt,
+          "--yolo", "--output-format", "text", "-p", prompt,
         ],
         buildEnv: () => ({
           ...process.env,

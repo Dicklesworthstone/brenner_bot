@@ -37,6 +37,48 @@ Deployed on Vercel with Cloudflare DNS at **`brennerbot.org`**.
 
 ---
 
+### Fork additions: Stepwise Robot Mode (branch `feat/hitl-robot-mode`)
+
+This fork adds two CLI commands for HITL (human-in-the-loop) orchestration, built on top of the upstream `session robot` infrastructure:
+
+**`session robot-step`** — Run one round at a time. Between rounds, the caller writes operator notes to `operator_notes_round_N.md` — they're automatically injected into the next round's prompts for all agents.
+
+```bash
+# Round 1
+brenner session robot-step \
+  --session-dir ./my-session --question "..." --excerpt-file excerpt.md --round 1
+
+# Read results, write operator_notes_round_1.md with corrections
+
+# Round 2 (operator notes from round 1 injected automatically)
+brenner session robot-step \
+  --session-dir ./my-session --question "..." --round 2
+```
+
+JSON output includes per-agent health reporting:
+```json
+{
+  "ok": true, "round": 1, "adds": 29, "kills": 0, "converged": false,
+  "agents": {
+    "BlueLake": { "status": "ok", "deltas": 9 },
+    "RedForest": { "status": "ok", "deltas": 15 },
+    "GreenMountain": { "status": "error", "error": "429 rate limit", "deltas": 0 }
+  }
+}
+```
+
+**`session robot-stress`** — Stress test survivors from a completed session. Reads `session_state.json`, identifies non-killed hypotheses, and sends adversarial "kill the survivors" prompts to all three agents.
+
+```bash
+brenner session robot-stress \
+  --session-dir ./my-session \
+  --operator-context ./corrections.md  # optional
+```
+
+Both commands use the same hardened agent invocation pipeline as `session robot`: parallel execution, 5-minute timeout per agent with SIGTERM→SIGKILL escalation, graceful degradation on agent failure, and all three agents get full tool access (`--dangerously-skip-permissions` for Claude, `--full-auto` for Codex, `--yolo` for Gemini).
+
+---
+
 ### Table of contents
 
 - [Why this repo is interesting](#why-this-repo-is-interesting)

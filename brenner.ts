@@ -1494,6 +1494,17 @@ Commands:
     to operator_notes_round_N.md — they are injected into the next round's
     prompts for all agents. This enables HITL (human-in-the-loop) orchestration.
 
+  session robot-stress --session-dir <path>
+               [--operator-context <path>]
+               [--claude-bin <path>] [--codex-bin <path>] [--gemini-bin <path>]
+               [--sequential]
+
+    Stress test survivors from a completed session. Reads session_state.json,
+    identifies non-killed hypotheses, and sends adversarial prompts to all three
+    agents asking them to falsify each survivor. Outputs JSON with per-agent
+    results. Prompt and output files are written to stress_test/ under the
+    session directory.
+
   session robot --session-dir <path> --question <s>
                [--context-file <path>] [--excerpt-file <path>] [--max-rounds <n>]
                [--claude-bin <path>] [--codex-bin <path>] [--gemini-bin <path>]
@@ -8050,15 +8061,24 @@ Example KILL:
     // Parse deltas from all agent outputs
     const ts = new Date().toISOString();
     const allRoundDeltas: Array<ValidDelta & { timestamp: string; agent: string }> = [];
+    const agentHealth: Record<string, { status: string; error?: string; deltas: number }> = {};
     for (const agent of agents) {
       const output = outputs.get(agent) ?? "";
       if (!output.trim()) {
         stderrLine(`  [!] ${agent.name}: no output`);
+        agentHealth[agent.name] = { status: "error", error: "no output", deltas: 0 };
         continue;
       }
       const agentDeltas = parseAgentDeltasStep(agent.name, output, ts);
       stderrLine(`  ${agent.name}: ${agentDeltas.length} valid deltas`);
+      agentHealth[agent.name] = { status: "ok", deltas: agentDeltas.length };
       allRoundDeltas.push(...agentDeltas);
+    }
+    // Mark agents that failed to invoke at all
+    for (const agent of agents) {
+      if (!agentHealth[agent.name]) {
+        agentHealth[agent.name] = { status: "error", error: "invocation failed", deltas: 0 };
+      }
     }
 
     // Save raw deltas
@@ -8128,6 +8148,275 @@ Example KILL:
       artifactFile: join(sessionDir, "artifact.md"),
       stateFile: join(sessionDir, "session_state.json"),
       operatorNotesFile: join(sessionDir, `operator_notes_round_${round}.md`),
+      agents: agentHealth,
+    }, null, 2));
+
+    process.exit(0);
+  }
+
+  // Session Robot-Stress Command — adversarial stress test on survivors
+  // ============================================================================
+  if (normalizedTop === "session" && sub === "robot-stress") {
+    const sessionDirRaw = asStringFlag(flags, "session-dir");
+    if (!sessionDirRaw) throw new Error("Missing --session-dir.");
+    const sessionDir = resolve(sessionDirRaw);
+
+    const operatorContextFile = asStringFlag(flags, "operator-context");
+    const sequential = asBoolFlag(flags, "sequential");
+
+    // Load session state
+    const stateFile = join(sessionDir, "session_state.json");
+    if (!existsSync(stateFile)) {
+      throw new Error(`Missing session_state.json in ${sessionDir}. Run a full session first.`);
+    }
+    const artifact: Artifact = JSON.parse(readFileSync(stateFile, "utf-8"));
+
+    // Identify survivors
+    const survivors = (artifact.sections.hypothesis_slate as any[])
+      .filter((h: any) => !h.killed);
+    if (survivors.length === 0) {
+      stdoutLine(JSON.stringify({
+        ok: true,
+        sessionDir,
+        survivors: [],
+        agents: {},
+        note: "No surviving hypotheses to stress test.",
+      }, null, 2));
+      process.exit(0);
+    }
+
+    const survivorNames = survivors.map((h: any) => h.name ?? h.id ?? "unnamed");
+
+    // Read optional operator context
+    let operatorContext = "";
+    if (operatorContextFile) {
+      if (!existsSync(operatorContextFile)) {
+        throw new Error(`Operator context file not found: ${operatorContextFile}`);
+      }
+      operatorContext = readFileSync(operatorContextFile, "utf-8");
+    }
+
+    // Render the full artifact
+    const artifactMd = renderArtifactMarkdown(artifact);
+
+    // Build the stress test prompt
+    const survivorList = survivors
+      .map((h: any, i: number) => `${i + 1}. **${h.name ?? h.id ?? "unnamed"}**: ${h.claim ?? h.statement ?? "(no claim)"}`)
+      .join("\n");
+
+    function buildStressPrompt(agentName: string, roleName: string): string {
+      const parts: string[] = [];
+      parts.push(`You are ${agentName} (${roleName}). You are performing an adversarial stress test on hypotheses that survived a full multi-round Brenner Protocol session.\n`);
+      parts.push(`## Surviving Hypotheses\n\n${survivorList}\n`);
+      parts.push(`## Full Artifact\n\n${artifactMd}\n`);
+      if (operatorContext.trim()) {
+        parts.push(`## Operator Context\n\nThe human operator provided the following corrections and additional context between convergence and this stress test. Treat these as ground truth.\n\n${operatorContext}\n`);
+      }
+      parts.push(`## Your Task\n\nThese hypotheses survived a full multi-round Brenner Protocol session. Your job is to kill them. Attack specifically — no framing critique, no new hypotheses, no adds. For each survivor: what concrete evidence, scenario, or counter-example would falsify it? If you can't construct a kill, explain precisely why it's robust.\n`);
+      return parts.join("\n");
+    }
+
+    // Resolve agent binaries
+    const claudeBin = asStringFlag(flags, "claude-bin") ?? process.env.BRENNER_CLAUDE_BIN ?? "claude";
+    const codexBin = asStringFlag(flags, "codex-bin") ?? process.env.BRENNER_CODEX_BIN ?? "codex";
+    const geminiBin = asStringFlag(flags, "gemini-bin") ?? process.env.BRENNER_GEMINI_BIN ?? "gemini";
+
+    const augmentedPath = `${homedir()}/.local/bin:/usr/local/bin:${process.env.PATH ?? ""}`;
+
+    // Agent configuration (same as robot-step)
+    type StressAgent = {
+      name: string;
+      slug: string;
+      roleName: string;
+      bin: string;
+      buildArgs: (prompt: string, outFile: string) => string[];
+      buildEnv: () => Record<string, string | undefined>;
+      readOutput: (stdout: string, outFile: string) => string;
+    };
+
+    const stressAgents: StressAgent[] = [
+      {
+        name: "BlueLake",
+        slug: "bluelake",
+        roleName: "Test Designer",
+        bin: claudeBin,
+        buildArgs: (prompt: string, _outFile: string) => [
+          "--dangerously-skip-permissions", "--output-format", "text", "-p", prompt,
+        ],
+        buildEnv: () => ({
+          ...process.env,
+          PATH: augmentedPath,
+          AGENT_NAME: "BlueLake",
+          CLAUDECODE: "",
+          CLAUDE_CODE_ENTRYPOINT: "",
+        }),
+        readOutput: (stdout: string, _outFile: string) => stdout,
+      },
+      {
+        name: "RedForest",
+        slug: "redforest",
+        roleName: "Hypothesis Generator",
+        bin: codexBin,
+        buildArgs: (prompt: string, outFile: string) => [
+          "exec", "--full-auto", "--output-last-message", outFile, prompt,
+        ],
+        buildEnv: () => ({
+          ...process.env,
+          PATH: augmentedPath,
+          AGENT_NAME: "RedForest",
+        }),
+        readOutput: (_stdout: string, outFile: string) =>
+          existsSync(outFile) ? readFileSync(outFile, "utf-8") : "",
+      },
+      {
+        name: "GreenMountain",
+        slug: "greenmountain",
+        roleName: "Adversarial Critic",
+        bin: geminiBin,
+        buildArgs: (prompt: string, _outFile: string) => [
+          "--yolo", "--output-format", "text", "-p", prompt,
+        ],
+        buildEnv: () => ({
+          ...process.env,
+          PATH: augmentedPath,
+          AGENT_NAME: "GreenMountain",
+        }),
+        readOutput: (stdout: string, _outFile: string) => stdout,
+      },
+    ];
+
+    // Create stress_test directory
+    const stressDir = join(sessionDir, "stress_test");
+    if (!existsSync(stressDir)) mkdirSync(stressDir, { recursive: true });
+
+    // Agent invocation (same timeout/SIGTERM→SIGKILL as robot-step)
+    async function invokeStressAgent(agent: StressAgent, prompt: string): Promise<{ output: string; error?: string }> {
+      const outFile = join(stressDir, `${agent.slug}_out.md`);
+
+      // Write prompt to file
+      writeFileSync(join(stressDir, `${agent.slug}_prompt.md`), prompt);
+
+      stderrLine(`  -> Invoking ${agent.name} (${agent.roleName})...`);
+
+      return new Promise<{ output: string; error?: string }>((resolvePromise) => {
+        const args = agent.buildArgs(prompt, outFile);
+        const env = agent.buildEnv();
+
+        let stdout = "";
+        let stderr = "";
+
+        const child = spawn(agent.bin, args, {
+          env,
+          stdio: ["ignore", "pipe", "pipe"],
+          cwd: sessionDir,
+        });
+
+        child.stdout.on("data", (chunk: Buffer) => { stdout += chunk.toString(); });
+        child.stderr.on("data", (chunk: Buffer) => { stderr += chunk.toString(); });
+
+        // Timeout: 5 minutes
+        const timeout = setTimeout(() => {
+          stderrLine(`  [!] ${agent.name} timed out after 5 minutes`);
+          child.kill("SIGTERM");
+          // Escalate to SIGKILL after 10s
+          const killTimeout = setTimeout(() => { child.kill("SIGKILL"); }, 10_000);
+          child.on("exit", () => clearTimeout(killTimeout));
+        }, 300_000);
+
+        child.on("error", (err) => {
+          clearTimeout(timeout);
+          stderrLine(`  [!] ${agent.name} failed to launch: ${err.message}`);
+          writeFileSync(outFile, "");
+          resolvePromise({ output: "", error: `failed to launch: ${err.message}` });
+        });
+
+        child.on("exit", (code) => {
+          clearTimeout(timeout);
+          const output = agent.readOutput(stdout, outFile);
+          writeFileSync(outFile, output);
+
+          if (output.trim()) {
+            stderrLine(`  [ok] ${agent.name} done (${output.length} chars)`);
+            resolvePromise({ output });
+          } else {
+            const errMsg = `exit code ${code}, no output`;
+            stderrLine(`  [!] ${agent.name}: ${errMsg}`);
+            resolvePromise({ output: "", error: errMsg });
+          }
+        });
+      });
+    }
+
+    stderrLine(`\n========================================`);
+    stderrLine(`  Brenner Robot Stress Test`);
+    stderrLine(`========================================`);
+    stderrLine(`Session:    ${sessionDir.split("/").pop()}`);
+    stderrLine(`Survivors:  ${survivors.length} (${survivorNames.join(", ")})`);
+    stderrLine(`Agents:     BlueLake (${claudeBin}), RedForest (${codexBin}), GreenMountain (${geminiBin})`);
+    stderrLine(`Mode:       ${sequential ? "sequential" : "parallel"}`);
+    stderrLine(`========================================\n`);
+
+    // Build prompts and invoke agents
+    const agentResults: Record<string, { status: string; error?: string; outputFile: string; outputLength: number }> = {};
+
+    if (sequential) {
+      for (const agent of stressAgents) {
+        const prompt = buildStressPrompt(agent.name, agent.roleName);
+        const result = await invokeStressAgent(agent, prompt);
+        const outFile = join(stressDir, `${agent.slug}_out.md`);
+        agentResults[agent.name] = {
+          status: result.error ? "error" : "ok",
+          ...(result.error ? { error: result.error } : {}),
+          outputFile: outFile,
+          outputLength: result.output.length,
+        };
+      }
+    } else {
+      const results = await Promise.allSettled(
+        stressAgents.map(async (agent) => {
+          const prompt = buildStressPrompt(agent.name, agent.roleName);
+          const result = await invokeStressAgent(agent, prompt);
+          return { agent, result };
+        })
+      );
+      for (const r of results) {
+        if (r.status === "fulfilled") {
+          const { agent, result } = r.value;
+          const outFile = join(stressDir, `${agent.slug}_out.md`);
+          agentResults[agent.name] = {
+            status: result.error ? "error" : "ok",
+            ...(result.error ? { error: result.error } : {}),
+            outputFile: outFile,
+            outputLength: result.output.length,
+          };
+        } else {
+          // This shouldn't happen since invokeStressAgent catches errors, but handle it
+          stderrLine(`  [!] Agent invocation promise rejected: ${r.reason}`);
+        }
+      }
+    }
+
+    // Fill in any missing agents (in case of promise rejection)
+    for (const agent of stressAgents) {
+      if (!agentResults[agent.name]) {
+        const outFile = join(stressDir, `${agent.slug}_out.md`);
+        agentResults[agent.name] = {
+          status: "error",
+          error: "invocation failed",
+          outputFile: outFile,
+          outputLength: 0,
+        };
+      }
+    }
+
+    stderrLine(`\n  Stress test complete.`);
+
+    // Output JSON result to stdout
+    stdoutLine(JSON.stringify({
+      ok: true,
+      sessionDir,
+      survivors: survivorNames,
+      agents: agentResults,
     }, null, 2));
 
     process.exit(0);

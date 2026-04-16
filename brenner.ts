@@ -333,6 +333,480 @@ function readTextFile(path: string): string {
   return readFileSync(path, "utf8");
 }
 
+type OperatorBeliefKind = "fact" | "judgment" | "kill_signal";
+type OperatorBeliefOrigin = "structured_json" | "structured_markdown" | "legacy_markdown";
+
+type OperatorBelief = {
+  id: string;
+  round: number | null;
+  phase: "round" | "stress";
+  kind: OperatorBeliefKind;
+  content: string;
+  targets: string[];
+  confidence?: string;
+  source?: string;
+  supersedes: string[];
+  status: "active" | "superseded";
+  origin: OperatorBeliefOrigin;
+  originFile: string;
+  order: number;
+};
+
+function normalizeBeliefKind(raw: string | undefined): OperatorBeliefKind | undefined {
+  if (!raw) return undefined;
+  const normalized = raw.trim().toLowerCase().replace(/[\s-]+/g, "_");
+  if (normalized === "fact" || normalized === "factual") return "fact";
+  if (normalized === "judgment" || normalized === "analytic" || normalized === "analysis") return "judgment";
+  if (normalized === "kill" || normalized === "kill_signal" || normalized === "kill_directive" || normalized === "directive") {
+    return "kill_signal";
+  }
+  return undefined;
+}
+
+function normalizeBeliefText(text: string): string {
+  return text
+    .split(/\r?\n/)
+    .map((line) => line.trimEnd())
+    .join("\n")
+    .trim();
+}
+
+function unquoteToken(raw: string): string {
+  const trimmed = raw.trim();
+  if (trimmed.startsWith("\"") && trimmed.endsWith("\"") && trimmed.length >= 2) {
+    return trimmed.slice(1, -1);
+  }
+  return trimmed;
+}
+
+function extractBeliefTargets(text: string): string[] {
+  const matches = text.match(/\b(?:RT\d+|[A-Z]{1,3}\d+)\b/g) ?? [];
+  return Array.from(new Set(matches));
+}
+
+function extractJsonFence(text: string): string | null {
+  const match = text.match(/```json\s*([\s\S]*?)```/i);
+  return match?.[1]?.trim() ?? null;
+}
+
+function makeBeliefId(round: number | null, phase: "round" | "stress", index: number): string {
+  if (phase === "stress") return `OB-S${index}`;
+  if (round === null) return `OB-X${index}`;
+  return `OB-R${round}-${index}`;
+}
+
+function coerceStringArray(value: Json | undefined): string[] {
+  if (typeof value === "string") return splitCsv(value);
+  if (!Array.isArray(value)) return [];
+  return value
+    .filter((item): item is string => typeof item === "string")
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
+function parseStructuredBeliefLine(
+  lineRemainder: string,
+): { meta: Record<string, string>; inlineContent: string } {
+  const [metaSegment, ...contentSegments] = lineRemainder.split(/\s+--\s+/);
+  const tokens = (metaSegment.match(/(?:[^\s"]+="[^"]*"|\S+)/g) ?? []);
+  const meta: Record<string, string> = {};
+  const contentTokens: string[] = [];
+
+  for (const token of tokens) {
+    const eq = token.indexOf("=");
+    if (eq === -1) {
+      contentTokens.push(token);
+      continue;
+    }
+
+    const key = token.slice(0, eq).trim().toLowerCase();
+    const value = unquoteToken(token.slice(eq + 1));
+    if (["id", "targets", "target", "supersedes", "confidence", "source"].includes(key)) {
+      meta[key] = value;
+    } else {
+      contentTokens.push(token);
+    }
+  }
+
+  const inlineContent = [contentTokens.join(" "), contentSegments.join(" -- ").trim()]
+    .map((part) => part.trim())
+    .filter(Boolean)
+    .join(" ")
+    .trim();
+
+  return { meta, inlineContent };
+}
+
+function parseOperatorBeliefsFromJsonText(
+  rawText: string,
+  round: number | null,
+  phase: "round" | "stress",
+  originFile: string,
+  strict: boolean,
+): OperatorBelief[] | null {
+  const candidate = extractJsonFence(rawText) ?? rawText.trim();
+  if (!candidate) return [];
+
+  let parsed: Json;
+  try {
+    parsed = JSON.parse(candidate) as Json;
+  } catch (error) {
+    if (strict) {
+      const message = error instanceof Error ? error.message : String(error);
+      throw new Error(`Failed to parse operator beliefs JSON at ${originFile}: ${message}`);
+    }
+    return null;
+  }
+
+  let entries: Json[] = [];
+  if (Array.isArray(parsed)) {
+    entries = parsed;
+  } else if (isRecord(parsed)) {
+    const beliefs = parsed.beliefs;
+    const items = parsed.items;
+    const entriesValue = Array.isArray(beliefs) ? beliefs : Array.isArray(items) ? items : [];
+    entries = entriesValue;
+  } else {
+    if (strict) throw new Error(`Operator beliefs JSON at ${originFile} must be an object or array.`);
+    return null;
+  }
+
+  return entries.flatMap((entry, index) => {
+    if (!isRecord(entry)) return [];
+    const kind = normalizeBeliefKind(
+      typeof entry.kind === "string"
+        ? entry.kind
+        : typeof entry.type === "string"
+          ? entry.type
+          : undefined
+    );
+    const content =
+      typeof entry.content === "string"
+        ? entry.content
+        : typeof entry.text === "string"
+          ? entry.text
+          : typeof entry.note === "string"
+            ? entry.note
+            : "";
+    const normalizedContent = normalizeBeliefText(content);
+    if (!kind || !normalizedContent) return [];
+
+    const explicitId = typeof entry.id === "string" ? entry.id.trim() : "";
+    const targets = Array.from(
+      new Set([
+        ...coerceStringArray(entry.targets),
+        ...coerceStringArray(entry.target),
+        ...extractBeliefTargets(normalizedContent),
+      ])
+    );
+    const supersedes = Array.from(
+      new Set([
+        ...coerceStringArray(entry.supersedes),
+      ])
+    );
+
+    return [{
+      id: explicitId || makeBeliefId(round, phase, index + 1),
+      round,
+      phase,
+      kind,
+      content: normalizedContent,
+      targets,
+      confidence: typeof entry.confidence === "string" ? entry.confidence.trim() : undefined,
+      source: typeof entry.source === "string" ? entry.source.trim() : undefined,
+      supersedes,
+      status: "active",
+      origin: "structured_json" as const,
+      originFile,
+      order: index + 1,
+    }];
+  });
+}
+
+function parseOperatorBeliefsFromStructuredMarkdown(
+  rawText: string,
+  round: number | null,
+  phase: "round" | "stress",
+  originFile: string,
+): OperatorBelief[] {
+  const lines = rawText.split(/\r?\n/);
+  const beliefs: OperatorBelief[] = [];
+  let current:
+    | {
+        kind: OperatorBeliefKind;
+        meta: Record<string, string>;
+        body: string[];
+      }
+    | null = null;
+
+  const flush = () => {
+    if (!current) return;
+    const normalizedContent = normalizeBeliefText(current.body.join("\n"));
+    if (normalizedContent) {
+      const targets = Array.from(
+        new Set([
+          ...splitCsv(current.meta.targets ?? current.meta.target),
+          ...extractBeliefTargets(normalizedContent),
+        ])
+      );
+      beliefs.push({
+        id: (current.meta.id || makeBeliefId(round, phase, beliefs.length + 1)).trim(),
+        round,
+        phase,
+        kind: current.kind,
+        content: normalizedContent,
+        targets,
+        confidence: current.meta.confidence?.trim(),
+        source: current.meta.source?.trim(),
+        supersedes: splitCsv(current.meta.supersedes),
+        status: "active",
+        origin: "structured_markdown",
+        originFile,
+        order: beliefs.length + 1,
+      });
+    }
+    current = null;
+  };
+
+  for (const line of lines) {
+    const match = line.match(/^\s*[-*]\s*\[(fact|judgment|kill(?:[_ -]?signal)?|kill_directive|directive)\]\s*(.*)$/i);
+    if (match) {
+      flush();
+      const kind = normalizeBeliefKind(match[1]);
+      if (!kind) continue;
+      const { meta, inlineContent } = parseStructuredBeliefLine(match[2] ?? "");
+      current = {
+        kind,
+        meta,
+        body: inlineContent ? [inlineContent] : [],
+      };
+      continue;
+    }
+
+    if (current) {
+      current.body.push(line);
+    }
+  }
+
+  flush();
+  return beliefs;
+}
+
+function parseOperatorBeliefsFromLegacyMarkdown(
+  rawText: string,
+  round: number | null,
+  phase: "round" | "stress",
+  originFile: string,
+): OperatorBelief[] {
+  const trimmed = rawText.trim();
+  if (!trimmed) return [];
+
+  const lines = rawText.split(/\r?\n/);
+  const beliefs: OperatorBelief[] = [];
+  let currentTitle = "";
+  let currentBody: string[] = [];
+  let sawHeading = false;
+
+  const flush = () => {
+    const body = normalizeBeliefText(currentBody.join("\n"));
+    if (!body && !currentTitle) return;
+    const content = normalizeBeliefText(currentTitle ? `${currentTitle}\n\n${body}` : body);
+    if (!content) return;
+    if (/^#\s+Operator Notes\b/i.test(content)) return;
+    beliefs.push({
+      id: makeBeliefId(round, phase, beliefs.length + 1),
+      round,
+      phase,
+      kind: "judgment",
+      content,
+      targets: extractBeliefTargets(content),
+      status: "active",
+      supersedes: [],
+      origin: "legacy_markdown",
+      originFile,
+      order: beliefs.length + 1,
+    });
+  };
+
+  for (const line of lines) {
+    const heading = line.match(/^##+\s+(.+?)\s*$/);
+    if (heading) {
+      sawHeading = true;
+      if (currentTitle || currentBody.length > 0) flush();
+      currentTitle = heading[1] ?? "";
+      currentBody = [];
+      continue;
+    }
+    currentBody.push(line);
+  }
+
+  if (sawHeading) {
+    flush();
+    return beliefs;
+  }
+
+  return [{
+    id: makeBeliefId(round, phase, 1),
+    round,
+    phase,
+    kind: "judgment",
+    content: trimmed,
+    targets: extractBeliefTargets(trimmed),
+    status: "active",
+    supersedes: [],
+    origin: "legacy_markdown",
+    originFile,
+    order: 1,
+  }];
+}
+
+function parseOperatorBeliefFile(
+  originFile: string,
+  round: number | null,
+  phase: "round" | "stress",
+): OperatorBelief[] {
+  const rawText = readTextFile(originFile);
+  if (!rawText.trim()) return [];
+
+  const strictJson = originFile.endsWith(".json");
+  const jsonBeliefs = parseOperatorBeliefsFromJsonText(rawText, round, phase, originFile, strictJson);
+  if (jsonBeliefs !== null) return jsonBeliefs;
+
+  const structuredMarkdownBeliefs = parseOperatorBeliefsFromStructuredMarkdown(rawText, round, phase, originFile);
+  if (structuredMarkdownBeliefs.length > 0) return structuredMarkdownBeliefs;
+
+  return parseOperatorBeliefsFromLegacyMarkdown(rawText, round, phase, originFile);
+}
+
+function finalizeOperatorBeliefs(beliefs: OperatorBelief[]): OperatorBelief[] {
+  const seen = new Map<string, number>();
+  const deduped = beliefs.map((belief) => {
+    const priorCount = seen.get(belief.id) ?? 0;
+    const nextCount = priorCount + 1;
+    seen.set(belief.id, nextCount);
+    if (nextCount === 1) return belief;
+    return {
+      ...belief,
+      id: `${belief.id}~${nextCount}`,
+    };
+  });
+
+  const byId = new Map(deduped.map((belief) => [belief.id, belief]));
+  const superseded = new Set<string>();
+  for (const belief of deduped) {
+    for (const targetId of belief.supersedes) {
+      if (byId.has(targetId)) superseded.add(targetId);
+    }
+  }
+
+  return deduped.map((belief) => ({
+    ...belief,
+    status: superseded.has(belief.id) ? "superseded" : "active",
+  }));
+}
+
+function loadOperatorBeliefsForRounds(sessionDir: string, lastRound: number): OperatorBelief[] {
+  const beliefs: OperatorBelief[] = [];
+
+  for (let round = 1; round <= lastRound; round++) {
+    const jsonFile = join(sessionDir, `operator_beliefs_round_${round}.json`);
+    const markdownFile = join(sessionDir, `operator_notes_round_${round}.md`);
+    if (existsSync(jsonFile)) {
+      beliefs.push(...parseOperatorBeliefFile(jsonFile, round, "round"));
+      continue;
+    }
+    if (existsSync(markdownFile)) {
+      beliefs.push(...parseOperatorBeliefFile(markdownFile, round, "round"));
+    }
+  }
+
+  return finalizeOperatorBeliefs(beliefs);
+}
+
+function loadOperatorBeliefsForStress(sessionDir: string, operatorContextFile?: string): OperatorBelief[] {
+  const roundBeliefs: OperatorBelief[] = [];
+  for (let round = 1; round <= 50; round++) {
+    const jsonFile = join(sessionDir, `operator_beliefs_round_${round}.json`);
+    const markdownFile = join(sessionDir, `operator_notes_round_${round}.md`);
+    if (existsSync(jsonFile)) {
+      roundBeliefs.push(...parseOperatorBeliefFile(jsonFile, round, "round"));
+      continue;
+    }
+    if (existsSync(markdownFile)) {
+      roundBeliefs.push(...parseOperatorBeliefFile(markdownFile, round, "round"));
+    }
+  }
+
+  const stressBeliefs = operatorContextFile
+    ? parseOperatorBeliefFile(operatorContextFile, null, "stress")
+    : [];
+
+  return finalizeOperatorBeliefs([...roundBeliefs, ...stressBeliefs]);
+}
+
+function formatOperatorBeliefLabel(belief: OperatorBelief): string {
+  const parts = [
+    belief.id,
+    belief.kind.toUpperCase().replace("_", "-"),
+    belief.phase === "stress" ? "stress context" : `round ${belief.round ?? "?"}`,
+  ];
+  if (belief.targets.length > 0) parts.push(`targets: ${belief.targets.join(", ")}`);
+  if (belief.confidence) parts.push(`confidence: ${belief.confidence}`);
+  if (belief.source) parts.push(`source: ${belief.source}`);
+  if (belief.origin === "legacy_markdown") parts.push("legacy markdown import");
+  return parts.join(" | ");
+}
+
+function renderOperatorBeliefLedgerMarkdown(
+  beliefs: OperatorBelief[],
+  mode: "round" | "stress",
+): string {
+  if (beliefs.length === 0) return "";
+
+  const active = beliefs.filter((belief) => belief.status === "active");
+  const historical = beliefs.filter((belief) => belief.status === "superseded");
+  const intro = mode === "stress"
+    ? "This ledger compiles cumulative operator interventions from the main session plus any post-convergence stress-test context."
+    : "This ledger compiles cumulative operator interventions from earlier rounds. Historical beliefs remain visible so you can detect contradictions instead of silently inheriting the latest frame.";
+
+  const renderEntries = (entries: OperatorBelief[]): string => entries
+    .map((belief) => {
+      const lines = [
+        `- **${formatOperatorBeliefLabel(belief)}**`,
+        ...belief.content.split("\n").map((line) => `  ${line}`),
+      ];
+      if (belief.supersedes.length > 0) {
+        lines.push(`  Supersedes: ${belief.supersedes.join(", ")}`);
+      }
+      return lines.join("\n");
+    })
+    .join("\n");
+
+  const parts: string[] = [];
+  parts.push(`## Operator Belief Ledger\n`);
+  parts.push(`${intro}\n`);
+  parts.push(`Belief authority rules:`);
+  parts.push(`- **FACT**: accept as established fact unless the ledger itself records a later correction.`);
+  parts.push(`- **JUDGMENT**: engage seriously, but do not treat it as sufficient cause by itself. Connect it to artifact evidence or explain why you disagree.`);
+  parts.push(`- **KILL-SIGNAL**: treat as a strong rescue-vs-kill prompt, not a command. A kill still needs mechanism-level evidence.`);
+  parts.push(`- **Legacy markdown imports** are historical notes carried forward for context. Treat them as judgments unless they contain an explicitly verified fact.\n`);
+  parts.push(`Do not cite an operator judgment or kill-signal as the sole reason for a delta. If you see unresolved tension between active beliefs, call it out explicitly in the payload rather than silently choosing one.\n`);
+
+  if (active.length > 0) {
+    parts.push(`### Active Beliefs\n`);
+    parts.push(renderEntries(active));
+    parts.push("");
+  }
+
+  if (historical.length > 0) {
+    parts.push(`### Superseded / Historical Beliefs\n`);
+    parts.push(renderEntries(historical));
+    parts.push("");
+  }
+
+  return parts.join("\n").trim();
+}
+
 function parseArtifactFromJsonFile(path: string): Artifact {
   let parsed: Json;
   try {
@@ -1491,8 +1965,10 @@ Commands:
 
     Run one round of a robot mode session. Outputs JSON to stdout with round
     results (adds, kills, converged, etc). Between rounds, write operator notes
-    to operator_notes_round_N.md — they are injected into the next round's
-    prompts for all agents. This enables HITL (human-in-the-loop) orchestration.
+    to operator_notes_round_N.md or structured beliefs to
+    operator_beliefs_round_N.json. All prior operator interventions are
+    compiled into a cumulative belief ledger and injected into later prompts.
+    This enables HITL (human-in-the-loop) orchestration without losing history.
 
   session robot-stress --session-dir <path>
                [--operator-context <path>]
@@ -1500,10 +1976,11 @@ Commands:
                [--sequential]
 
     Stress test survivors from a completed session. Reads session_state.json,
-    identifies non-killed hypotheses, and sends adversarial prompts to all three
-    agents asking them to falsify each survivor. Outputs JSON with per-agent
-    results. Prompt and output files are written to stress_test/ under the
-    session directory.
+    identifies non-killed hypotheses, and runs a blind stress pass first. If
+    cumulative operator beliefs exist, it then runs an informed pass using the
+    operator belief ledger. Outputs JSON with per-agent results. Canonical
+    informed-pass files remain at stress_test/, while blind-pass files are
+    written to stress_test/blind/ under the session directory.
 
   session robot --session-dir <path> --question <s>
                [--context-file <path>] [--excerpt-file <path>] [--max-rounds <n>]
@@ -7787,7 +8264,7 @@ ${JSON.stringify(delta, null, 2)}
       return parts.join("\n");
     }
 
-    function buildRoundNPromptStep(agent: RobotAgent, art: Artifact, r: number, operatorNotes: string): string {
+    function buildRoundNPromptStep(agent: RobotAgent, art: Artifact, r: number, operatorBeliefLedger: string): string {
       const kernel = getTriangulatedBrennerKernelMarkdown();
       const roleSection = getRolePromptMarkdown(agent.role.role);
       const artifactMd = renderArtifactMarkdown(art);
@@ -7816,9 +8293,8 @@ ${JSON.stringify(delta, null, 2)}
         parts.push(`Kill any hypothesis that cannot withstand scrutiny. Fewer strong beats more weak.\n`);
       }
 
-      // Operator notes from previous round
-      if (operatorNotes.trim()) {
-        parts.push(`## Operator Notes (from previous round)\n\nThe human operator reviewed the previous round and provided the following corrections and guidance. Treat these as ground truth — they override any agent assumptions.\n\n${operatorNotes}\n`);
+      if (operatorBeliefLedger.trim()) {
+        parts.push(`${operatorBeliefLedger}\n`);
       }
 
       parts.push(`## Current Artifact (v${art.metadata.version})\n\n${artifactMd}\n`);
@@ -8011,25 +8487,42 @@ Example KILL:
       artifact = JSON.parse(readFileSync(stateFile, "utf-8"));
     }
 
-    // Read operator notes from previous round (if any)
-    let operatorNotes = "";
+    const roundDir = join(sessionDir, `round_${round}`);
+    if (!existsSync(roundDir)) mkdirSync(roundDir, { recursive: true });
+
+    let operatorBeliefs: OperatorBelief[] = [];
+    let operatorBeliefLedgerFile: string | undefined;
     if (round > 1) {
-      const notesFile = join(sessionDir, `operator_notes_round_${round - 1}.md`);
-      if (existsSync(notesFile)) {
-        operatorNotes = readFileSync(notesFile, "utf-8");
-        stderrLine(`  Loaded operator notes from round ${round - 1}\n`);
+      operatorBeliefs = loadOperatorBeliefsForRounds(sessionDir, round - 1);
+      if (operatorBeliefs.length > 0) {
+        const ledgerMarkdown = renderOperatorBeliefLedgerMarkdown(operatorBeliefs, "round");
+        operatorBeliefLedgerFile = join(roundDir, "operator_belief_ledger.md");
+        writeFileSync(operatorBeliefLedgerFile, ensureTrailingNewline(ledgerMarkdown));
+        writeFileSync(
+          join(roundDir, "operator_belief_ledger.json"),
+          JSON.stringify({ beliefs: operatorBeliefs }, null, 2)
+        );
+        const loadedRounds = Array.from(
+          new Set(
+            operatorBeliefs
+              .filter((belief) => belief.round !== null)
+              .map((belief) => belief.round as number)
+          )
+        ).sort((a, b) => a - b);
+        stderrLine(`  Loaded operator belief ledger from round${loadedRounds.length === 1 ? "" : "s"} ${loadedRounds.join(", ")}\n`);
       }
     }
 
-    const roundDir = join(sessionDir, `round_${round}`);
-    if (!existsSync(roundDir)) mkdirSync(roundDir, { recursive: true });
+    const operatorBeliefLedger = operatorBeliefs.length > 0
+      ? renderOperatorBeliefLedgerMarkdown(operatorBeliefs, "round")
+      : "";
 
     // Build prompts
     const prompts = new Map<RobotAgent, string>();
     for (const agent of agents) {
       const prompt = round === 1
         ? buildRound1PromptStep(agent)
-        : buildRoundNPromptStep(agent, artifact, round, operatorNotes);
+        : buildRoundNPromptStep(agent, artifact, round, operatorBeliefLedger);
       prompts.set(agent, prompt);
     }
 
@@ -8148,6 +8641,7 @@ Example KILL:
       artifactFile: join(sessionDir, "artifact.md"),
       stateFile: join(sessionDir, "session_state.json"),
       operatorNotesFile: join(sessionDir, `operator_notes_round_${round}.md`),
+      ...(operatorBeliefLedgerFile ? { operatorBeliefLedgerFile } : {}),
       agents: agentHealth,
     }, null, 2));
 
@@ -8187,15 +8681,6 @@ Example KILL:
 
     const survivorNames = survivors.map((h: any) => h.name ?? h.id ?? "unnamed");
 
-    // Read optional operator context
-    let operatorContext = "";
-    if (operatorContextFile) {
-      if (!existsSync(operatorContextFile)) {
-        throw new Error(`Operator context file not found: ${operatorContextFile}`);
-      }
-      operatorContext = readFileSync(operatorContextFile, "utf-8");
-    }
-
     // Render the full artifact
     const artifactMd = renderArtifactMarkdown(artifact);
 
@@ -8204,15 +8689,34 @@ Example KILL:
       .map((h: any, i: number) => `${i + 1}. **${h.name ?? h.id ?? "unnamed"}**: ${h.claim ?? h.statement ?? "(no claim)"}`)
       .join("\n");
 
-    function buildStressPrompt(agentName: string, roleName: string): string {
+    function buildBlindStressPrompt(agentName: string, roleName: string): string {
       const parts: string[] = [];
-      parts.push(`You are ${agentName} (${roleName}). You are performing an adversarial stress test on hypotheses that survived a full multi-round Brenner Protocol session.\n`);
+      parts.push(`You are ${agentName} (${roleName}). You are performing the BLIND adversarial stress pass on hypotheses that survived a full multi-round Brenner Protocol session.\n`);
+      parts.push(`## Pass Rules\n\nThis blind pass intentionally withholds operator corrections, operator beliefs, and post-session rescue framing. Attack only from the artifact and survivor text below. If you notice an ambiguity that might depend on operator context, state the conditional weakness explicitly instead of assuming an operator rescue.\n`);
       parts.push(`## Surviving Hypotheses\n\n${survivorList}\n`);
       parts.push(`## Full Artifact\n\n${artifactMd}\n`);
-      if (operatorContext.trim()) {
-        parts.push(`## Operator Context\n\nThe human operator provided the following corrections and additional context between convergence and this stress test. Treat these as ground truth.\n\n${operatorContext}\n`);
+      parts.push(`## Your Task\n\nThese hypotheses survived a full multi-round Brenner Protocol session. Your job in this blind pass is to kill them using only artifact evidence. Attack specifically — no framing critique, no new hypotheses, no adds. For each survivor: what concrete evidence, scenario, or counter-example would falsify it? If you can't construct a kill, explain precisely why the artifact still leaves it standing.\n`);
+      return parts.join("\n");
+    }
+
+    function buildInformedStressPrompt(
+      agentName: string,
+      roleName: string,
+      operatorBeliefLedger: string,
+      blindPassBundle: string,
+    ): string {
+      const parts: string[] = [];
+      parts.push(`You are ${agentName} (${roleName}). You are performing the INFORMED adversarial stress pass on hypotheses that survived a full multi-round Brenner Protocol session.\n`);
+      parts.push(`## Pass Rules\n\nThis informed pass happens AFTER a blind pass. Start from the full blind debate, then review the operator belief ledger. Factual corrections can rescue or narrow a blind attack if they directly contradict one of its premises. Analytical judgments remain contestable. Kill-signals are not commands. Do not replace a blind attack with operator preference alone; if you change your conclusion, identify the exact premise that changed and why. You are allowed to disagree with your own blind-pass output or another agent's blind-pass output, but only by making the disagreement explicit.\n`);
+      parts.push(`## Surviving Hypotheses\n\n${survivorList}\n`);
+      parts.push(`## Full Artifact\n\n${artifactMd}\n`);
+      if (blindPassBundle.trim()) {
+        parts.push(`## Blind Pass Debate\n\n${blindPassBundle}\n`);
       }
-      parts.push(`## Your Task\n\nThese hypotheses survived a full multi-round Brenner Protocol session. Your job is to kill them. Attack specifically — no framing critique, no new hypotheses, no adds. For each survivor: what concrete evidence, scenario, or counter-example would falsify it? If you can't construct a kill, explain precisely why it's robust.\n`);
+      if (operatorBeliefLedger.trim()) {
+        parts.push(`${operatorBeliefLedger}\n`);
+      }
+      parts.push(`## Your Task\n\nRevisit the survivors after seeing the full blind debate and the operator belief ledger. Preserve blind-pass kills unless a factual correction genuinely rescues them. Strengthen surviving attacks where the ledger reveals a narrower, more mechanistic failure mode. If another agent's blind-pass attack is better than yours, build on it explicitly. Attack specifically — no framing critique, no new hypotheses, no adds. For each survivor: what concrete evidence, scenario, or counter-example would falsify it now? If you still can't construct a kill, explain precisely why it remains robust even after seeing the ledger.\n`);
       return parts.join("\n");
     }
 
@@ -8285,20 +8789,54 @@ Example KILL:
       },
     ];
 
+    type StressPassName = "blind" | "informed";
+    type StressAgentRunResult = { output: string; error?: string };
+    type StressPassAgentResult = { status: string; error?: string; outputFile: string; outputLength: number };
+    type StressPassResult = {
+      passName: StressPassName;
+      dir: string;
+      agents: Record<string, StressPassAgentResult>;
+      outputs: Record<string, string>;
+    };
+
     // Create stress_test directory
     const stressDir = join(sessionDir, "stress_test");
     if (!existsSync(stressDir)) mkdirSync(stressDir, { recursive: true });
+    const blindDir = join(stressDir, "blind");
+    if (!existsSync(blindDir)) mkdirSync(blindDir, { recursive: true });
+
+    let operatorBeliefLedgerFile: string | undefined;
+    let operatorBeliefLedger = "";
+    if (operatorContextFile && !existsSync(operatorContextFile)) {
+      throw new Error(`Operator context file not found: ${operatorContextFile}`);
+    }
+    const operatorBeliefs = loadOperatorBeliefsForStress(sessionDir, operatorContextFile);
+    if (operatorBeliefs.length > 0) {
+      operatorBeliefLedger = renderOperatorBeliefLedgerMarkdown(operatorBeliefs, "stress");
+      operatorBeliefLedgerFile = join(stressDir, "operator_belief_ledger.md");
+      writeFileSync(operatorBeliefLedgerFile, ensureTrailingNewline(operatorBeliefLedger));
+      writeFileSync(
+        join(stressDir, "operator_belief_ledger.json"),
+        JSON.stringify({ beliefs: operatorBeliefs }, null, 2)
+      );
+      stderrLine(`  Loaded operator belief ledger (${operatorBeliefs.length} beliefs)\n`);
+    }
 
     // Agent invocation (same timeout/SIGTERM→SIGKILL as robot-step)
-    async function invokeStressAgent(agent: StressAgent, prompt: string): Promise<{ output: string; error?: string }> {
-      const outFile = join(stressDir, `${agent.slug}_out.md`);
+    async function invokeStressAgent(
+      agent: StressAgent,
+      prompt: string,
+      passDir: string,
+      passName: StressPassName,
+    ): Promise<StressAgentRunResult> {
+      const outFile = join(passDir, `${agent.slug}_out.md`);
 
       // Write prompt to file
-      writeFileSync(join(stressDir, `${agent.slug}_prompt.md`), prompt);
+      writeFileSync(join(passDir, `${agent.slug}_prompt.md`), prompt);
 
-      stderrLine(`  -> Invoking ${agent.name} (${agent.roleName})...`);
+      stderrLine(`  -> [${passName}] Invoking ${agent.name} (${agent.roleName})...`);
 
-      return new Promise<{ output: string; error?: string }>((resolvePromise) => {
+      return new Promise<StressAgentRunResult>((resolvePromise) => {
         const args = agent.buildArgs(prompt, outFile);
         const env = agent.buildEnv();
 
@@ -8316,7 +8854,7 @@ Example KILL:
 
         // Timeout: 5 minutes
         const timeout = setTimeout(() => {
-          stderrLine(`  [!] ${agent.name} timed out after 5 minutes`);
+          stderrLine(`  [!] [${passName}] ${agent.name} timed out after 5 minutes`);
           child.kill("SIGTERM");
           // Escalate to SIGKILL after 10s
           const killTimeout = setTimeout(() => { child.kill("SIGKILL"); }, 10_000);
@@ -8325,7 +8863,7 @@ Example KILL:
 
         child.on("error", (err) => {
           clearTimeout(timeout);
-          stderrLine(`  [!] ${agent.name} failed to launch: ${err.message}`);
+          stderrLine(`  [!] [${passName}] ${agent.name} failed to launch: ${err.message}`);
           writeFileSync(outFile, "");
           resolvePromise({ output: "", error: `failed to launch: ${err.message}` });
         });
@@ -8336,15 +8874,110 @@ Example KILL:
           writeFileSync(outFile, output);
 
           if (output.trim()) {
-            stderrLine(`  [ok] ${agent.name} done (${output.length} chars)`);
+            stderrLine(`  [ok] [${passName}] ${agent.name} done (${output.length} chars)`);
             resolvePromise({ output });
           } else {
             const errMsg = `exit code ${code}, no output`;
-            stderrLine(`  [!] ${agent.name}: ${errMsg}`);
+            stderrLine(`  [!] [${passName}] ${agent.name}: ${errMsg}`);
             resolvePromise({ output: "", error: errMsg });
           }
         });
       });
+    }
+
+    function mirrorStressArtifacts(sourceDir: string, targetDir: string): void {
+      for (const agent of stressAgents) {
+        const promptSource = join(sourceDir, `${agent.slug}_prompt.md`);
+        const outputSource = join(sourceDir, `${agent.slug}_out.md`);
+        if (existsSync(promptSource)) {
+          writeFileSync(join(targetDir, `${agent.slug}_prompt.md`), readFileSync(promptSource, "utf-8"));
+        }
+        if (existsSync(outputSource)) {
+          writeFileSync(join(targetDir, `${agent.slug}_out.md`), readFileSync(outputSource, "utf-8"));
+        }
+      }
+    }
+
+    function renderBlindPassBundleMarkdown(outputs: Record<string, string>): string {
+      const sections = stressAgents
+        .map((agent) => {
+          const output = (outputs[agent.name] ?? "").trim();
+          if (!output) {
+            return `### ${agent.name} (${agent.roleName})\n\n_No blind-pass output captured._`;
+          }
+          return `### ${agent.name} (${agent.roleName})\n\n${output}`;
+        });
+      return sections.join("\n\n");
+    }
+
+    async function runStressPass(
+      passName: StressPassName,
+      passDir: string,
+      buildPromptForAgent: (agent: StressAgent) => string,
+    ): Promise<StressPassResult> {
+      if (!existsSync(passDir)) mkdirSync(passDir, { recursive: true });
+      const agentResults: Record<string, StressPassAgentResult> = {};
+      const outputs: Record<string, string> = {};
+
+      stderrLine(`\n  ---- ${passName === "blind" ? "Blind" : "Informed"} pass ----`);
+
+      if (sequential) {
+        for (const agent of stressAgents) {
+          const prompt = buildPromptForAgent(agent);
+          const result = await invokeStressAgent(agent, prompt, passDir, passName);
+          const outFile = join(passDir, `${agent.slug}_out.md`);
+          outputs[agent.name] = result.output;
+          agentResults[agent.name] = {
+            status: result.error ? "error" : "ok",
+            ...(result.error ? { error: result.error } : {}),
+            outputFile: outFile,
+            outputLength: result.output.length,
+          };
+        }
+      } else {
+        const results = await Promise.allSettled(
+          stressAgents.map(async (agent) => {
+            const prompt = buildPromptForAgent(agent);
+            const result = await invokeStressAgent(agent, prompt, passDir, passName);
+            return { agent, result };
+          })
+        );
+        for (const r of results) {
+          if (r.status === "fulfilled") {
+            const { agent, result } = r.value;
+            const outFile = join(passDir, `${agent.slug}_out.md`);
+            outputs[agent.name] = result.output;
+            agentResults[agent.name] = {
+              status: result.error ? "error" : "ok",
+              ...(result.error ? { error: result.error } : {}),
+              outputFile: outFile,
+              outputLength: result.output.length,
+            };
+          } else {
+            stderrLine(`  [!] [${passName}] Agent invocation promise rejected: ${r.reason}`);
+          }
+        }
+      }
+
+      for (const agent of stressAgents) {
+        if (!agentResults[agent.name]) {
+          const outFile = join(passDir, `${agent.slug}_out.md`);
+          agentResults[agent.name] = {
+            status: "error",
+            error: "invocation failed",
+            outputFile: outFile,
+            outputLength: 0,
+          };
+          outputs[agent.name] = existsSync(outFile) ? readFileSync(outFile, "utf-8") : "";
+        }
+      }
+
+      return {
+        passName,
+        dir: passDir,
+        agents: agentResults,
+        outputs,
+      };
     }
 
     stderrLine(`\n========================================`);
@@ -8354,59 +8987,33 @@ Example KILL:
     stderrLine(`Survivors:  ${survivors.length} (${survivorNames.join(", ")})`);
     stderrLine(`Agents:     BlueLake (${claudeBin}), RedForest (${codexBin}), GreenMountain (${geminiBin})`);
     stderrLine(`Mode:       ${sequential ? "sequential" : "parallel"}`);
+    stderrLine(`Passes:     blind${operatorBeliefs.length > 0 ? " -> informed" : ""}`);
     stderrLine(`========================================\n`);
 
-    // Build prompts and invoke agents
-    const agentResults: Record<string, { status: string; error?: string; outputFile: string; outputLength: number }> = {};
+    const blindPass = await runStressPass(
+      "blind",
+      blindDir,
+      (agent) => buildBlindStressPrompt(agent.name, agent.roleName),
+    );
 
-    if (sequential) {
-      for (const agent of stressAgents) {
-        const prompt = buildStressPrompt(agent.name, agent.roleName);
-        const result = await invokeStressAgent(agent, prompt);
-        const outFile = join(stressDir, `${agent.slug}_out.md`);
-        agentResults[agent.name] = {
-          status: result.error ? "error" : "ok",
-          ...(result.error ? { error: result.error } : {}),
-          outputFile: outFile,
-          outputLength: result.output.length,
-        };
-      }
-    } else {
-      const results = await Promise.allSettled(
-        stressAgents.map(async (agent) => {
-          const prompt = buildStressPrompt(agent.name, agent.roleName);
-          const result = await invokeStressAgent(agent, prompt);
-          return { agent, result };
-        })
+    let informedPass: StressPassResult | null = null;
+    let canonicalPass = blindPass;
+
+    if (operatorBeliefs.length > 0) {
+      const blindPassBundle = renderBlindPassBundleMarkdown(blindPass.outputs);
+      informedPass = await runStressPass(
+        "informed",
+        stressDir,
+        (agent) => buildInformedStressPrompt(
+          agent.name,
+          agent.roleName,
+          operatorBeliefLedger,
+          blindPassBundle,
+        ),
       );
-      for (const r of results) {
-        if (r.status === "fulfilled") {
-          const { agent, result } = r.value;
-          const outFile = join(stressDir, `${agent.slug}_out.md`);
-          agentResults[agent.name] = {
-            status: result.error ? "error" : "ok",
-            ...(result.error ? { error: result.error } : {}),
-            outputFile: outFile,
-            outputLength: result.output.length,
-          };
-        } else {
-          // This shouldn't happen since invokeStressAgent catches errors, but handle it
-          stderrLine(`  [!] Agent invocation promise rejected: ${r.reason}`);
-        }
-      }
-    }
-
-    // Fill in any missing agents (in case of promise rejection)
-    for (const agent of stressAgents) {
-      if (!agentResults[agent.name]) {
-        const outFile = join(stressDir, `${agent.slug}_out.md`);
-        agentResults[agent.name] = {
-          status: "error",
-          error: "invocation failed",
-          outputFile: outFile,
-          outputLength: 0,
-        };
-      }
+      canonicalPass = informedPass;
+    } else {
+      mirrorStressArtifacts(blindDir, stressDir);
     }
 
     stderrLine(`\n  Stress test complete.`);
@@ -8416,7 +9023,23 @@ Example KILL:
       ok: true,
       sessionDir,
       survivors: survivorNames,
-      agents: agentResults,
+      passMode: informedPass ? "dual" : "blind_only",
+      canonicalPass: canonicalPass.passName,
+      ...(operatorBeliefLedgerFile ? { operatorBeliefLedgerFile } : {}),
+      passes: {
+        blind: {
+          dir: blindPass.dir,
+          agents: blindPass.agents,
+        },
+        ...(informedPass ? {
+          informed: {
+            dir: informedPass.dir,
+            ...(operatorBeliefLedgerFile ? { operatorBeliefLedgerFile } : {}),
+            agents: informedPass.agents,
+          },
+        } : {}),
+      },
+      agents: canonicalPass.agents,
     }, null, 2));
 
     process.exit(0);

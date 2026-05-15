@@ -36,6 +36,15 @@ const nextConfig: NextConfig = {
       },
     ];
   },
+  async rewrites() {
+    return [
+      {
+        source: "/install.sh",
+        destination:
+          "https://raw.githubusercontent.com/Dicklesworthstone/brenner_bot/main/install.sh",
+      },
+    ];
+  },
 };
 
 export default nextConfig;

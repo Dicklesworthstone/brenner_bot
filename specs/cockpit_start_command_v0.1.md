@@ -65,7 +65,7 @@ brenner cockpit start [options]
 | `--spawn` | false | Also spawn ntm session before sending |
 | `--broadcast` | false | Also broadcast "check mail" after sending |
 | `--ntm-recipe <name>` | (none) | ntm recipe for spawn (e.g., `balanced`) |
-| `--ntm-layout <spec>` | (from roster) | Pane layout override (e.g., `--cc=1 --cod=1 --gmi=1`) |
+| `--ntm-layout <spec>` | (from roster) | Pane layout override (e.g., `--cc=1 --cod=1 --agy=1`) |
 
 ### Safety & Debugging
 
@@ -143,7 +143,7 @@ brenner cockpit start \
 DRY RUN: cockpit start
 
 Would execute:
-  1. ntm spawn RS-20251231-cell-fate --cc=1 --cod=1 --gmi=1
+  1. ntm spawn RS-20251231-cell-fate --cc=1 --cod=1 --agy=1
   2. Send kickoff to BlueLake (hypothesis_generator)
   3. Send kickoff to PurpleMountain (test_designer)
   4. Send kickoff to GreenValley (adversarial_critic)
@@ -189,12 +189,13 @@ When `--spawn` is used, the command maps roster entries to ntm agent flags:
 |----------------|----------|
 | `codex-cli` | `--cod=N` |
 | `claude-code` | `--cc=N` |
-| `gemini-cli` | `--gmi=N` |
+| `antigravity` / `agy` | `--agy=N` |
+| `gemini-cli` (legacy, retired 2026-06-18) | `--gmi=N` |
 | (unknown) | (skip or warn) |
 
-Example: A roster with 1 codex + 1 claude + 1 gemini becomes:
+Example: A roster with 1 codex + 1 claude + 1 antigravity becomes:
 ```bash
-ntm spawn RS-... --cc=1 --cod=1 --gmi=1
+ntm spawn RS-... --cc=1 --cod=1 --agy=1
 ```
 
 If `--ntm-layout` is provided, it overrides this automatic mapping.

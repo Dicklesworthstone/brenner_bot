@@ -110,7 +110,7 @@ export THREAD_ID="RS-20251230-cell-fate"
 Useful flags:
 - `--dry-run`: print the plan without spawning `ntm` or sending messages.
 - `--skip-ntm`: don’t run `ntm spawn` (use if the session already exists).
-- `--ntm-args "<args>"`: override `ntm spawn` flags (default: `--cc=1 --cod=1 --gmi=1`).
+- `--ntm-args "<args>"`: override `ntm spawn` flags (default: `--cc=1 --cod=1 --agy=1`).
 - `--skip-broadcast`: don’t `ntm send --all ...`.
 - `--broadcast-message "<text>"`: customize the broadcast message.
 
@@ -123,7 +123,7 @@ Notes:
 Spawn a tmux session with agent panes using the thread id as the session name:
 ```bash
 export THREAD_ID="RS-20251230-cell-fate"
-ntm spawn "$THREAD_ID" --cc=1 --cod=1 --gmi=1
+ntm spawn "$THREAD_ID" --cc=1 --cod=1 --agy=1
 ```
 
 Attach later:
@@ -621,7 +621,7 @@ Agents receive the raw data and must:
 export THREAD_ID="RS-20251230-cell-fate"
 
 # 2) Start cockpit panes
-ntm spawn "$THREAD_ID" --cc=1 --cod=1 --gmi=1
+ntm spawn "$THREAD_ID" --cc=1 --cod=1 --agy=1
 
 # 3) Confirm Agent Mail is reachable
 ./brenner.ts mail health

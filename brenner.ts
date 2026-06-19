@@ -6527,7 +6527,7 @@ ${JSON.stringify(delta, null, 2)}
     const dryRun = asBoolFlag(flags, "dry-run");
     const skipNtm = asBoolFlag(flags, "skip-ntm");
     const skipBroadcast = asBoolFlag(flags, "skip-broadcast");
-    const ntmArgsRaw = asStringFlag(flags, "ntm-args") ?? "--cc=1 --cod=1 --gmi=1";
+    const ntmArgsRaw = asStringFlag(flags, "ntm-args") ?? "--cc=1 --cod=1 --agy=1";
 
     const projectKey = resolve(asStringFlag(flags, "project-key") ?? runtimeConfig.defaults.projectKey);
     const threadId = asStringFlag(flags, "thread-id");

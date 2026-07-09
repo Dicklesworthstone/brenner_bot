@@ -2155,6 +2155,37 @@ describe("session robot-step", () => {
       expect(["ok", "error"]).toContain(parsed.agents[name].status);
     }
   });
+
+  it("writes an (empty) output file even when an agent binary fails to spawn", async () => {
+    // Regression check: session robot's invokeAgent writes outFile on a spawn
+    // error (nonexistent binary); robot-step's separate invokeAgentStep did
+    // not, which meant a failure-diagnosis flow reading
+    // round_N/{agent}_out.md would find a missing file instead of an error
+    // trail for this specific failure mode.
+    const dir = makeRobotStepSessionDir("brenner-test-robot-step-spawnfail");
+    const result = await runCli(
+      [
+        "session", "robot-step",
+        "--session-dir", dir,
+        "--question", "Does a spawn failure still produce an out file?",
+        "--round", "1",
+        "--claude-bin", "/bin/echo",
+        "--codex-bin", "/bin/echo",
+        "--agy-bin", "/definitely/does/not/exist/agy",
+        "--json",
+      ],
+      { timeout: 20000 },
+    );
+    expect(result.exitCode, formatCliDebug(result)).toBe(0);
+
+    const outFile = join(dir, "round_1", "greenmountain_out.md");
+    expect(existsSync(outFile), formatCliDebug(result)).toBe(true);
+
+    const parsed = JSON.parse(result.stdout) as {
+      agents: Record<string, { status: string; error?: string }>;
+    };
+    expect(parsed.agents.GreenMountain.status).toBe("error");
+  });
 });
 
 // ============================================================================

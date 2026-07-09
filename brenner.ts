@@ -2751,6 +2751,277 @@ async function buildSessionDataFromStorage(sessionId: string, baseDir: string): 
   };
 }
 
+// ============================================================================
+// Shared robot-mode types and helpers (session robot + session robot-step)
+//
+// Previously duplicated near-verbatim across three command blocks (robot,
+// robot-step, robot-stress). robot-stress's own agent-invocation function
+// has a genuinely different, better-typed error contract ({output, error?}
+// vs a lossy plain string) and is left as-is rather than flattened into this
+// — the two below are unified because robot and robot-step's versions were
+// truly equivalent (robot-step's was even missing an error-handling behavior
+// robot already had: writing an empty output file on a spawn failure).
+// ============================================================================
+
+interface RobotAgent {
+  name: string;
+  slug: string;
+  role: { role: string; displayName: string; description: string };
+  bin: string;
+  buildArgs: (prompt: string, outFile: string) => string[];
+  buildEnv: () => Record<string, string | undefined>;
+  readOutput: (stdout: string, outFile: string) => string;
+}
+
+const ROBOT_AGENT_TIMEOUT_MS = 300_000; // 5 minutes per agent
+
+function parseRobotAgentDeltas(
+  agentName: string,
+  output: string,
+  timestamp: string,
+): Array<ValidDelta & { timestamp: string; agent: string }> {
+  const deltas = extractValidDeltas(output);
+  return deltas.map((d) => ({ ...d, timestamp, agent: agentName }));
+}
+
+function buildDeltaFormatInstructions(): string {
+  return `## Output Format
+
+Respond ONLY with delta blocks. Each delta is a JSON object in a \`\`\`delta fence.
+One JSON object per fence. No arrays. No prose outside delta blocks.
+
+Valid operations: ADD (target_id: null), EDIT (target_id required), KILL (target_id required).
+Valid sections: hypothesis_slate, discriminative_tests, assumption_ledger, anomaly_register,
+  adversarial_critique, research_thread, predictions_table.
+
+The compiler assigns IDs (H1, H2, T1, A1, C1, etc.). Do not invent your own IDs.
+For KILL, use the "reason" field (not "kill_reason").
+
+**Your full argument MUST go in the payload content fields** — rationale is metadata only
+and will NOT be visible to other agents. Write reasoning in mechanism (hypotheses),
+attack/evidence (critiques), procedure/discriminates (tests), reason (kills).
+
+**Predictions table mandate:** For every hypothesis you ADD, you MUST also ADD a
+predictions_table row specifying what observable outcome it predicts differently
+from alternatives.
+
+Example ADD (hypothesis):
+\`\`\`delta
+{
+  "operation": "ADD",
+  "section": "hypothesis_slate",
+  "target_id": null,
+  "payload": {
+    "name": "Short descriptive name",
+    "claim": "One falsifiable sentence.",
+    "mechanism": "Full causal argument with evidence and failure modes.",
+    "anchors": ["[inference]"],
+    "third_alternative": false
+  },
+  "rationale": "[inference]"
+}
+\`\`\`
+
+Example KILL:
+\`\`\`delta
+{
+  "operation": "KILL",
+  "section": "hypothesis_slate",
+  "target_id": "H1",
+  "payload": { "reason": "Full kill argument: which evidence rules this out and why no rescue is possible." },
+  "rationale": "[inference]"
+}
+\`\`\`
+`;
+}
+
+function buildRobotRound1Prompt(agent: RobotAgent, question: string, contextText: string, excerptText: string): string {
+  const kernel = getTriangulatedBrennerKernelMarkdown();
+  const roleSection = getRolePromptMarkdown(agent.role.role);
+
+  const parts: string[] = [];
+  parts.push(`You are ${agent.name} (${agent.role.displayName}) in a Brenner Protocol session.\n`);
+
+  if (kernel) {
+    parts.push(`## Triangulated Brenner Kernel\n\n${kernel}\n`);
+  }
+  if (roleSection) {
+    parts.push(`## Role Prompt (System)\n\n${roleSection}\n`);
+  } else {
+    parts.push(`## Your Role\n${agent.role.description}\n`);
+  }
+
+  parts.push(`## Research Question\n\n${question}\n`);
+  if (contextText.trim()) {
+    parts.push(`## Context\n\n${contextText}\n`);
+  }
+  if (excerptText.trim()) {
+    parts.push(`## Brenner Excerpt\n\n${excerptText}\n`);
+  }
+
+  parts.push(buildDeltaFormatInstructions());
+  return parts.join("\n");
+}
+
+function buildRobotRoundNPrompt(
+  agent: RobotAgent,
+  artifact: Artifact,
+  round: number,
+  operatorBeliefLedger?: string,
+): string {
+  const kernel = getTriangulatedBrennerKernelMarkdown();
+  const roleSection = getRolePromptMarkdown(agent.role.role);
+  const artifactMd = renderArtifactMarkdown(artifact);
+
+  const parts: string[] = [];
+  parts.push(`You are ${agent.name} (${agent.role.displayName}) in a Brenner Protocol session.\n`);
+
+  // Re-inject kernel + role every round since each subprocess is a fresh context window
+  if (kernel) {
+    parts.push(`## Triangulated Brenner Kernel\n\n${kernel}\n`);
+  }
+  if (roleSection) {
+    parts.push(`## Role Prompt (System)\n\n${roleSection}\n`);
+  } else {
+    parts.push(`## Your Role\n${agent.role.description}\n`);
+  }
+
+  // Round-specific instructions
+  if (round === 2) {
+    parts.push(`## Round ${round} Instructions\n`);
+    parts.push(`Review other agents' findings from the previous round (in the artifact below).`);
+    parts.push(`Make your first kill attempts — identify weak hypotheses and KILL them with explicit reasons.`);
+    parts.push(`You may ADD refinements, but kills are the priority.\n`);
+  } else {
+    parts.push(`## Round ${round} Instructions (Convergence)\n`);
+    parts.push(`KILLS MUST EXCEED ADDS. Provide final verdicts on all surviving hypotheses.`);
+    parts.push(`Kill any hypothesis that cannot withstand scrutiny. Fewer strong beats more weak.\n`);
+  }
+
+  if (operatorBeliefLedger && operatorBeliefLedger.trim()) {
+    parts.push(`${operatorBeliefLedger}\n`);
+  }
+
+  parts.push(`## Current Artifact (v${artifact.metadata.version})\n\n${artifactMd}\n`);
+  parts.push(buildDeltaFormatInstructions());
+  return parts.join("\n");
+}
+
+function invokeRobotAgent(agent: RobotAgent, prompt: string, roundDir: string, sessionDir: string): Promise<string> {
+  const promptFile = join(roundDir, `${agent.slug}_prompt.md`);
+  const outFile = join(roundDir, `${agent.slug}_out.md`);
+  writeFileSync(promptFile, prompt);
+
+  stderrLine(`  -> Invoking ${agent.name} (${agent.role.displayName})...`);
+
+  return new Promise<string>((resolve) => {
+    const args = agent.buildArgs(prompt, outFile);
+    const env = agent.buildEnv();
+
+    const child = spawn(agent.bin, args, {
+      env,
+      stdio: ["ignore", "pipe", "pipe"],
+      cwd: sessionDir,
+    });
+
+    const stdoutChunks: Buffer[] = [];
+    child.stdout?.on("data", (d: Buffer) => stdoutChunks.push(d));
+    child.stderr?.on("data", () => {});
+
+    let killTimer: ReturnType<typeof setTimeout> | undefined;
+    const timer = setTimeout(() => {
+      child.kill("SIGTERM");
+      stderrLine(`  [!] ${agent.name} timed out after ${ROBOT_AGENT_TIMEOUT_MS / 1000}s, sending SIGTERM`);
+      killTimer = setTimeout(() => {
+        child.kill("SIGKILL");
+        stderrLine(`  [!] ${agent.name} did not exit after SIGTERM, sending SIGKILL`);
+      }, 10_000);
+    }, ROBOT_AGENT_TIMEOUT_MS);
+
+    child.on("error", (err: Error) => {
+      clearTimeout(timer);
+      if (killTimer) clearTimeout(killTimer);
+      stderrLine(`  [!] ${agent.name} failed to launch: ${err.message}`);
+      stderrLine(`      Binary: ${agent.bin}`);
+      stderrLine(`      Ensure the CLI is installed and in PATH.`);
+      // Resolve with empty string instead of rejecting — a single agent
+      // failure should not abort the entire session
+      writeFileSync(outFile, "");
+      resolve("");
+    });
+
+    child.on("close", (code: number | null) => {
+      clearTimeout(timer);
+      if (killTimer) clearTimeout(killTimer);
+
+      const stdout = Buffer.concat(stdoutChunks).toString();
+      const output = agent.readOutput(stdout, outFile);
+
+      if (code !== 0 && code !== null) {
+        stderrLine(`  [!] ${agent.name} exited with code ${code}`);
+      }
+
+      writeFileSync(outFile, output);
+
+      const deltaCount = (output.match(/```delta/g) ?? []).length;
+      const preview = output
+        .replace(/```delta[\s\S]*?```/g, "[delta]")
+        .trim()
+        .slice(0, 400);
+      stderrLine(`  [ok] ${agent.name} done (${deltaCount} delta blocks)`);
+      if (preview) {
+        for (const line of preview.split("\n").slice(0, 5)) {
+          stderrLine(`       ${line}`);
+        }
+      }
+      stderrLine("");
+
+      resolve(output);
+    });
+  });
+}
+
+function checkRobotConvergence(
+  roundDeltas: Array<ValidDelta & { timestamp: string; agent: string }>,
+  round: number,
+  artifact: Artifact,
+  maxRounds?: number,
+): { converged: boolean; reason: string } {
+  if (maxRounds !== undefined && round >= maxRounds) {
+    return { converged: true, reason: `Reached maximum rounds (${maxRounds})` };
+  }
+
+  const adds = roundDeltas.filter((d) => d.operation === "ADD").length;
+  const kills = roundDeltas.filter((d) => d.operation === "KILL").length;
+
+  // Round 1 never converges (agents are still generating initial hypotheses)
+  if (round === 1) {
+    return { converged: false, reason: `Round 1: ${adds} adds, ${kills} kills` };
+  }
+
+  const activeHypotheses = (artifact.sections.hypothesis_slate as any[])
+    .filter((h: any) => !h.killed).length;
+
+  // Convergence: kills >= adds (adversarial pressure exceeds generation)
+  // Require at least one kill to avoid premature convergence on pure-EDIT rounds
+  if (kills > 0 && kills >= adds) {
+    return {
+      converged: true,
+      reason: `Kill-rate (${kills}) >= add-rate (${adds}), ${activeHypotheses} active hypotheses remain`,
+    };
+  }
+
+  // Also converge if no deltas at all (agents have nothing to say)
+  if (roundDeltas.length === 0) {
+    return { converged: true, reason: "No deltas produced — agents have converged" };
+  }
+
+  return {
+    converged: false,
+    reason: `Adds (${adds}) > Kills (${kills}), ${activeHypotheses} active hypotheses`,
+  };
+}
+
 async function main(): Promise<void> {
   const { positional, flags } = parseArgs(process.argv.slice(2));
   const [top, sub, action] = positional;
@@ -8161,17 +8432,7 @@ ${JSON.stringify(delta, null, 2)}
 
     const augmentedPath = `${homedir()}/.local/bin:/usr/local/bin:${process.env.PATH ?? ""}`;
 
-    // Agent configuration (same as session robot)
-    type RobotAgent = {
-      name: string;
-      slug: string;
-      role: { role: string; displayName: string; description: string };
-      bin: string;
-      buildArgs: (prompt: string, outFile: string) => string[];
-      buildEnv: () => Record<string, string | undefined>;
-      readOutput: (stdout: string, outFile: string) => string;
-    };
-
+    // Agent configuration (same as session robot; RobotAgent type is module-level)
     const ROLE_CONFIGS: Record<string, { role: string; displayName: string; description: string }> = {
       claude: { role: "test_designer", displayName: "Test Designer", description: "Design discriminative tests that kill hypotheses. Score experiments by evidence-per-week." },
       codex: { role: "hypothesis_generator", displayName: "Hypothesis Generator", description: "Generate hypotheses, hunt paradoxes, import cross-domain patterns. Always include a third alternative." },
@@ -8229,235 +8490,6 @@ ${JSON.stringify(delta, null, 2)}
       },
     ];
 
-    // -------------------------------------------------------------------
-    // Prompt builders (same as session robot but with operator notes)
-    // -------------------------------------------------------------------
-    function buildRound1PromptStep(agent: RobotAgent): string {
-      const kernel = getTriangulatedBrennerKernelMarkdown();
-      const roleSection = getRolePromptMarkdown(agent.role.role);
-
-      const parts: string[] = [];
-      parts.push(`You are ${agent.name} (${agent.role.displayName}) in a Brenner Protocol session.\n`);
-
-      if (kernel) {
-        parts.push(`## Triangulated Brenner Kernel\n\n${kernel}\n`);
-      }
-      if (roleSection) {
-        parts.push(`## Role Prompt (System)\n\n${roleSection}\n`);
-      } else {
-        parts.push(`## Your Role\n${agent.role.description}\n`);
-      }
-
-      parts.push(`## Research Question\n\n${question}\n`);
-      if (contextText.trim()) {
-        parts.push(`## Context\n\n${contextText}\n`);
-      }
-      if (excerptText.trim()) {
-        parts.push(`## Brenner Excerpt\n\n${excerptText}\n`);
-      }
-
-      parts.push(buildDeltaFormatInstructionsStep());
-      return parts.join("\n");
-    }
-
-    function buildRoundNPromptStep(agent: RobotAgent, art: Artifact, r: number, operatorBeliefLedger: string): string {
-      const kernel = getTriangulatedBrennerKernelMarkdown();
-      const roleSection = getRolePromptMarkdown(agent.role.role);
-      const artifactMd = renderArtifactMarkdown(art);
-
-      const parts: string[] = [];
-      parts.push(`You are ${agent.name} (${agent.role.displayName}) in a Brenner Protocol session.\n`);
-
-      if (kernel) {
-        parts.push(`## Triangulated Brenner Kernel\n\n${kernel}\n`);
-      }
-      if (roleSection) {
-        parts.push(`## Role Prompt (System)\n\n${roleSection}\n`);
-      } else {
-        parts.push(`## Your Role\n${agent.role.description}\n`);
-      }
-
-      // Round-specific instructions
-      if (r === 2) {
-        parts.push(`## Round ${r} Instructions\n`);
-        parts.push(`Review other agents' findings from the previous round (in the artifact below).`);
-        parts.push(`Make your first kill attempts — identify weak hypotheses and KILL them with explicit reasons.`);
-        parts.push(`You may ADD refinements, but kills are the priority.\n`);
-      } else {
-        parts.push(`## Round ${r} Instructions (Convergence)\n`);
-        parts.push(`KILLS MUST EXCEED ADDS. Provide final verdicts on all surviving hypotheses.`);
-        parts.push(`Kill any hypothesis that cannot withstand scrutiny. Fewer strong beats more weak.\n`);
-      }
-
-      if (operatorBeliefLedger.trim()) {
-        parts.push(`${operatorBeliefLedger}\n`);
-      }
-
-      parts.push(`## Current Artifact (v${art.metadata.version})\n\n${artifactMd}\n`);
-      parts.push(buildDeltaFormatInstructionsStep());
-      return parts.join("\n");
-    }
-
-    // -------------------------------------------------------------------
-    // Agent invocation (same as session robot)
-    // -------------------------------------------------------------------
-    async function invokeAgentStep(agent: RobotAgent, prompt: string, roundDir: string): Promise<string> {
-      const outFile = join(roundDir, `${agent.slug}_out.md`);
-
-      // Write prompt to file
-      writeFileSync(join(roundDir, `${agent.slug}_prompt.md`), prompt);
-
-      stderrLine(`  -> Invoking ${agent.name} (${agent.role.displayName})...`);
-
-      return new Promise<string>((resolve) => {
-        const args = agent.buildArgs(prompt, outFile);
-        const env = agent.buildEnv();
-
-        let stdout = "";
-        let stderr = "";
-
-        const child = spawn(agent.bin, args, {
-          env,
-          stdio: ["ignore", "pipe", "pipe"],
-          cwd: sessionDir,
-        });
-
-        child.stdout.on("data", (chunk: Buffer) => { stdout += chunk.toString(); });
-        child.stderr.on("data", (chunk: Buffer) => { stderr += chunk.toString(); });
-
-        // Timeout: 5 minutes
-        const timeout = setTimeout(() => {
-          stderrLine(`  [!] ${agent.name} timed out after 5 minutes`);
-          child.kill("SIGTERM");
-          // Escalate to SIGKILL after 10s
-          const killTimeout = setTimeout(() => { child.kill("SIGKILL"); }, 10_000);
-          child.on("exit", () => clearTimeout(killTimeout));
-        }, 300_000);
-
-        child.on("error", (err) => {
-          clearTimeout(timeout);
-          stderrLine(`  [!] ${agent.name} failed to launch: ${err.message}`);
-          resolve("");
-        });
-
-        child.on("exit", (code) => {
-          clearTimeout(timeout);
-          const output = agent.readOutput(stdout, outFile);
-          const deltaCount = (output.match(/```(?:delta|json\s+brenner-delta)/g) ?? []).length;
-          if (output.trim()) {
-            stderrLine(`  [ok] ${agent.name} done (${deltaCount} delta blocks)`);
-            // Show first few deltas as preview
-            const lines = output.split("\n");
-            for (const line of lines.slice(0, 20)) {
-              if (line.includes("[delta]") || line.startsWith("```delta") || line.startsWith("```json")) {
-                stderrLine(`       ${line.slice(0, 80)}`);
-              }
-            }
-          } else {
-            stderrLine(`  [!] ${agent.name}: no output (exit code ${code})`);
-          }
-
-          // Write output to file
-          writeFileSync(outFile, output);
-          resolve(output);
-        });
-      });
-    }
-
-    // -------------------------------------------------------------------
-    // Shared utilities (duplicated from session robot scope)
-    // -------------------------------------------------------------------
-    function buildDeltaFormatInstructionsStep(): string {
-      return `## Output Format
-
-Respond ONLY with delta blocks. Each delta is a JSON object in a \`\`\`delta fence.
-One JSON object per fence. No arrays. No prose outside delta blocks.
-
-Valid operations: ADD (target_id: null), EDIT (target_id required), KILL (target_id required).
-Valid sections: hypothesis_slate, discriminative_tests, assumption_ledger, anomaly_register,
-  adversarial_critique, research_thread, predictions_table.
-
-The compiler assigns IDs (H1, H2, T1, A1, C1, etc.). Do not invent your own IDs.
-For KILL, use the "reason" field (not "kill_reason").
-
-**Your full argument MUST go in the payload content fields** — rationale is metadata only
-and will NOT be visible to other agents. Write reasoning in mechanism (hypotheses),
-attack/evidence (critiques), procedure/discriminates (tests), reason (kills).
-
-**Predictions table mandate:** For every hypothesis you ADD, you MUST also ADD a
-predictions_table row specifying what observable outcome it predicts differently
-from alternatives.
-
-Example ADD (hypothesis):
-\`\`\`delta
-{
-  "operation": "ADD",
-  "section": "hypothesis_slate",
-  "target_id": null,
-  "payload": {
-    "name": "Short descriptive name",
-    "claim": "One falsifiable sentence.",
-    "mechanism": "Full causal argument with evidence and failure modes.",
-    "anchors": ["[inference]"],
-    "third_alternative": false
-  },
-  "rationale": "[inference]"
-}
-\`\`\`
-
-Example KILL:
-\`\`\`delta
-{
-  "operation": "KILL",
-  "section": "hypothesis_slate",
-  "target_id": "H1",
-  "payload": { "reason": "Full kill argument: which evidence rules this out and why no rescue is possible." },
-  "rationale": "[inference]"
-}
-\`\`\`
-`;
-    }
-
-    function parseAgentDeltasStep(
-      agentName: string,
-      output: string,
-      timestamp: string,
-    ): Array<ValidDelta & { timestamp: string; agent: string }> {
-      const deltas = extractValidDeltas(output);
-      return deltas.map((d) => ({ ...d, timestamp, agent: agentName }));
-    }
-
-    function checkConvergenceStep(
-      roundDeltas: Array<ValidDelta & { timestamp: string; agent: string }>,
-      r: number,
-      art: Artifact,
-    ): { converged: boolean; reason: string } {
-      const a = roundDeltas.filter((d) => d.operation === "ADD").length;
-      const k = roundDeltas.filter((d) => d.operation === "KILL").length;
-
-      if (r === 1) {
-        return { converged: false, reason: `Round 1: ${a} adds, ${k} kills` };
-      }
-
-      const active = (art.sections.hypothesis_slate as any[])
-        .filter((h: any) => !h.killed).length;
-
-      if (k > 0 && k >= a) {
-        return {
-          converged: true,
-          reason: `Kill-rate (${k}) >= add-rate (${a}), ${active} active hypotheses remain`,
-        };
-      }
-
-      if (roundDeltas.length === 0) {
-        return { converged: true, reason: "No deltas produced — agents have converged" };
-      }
-
-      return {
-        converged: false,
-        reason: `Adds (${a}) > Kills (${k}), ${active} active hypotheses`,
-      };
-    }
 
     // -------------------------------------------------------------------
     // Execute one round
@@ -8517,8 +8549,8 @@ Example KILL:
     const prompts = new Map<RobotAgent, string>();
     for (const agent of agents) {
       const prompt = round === 1
-        ? buildRound1PromptStep(agent)
-        : buildRoundNPromptStep(agent, artifact, round, operatorBeliefLedger);
+        ? buildRobotRound1Prompt(agent, question, contextText, excerptText)
+        : buildRobotRoundNPrompt(agent, artifact, round, operatorBeliefLedger);
       prompts.set(agent, prompt);
     }
 
@@ -8527,14 +8559,14 @@ Example KILL:
     if (sequential) {
       for (const agent of agents) {
         const prompt = prompts.get(agent)!;
-        const output = await invokeAgentStep(agent, prompt, roundDir);
+        const output = await invokeRobotAgent(agent, prompt, roundDir, sessionDir);
         outputs.set(agent, output);
       }
     } else {
       const results = await Promise.allSettled(
         agents.map(async (agent) => {
           const prompt = prompts.get(agent)!;
-          const output = await invokeAgentStep(agent, prompt, roundDir);
+          const output = await invokeRobotAgent(agent, prompt, roundDir, sessionDir);
           return { agent, output };
         })
       );
@@ -8558,7 +8590,7 @@ Example KILL:
         agentHealth[agent.name] = { status: "error", error: "no output", deltas: 0 };
         continue;
       }
-      const agentDeltas = parseAgentDeltasStep(agent.name, output, ts);
+      const agentDeltas = parseRobotAgentDeltas(agent.name, output, ts);
       stderrLine(`  ${agent.name}: ${agentDeltas.length} valid deltas`);
       agentHealth[agent.name] = { status: "ok", deltas: agentDeltas.length };
       allRoundDeltas.push(...agentDeltas);
@@ -8603,7 +8635,7 @@ Example KILL:
     const adds = allRoundDeltas.filter((d) => d.operation === "ADD").length;
     const kills = allRoundDeltas.filter((d) => d.operation === "KILL").length;
     const edits = allRoundDeltas.filter((d) => d.operation === "EDIT").length;
-    const convergence = checkConvergenceStep(allRoundDeltas, round, artifact);
+    const convergence = checkRobotConvergence(allRoundDeltas, round, artifact);
 
     const activeHypotheses = (artifact.sections.hypothesis_slate as any[])
       .filter((h: any) => !h.killed);
@@ -9110,17 +9142,7 @@ Example KILL:
     const localBin = join(homedir(), ".local", "bin");
     const robotPath = [localBin, "/usr/local/bin", process.env.PATH ?? ""].filter(Boolean).join(":");
 
-    // Agent roster: three agents with incompatible mandates
-    interface RobotAgent {
-      name: string;
-      slug: string;
-      role: RoleConfig;
-      bin: string;
-      buildArgs: (prompt: string, outFile: string) => string[];
-      buildEnv: () => Record<string, string | undefined>;
-      readOutput: (stdout: string, outFile: string) => string;
-    }
-
+    // Agent roster: three agents with incompatible mandates (RobotAgent type is module-level)
     const agents: RobotAgent[] = [
       {
         name: "BlueLake",
@@ -9173,272 +9195,6 @@ Example KILL:
       },
     ];
 
-    // -------------------------------------------------------------------
-    // Build initial Round 1 prompt for an agent
-    // -------------------------------------------------------------------
-    function buildRound1Prompt(agent: RobotAgent): string {
-      const kernel = getTriangulatedBrennerKernelMarkdown();
-      const roleSection = getRolePromptMarkdown(agent.role.role);
-
-      const parts: string[] = [];
-      parts.push(`You are ${agent.name} (${agent.role.displayName}) in a Brenner Protocol session.\n`);
-
-      if (kernel) {
-        parts.push(`## Triangulated Brenner Kernel\n\n${kernel}\n`);
-      }
-
-      if (roleSection) {
-        parts.push(`## Role Prompt (System)\n\n${roleSection}\n`);
-      } else {
-        parts.push(`## Your Role\n${agent.role.description}\n`);
-      }
-
-      parts.push(`## Research Question\n\n${question}\n`);
-
-      if (contextText.trim()) {
-        parts.push(`## Context\n\n${contextText}\n`);
-      }
-
-      if (excerptText.trim()) {
-        parts.push(`## Brenner Excerpt\n\n${excerptText}\n`);
-      }
-
-      parts.push(buildDeltaFormatInstructions());
-
-      return parts.join("\n");
-    }
-
-    // -------------------------------------------------------------------
-    // Build Round 2+ prompt for an agent given current artifact
-    // -------------------------------------------------------------------
-    function buildRoundNPrompt(agent: RobotAgent, artifact: Artifact, round: number): string {
-      const kernel = getTriangulatedBrennerKernelMarkdown();
-      const roleSection = getRolePromptMarkdown(agent.role.role);
-      const artifactMd = renderArtifactMarkdown(artifact);
-
-      const parts: string[] = [];
-      parts.push(`You are ${agent.name} (${agent.role.displayName}) in a Brenner Protocol session.\n`);
-
-      // Re-inject kernel + role every round since each subprocess is a fresh context window
-      if (kernel) {
-        parts.push(`## Triangulated Brenner Kernel\n\n${kernel}\n`);
-      }
-      if (roleSection) {
-        parts.push(`## Role Prompt (System)\n\n${roleSection}\n`);
-      } else {
-        parts.push(`## Your Role\n${agent.role.description}\n`);
-      }
-
-      // Round-specific instructions
-      if (round === 2) {
-        parts.push(`## Round ${round} Instructions\n`);
-        parts.push(`Review other agents' findings from the previous round (in the artifact below).`);
-        parts.push(`Make your first kill attempts — identify weak hypotheses and KILL them with explicit reasons.`);
-        parts.push(`You may ADD refinements, but kills are the priority.\n`);
-      } else {
-        parts.push(`## Round ${round} Instructions (Convergence)\n`);
-        parts.push(`KILLS MUST EXCEED ADDS. Provide final verdicts on all surviving hypotheses.`);
-        parts.push(`Kill any hypothesis that cannot withstand scrutiny. Fewer strong beats more weak.\n`);
-      }
-
-      parts.push(`## Current Artifact (v${artifact.metadata.version})\n\n${artifactMd}\n`);
-
-      parts.push(buildDeltaFormatInstructions());
-
-      return parts.join("\n");
-    }
-
-    // -------------------------------------------------------------------
-    // Delta format instructions (shared across rounds)
-    // -------------------------------------------------------------------
-    function buildDeltaFormatInstructions(): string {
-      return `## Output Format
-
-Respond ONLY with delta blocks. Each delta is a JSON object in a \`\`\`delta fence.
-One JSON object per fence. No arrays. No prose outside delta blocks.
-
-Valid operations: ADD (target_id: null), EDIT (target_id required), KILL (target_id required).
-Valid sections: hypothesis_slate, discriminative_tests, assumption_ledger, anomaly_register,
-  adversarial_critique, research_thread, predictions_table.
-
-The compiler assigns IDs (H1, H2, T1, A1, C1, etc.). Do not invent your own IDs.
-For KILL, use the "reason" field (not "kill_reason").
-
-**Your full argument MUST go in the payload content fields** — rationale is metadata only
-and will NOT be visible to other agents. Write reasoning in mechanism (hypotheses),
-attack/evidence (critiques), procedure/discriminates (tests), reason (kills).
-
-**Predictions table mandate:** For every hypothesis you ADD, you MUST also ADD a
-predictions_table row specifying what observable outcome it predicts differently
-from alternatives.
-
-Example ADD (hypothesis):
-\`\`\`delta
-{
-  "operation": "ADD",
-  "section": "hypothesis_slate",
-  "target_id": null,
-  "payload": {
-    "name": "Short descriptive name",
-    "claim": "One falsifiable sentence.",
-    "mechanism": "Full causal argument with evidence and failure modes.",
-    "anchors": ["[inference]"],
-    "third_alternative": false
-  },
-  "rationale": "[inference]"
-}
-\`\`\`
-
-Example KILL:
-\`\`\`delta
-{
-  "operation": "KILL",
-  "section": "hypothesis_slate",
-  "target_id": "H1",
-  "payload": { "reason": "Full kill argument: which evidence rules this out and why no rescue is possible." },
-  "rationale": "[inference]"
-}
-\`\`\`
-`;
-    }
-
-    // -------------------------------------------------------------------
-    // Invoke a single agent as a subprocess, returns its text output
-    // -------------------------------------------------------------------
-    const AGENT_TIMEOUT_MS = 300_000; // 5 minutes per agent
-
-    function invokeAgent(agent: RobotAgent, prompt: string, roundDir: string): Promise<string> {
-      const promptFile = join(roundDir, `${agent.slug}_prompt.md`);
-      const outFile = join(roundDir, `${agent.slug}_out.md`);
-      writeFileSync(promptFile, prompt);
-
-      stderrLine(`  -> Invoking ${agent.name} (${agent.role.displayName})...`);
-
-      return new Promise<string>((resolve, reject) => {
-        const args = agent.buildArgs(prompt, outFile);
-        const env = agent.buildEnv();
-
-        const child = spawn(agent.bin, args, {
-          env,
-          stdio: ["ignore", "pipe", "pipe"],
-          cwd: sessionDir,
-        });
-
-        const stdoutChunks: Buffer[] = [];
-        const stderrChunks: Buffer[] = [];
-        child.stdout?.on("data", (d: Buffer) => stdoutChunks.push(d));
-        child.stderr?.on("data", (d: Buffer) => stderrChunks.push(d));
-
-        child.on("error", (err: Error) => {
-          clearTimeout(timer);
-          if (killTimer) clearTimeout(killTimer);
-          stderrLine(`  [!] ${agent.name} failed to launch: ${err.message}`);
-          stderrLine(`      Binary: ${agent.bin}`);
-          stderrLine(`      Ensure the CLI is installed and in PATH.`);
-          // Resolve with empty string instead of rejecting — a single agent
-          // failure should not abort the entire session
-          writeFileSync(outFile, "");
-          resolve("");
-        });
-
-        let killTimer: ReturnType<typeof setTimeout> | undefined;
-        const timer = setTimeout(() => {
-          child.kill("SIGTERM");
-          stderrLine(`  [!] ${agent.name} timed out after ${AGENT_TIMEOUT_MS / 1000}s, sending SIGTERM`);
-          // Escalate to SIGKILL if process doesn't exit within 10 seconds
-          killTimer = setTimeout(() => {
-            child.kill("SIGKILL");
-            stderrLine(`  [!] ${agent.name} did not exit after SIGTERM, sending SIGKILL`);
-          }, 10_000);
-        }, AGENT_TIMEOUT_MS);
-
-        child.on("close", (code: number | null) => {
-          clearTimeout(timer);
-          if (killTimer) clearTimeout(killTimer);
-
-          const stdout = Buffer.concat(stdoutChunks).toString();
-          const output = agent.readOutput(stdout, outFile);
-
-          if (code !== 0 && code !== null) {
-            stderrLine(`  [!] ${agent.name} exited with code ${code}`);
-          }
-
-          writeFileSync(outFile, output);
-
-          // Show a brief preview so the operator can follow along
-          const deltaCount = (output.match(/```delta/g) ?? []).length;
-          const preview = output
-            .replace(/```delta[\s\S]*?```/g, "[delta]")
-            .trim()
-            .slice(0, 400);
-          stderrLine(`  [ok] ${agent.name} done (${deltaCount} delta blocks)`);
-          if (preview) {
-            for (const line of preview.split("\n").slice(0, 5)) {
-              stderrLine(`       ${line}`);
-            }
-          }
-          stderrLine("");
-
-          resolve(output);
-        });
-      });
-    }
-
-    // -------------------------------------------------------------------
-    // Parse deltas from agent output and attach metadata
-    // -------------------------------------------------------------------
-    function parseAgentDeltas(
-      agentName: string,
-      output: string,
-      timestamp: string,
-    ): Array<ValidDelta & { timestamp: string; agent: string }> {
-      const deltas = extractValidDeltas(output);
-      return deltas.map((d) => ({ ...d, timestamp, agent: agentName }));
-    }
-
-    // -------------------------------------------------------------------
-    // Check convergence: kills >= adds in this round, or hit max rounds
-    // -------------------------------------------------------------------
-    function checkConvergence(
-      roundDeltas: Array<ValidDelta & { timestamp: string; agent: string }>,
-      round: number,
-      artifact: Artifact,
-    ): { converged: boolean; reason: string } {
-      if (round >= maxRounds) {
-        return { converged: true, reason: `Reached maximum rounds (${maxRounds})` };
-      }
-
-      const adds = roundDeltas.filter((d) => d.operation === "ADD").length;
-      const kills = roundDeltas.filter((d) => d.operation === "KILL").length;
-
-      // Round 1 never converges (agents are still generating initial hypotheses)
-      if (round === 1) {
-        return { converged: false, reason: `Round 1: ${adds} adds, ${kills} kills` };
-      }
-
-      // Count active hypotheses
-      const activeHypotheses = (artifact.sections.hypothesis_slate as any[])
-        .filter((h: any) => !h.killed).length;
-
-      // Convergence: kills >= adds (adversarial pressure exceeds generation)
-      // Require at least one kill to avoid premature convergence on pure-EDIT rounds
-      if (kills > 0 && kills >= adds) {
-        return {
-          converged: true,
-          reason: `Kill-rate (${kills}) >= add-rate (${adds}), ${activeHypotheses} active hypotheses remain`,
-        };
-      }
-
-      // Also converge if no deltas at all (agents have nothing to say)
-      if (roundDeltas.length === 0) {
-        return { converged: true, reason: "No deltas produced — agents have converged" };
-      }
-
-      return {
-        converged: false,
-        reason: `Adds (${adds}) > Kills (${kills}), ${activeHypotheses} active hypotheses`,
-      };
-    }
 
     // -------------------------------------------------------------------
     // Main session loop
@@ -9486,8 +9242,8 @@ Example KILL:
       const prompts = new Map<RobotAgent, string>();
       for (const agent of agents) {
         const prompt = round === 1
-          ? buildRound1Prompt(agent)
-          : buildRoundNPrompt(agent, artifact, round);
+          ? buildRobotRound1Prompt(agent, question, contextText, excerptText)
+          : buildRobotRoundNPrompt(agent, artifact, round);
         prompts.set(agent, prompt);
       }
 
@@ -9496,14 +9252,14 @@ Example KILL:
       if (sequential) {
         for (const agent of agents) {
           const prompt = prompts.get(agent)!;
-          const output = await invokeAgent(agent, prompt, roundDir);
+          const output = await invokeRobotAgent(agent, prompt, roundDir, sessionDir);
           outputs.set(agent, output);
         }
       } else {
         const results = await Promise.allSettled(
           agents.map(async (agent) => {
             const prompt = prompts.get(agent)!;
-            const output = await invokeAgent(agent, prompt, roundDir);
+            const output = await invokeRobotAgent(agent, prompt, roundDir, sessionDir);
             return { agent, output };
           })
         );
@@ -9527,7 +9283,7 @@ Example KILL:
           agentHealth[agent.name] = { status: "error", deltas: 0, error: "no output" };
           continue;
         }
-        const agentDeltas = parseAgentDeltas(agent.name, output, ts);
+        const agentDeltas = parseRobotAgentDeltas(agent.name, output, ts);
         stderrLine(`  ${agent.name}: ${agentDeltas.length} valid deltas`);
         agentHealth[agent.name] = { status: "ok", deltas: agentDeltas.length };
         allRoundDeltas.push(...agentDeltas);
@@ -9578,7 +9334,7 @@ Example KILL:
       const edits = allRoundDeltas.filter((d) => d.operation === "EDIT").length;
 
       // Check convergence
-      const convergence = checkConvergence(allRoundDeltas, round, artifact);
+      const convergence = checkRobotConvergence(allRoundDeltas, round, artifact, maxRounds);
 
       sessionState.rounds.push({
         round,

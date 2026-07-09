@@ -1985,18 +1985,14 @@ Commands:
   session robot --session-dir <path> --question <s>
                [--context-file <path>] [--excerpt-file <path>] [--max-rounds <n>]
                [--claude-bin <path>] [--codex-bin <path>] [--gemini-bin <path>]
-               [--sequential] [--step] [--operator-notes <path>] [--json]
-  session robot-stress --session-dir <path> [--operator-context <s>] [--json]
+               [--sequential] [--json]
 
     Robot mode: fully automated multi-agent sessions without Agent Mail. Three
     agents run as CLI subprocesses (Claude Code, Codex CLI, Gemini CLI). Each
     round: prompts are built from the current artifact state, agents are invoked,
     deltas are parsed and merged, the artifact is linted. Session converges when
-    kill-rate exceeds add-rate or --max-rounds is reached.
-
-    --step: Run ONE round then exit (HITL mode). Resume by running again.
-    --operator-notes <path>: Inject operator corrections into round prompts.
-    robot-stress: Adversarial stress test on surviving hypotheses.
+    kill-rate exceeds add-rate or --max-rounds is reached. For HITL orchestration
+    (pausing between rounds for operator feedback), use robot-step instead.
 
   session record --session-dir <path> [--out-file <path>] [--json]
   session replay --record-file <path> [--mode trace|verification|comparison] [--json]
@@ -9059,8 +9055,6 @@ Example KILL:
     const excerptFile = asStringFlag(flags, "excerpt-file") ?? join(sessionDir, "excerpt.md");
     const maxRounds = asIntFlag(flags, "max-rounds") ?? 5;
     const sequential = asBoolFlag(flags, "sequential");
-    const stepMode = asBoolFlag(flags, "step");
-    const operatorNotesFile = asStringFlag(flags, "operator-notes");
     const jsonMode = asBoolFlag(flags, "json");
 
     // Extract session ID from directory name
@@ -9217,7 +9211,7 @@ Example KILL:
     // -------------------------------------------------------------------
     // Build Round 2+ prompt for an agent given current artifact
     // -------------------------------------------------------------------
-    function buildRoundNPrompt(agent: RobotAgent, artifact: Artifact, round: number, opNotes?: string): string {
+    function buildRoundNPrompt(agent: RobotAgent, artifact: Artifact, round: number): string {
       const kernel = getTriangulatedBrennerKernelMarkdown();
       const roleSection = getRolePromptMarkdown(agent.role.role);
       const artifactMd = renderArtifactMarkdown(artifact);
@@ -9245,11 +9239,6 @@ Example KILL:
         parts.push(`## Round ${round} Instructions (Convergence)\n`);
         parts.push(`KILLS MUST EXCEED ADDS. Provide final verdicts on all surviving hypotheses.`);
         parts.push(`Kill any hypothesis that cannot withstand scrutiny. Fewer strong beats more weak.\n`);
-      }
-
-      if (opNotes) {
-        parts.push(`## Operator Corrections (CRITICAL — Read Carefully)\n\n${opNotes}\n`);
-        parts.push(`Integrate the operator's corrections above into your analysis. They override prior assumptions.\n`);
       }
 
       parts.push(`## Current Artifact (v${artifact.metadata.version})\n\n${artifactMd}\n`);
@@ -9454,41 +9443,17 @@ Example KILL:
     // -------------------------------------------------------------------
     // Main session loop
     // -------------------------------------------------------------------
-    // Read operator notes if provided
-    if (operatorNotesFile && !existsSync(operatorNotesFile)) {
-      stderrLine(`  [!] Operator notes file not found: ${operatorNotesFile}`);
-    }
-    const operatorNotes = operatorNotesFile && existsSync(operatorNotesFile)
-      ? readFileSync(operatorNotesFile, "utf8").trim()
-      : undefined;
-
     stderrLine(`\n========================================`);
-    stderrLine(`  Brenner Robot Mode${stepMode ? " (STEP)" : ""}`);
+    stderrLine(`  Brenner Robot Mode`);
     stderrLine(`========================================`);
     stderrLine(`Session:    ${sessionId}`);
     stderrLine(`Question:   ${question.slice(0, 80)}${question.length > 80 ? "..." : ""}`);
-    stderrLine(`Max rounds: ${stepMode ? "1 (step mode)" : String(maxRounds)}`);
+    stderrLine(`Max rounds: ${maxRounds}`);
     stderrLine(`Agents:     BlueLake (${claudeBin}), RedForest (${codexBin}), GreenMountain (${geminiBin})`);
-    stderrLine(`Mode:       ${sequential ? "sequential" : "parallel"}${stepMode ? " | HITL step" : ""}`);
-    if (operatorNotes) stderrLine(`Operator:   ${operatorNotes.length} chars of corrections injected`);
+    stderrLine(`Mode:       ${sequential ? "sequential" : "parallel"}`);
     stderrLine(`========================================\n`);
 
-    // In step mode, resume from prior state if it exists
     let artifact = createEmptyArtifact(sessionId);
-    let startRound = 1;
-    const stateFile = join(sessionDir, "session_state.json");
-    const robotFile = join(sessionDir, "robot_session.json");
-
-    if (stepMode && existsSync(stateFile) && existsSync(robotFile)) {
-      try {
-        artifact = JSON.parse(readFileSync(stateFile, "utf8"));
-        const priorState = JSON.parse(readFileSync(robotFile, "utf8"));
-        startRound = (priorState.rounds?.length ?? 0) + 1;
-        stderrLine(`  Resuming from round ${startRound} (artifact v${artifact.metadata.version})\n`);
-      } catch {
-        stderrLine(`  [!] Could not parse prior state, starting fresh\n`);
-      }
-    }
 
     const sessionState: {
       sessionId: string;
@@ -9511,16 +9476,7 @@ Example KILL:
       finalArtifactVersion: 0,
     };
 
-    // Reload prior rounds into sessionState if resuming
-    if (startRound > 1 && existsSync(robotFile)) {
-      try {
-        const priorState = JSON.parse(readFileSync(robotFile, "utf8"));
-        sessionState.rounds = priorState.rounds ?? [];
-      } catch { /* start fresh */ }
-    }
-
-    const effectiveMaxRounds = stepMode ? startRound : maxRounds;
-    for (let round = startRound; round <= effectiveMaxRounds; round++) {
+    for (let round = 1; round <= maxRounds; round++) {
       stderrLine(`--- Round ${round} of ${maxRounds} ---\n`);
 
       const roundDir = join(sessionDir, `round_${round}`);
@@ -9531,7 +9487,7 @@ Example KILL:
       for (const agent of agents) {
         const prompt = round === 1
           ? buildRound1Prompt(agent)
-          : buildRoundNPrompt(agent, artifact, round, operatorNotes);
+          : buildRoundNPrompt(agent, artifact, round);
         prompts.set(agent, prompt);
       }
 
@@ -9690,195 +9646,6 @@ Example KILL:
     process.exit(0);
   }
 
-  // ============================================================================
-  // Session Robot-Stress — adversarial stress test on survivors
-  // ============================================================================
-  if (normalizedTop === "session" && sub === "robot-stress") {
-    const sessionDirRaw = asStringFlag(flags, "session-dir");
-    if (!sessionDirRaw) throw new Error("Missing --session-dir.");
-    const sessionDir = resolve(sessionDirRaw);
-    const operatorContext = asStringFlag(flags, "operator-context") ?? "";
-    const jsonMode = asBoolFlag(flags, "json");
-
-    const stateFile = join(sessionDir, "session_state.json");
-    if (!existsSync(stateFile)) {
-      throw new Error(`No session_state.json found in ${sessionDir}. Run 'session robot' first.`);
-    }
-
-    const artifact: Artifact = JSON.parse(readFileSync(stateFile, "utf8"));
-    const survivors = (artifact.sections.hypothesis_slate as any[]).filter((h: any) => !h.killed);
-    if (survivors.length === 0) {
-      stderrLine("No surviving hypotheses to stress test.");
-      if (jsonMode) stdoutLine(JSON.stringify({ ok: true, survivors: 0, kills: 0 }));
-      process.exit(0);
-    }
-
-    const survivorList = survivors.map((h: any) => `- ${h.id}: ${h.name ?? h.claim}`).join("\n");
-    const artifactMd = renderArtifactMarkdown(artifact);
-
-    stderrLine(`\n========================================`);
-    stderrLine(`  Adversarial Stress Test`);
-    stderrLine(`========================================`);
-    stderrLine(`Session:   ${sessionDir}`);
-    stderrLine(`Survivors: ${survivors.length}`);
-    stderrLine(`========================================\n`);
-
-    // Resolve agent binary paths
-    function resolveAgentBin(flagKey: string, envKey: string, fallback: string): string {
-      return asStringFlag(flags, flagKey) ?? process.env[envKey] ?? fallback;
-    }
-    const claudeBin = resolveAgentBin("claude-bin", "BRENNER_CLAUDE_BIN", "claude");
-    const codexBin  = resolveAgentBin("codex-bin",  "BRENNER_CODEX_BIN",  "codex");
-    const geminiBin = resolveAgentBin("gemini-bin", "BRENNER_GEMINI_BIN", "gemini");
-
-    const localBin = join(homedir(), ".local", "bin");
-    const robotPath = [localBin, "/usr/local/bin", process.env.PATH ?? ""].filter(Boolean).join(":");
-
-    const AGENT_TIMEOUT_MS = 300_000;
-
-    // Build stress test prompt — all agents attack the survivors
-    const stressPrompt = `You are an adversarial critic in a Brenner Protocol stress test.
-
-## Your Mandate
-
-Kill the surviving hypotheses. For each survivor, find the fatal flaw. If it cannot
-withstand scrutiny, KILL it with a detailed reason. If it can survive, explain why —
-but be ruthless. A hypothesis that barely survives is still suspect.
-
-## Surviving Hypotheses
-
-${survivorList}
-
-${operatorContext ? `## Operator Context (CRITICAL)\n\n${operatorContext}\n\nUse the operator's context to guide your attacks. They know the domain.\n` : ""}
-
-## Current Artifact
-
-${artifactMd}
-
-## Output Format
-
-Respond ONLY with delta blocks. Use KILL operations to eliminate hypotheses.
-Use ADD on adversarial_critique for framing attacks. One JSON object per \`\`\`delta fence.
-
-For KILL:
-\`\`\`delta
-{
-  "operation": "KILL",
-  "section": "hypothesis_slate",
-  "target_id": "H1",
-  "payload": { "reason": "Why this hypothesis cannot survive." },
-  "rationale": "[inference]"
-}
-\`\`\`
-`;
-
-    const stressDir = join(sessionDir, "stress_test");
-    if (!existsSync(stressDir)) mkdirSync(stressDir, { recursive: true });
-
-    // Run all 3 agents with the stress prompt in parallel
-    type StressAgent = { name: string; slug: string; bin: string; args: (p: string) => string[]; env: () => Record<string, string | undefined>; read: (s: string, f: string) => string };
-    const stressAgents: StressAgent[] = [
-      { name: "BlueLake", slug: "bluelake", bin: claudeBin,
-        args: (p: string) => ["--dangerously-skip-permissions", "--output-format", "text", "-p", p],
-        env: () => ({ ...process.env, PATH: robotPath, CLAUDECODE: "", CLAUDE_CODE_ENTRYPOINT: "", AGENT_NAME: "BlueLake" }),
-        read: (s: string) => s },
-      { name: "RedForest", slug: "redforest", bin: codexBin,
-        args: (p: string) => { const f = join(stressDir, "redforest_out.md"); return ["exec", "--full-auto", "--output-last-message", f, p]; },
-        env: () => ({ ...process.env, PATH: robotPath, AGENT_NAME: "RedForest" }),
-        read: (_s: string, f: string) => existsSync(f) ? readFileSync(f, "utf8") : "" },
-      { name: "GreenMountain", slug: "greenmountain", bin: geminiBin,
-        args: (p: string) => ["--yolo", "--output-format", "text", "-p", p],
-        env: () => ({ ...process.env, PATH: robotPath, AGENT_NAME: "GreenMountain" }),
-        read: (s: string) => s },
-    ];
-
-    const agentHealth: Record<string, { status: string; deltas: number; error?: string }> = {};
-    const allDeltas: Array<ValidDelta & { timestamp: string; agent: string }> = [];
-    const ts = new Date().toISOString();
-
-    const results = await Promise.allSettled(
-      stressAgents.map((sa) => {
-        const promptFile = join(stressDir, `${sa.slug}_prompt.md`);
-        const outFile = join(stressDir, `${sa.slug}_out.md`);
-        writeFileSync(promptFile, stressPrompt);
-        stderrLine(`  -> Invoking ${sa.name} (stress)...`);
-
-        return new Promise<{ name: string; output: string }>((res, rej) => {
-          const child = spawn(sa.bin, sa.args(stressPrompt), {
-            env: sa.env(),
-            stdio: ["ignore", "pipe", "pipe"],
-            cwd: sessionDir,
-          });
-          const chunks: Buffer[] = [];
-          child.stdout?.on("data", (d: Buffer) => chunks.push(d));
-          let killTimer: ReturnType<typeof setTimeout> | undefined;
-          const timer = setTimeout(() => {
-            child.kill("SIGTERM");
-            killTimer = setTimeout(() => child.kill("SIGKILL"), 10_000);
-          }, AGENT_TIMEOUT_MS);
-          child.on("error", (err: Error) => {
-            clearTimeout(timer);
-            if (killTimer) clearTimeout(killTimer);
-            writeFileSync(outFile, "");
-            res({ name: sa.name, output: "" });
-          });
-          child.on("close", (code: number | null) => {
-            clearTimeout(timer);
-            if (killTimer) clearTimeout(killTimer);
-            const stdout = Buffer.concat(chunks).toString();
-            const output = sa.read(stdout, outFile);
-            writeFileSync(outFile, output);
-            stderrLine(`  [ok] ${sa.name} stress done`);
-            res({ name: sa.name, output });
-          });
-        });
-      })
-    );
-
-    for (const r of results) {
-      if (r.status === "fulfilled") {
-        const { name, output } = r.value;
-        if (!output.trim()) {
-          agentHealth[name] = { status: "error", deltas: 0, error: "no output" };
-          continue;
-        }
-        const deltas = extractValidDeltas(output).map((d) => ({ ...d, timestamp: ts, agent: name }));
-        agentHealth[name] = { status: "ok", deltas: deltas.length };
-        allDeltas.push(...deltas);
-      } else {
-        stderrLine(`  [!] Stress agent failed: ${r.reason}`);
-      }
-    }
-
-    // Merge stress deltas into artifact
-    const mergeResult = mergeArtifactWithTimestamps(artifact, allDeltas);
-    const updatedArtifact = mergeResult.artifact;
-
-    // Persist
-    writeFileSync(join(sessionDir, "artifact.md"), renderArtifactMarkdown(updatedArtifact));
-    writeFileSync(stateFile, JSON.stringify(updatedArtifact, null, 2));
-
-    const kills = allDeltas.filter((d) => d.operation === "KILL").length;
-    const postSurvivors = (updatedArtifact.sections.hypothesis_slate as any[]).filter((h: any) => !h.killed).length;
-
-    stderrLine(`\n  Stress test: ${kills} kills, ${postSurvivors} survivors remain`);
-    stderrLine(`  Per-agent: ${Object.entries(agentHealth).map(([n, h]) => `${n}=${h.status}(${h.deltas})`).join(", ")}`);
-
-    if (jsonMode) {
-      stdoutLine(JSON.stringify({
-        ok: true,
-        preSurvivors: survivors.length,
-        kills,
-        postSurvivors,
-        agents: agentHealth,
-        mergeErrors: mergeResult.ok ? 0 : mergeResult.errors.length,
-      }, null, 2));
-    } else {
-      stdoutLine(renderArtifactMarkdown(updatedArtifact));
-    }
-
-    process.exit(0);
-  }
 
   // ============================================================================
   // Session Record — convert a robot session dir into a SessionRecord JSON

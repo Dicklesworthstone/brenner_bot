@@ -620,3 +620,59 @@ I mentioned "operation" and "section" in my prose.
     expect(result.deltas).toHaveLength(0);
   });
 });
+
+// ============================================================================
+// Array ADD payloads (brenner_bot upstream fix 9e4ddb1) — an agent that emits
+// "payload": [{...}, {...}] on an ADD should get one delta per array element
+// instead of a single rejected delta.
+// ============================================================================
+
+describe("parseDeltaMessage — array ADD payloads", () => {
+  it("expands an array payload on ADD into one valid delta per element", () => {
+    const body = `
+\`\`\`delta
+{
+  "operation": "ADD",
+  "section": "hypothesis_slate",
+  "target_id": null,
+  "payload": [
+    { "name": "Hypothesis One", "claim": "First claim" },
+    { "name": "Hypothesis Two", "claim": "Second claim" }
+  ],
+  "rationale": "batch add"
+}
+\`\`\`
+`;
+    const result = parseDeltaMessage(body);
+
+    expect(result.totalBlocks).toBe(1);
+    expect(result.validCount).toBe(2);
+    expect(result.invalidCount).toBe(0);
+
+    const valid = result.deltas.filter((d) => d.valid) as Array<
+      Extract<(typeof result.deltas)[number], { valid: true }>
+    >;
+    expect(valid).toHaveLength(2);
+    expect(valid[0]?.payload).toMatchObject({ name: "Hypothesis One" });
+    expect(valid[1]?.payload).toMatchObject({ name: "Hypothesis Two" });
+  });
+
+  it("leaves a single-item array as a rejected item rather than silently dropping it", () => {
+    const body = `
+\`\`\`delta
+{
+  "operation": "ADD",
+  "section": "hypothesis_slate",
+  "target_id": null,
+  "payload": [ "not-an-object" ],
+  "rationale": "malformed batch add"
+}
+\`\`\`
+`;
+    const result = parseDeltaMessage(body);
+
+    expect(result.totalBlocks).toBe(1);
+    expect(result.validCount).toBe(0);
+    expect(result.invalidCount).toBe(1);
+  });
+});

@@ -2882,3 +2882,46 @@ describe("createInterventionMetadata", () => {
     expect(metadata.operators).toBeUndefined();
   });
 });
+
+// ============================================================================
+// Runtime error containment (brenner_bot upstream fix 44319ab) — session_state.json
+// is hand-editable between HITL rounds; a bad manual edit that leaves a section
+// malformed must not crash the entire merge for every agent's deltas in the batch.
+// ============================================================================
+
+describe("mergeArtifact runtime error containment", () => {
+  test("does not throw when a section on disk is corrupted (not an array)", () => {
+    const artifact = createEmptyArtifact("TEST-001");
+    // Simulate a session_state.json that was hand-edited into a bad shape between rounds.
+    (artifact.sections as unknown as Record<string, unknown>).hypothesis_slate = null;
+
+    const delta = makeValidDelta("ADD", "hypothesis_slate", null, {
+      name: "Test Hypothesis",
+      claim: "Something is true",
+    });
+
+    expect(() =>
+      mergeArtifact(artifact, [delta], "TestAgent", "2025-01-01T00:00:00Z"),
+    ).not.toThrow();
+  });
+
+  test("still applies other agents' valid deltas in the same batch after one throws", () => {
+    const artifact = createEmptyArtifact("TEST-001");
+    (artifact.sections as unknown as Record<string, unknown>).hypothesis_slate = null;
+
+    const badDelta = makeValidDelta("ADD", "hypothesis_slate", null, { name: "Bad" });
+    const goodDelta = makeValidDelta("ADD", "predictions_table", null, {
+      statement: "If X then Y",
+      linked_hypotheses: [],
+    });
+
+    const result = mergeArtifact(
+      artifact,
+      [badDelta, goodDelta],
+      "TestAgent",
+      "2025-01-01T00:00:00Z",
+    );
+
+    expect(result.artifact.sections.predictions_table).toHaveLength(1);
+  });
+});

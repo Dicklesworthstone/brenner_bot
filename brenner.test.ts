@@ -1910,12 +1910,12 @@ describe("doctor command", () => {
     // Agent CLI checks should be present (ok, missing, or error - depending on what's installed)
     expect(parsed.checks.claude).toBeDefined();
     expect(parsed.checks.codex).toBeDefined();
-    expect(parsed.checks.gemini).toBeDefined();
+    expect(parsed.checks.agy).toBeDefined();
 
     // Each should have a status
     expect(["ok", "missing", "error"]).toContain(parsed.checks.claude.status);
     expect(["ok", "missing", "error"]).toContain(parsed.checks.codex.status);
-    expect(["ok", "missing", "error"]).toContain(parsed.checks.gemini.status);
+    expect(["ok", "missing", "error"]).toContain(parsed.checks.agy.status);
   });
 
   it("doctor --json --skip-agents skips agent CLI checks", async () => {
@@ -1938,7 +1938,7 @@ describe("doctor command", () => {
     // Agent CLI checks should be skipped
     expect(parsed.checks.claude.status).toBe("skipped");
     expect(parsed.checks.codex.status).toBe("skipped");
-    expect(parsed.checks.gemini.status).toBe("skipped");
+    expect(parsed.checks.agy.status).toBe("skipped");
   });
 
   it("doctor without --skip-agents reports agent CLI presence", async () => {
@@ -1964,9 +1964,38 @@ describe("doctor command", () => {
     if (parsed.checks.codex.status === "ok") {
       expect(parsed.checks.codex.path).toBeTruthy();
     }
-    if (parsed.checks.gemini.status === "ok") {
-      expect(parsed.checks.gemini.path).toBeTruthy();
+    if (parsed.checks.agy.status === "ok") {
+      expect(parsed.checks.agy.path).toBeTruthy();
     }
+  });
+
+  it("doctor --robot runs a zero-cost robot-step smoke test and reports it as a check", async () => {
+    const result = await runCli(
+      [
+        "doctor", "--json",
+        "--skip-ntm", "--skip-cass", "--skip-cm", "--skip-agents",
+        "--robot",
+      ],
+      { timeout: 30000 },
+    );
+    expect(result.exitCode, formatCliDebug(result)).toBe(0);
+
+    const parsed = JSON.parse(result.stdout) as {
+      checks: Record<string, { status: string; notes?: string | null }>;
+    };
+    expect(parsed.checks.robotPipeline).toBeDefined();
+    expect(parsed.checks.robotPipeline.status).toBe("ok");
+  });
+
+  it("doctor without --robot does not run the robot-step smoke test", async () => {
+    const result = await runCli([
+      "doctor", "--json",
+      "--skip-ntm", "--skip-cass", "--skip-cm", "--skip-agents",
+    ]);
+    expect(result.exitCode).toBe(0);
+
+    const parsed = JSON.parse(result.stdout) as { checks: Record<string, unknown> };
+    expect(parsed.checks.robotPipeline).toBeUndefined();
   });
 });
 
@@ -2045,6 +2074,16 @@ const FAKE_AGENT_BIN_FLAGS = [
   "--codex-bin", "/bin/echo",
   "--agy-bin", "/bin/echo",
 ];
+
+// /bin/echo satisfies BlueLake/GreenMountain (they read stdout directly) but
+// RedForest reads from a file path passed via --output-last-message, which
+// plain echo never writes — it always reports "error". For tests that need a
+// genuinely all-success round, use a fake codex binary that writes to it.
+function createFakeCodexBin(): string {
+  const scriptPath = join(tmpdir(), `brenner-test-fake-codex-${randomUUID()}.sh`);
+  writeFileSync(scriptPath, `#!/bin/sh\necho "fake codex output for: $5" > "$4"\n`, { mode: 0o755 });
+  return trackTempPath(scriptPath);
+}
 
 function makeRobotStepSessionDir(prefix: string): string {
   const dir = createTempDir(prefix);
@@ -2141,7 +2180,10 @@ describe("session robot-step", () => {
       stateFile: string;
       agents: Record<string, { status: string; deltas: number; error?: string }>;
     };
-    expect(parsed.ok).toBe(true);
+    // /bin/echo doesn't understand RedForest's file-writing convention
+    // (--output-last-message <path>) so RedForest always reports "error"
+    // against this fake binary — ok reflects that real per-agent state.
+    expect(parsed.ok).toBe(false);
     expect(parsed.round).toBe(1);
     expect(existsSync(parsed.artifactFile)).toBe(true);
     expect(existsSync(parsed.stateFile)).toBe(true);
@@ -2185,6 +2227,113 @@ describe("session robot-step", () => {
       agents: Record<string, { status: string; error?: string }>;
     };
     expect(parsed.agents.GreenMountain.status).toBe("error");
+  });
+
+  it("marks ok:false in the JSON output when an agent errored", async () => {
+    const dir = makeRobotStepSessionDir("brenner-test-robot-step-oknotok");
+    const result = await runCli(
+      [
+        "session", "robot-step",
+        "--session-dir", dir,
+        "--question", "Does ok reflect real agent health?",
+        "--round", "1",
+        "--claude-bin", "/bin/echo",
+        "--codex-bin", "/bin/echo",
+        "--agy-bin", "/definitely/does/not/exist/agy",
+        "--json",
+      ],
+      { timeout: 20000 },
+    );
+    const parsed = JSON.parse(result.stdout) as { ok: boolean };
+    expect(parsed.ok).toBe(false);
+  });
+
+  describe("agent-error acknowledgment gate", () => {
+    async function runRoundWithBrokenAgy(dir: string, round: number) {
+      return runCli(
+        [
+          "session", "robot-step",
+          "--session-dir", dir,
+          "--question", "Does the acknowledgment gate work?",
+          "--round", String(round),
+          "--claude-bin", "/bin/echo",
+          "--codex-bin", "/bin/echo",
+          "--agy-bin", "/definitely/does/not/exist/agy",
+          "--json",
+        ],
+        { timeout: 20000 },
+      );
+    }
+
+    it("refuses to run the next round after an unacknowledged agent error", async () => {
+      const dir = makeRobotStepSessionDir("brenner-test-robot-step-gate");
+      const round1 = await runRoundWithBrokenAgy(dir, 1);
+      expect(round1.exitCode, formatCliDebug(round1)).toBe(0);
+
+      const round2 = await runRoundWithBrokenAgy(dir, 2);
+      expect(round2.exitCode, formatCliDebug(round2)).toBe(1);
+      expect(round2.stderr).toContain("GreenMountain");
+      expect(round2.stderr).toContain("--acknowledge-agent-errors");
+    });
+
+    it("proceeds when the operator explicitly acknowledges the prior round's errors", async () => {
+      const dir = makeRobotStepSessionDir("brenner-test-robot-step-gate-ack");
+      const round1 = await runRoundWithBrokenAgy(dir, 1);
+      expect(round1.exitCode, formatCliDebug(round1)).toBe(0);
+
+      const round2 = await runCli(
+        [
+          "session", "robot-step",
+          "--session-dir", dir,
+          "--question", "Does the acknowledgment gate work?",
+          "--round", "2",
+          "--claude-bin", "/bin/echo",
+          "--codex-bin", "/bin/echo",
+          "--agy-bin", "/bin/echo",
+          "--acknowledge-agent-errors",
+          "--json",
+        ],
+        { timeout: 20000 },
+      );
+      expect(round2.exitCode, formatCliDebug(round2)).toBe(0);
+    });
+
+    it("does not gate when the prior round had no agent errors", async () => {
+      const dir = makeRobotStepSessionDir("brenner-test-robot-step-gate-clean");
+      const cleanBinFlags = [
+        "--claude-bin", "/bin/echo",
+        "--codex-bin", createFakeCodexBin(),
+        "--agy-bin", "/bin/echo",
+      ];
+
+      const round1 = await runCli(
+        [
+          "session", "robot-step",
+          "--session-dir", dir,
+          "--question", "Does a clean round avoid the gate?",
+          "--round", "1",
+          ...cleanBinFlags,
+          "--json",
+        ],
+        { timeout: 20000 },
+      );
+      expect(round1.exitCode, formatCliDebug(round1)).toBe(0);
+      const round1Parsed = JSON.parse(round1.stdout) as { ok: boolean };
+      expect(round1Parsed.ok, formatCliDebug(round1)).toBe(true);
+
+      const round2 = await runCli(
+        [
+          "session", "robot-step",
+          "--session-dir", dir,
+          "--question", "Does a clean round avoid the gate?",
+          "--round", "2",
+          ...cleanBinFlags,
+          "--json",
+        ],
+        { timeout: 20000 },
+      );
+      expect(round2.exitCode, formatCliDebug(round2)).toBe(0);
+    });
   });
 });
 

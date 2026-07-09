@@ -4391,7 +4391,7 @@ Lock implementation uses atomic file operations with TTL-based expiry for crash 
 
 ---
 
-## Stepwise Robot Mode (branch `feat/hitl-robot-mode`)
+## Stepwise Robot Mode (branch `feat/hitl-robot-mode`, PR [#13](https://github.com/Dicklesworthstone/brenner_bot/pull/13))
 
 This fork adds two CLI commands for HITL (human-in-the-loop) orchestration, built on top of `session robot`:
 

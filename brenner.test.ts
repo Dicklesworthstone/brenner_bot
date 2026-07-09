@@ -2001,6 +2001,266 @@ describe("unknown commands", () => {
 });
 
 // ============================================================================
+// Tests: Session Dispatch Integrity
+// ============================================================================
+//
+// A rebase or merge can silently land two independent implementations of the
+// same command (same dispatch condition, different bodies) without a git
+// conflict, if unrelated hunks shift line offsets enough that the 3-way merge
+// never sees them as overlapping. Only the first block in the file ever
+// executes; the second is silent dead code. This happened for real once
+// already in this branch's own history (a duplicate "robot-stress" handler
+// survived a clean-looking rebase) — this test guards against a repeat.
+
+describe("session dispatch integrity", () => {
+  it("has no duplicate 'session <sub>' dispatch blocks in brenner.ts", () => {
+    const source = readFileSync(CLI_PATH, "utf8");
+    const pattern = /normalizedTop === "session" && sub === "([a-z-]+)"/g;
+    const seen = new Map<string, number>();
+    const duplicates: string[] = [];
+    let match: RegExpExecArray | null;
+    while ((match = pattern.exec(source)) !== null) {
+      const sub = match[1];
+      const count = (seen.get(sub) ?? 0) + 1;
+      seen.set(sub, count);
+      if (count === 2) duplicates.push(sub);
+    }
+    expect(duplicates).toEqual([]);
+  });
+});
+
+// ============================================================================
+// Tests: session robot-step (HITL orchestration — no live LLM calls)
+// ============================================================================
+//
+// These use /bin/echo in place of the real claude/codex/agy binaries so the
+// full round pipeline (arg validation, prompt build, spawn, output capture,
+// delta parse, merge, lint, persist) runs for real, at zero API cost. /bin/echo
+// echoes its args back, which happens to include the literal example delta
+// fences from the prompt instructions, so parsing sees real (if nonsensical)
+// delta blocks — that's fine, these tests assert plumbing, not agent quality.
+
+const FAKE_AGENT_BIN_FLAGS = [
+  "--claude-bin", "/bin/echo",
+  "--codex-bin", "/bin/echo",
+  "--agy-bin", "/bin/echo",
+];
+
+function makeRobotStepSessionDir(prefix: string): string {
+  const dir = createTempDir(prefix);
+  writeFileSync(
+    join(dir, "context.md"),
+    "## Research Question\nTest only.\n\n## Background\nN/A\n\n## Evaluation Criteria\nN/A\n",
+  );
+  writeFileSync(join(dir, "excerpt.md"), "");
+  return dir;
+}
+
+describe("session robot-step", () => {
+  it("requires --session-dir", async () => {
+    const result = await runCli(["session", "robot-step"]);
+    expect(result.exitCode).toBe(1);
+    expect(result.stderr).toContain("--session-dir");
+  });
+
+  it("requires --question", async () => {
+    const dir = makeRobotStepSessionDir("brenner-test-robot-step");
+    const result = await runCli(["session", "robot-step", "--session-dir", dir]);
+    expect(result.exitCode).toBe(1);
+    expect(result.stderr).toContain("--question");
+  });
+
+  it("requires a valid --round (missing)", async () => {
+    const dir = makeRobotStepSessionDir("brenner-test-robot-step");
+    const result = await runCli([
+      "session", "robot-step",
+      "--session-dir", dir,
+      "--question", "Test?",
+    ]);
+    expect(result.exitCode).toBe(1);
+    expect(result.stderr).toContain("--round");
+  });
+
+  it("requires a valid --round (zero is invalid)", async () => {
+    const dir = makeRobotStepSessionDir("brenner-test-robot-step");
+    const result = await runCli([
+      "session", "robot-step",
+      "--session-dir", dir,
+      "--question", "Test?",
+      "--round", "0",
+    ]);
+    expect(result.exitCode).toBe(1);
+    expect(result.stderr).toContain("--round");
+  });
+
+  it("fails clearly when context.md is missing", async () => {
+    const dir = createTempDir("brenner-test-robot-step-nocontext");
+    writeFileSync(join(dir, "excerpt.md"), "");
+    const result = await runCli([
+      "session", "robot-step",
+      "--session-dir", dir,
+      "--question", "Test?",
+      "--round", "1",
+    ]);
+    expect(result.exitCode).toBe(1);
+    expect(result.stderr).toContain("context");
+  });
+
+  it("fails clearly when excerpt.md is missing", async () => {
+    const dir = createTempDir("brenner-test-robot-step-noexcerpt");
+    writeFileSync(join(dir, "context.md"), "## Research Question\nTest.\n");
+    const result = await runCli([
+      "session", "robot-step",
+      "--session-dir", dir,
+      "--question", "Test?",
+      "--round", "1",
+    ]);
+    expect(result.exitCode).toBe(1);
+    expect(result.stderr).toContain("excerpt");
+  });
+
+  it("runs a full round with fake agent binaries and reports structured per-agent health", async () => {
+    const dir = makeRobotStepSessionDir("brenner-test-robot-step-round");
+    const result = await runCli(
+      [
+        "session", "robot-step",
+        "--session-dir", dir,
+        "--question", "Does the round-1 pipeline run end to end?",
+        "--round", "1",
+        ...FAKE_AGENT_BIN_FLAGS,
+        "--json",
+      ],
+      { timeout: 20000 },
+    );
+    expect(result.exitCode, formatCliDebug(result)).toBe(0);
+
+    const parsed = JSON.parse(result.stdout) as {
+      ok: boolean;
+      round: number;
+      artifactFile: string;
+      stateFile: string;
+      agents: Record<string, { status: string; deltas: number; error?: string }>;
+    };
+    expect(parsed.ok).toBe(true);
+    expect(parsed.round).toBe(1);
+    expect(existsSync(parsed.artifactFile)).toBe(true);
+    expect(existsSync(parsed.stateFile)).toBe(true);
+
+    // The structured per-agent health field: this is the signal a HITL
+    // orchestrator's "check for agent errors first" step should read
+    // instead of manually scanning raw output files.
+    expect(parsed.agents).toBeDefined();
+    for (const name of ["BlueLake", "RedForest", "GreenMountain"]) {
+      expect(parsed.agents[name]).toBeDefined();
+      expect(["ok", "error"]).toContain(parsed.agents[name].status);
+    }
+  });
+});
+
+// ============================================================================
+// Tests: session robot-stress
+// ============================================================================
+
+describe("session robot-stress", () => {
+  it("requires --session-dir", async () => {
+    const result = await runCli(["session", "robot-stress"]);
+    expect(result.exitCode).toBe(1);
+    expect(result.stderr).toContain("--session-dir");
+  });
+
+  it("fails clearly when session_state.json is missing", async () => {
+    const dir = createTempDir("brenner-test-robot-stress-nostate");
+    const result = await runCli(["session", "robot-stress", "--session-dir", dir]);
+    expect(result.exitCode).toBe(1);
+    expect(result.stderr).toContain("session_state.json");
+  });
+
+  it("exits cleanly with no survivors when all hypotheses are killed", async () => {
+    const dir = createTempDir("brenner-test-robot-stress-nosurvivors");
+    const artifact = {
+      metadata: {
+        session_id: "TEST-001", created_at: "2026-01-01T00:00:00Z",
+        updated_at: "2026-01-01T00:00:00Z", version: 1, contributors: [], status: "draft",
+      },
+      sections: {
+        research_thread: null,
+        hypothesis_slate: [{ id: "H1", name: "Dead idea", killed: true }],
+        predictions_table: [], discriminative_tests: [], assumption_ledger: [],
+        anomaly_register: [], adversarial_critique: [],
+      },
+    };
+    writeFileSync(join(dir, "session_state.json"), JSON.stringify(artifact, null, 2));
+
+    const result = await runCli(
+      ["session", "robot-stress", "--session-dir", dir, ...FAKE_AGENT_BIN_FLAGS, "--json"],
+      { timeout: 20000 },
+    );
+    expect(result.exitCode, formatCliDebug(result)).toBe(0);
+    const parsed = JSON.parse(result.stdout) as { ok: boolean; survivors: unknown[] };
+    expect(parsed.ok).toBe(true);
+    expect(parsed.survivors).toEqual([]);
+  });
+});
+
+// ============================================================================
+// Tests: session robot (fully automated, non-HITL)
+// ============================================================================
+
+describe("session robot", () => {
+  it("requires --session-dir", async () => {
+    const result = await runCli(["session", "robot"]);
+    expect(result.exitCode).toBe(1);
+    expect(result.stderr).toContain("--session-dir");
+  });
+
+  it("requires --question", async () => {
+    const dir = makeRobotStepSessionDir("brenner-test-robot");
+    const result = await runCli(["session", "robot", "--session-dir", dir]);
+    expect(result.exitCode).toBe(1);
+    expect(result.stderr).toContain("--question");
+  });
+
+  it("fails clearly when context.md is missing", async () => {
+    const dir = createTempDir("brenner-test-robot-nocontext");
+    const result = await runCli([
+      "session", "robot",
+      "--session-dir", dir,
+      "--question", "Test?",
+    ]);
+    expect(result.exitCode).toBe(1);
+    expect(result.stderr).toContain("context");
+  });
+
+  it("runs one full round end to end with fake agent binaries", async () => {
+    const dir = makeRobotStepSessionDir("brenner-test-robot-round");
+    const result = await runCli(
+      [
+        "session", "robot",
+        "--session-dir", dir,
+        "--question", "Does the plain robot pipeline still run after removing upstream's --step flag?",
+        "--max-rounds", "1",
+        ...FAKE_AGENT_BIN_FLAGS,
+        "--json",
+      ],
+      { timeout: 20000 },
+    );
+    expect(result.exitCode, formatCliDebug(result)).toBe(0);
+
+    const parsed = JSON.parse(result.stdout) as {
+      ok: boolean;
+      roundsCompleted: number;
+      rounds: Array<{ agents: Record<string, { status: string }> }>;
+    };
+    expect(parsed.ok).toBe(true);
+    expect(parsed.roundsCompleted).toBe(1);
+    expect(parsed.rounds[0].agents).toBeDefined();
+    for (const name of ["BlueLake", "RedForest", "GreenMountain"]) {
+      expect(parsed.rounds[0].agents[name]).toBeDefined();
+    }
+  });
+});
+
+// ============================================================================
 // Tests: Excerpt Build Command
 // ============================================================================
 

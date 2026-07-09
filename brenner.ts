@@ -1960,7 +1960,7 @@ Commands:
   session diagnose [--project-key <abs-path>] --thread-id <id> [--json]
   session robot-step --session-dir <path> --question <s> --round <n>
                [--context-file <path>] [--excerpt-file <path>]
-               [--claude-bin <path>] [--codex-bin <path>] [--gemini-bin <path>]
+               [--claude-bin <path>] [--codex-bin <path>] [--agy-bin <path>]
                [--sequential]
 
     Run one round of a robot mode session. Outputs JSON to stdout with round
@@ -1972,7 +1972,7 @@ Commands:
 
   session robot-stress --session-dir <path>
                [--operator-context <path>]
-               [--claude-bin <path>] [--codex-bin <path>] [--gemini-bin <path>]
+               [--claude-bin <path>] [--codex-bin <path>] [--agy-bin <path>]
                [--sequential]
 
     Stress test survivors from a completed session. Reads session_state.json,
@@ -1984,11 +1984,11 @@ Commands:
 
   session robot --session-dir <path> --question <s>
                [--context-file <path>] [--excerpt-file <path>] [--max-rounds <n>]
-               [--claude-bin <path>] [--codex-bin <path>] [--gemini-bin <path>]
+               [--claude-bin <path>] [--codex-bin <path>] [--agy-bin <path>]
                [--sequential] [--json]
 
     Robot mode: fully automated multi-agent sessions without Agent Mail. Three
-    agents run as CLI subprocesses (Claude Code, Codex CLI, Gemini CLI). Each
+    agents run as CLI subprocesses (Claude Code, Codex CLI, Antigravity CLI). Each
     round: prompts are built from the current artifact state, agents are invoked,
     deltas are parsed and merged, the artifact is linted. Session converges when
     kill-rate exceeds add-rate or --max-rounds is reached. For HITL orchestration
@@ -8157,7 +8157,7 @@ ${JSON.stringify(delta, null, 2)}
     // Resolve agent binaries (reuse same logic as session robot)
     const claudeBin = asStringFlag(flags, "claude-bin") ?? process.env.BRENNER_CLAUDE_BIN ?? "claude";
     const codexBin = asStringFlag(flags, "codex-bin") ?? process.env.BRENNER_CODEX_BIN ?? "codex";
-    const geminiBin = asStringFlag(flags, "gemini-bin") ?? process.env.BRENNER_GEMINI_BIN ?? "gemini";
+    const agyBin = asStringFlag(flags, "agy-bin") ?? process.env.BRENNER_AGY_BIN ?? "agy";
 
     const augmentedPath = `${homedir()}/.local/bin:/usr/local/bin:${process.env.PATH ?? ""}`;
 
@@ -8175,7 +8175,7 @@ ${JSON.stringify(delta, null, 2)}
     const ROLE_CONFIGS: Record<string, { role: string; displayName: string; description: string }> = {
       claude: { role: "test_designer", displayName: "Test Designer", description: "Design discriminative tests that kill hypotheses. Score experiments by evidence-per-week." },
       codex: { role: "hypothesis_generator", displayName: "Hypothesis Generator", description: "Generate hypotheses, hunt paradoxes, import cross-domain patterns. Always include a third alternative." },
-      gemini: { role: "adversarial_critic", displayName: "Adversarial Critic", description: "Attack the framing, run scale checks, quarantine anomalies, kill theories that go ugly." },
+      agy: { role: "adversarial_critic", displayName: "Adversarial Critic", description: "Attack the framing, run scale checks, quarantine anomalies, kill theories that go ugly." },
     };
 
     const agents: RobotAgent[] = [
@@ -8215,10 +8215,10 @@ ${JSON.stringify(delta, null, 2)}
       {
         name: "GreenMountain",
         slug: "greenmountain",
-        bin: geminiBin,
-        role: ROLE_CONFIGS.gemini,
+        bin: agyBin,
+        role: ROLE_CONFIGS.agy,
         buildArgs: (prompt: string, _outFile: string) => [
-          "--yolo", "--output-format", "text", "-p", prompt,
+          "--dangerously-skip-permissions", "--model", "Gemini 3.1 Pro (High)", "-p", prompt,
         ],
         buildEnv: () => ({
           ...process.env,
@@ -8467,7 +8467,7 @@ Example KILL:
     stderrLine(`========================================`);
     stderrLine(`Session:  ${sessionId}`);
     stderrLine(`Question: ${question.slice(0, 80)}${question.length > 80 ? "..." : ""}`);
-    stderrLine(`Agents:   BlueLake (${claudeBin}), RedForest (${codexBin}), GreenMountain (${geminiBin})`);
+    stderrLine(`Agents:   BlueLake (${claudeBin}), RedForest (${codexBin}), GreenMountain (${agyBin})`);
     stderrLine(`Mode:     ${sequential ? "sequential" : "parallel"}`);
     stderrLine(`========================================\n`);
 
@@ -8719,7 +8719,7 @@ Example KILL:
     // Resolve agent binaries
     const claudeBin = asStringFlag(flags, "claude-bin") ?? process.env.BRENNER_CLAUDE_BIN ?? "claude";
     const codexBin = asStringFlag(flags, "codex-bin") ?? process.env.BRENNER_CODEX_BIN ?? "codex";
-    const geminiBin = asStringFlag(flags, "gemini-bin") ?? process.env.BRENNER_GEMINI_BIN ?? "gemini";
+    const agyBin = asStringFlag(flags, "agy-bin") ?? process.env.BRENNER_AGY_BIN ?? "agy";
 
     const augmentedPath = `${homedir()}/.local/bin:/usr/local/bin:${process.env.PATH ?? ""}`;
 
@@ -8772,9 +8772,9 @@ Example KILL:
         name: "GreenMountain",
         slug: "greenmountain",
         roleName: "Adversarial Critic",
-        bin: geminiBin,
+        bin: agyBin,
         buildArgs: (prompt: string, _outFile: string) => [
-          "--yolo", "--output-format", "text", "-p", prompt,
+          "--dangerously-skip-permissions", "--model", "Gemini 3.1 Pro (High)", "-p", prompt,
         ],
         buildEnv: () => ({
           ...process.env,
@@ -8981,7 +8981,7 @@ Example KILL:
     stderrLine(`========================================`);
     stderrLine(`Session:    ${sessionDir.split("/").pop()}`);
     stderrLine(`Survivors:  ${survivors.length} (${survivorNames.join(", ")})`);
-    stderrLine(`Agents:     BlueLake (${claudeBin}), RedForest (${codexBin}), GreenMountain (${geminiBin})`);
+    stderrLine(`Agents:     BlueLake (${claudeBin}), RedForest (${codexBin}), GreenMountain (${agyBin})`);
     stderrLine(`Mode:       ${sequential ? "sequential" : "parallel"}`);
     stderrLine(`Passes:     blind${operatorBeliefs.length > 0 ? " -> informed" : ""}`);
     stderrLine(`========================================\n`);
@@ -9104,7 +9104,7 @@ Example KILL:
     }
     const claudeBin = resolveAgentBin("claude-bin", "BRENNER_CLAUDE_BIN", "claude");
     const codexBin  = resolveAgentBin("codex-bin",  "BRENNER_CODEX_BIN",  "codex");
-    const geminiBin = resolveAgentBin("gemini-bin", "BRENNER_GEMINI_BIN", "gemini");
+    const agyBin = resolveAgentBin("agy-bin", "BRENNER_AGY_BIN", "agy");
 
     // Augment PATH for agent binaries in common locations
     const localBin = join(homedir(), ".local", "bin");
@@ -9160,9 +9160,9 @@ Example KILL:
         name: "GreenMountain",
         slug: "greenmountain",
         role: AGENT_ROLES["Gemini"] ?? AGENT_ROLES["gemini-cli"],
-        bin: geminiBin,
+        bin: agyBin,
         buildArgs: (prompt: string) => [
-          "--yolo", "--output-format", "text", "-p", prompt,
+          "--dangerously-skip-permissions", "--model", "Gemini 3.1 Pro (High)", "-p", prompt,
         ],
         buildEnv: () => ({
           ...process.env,
@@ -9449,7 +9449,7 @@ Example KILL:
     stderrLine(`Session:    ${sessionId}`);
     stderrLine(`Question:   ${question.slice(0, 80)}${question.length > 80 ? "..." : ""}`);
     stderrLine(`Max rounds: ${maxRounds}`);
-    stderrLine(`Agents:     BlueLake (${claudeBin}), RedForest (${codexBin}), GreenMountain (${geminiBin})`);
+    stderrLine(`Agents:     BlueLake (${claudeBin}), RedForest (${codexBin}), GreenMountain (${agyBin})`);
     stderrLine(`Mode:       ${sequential ? "sequential" : "parallel"}`);
     stderrLine(`========================================\n`);
 
@@ -9711,8 +9711,8 @@ Example KILL:
         record.inputs.agent_roster.push({
           agent_name: agentName,
           role: role as "hypothesis_generator" | "test_designer" | "adversarial_critic",
-          program: agentName.toLowerCase() === "bluelake" ? "claude-code" : agentName.toLowerCase() === "redforest" ? "codex-cli" : "gemini-cli",
-          model: agentName.toLowerCase() === "bluelake" ? "opus-4.5" : agentName.toLowerCase() === "redforest" ? "gpt-5.2" : "gemini-3",
+          program: agentName.toLowerCase() === "bluelake" ? "claude-code" : agentName.toLowerCase() === "redforest" ? "codex-cli" : "agy-cli",
+          model: agentName.toLowerCase() === "bluelake" ? "opus-4.5" : agentName.toLowerCase() === "redforest" ? "gpt-5.2" : "gemini-3.1-pro",
         });
       }
     }

@@ -31,7 +31,6 @@ import {
   getTriangulatedBrennerKernelMarkdown,
   type AgentRole,
   type KickoffConfig,
-  type RoleConfig,
 } from "./apps/web/src/lib/session-kickoff";
 import { extractValidDeltas, parseDeltaMessage, type ValidDelta } from "./apps/web/src/lib/delta-parser";
 import {

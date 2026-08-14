@@ -2449,14 +2449,23 @@ async function main(): Promise<void> {
     // Only ntm, cass, cm are potentially required; agent CLIs are optional
     const requiredToolKeys = ["ntm", "cass", "cm"];
     const missingRequired = Object.entries(checks).some(([key, check]) => {
-      if (!requiredToolKeys.includes(key)) return false; // agent CLIs and agentMail are optional
+      if (!requiredToolKeys.includes(key)) return false; // agent CLIs and agentMail are handled separately
       const required = key !== "ntm" || process.platform !== "win32"; // ntm optional on Windows
       if (!required) return false;
       if (check.status === "skipped") return false;
       return check.status !== "ok";
     });
 
-    const exitCode = missingRequired ? 1 : 0;
+    // Agent Mail is only checked when explicitly requested (--agent-mail); once
+    // requested, a failing check must degrade the overall status so scripted
+    // gates (`doctor` as the pre-session health gate) do not get a false green.
+    const agentMailFailed = checks.agentMail.status !== "skipped" && checks.agentMail.status !== "ok";
+    if (agentMailFailed) {
+      const detail = checks.agentMail.notes ? `: ${checks.agentMail.notes}` : "";
+      warnings.push(`Agent Mail health check failed (${runtimeConfig.agentMail.baseUrl})${detail}`);
+    }
+
+    const exitCode = missingRequired || agentMailFailed ? 1 : 0;
 
     if (jsonMode) {
       const payload = {

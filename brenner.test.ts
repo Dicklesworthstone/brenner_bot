@@ -1941,6 +1941,32 @@ describe("doctor command", () => {
     expect(parsed.checks.gemini.status).toBe("skipped");
   });
 
+  it("doctor --json degrades overall status when the agentMail check errors", async () => {
+    // runCli points AGENT_MAIL_BASE_URL at a non-existent port, so the
+    // explicitly requested --agent-mail check must fail and drag the
+    // top-level status down with it (issue #17).
+    const result = await runCli([
+      "doctor",
+      "--json",
+      "--skip-ntm",
+      "--skip-cass",
+      "--skip-cm",
+      "--agent-mail",
+    ]);
+
+    expect(result.exitCode).toBe(1);
+
+    const parsed = JSON.parse(result.stdout) as {
+      status: string;
+      warnings: string[];
+      checks: Record<string, { status: string }>;
+    };
+
+    expect(parsed.checks.agentMail.status).toBe("error");
+    expect(parsed.status).toBe("error");
+    expect(parsed.warnings.some((w) => w.includes("Agent Mail"))).toBe(true);
+  });
+
   it("doctor without --skip-agents reports agent CLI presence", async () => {
     const result = await runCli([
       "doctor",

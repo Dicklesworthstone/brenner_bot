@@ -24,7 +24,7 @@
 import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
-import { parseOperatorCards, resolveOperatorCard, type OperatorCard } from "./operator-library";
+import { type OperatorCard, parseOperatorCards, resolveOperatorCard } from "./operator-library";
 import {
   AGENT_ROLE_VALUES,
   type AgentRole as SchemaAgentRole,
@@ -211,10 +211,10 @@ const ROLE_PROMPT_START_PREFIX = "<!-- BRENNER_ROLE_PROMPT_START ";
 const ROLE_PROMPT_END_PREFIX = "<!-- BRENNER_ROLE_PROMPT_END ";
 const OPERATOR_LIBRARY_SPEC_PATH = "specs/operator_library_v0.1.md";
 
-let triangulatedKernelCache: string | null | undefined = undefined;
-let rolePromptsSpecCache: string | null | undefined = undefined;
+let triangulatedKernelCache: string | null | undefined;
+let rolePromptsSpecCache: string | null | undefined;
 const rolePromptCache = new Map<AgentRole, string | null>();
-let operatorCardsCache: OperatorCard[] | null | undefined = undefined;
+let operatorCardsCache: OperatorCard[] | null | undefined;
 
 function tryReadFromFilesystem(relativePathFromRepoRoot: string): string | null {
   const candidates = [
@@ -238,7 +238,11 @@ function tryReadFromFilesystem(relativePathFromRepoRoot: string): string | null 
   return null;
 }
 
-function extractBetweenMarkers(markdown: string, startMarker: string, endMarker: string): string | null {
+function extractBetweenMarkers(
+  markdown: string,
+  startMarker: string,
+  endMarker: string,
+): string | null {
   const start = markdown.indexOf(startMarker);
   if (start === -1) return null;
   const from = start + startMarker.length;
@@ -490,7 +494,7 @@ function renderOperatorCardsSection(selectedOperators: string[]): string | null 
   const lines: string[] = [];
   lines.push("## Operator Focus (selected)");
   lines.push(
-    "Apply these explicitly; name them in your rationales. If an operator doesn’t fit, say why and propose the next operator to apply."
+    "Apply these explicitly; name them in your rationales. If an operator doesn’t fit, say why and propose the next operator to apply.",
   );
   lines.push("");
   lines.push(`Selected: ${selectedOperators.join(", ")}`);
@@ -525,7 +529,8 @@ function buildRecipientRoleMap(
   for (const [recipient, role] of Object.entries(recipientRoles)) {
     const key = normalizeRecipientKey(recipient);
     if (!key) throw new Error("Invalid recipientRoles: empty recipient name.");
-    if (!isAgentRole(role)) throw new Error(`Invalid recipientRoles entry for "${recipient}": "${String(role)}".`);
+    if (!isAgentRole(role))
+      throw new Error(`Invalid recipientRoles entry for "${recipient}": "${String(role)}".`);
     map.set(key, role);
   }
   return map;
@@ -699,8 +704,12 @@ function composeKickoffBody(config: KickoffConfig, role: RoleConfig): string {
   sections.push("## Response Format");
   const deltaTag = ROLE_DELTA_SUBJECT_TAG[role.role];
   sections.push(`Reply to this thread with subject \`DELTA[${deltaTag}]: <description>\`.`);
-  sections.push("(Role tags: hypotheses → `gpt`/`codex`; tests → `opus`/`claude`; critique → `gemini`.)");
-  sections.push("Include your reasoning as prose, followed by `## Deltas` with your structured contributions.");
+  sections.push(
+    "(Role tags: hypotheses → `gpt`/`codex`; tests → `opus`/`claude`; critique → `gemini`.)",
+  );
+  sections.push(
+    "Include your reasoning as prose, followed by `## Deltas` with your structured contributions.",
+  );
   sections.push("");
 
   return sections.join("\n");
@@ -763,7 +772,9 @@ export function composeUnifiedKickoff(config: KickoffConfig): {
     for (const roleKey of AGENT_ROLE_VALUES) {
       const operators = config.operatorSelection[roleKey] ?? [];
       if (operators.length > 0) {
-        sections.push(`- ${ROLE_CONFIG_BY_AGENT_ROLE[roleKey].displayName}: ${operators.join(", ")}`);
+        sections.push(
+          `- ${ROLE_CONFIG_BY_AGENT_ROLE[roleKey].displayName}: ${operators.join(", ")}`,
+        );
       }
     }
     sections.push("");
@@ -804,7 +815,9 @@ export function composeUnifiedKickoff(config: KickoffConfig): {
 
   sections.push("## Response Format");
   sections.push("Reply to this thread with subject `DELTA: <description>`.");
-  sections.push("Include your reasoning as prose, followed by ```delta blocks with your structured contributions.");
+  sections.push(
+    "Include your reasoning as prose, followed by ```delta blocks with your structured contributions.",
+  );
   sections.push("");
 
   const subject = `KICKOFF: [${config.threadId}] ${config.researchQuestion.slice(0, 60)}${config.researchQuestion.length > 60 ? "..." : ""}`;

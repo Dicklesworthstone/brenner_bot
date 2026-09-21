@@ -4,7 +4,7 @@
  * @see @/hooks/useAsyncOperation.ts
  */
 
-import { renderHook, act } from "@testing-library/react";
+import { act, renderHook } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { useAsyncOperation } from "./useAsyncOperation";
 
@@ -32,7 +32,7 @@ describe("useAsyncOperation", () => {
         async () => {
           throw new Error("boom");
         },
-        { message: "Saving", rollback }
+        { message: "Saving", rollback },
       );
     });
 

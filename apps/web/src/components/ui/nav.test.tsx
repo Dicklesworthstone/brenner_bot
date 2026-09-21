@@ -8,15 +8,15 @@
  * @see @/components/ui/nav.tsx
  */
 
-import { render, screen, within, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
-  HeaderNav,
+  BackToTop,
   BottomNav,
+  HeaderNav,
   NAV_ITEMS,
   ReadingProgress,
-  BackToTop,
   TableOfContents,
   ThemeToggle,
   type TocItem,
@@ -87,10 +87,16 @@ describe("HeaderNav", () => {
     it("has correct href for each link", () => {
       render(<HeaderNav />);
 
-      expect(screen.getByRole("link", { name: "Transcript" })).toHaveAttribute("href", "/corpus/transcript");
+      expect(screen.getByRole("link", { name: "Transcript" })).toHaveAttribute(
+        "href",
+        "/corpus/transcript",
+      );
       expect(screen.getByRole("link", { name: "Corpus" })).toHaveAttribute("href", "/corpus");
       expect(screen.getByRole("link", { name: "Operators" })).toHaveAttribute("href", "/operators");
-      expect(screen.getByRole("link", { name: "Distillations" })).toHaveAttribute("href", "/distillations");
+      expect(screen.getByRole("link", { name: "Distillations" })).toHaveAttribute(
+        "href",
+        "/distillations",
+      );
       expect(screen.getByRole("link", { name: "Glossary" })).toHaveAttribute("href", "/glossary");
       expect(screen.getByRole("link", { name: "Method" })).toHaveAttribute("href", "/method");
       expect(screen.getByRole("link", { name: "Sessions" })).toHaveAttribute("href", "/sessions");

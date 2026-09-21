@@ -11,8 +11,8 @@
 
 import * as React from "react";
 import { Button } from "@/components/ui/button";
-import { ErrorRecoveryModal } from "./ErrorRecoveryModal";
 import { createRecoveryNotice } from "@/lib/brenner-loop/errorRecovery";
+import { ErrorRecoveryModal } from "./ErrorRecoveryModal";
 
 export interface ErrorBoundaryProps {
   children: React.ReactNode;
@@ -62,7 +62,7 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
           { label: "Retry", action: this.reset, variant: "default" },
           { label: "Continue Without", action: this.reset, variant: "outline" },
         ],
-        error.message
+        error.message,
       );
 
       return (

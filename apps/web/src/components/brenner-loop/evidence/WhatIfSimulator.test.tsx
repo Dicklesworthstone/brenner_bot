@@ -1,6 +1,6 @@
-import * as React from "react";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import type * as React from "react";
 import { describe, expect, it, vi } from "vitest";
 import type { TestQueueItem } from "@/lib/brenner-loop/test-queue";
 
@@ -10,11 +10,7 @@ vi.mock("framer-motion", () => ({
     div: ({ children, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
       <div {...props}>{children}</div>
     ),
-    button: ({
-      children,
-      onClick,
-      ...props
-    }: React.ButtonHTMLAttributes<HTMLButtonElement>) => (
+    button: ({ children, onClick, ...props }: React.ButtonHTMLAttributes<HTMLButtonElement>) => (
       <button onClick={onClick} {...props}>
         {children}
       </button>
@@ -26,9 +22,7 @@ vi.mock("framer-motion", () => ({
 /**
  * Create a test TestQueueItem with sensible defaults
  */
-function createMockTestQueueItem(
-  overrides: Partial<TestQueueItem> = {}
-): TestQueueItem {
+function createMockTestQueueItem(overrides: Partial<TestQueueItem> = {}): TestQueueItem {
   const id = overrides.id ?? `TQ-test-${Math.random().toString(36).slice(2, 8)}`;
   return {
     id,
@@ -66,7 +60,7 @@ describe("WhatIfSimulator", () => {
         hypothesisId="HYP-1"
         currentConfidence={50}
         tests={[]}
-      />
+      />,
     );
 
     expect(screen.getByText(/No Tests Available/i)).toBeInTheDocument();
@@ -80,7 +74,7 @@ describe("WhatIfSimulator", () => {
         hypothesisId="HYP-1"
         currentConfidence={50}
         tests={[]}
-      />
+      />,
     );
 
     expect(screen.getByText("What-If Simulator")).toBeInTheDocument();
@@ -94,7 +88,7 @@ describe("WhatIfSimulator", () => {
         hypothesisId="HYP-1"
         currentConfidence={50}
         tests={[createMockTestQueueItem()]}
-      />
+      />,
     );
 
     // Should have three tabs (visible on larger screens, but always present)
@@ -127,7 +121,7 @@ describe("WhatIfSimulator", () => {
         hypothesisId="HYP-1"
         currentConfidence={50}
         tests={[test]}
-      />
+      />,
     );
 
     // Should show the test name
@@ -184,7 +178,7 @@ describe("WhatIfSimulator", () => {
         hypothesisId="HYP-1"
         currentConfidence={50}
         tests={tests}
-      />
+      />,
     );
 
     // Click on second test
@@ -221,7 +215,7 @@ describe("WhatIfSimulator", () => {
         currentConfidence={50}
         tests={[test]}
         onRunTest={onRunTest}
-      />
+      />,
     );
 
     // Click run button
@@ -242,7 +236,7 @@ describe("WhatIfSimulator", () => {
         hypothesisId="HYP-1"
         currentConfidence={50}
         tests={[test]}
-      />
+      />,
     );
 
     // Click scenario tab
@@ -264,7 +258,7 @@ describe("WhatIfSimulator", () => {
         hypothesisId="HYP-1"
         currentConfidence={50}
         tests={[test]}
-      />
+      />,
     );
 
     // Click comparison tab
@@ -318,7 +312,7 @@ describe("WhatIfSimulator", () => {
         hypothesisId="HYP-1"
         currentConfidence={50}
         tests={tests}
-      />
+      />,
     );
 
     // Switch to comparison view
@@ -342,7 +336,7 @@ describe("WhatIfSimulator", () => {
         hypothesisId="HYP-1"
         currentConfidence={50}
         tests={[]}
-      />
+      />,
     );
 
     // Switch to comparison view
@@ -375,7 +369,7 @@ describe("WhatIfSimulator", () => {
         hypothesisId="HYP-1"
         currentConfidence={50}
         tests={[test]}
-      />
+      />,
     );
 
     // For discriminativePower 4, getStarRating returns 3 filled + 2 empty

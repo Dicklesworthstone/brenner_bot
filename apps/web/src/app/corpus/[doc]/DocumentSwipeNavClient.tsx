@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useMemo, useRef, useState, type ReactNode } from "react";
+import { type ReactNode, useMemo, useRef, useState } from "react";
 
 type NavTarget = { id: string; title: string };
 
@@ -175,8 +175,18 @@ export function DocumentSwipeNavClient({
           style={{ opacity: showPrevHint ? hintOpacity : 0 }}
         >
           <div className="flex items-center gap-2 rounded-xl bg-muted/70 px-3 py-2 text-xs text-muted-foreground backdrop-blur">
-            <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+            <svg
+              className="size-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18"
+              />
             </svg>
             <span className="max-w-24 truncate">{prev.title}</span>
           </div>
@@ -192,8 +202,18 @@ export function DocumentSwipeNavClient({
         >
           <div className="flex items-center gap-2 rounded-xl bg-muted/70 px-3 py-2 text-xs text-muted-foreground backdrop-blur">
             <span className="max-w-24 truncate">{next.title}</span>
-            <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+            <svg
+              className="size-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"
+              />
             </svg>
           </div>
         </div>

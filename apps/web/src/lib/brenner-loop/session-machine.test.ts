@@ -8,26 +8,27 @@
  * @see brenner-loop/session-machine.ts
  */
 
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
 import {
-  transition,
-  getAvailableEvents,
-  getReachablePhases,
-  canSend,
   canGoBack,
-  isComplete,
-  getDefaultNextPhase,
-  getPhaseName,
-  getPhaseDescription,
-  getPhaseSymbol,
-  sessionMachineConfig,
-  hasPrimaryHypothesis,
-  hasPredictions,
+  canSend,
   canTransitionTo,
-  hasPendingAgentRequests,
+  getAvailableEvents,
+  getDefaultNextPhase,
+  getPhaseDescription,
+  getPhaseName,
+  getPhaseSymbol,
+  getReachablePhases,
   hasAgentResponses,
   hasEvidence,
+  hasPendingAgentRequests,
+  hasPredictions,
+  hasPrimaryHypothesis,
+  isComplete,
+  sessionMachineConfig,
+  transition,
 } from "./session-machine";
+import type { HypothesisCard, Session, SessionPhase } from "./types";
 import {
   CURRENT_SESSION_VERSION,
   createSession as createEmptySession,
@@ -38,15 +39,12 @@ import {
   isValidTransition,
   toSimplifiedPhase,
 } from "./types";
-import type { Session, SessionPhase, HypothesisCard } from "./types";
 
 // ============================================================================
 // Test Fixtures
 // ============================================================================
 
-function createTestHypothesisCard(
-  overrides: Partial<HypothesisCard> = {}
-): HypothesisCard {
+function createTestHypothesisCard(overrides: Partial<HypothesisCard> = {}): HypothesisCard {
   return {
     id: "HC-TEST-001-v1",
     version: 1,

@@ -7,9 +7,9 @@
  * Run with: cd apps/web && bun run test -- src/lib/prompt-builder.test.ts
  */
 
-import { describe, it, expect } from "vitest";
-import { generatePromptBundle, type PromptBundle } from "./prompt-builder";
+import { describe, expect, it } from "vitest";
 import type { BrennerOperatorPaletteEntry } from "./operators";
+import { generatePromptBundle, type PromptBundle } from "./prompt-builder";
 
 // ============================================================================
 // Test Fixtures - Realistic operator entries
@@ -19,7 +19,7 @@ function createTestOperator(
   canonicalTag: string,
   title: string,
   symbol: string,
-  options: Partial<BrennerOperatorPaletteEntry> = {}
+  options: Partial<BrennerOperatorPaletteEntry> = {},
 ): BrennerOperatorPaletteEntry {
   return {
     canonicalTag,
@@ -52,19 +52,13 @@ const levelSplitOperator = createTestOperator("level-split", "Level-Split", "⊘
 
 const exclusionTestOperator = createTestOperator("exclusion-test", "Exclusion-Test", "✂", {
   definition: "Design experiments that can rule out hypotheses",
-  whenToUseTriggers: [
-    "When multiple hypotheses exist",
-    "When evidence is ambiguous",
-  ],
+  whenToUseTriggers: ["When multiple hypotheses exist", "When evidence is ambiguous"],
   failureModes: ["Designing tests that can only confirm, not exclude"],
 });
 
 const theoryKillOperator = createTestOperator("theory-kill", "Theory-Kill", "⚔", {
   definition: "Actively seek to disprove current theories",
-  whenToUseTriggers: [
-    "When a theory has become consensus",
-    "When anomalies are being ignored",
-  ],
+  whenToUseTriggers: ["When a theory has become consensus", "When anomalies are being ignored"],
   failureModes: ["Confirmation bias"],
 });
 

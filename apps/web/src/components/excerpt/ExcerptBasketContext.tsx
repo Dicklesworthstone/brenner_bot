@@ -7,12 +7,12 @@
  * most commonly from search results.
  */
 
-import * as React from "react";
 import { useRouter } from "next/navigation";
-import { cn } from "@/lib/utils";
+import * as React from "react";
 import { Button } from "@/components/ui/button";
-import { ExcerptBasket } from "./ExcerptBasket";
+import { cn } from "@/lib/utils";
 import type { BasketItem } from "./ExcerptBasket";
+import { ExcerptBasket } from "./ExcerptBasket";
 
 // ============================================================================
 // Types
@@ -45,7 +45,13 @@ const SESSION_PREFILL_VALUE = "excerpt-basket";
 
 function BookIcon({ className }: { className?: string }) {
   return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+    <svg
+      className={className}
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+      strokeWidth={1.5}
+    >
       <path
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -147,7 +153,7 @@ export function ExcerptBasketProvider({ children }: { children: React.ReactNode 
           <div
             className={cn(
               "fixed inset-x-0 bottom-0 z-50 p-4 pointer-events-none",
-              "sm:inset-y-0 sm:right-0 sm:left-auto sm:w-[480px] sm:p-6"
+              "sm:inset-y-0 sm:right-0 sm:left-auto sm:w-[480px] sm:p-6",
             )}
             role="dialog"
             aria-modal="true"
@@ -162,7 +168,9 @@ export function ExcerptBasketProvider({ children }: { children: React.ReactNode 
                 onExport={(markdown) => {
                   saveSessionPrefill(markdown);
                   closeBasket();
-                  router.push(`/sessions/new?${SESSION_PREFILL_PARAM}=${encodeURIComponent(SESSION_PREFILL_VALUE)}`);
+                  router.push(
+                    `/sessions/new?${SESSION_PREFILL_PARAM}=${encodeURIComponent(SESSION_PREFILL_VALUE)}`,
+                  );
                 }}
               />
             </div>
@@ -199,7 +207,11 @@ export function ExcerptBasketTrigger({ className }: { className?: string }) {
       size="sm"
       onClick={openBasket}
       className={cn("gap-2", className)}
-      aria-label={items.length > 0 ? `Open excerpt basket (${items.length} ${items.length === 1 ? "item" : "items"})` : "Open excerpt basket"}
+      aria-label={
+        items.length > 0
+          ? `Open excerpt basket (${items.length} ${items.length === 1 ? "item" : "items"})`
+          : "Open excerpt basket"
+      }
     >
       <BookIcon className="size-4" />
       <span className="hidden sm:inline">Excerpt</span>

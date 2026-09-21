@@ -9,7 +9,7 @@
  */
 
 import type { AgentMailMessage } from "../../agentMail";
-import { TRIBUNAL_AGENTS, isTribunalAgentRole, type TribunalAgentRole } from "./index";
+import { isTribunalAgentRole, TRIBUNAL_AGENTS, type TribunalAgentRole } from "./index";
 
 export const OBJECTION_REGISTER_UPDATED_EVENT = "brenner-objection-register-updated";
 
@@ -81,9 +81,7 @@ function isFenceLine(line: string): boolean {
 }
 
 function stripLeadingListMarker(line: string): string {
-  return line
-    .replace(/^\s*>+\s?/, "")
-    .replace(/^\s*(?:[-*]|\d+[.)])\s+/, "");
+  return line.replace(/^\s*>+\s?/, "").replace(/^\s*(?:[-*]|\d+[.)])\s+/, "");
 }
 
 function collapseToSummary(markdown: string, maxChars = 220): string {
@@ -106,10 +104,18 @@ function classifyObjectionType(text: string): ObjectionType {
   if (lower.includes("reverse causation") || lower.includes("could be the reverse")) {
     return "reverse_causation";
   }
-  if (lower.includes("selection bias") || lower.includes("self-selection") || lower.includes("sampling bias")) {
+  if (
+    lower.includes("selection bias") ||
+    lower.includes("self-selection") ||
+    lower.includes("sampling bias")
+  ) {
     return "selection_bias";
   }
-  if (lower.includes("confound") || lower.includes("confounding") || lower.includes("third variable")) {
+  if (
+    lower.includes("confound") ||
+    lower.includes("confounding") ||
+    lower.includes("third variable")
+  ) {
     return "confound_identified";
   }
   if (lower.includes("measurement") || lower.includes("self-report") || lower.includes("proxy")) {
@@ -121,13 +127,25 @@ function classifyObjectionType(text: string): ObjectionType {
   if (lower.includes("generaliz") || lower.includes("external validity")) {
     return "generalization_problem";
   }
-  if (lower.includes("no evidence") || lower.includes("unsupported") || lower.includes("needs evidence")) {
+  if (
+    lower.includes("no evidence") ||
+    lower.includes("unsupported") ||
+    lower.includes("needs evidence")
+  ) {
     return "missing_evidence";
   }
-  if (lower.includes("doesn't follow") || lower.includes("non sequitur") || /\blogic(?:al)?\b/.test(lower)) {
+  if (
+    lower.includes("doesn't follow") ||
+    lower.includes("non sequitur") ||
+    /\blogic(?:al)?\b/.test(lower)
+  ) {
     return "logic_error";
   }
-  if (lower.includes("alternative explanation") || lower.includes("another explanation") || lower.includes("could instead")) {
+  if (
+    lower.includes("alternative explanation") ||
+    lower.includes("another explanation") ||
+    lower.includes("could instead")
+  ) {
     return "alternative_explanation";
   }
 

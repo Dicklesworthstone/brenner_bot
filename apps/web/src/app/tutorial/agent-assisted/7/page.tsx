@@ -9,9 +9,9 @@
  * @see brenner_bot-w5p6 (Tutorial Path: Agent-Assisted Research)
  */
 
-import * as React from "react";
 import { useRouter } from "next/navigation";
-import { TutorialStep, TutorialCodeBlock, Important, ProTip } from "@/components/tutorial";
+import * as React from "react";
+import { Important, ProTip, TutorialCodeBlock, TutorialStep } from "@/components/tutorial";
 import { useTutorial } from "@/lib/tutorial-context";
 import type { TutorialStep as TutorialStepType } from "@/lib/tutorial-types";
 
@@ -137,12 +137,7 @@ Take your time and be ruthless about discriminative power.`;
   };
 
   return (
-    <TutorialStep
-      step={stepData}
-      totalSteps={8}
-      onBack={handleBack}
-      onNext={handleNext}
-    >
+    <TutorialStep step={stepData} totalSteps={8} onBack={handleBack} onNext={handleNext}>
       <section className="space-y-6">
         <p className="text-muted-foreground leading-relaxed">
           This is where the method becomes operational: your agent turns the hypothesis slate into
@@ -150,14 +145,15 @@ Take your time and be ruthless about discriminative power.`;
         </p>
 
         <Important>
-          Don&apos;t accept weak tests. The point is not to &quot;gather more information&quot; — it&apos;s to
-          design tests that can actually exclude hypotheses.
+          Don&apos;t accept weak tests. The point is not to &quot;gather more information&quot; —
+          it&apos;s to design tests that can actually exclude hypotheses.
         </Important>
 
         <div className="space-y-4">
           <h2 className="text-xl font-semibold">The Full-Loop Prompt</h2>
           <p className="text-muted-foreground">
-            Copy this prompt, fill in the bracketed sections from Steps 5–6, and give it to your agent:
+            Copy this prompt, fill in the bracketed sections from Steps 5–6, and give it to your
+            agent:
           </p>
           <TutorialCodeBlock code={loopPrompt} language="text" title="Prompt to your agent" />
         </div>
@@ -175,24 +171,27 @@ Take your time and be ruthless about discriminative power.`;
             </li>
             <li className="flex items-start gap-2">
               <span className="text-primary mt-1">•</span>
-              <span>A revised hypothesis slate that stays mechanistic and includes a real third alternative.</span>
+              <span>
+                A revised hypothesis slate that stays mechanistic and includes a real third
+                alternative.
+              </span>
             </li>
           </ul>
         </div>
 
         <ProTip>
           If the agent produces a huge artifact, ask it to additionally output a one-screen
-          &quot;single triangulated kernel&quot; summary: best current hypothesis + best next test + why.
+          &quot;single triangulated kernel&quot; summary: best current hypothesis + best next test +
+          why.
         </ProTip>
 
         <div className="p-4 rounded-xl border border-border bg-card/50">
           <p className="text-sm text-muted-foreground">
-            <strong className="text-foreground">Next up:</strong> In Step 8, you&apos;ll do a human review
-            using a checklist that catches the most common failure modes.
+            <strong className="text-foreground">Next up:</strong> In Step 8, you&apos;ll do a human
+            review using a checklist that catches the most common failure modes.
           </p>
         </div>
       </section>
     </TutorialStep>
   );
 }
-

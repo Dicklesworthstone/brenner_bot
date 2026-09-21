@@ -1,38 +1,38 @@
-"use client"
+"use client";
 
-import * as React from "react"
-import { cn } from "@/lib/utils"
+import * as React from "react";
+import { cn } from "@/lib/utils";
 
 export interface TextareaProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
-  label?: string
-  error?: string
-  hint?: string
-  autoResize?: boolean
+  label?: string;
+  error?: string;
+  hint?: string;
+  autoResize?: boolean;
 }
 
 const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
   ({ className, label, error, hint, autoResize = false, id, onChange, ...props }, ref) => {
-    const generatedId = React.useId()
-    const textareaId = id || generatedId
-    const internalRef = React.useRef<HTMLTextAreaElement>(null)
-    const textareaRef = (ref as React.RefObject<HTMLTextAreaElement>) || internalRef
+    const generatedId = React.useId();
+    const textareaId = id || generatedId;
+    const internalRef = React.useRef<HTMLTextAreaElement>(null);
+    const textareaRef = (ref as React.RefObject<HTMLTextAreaElement>) || internalRef;
 
     const handleAutoResize = React.useCallback(() => {
-      const textarea = textareaRef.current
+      const textarea = textareaRef.current;
       if (textarea && autoResize) {
-        textarea.style.height = "auto"
-        textarea.style.height = `${textarea.scrollHeight}px`
+        textarea.style.height = "auto";
+        textarea.style.height = `${textarea.scrollHeight}px`;
       }
-    }, [autoResize, textareaRef])
+    }, [autoResize, textareaRef]);
 
     React.useEffect(() => {
-      handleAutoResize()
-    }, [handleAutoResize])
+      handleAutoResize();
+    }, [handleAutoResize]);
 
     const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-      handleAutoResize()
-      onChange?.(e)
-    }
+      handleAutoResize();
+      onChange?.(e);
+    };
 
     return (
       <div className="w-full space-y-2">
@@ -73,7 +73,7 @@ const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
             "touch-manipulation",
             "resize-y",
             autoResize && "resize-none overflow-hidden",
-            className
+            className,
           )}
           ref={textareaRef}
           onChange={handleChange}
@@ -92,9 +92,9 @@ const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
           </p>
         )}
       </div>
-    )
-  }
-)
-Textarea.displayName = "Textarea"
+    );
+  },
+);
+Textarea.displayName = "Textarea";
 
-export { Textarea }
+export { Textarea };

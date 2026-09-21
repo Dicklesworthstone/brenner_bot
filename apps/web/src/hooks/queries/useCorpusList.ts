@@ -24,9 +24,9 @@
  * ```
  */
 
-import { useQuery, type UseQueryOptions } from "@tanstack/react-query";
-import { fetchCorpusList } from "@/lib/corpusActions";
+import { type UseQueryOptions, useQuery } from "@tanstack/react-query";
 import type { CorpusDoc, DocCategory } from "@/lib/corpus";
+import { fetchCorpusList } from "@/lib/corpusActions";
 
 // ============================================================================
 // Types
@@ -130,7 +130,7 @@ export function useCorpusListGrouped() {
  * Prefetch the corpus list for faster page loads.
  */
 export async function prefetchCorpusList(
-  queryClient: import("@tanstack/react-query").QueryClient
+  queryClient: import("@tanstack/react-query").QueryClient,
 ): Promise<void> {
   await queryClient.prefetchQuery({
     queryKey: corpusListKeys.all,

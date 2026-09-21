@@ -1,8 +1,7 @@
-import { readFile, access } from "node:fs/promises";
+import { access, readFile } from "node:fs/promises";
 import { resolve } from "node:path";
-
-import { getTriangulatedBrennerKernelMarkdown } from "./session-kickoff";
 import type { OperatorSelection as SessionOperatorSelection } from "./schemas/session";
+import { getTriangulatedBrennerKernelMarkdown } from "./session-kickoff";
 
 export type OperatorSelection = SessionOperatorSelection;
 

@@ -1,4 +1,4 @@
-import { Metadata } from "next";
+import type { Metadata } from "next";
 import Link from "next/link";
 import { PromptLibraryClient } from "./client";
 
@@ -59,7 +59,9 @@ export default function PromptsPage() {
             <BookOpenIcon />
           </div>
 
-          <h1 className="text-3xl sm:text-4xl font-bold tracking-tight">Prompt Templates Library</h1>
+          <h1 className="text-3xl sm:text-4xl font-bold tracking-tight">
+            Prompt Templates Library
+          </h1>
 
           <p className="text-lg text-muted-foreground leading-relaxed max-w-2xl mx-auto">
             Versioned, tested prompts for the Agent-Assisted tutorial path. Each prompt has been

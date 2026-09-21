@@ -16,37 +16,37 @@
  * @module components/brenner-loop/operators/ObjectTransposeSession
  */
 
-import * as React from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import {
   ArrowRightLeft,
   GitBranch,
-  Users,
-  RefreshCw,
   HelpCircle,
   Lightbulb,
-  TestTube,
+  RefreshCw,
   Star,
+  TestTube,
+  Users,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import * as React from "react";
 import { Button } from "@/components/ui/button";
-import type { HypothesisCard } from "@/lib/brenner-loop/hypothesis";
-import type { Quote } from "@/lib/quotebank-parser";
 import { useOperatorSession } from "@/hooks/useOperatorSession";
+import type { HypothesisCard } from "@/lib/brenner-loop/hypothesis";
 import type {
   AlternativeExplanation,
   AlternativeType,
-  PlausibilityRating,
   DiscriminatingTest,
   ObjectTransposeResult,
+  PlausibilityRating,
 } from "@/lib/brenner-loop/operators/object-transpose";
 import {
-  OBJECT_TRANSPOSE_STEPS,
-  OBJECT_TRANSPOSE_STEP_IDS,
   generateAlternatives,
   generateDiscriminatingTests,
   OBJECT_TRANSPOSE_FALLBACK_QUOTES,
+  OBJECT_TRANSPOSE_STEP_IDS,
+  OBJECT_TRANSPOSE_STEPS,
 } from "@/lib/brenner-loop/operators/object-transpose";
+import type { Quote } from "@/lib/quotebank-parser";
+import { cn } from "@/lib/utils";
 import { OperatorShell } from "./OperatorShell";
 
 // ============================================================================
@@ -134,7 +134,7 @@ function HypothesisDisplay({ hypothesis }: HypothesisDisplayProps) {
             <p className="text-base leading-relaxed">{hypothesis.statement}</p>
             {hypothesis.domain.length > 0 && (
               <div className="flex gap-2 mt-3">
-                {hypothesis.domain.map(d => (
+                {hypothesis.domain.map((d) => (
                   <span
                     key={d}
                     className="px-2 py-0.5 text-xs rounded-full bg-muted text-muted-foreground"
@@ -156,9 +156,9 @@ function HypothesisDisplay({ hypothesis }: HypothesisDisplayProps) {
               <strong>Your hypothesis proposes: X → Y</strong>
             </p>
             <p className="text-sm text-muted-foreground mt-2">
-              In the next step, we&apos;ll generate alternative explanations that could account
-              for the same observations. Consider: How confident are you that X actually
-              causes Y, rather than some other relationship?
+              In the next step, we&apos;ll generate alternative explanations that could account for
+              the same observations. Consider: How confident are you that X actually causes Y,
+              rather than some other relationship?
             </p>
           </div>
         </div>
@@ -178,9 +178,7 @@ interface AlternativeListProps {
 function AlternativeList({ alternatives, showDetails = true }: AlternativeListProps) {
   if (alternatives.length === 0) {
     return (
-      <div className="p-8 text-center text-muted-foreground">
-        No alternatives generated yet.
-      </div>
+      <div className="p-8 text-center text-muted-foreground">No alternatives generated yet.</div>
     );
   }
 
@@ -230,12 +228,16 @@ function AlternativeList({ alternatives, showDetails = true }: AlternativeListPr
 interface PlausibilityRaterProps {
   alternatives: AlternativeExplanation[];
   ratings: PlausibilityRating[];
-  onRate: (alternativeId: string, plausibility: number, discrimination: "poor" | "moderate" | "good") => void;
+  onRate: (
+    alternativeId: string,
+    plausibility: number,
+    discrimination: "poor" | "moderate" | "good",
+  ) => void;
 }
 
 function PlausibilityRater({ alternatives, ratings, onRate }: PlausibilityRaterProps) {
   const getRating = (altId: string): PlausibilityRating | undefined => {
-    return ratings.find(r => r.alternativeId === altId);
+    return ratings.find((r) => r.alternativeId === altId);
   };
 
   return (
@@ -261,13 +263,13 @@ function PlausibilityRater({ alternatives, ratings, onRate }: PlausibilityRaterP
               transition={{ delay: index * 0.05 }}
               className={cn(
                 "p-4 rounded-lg border transition-all",
-                plausibility >= 3
-                  ? "border-amber-500/50 bg-amber-500/5"
-                  : "border-border bg-card"
+                plausibility >= 3 ? "border-amber-500/50 bg-amber-500/5" : "border-border bg-card",
               )}
             >
               <div className="flex items-start gap-3">
-                <div className={cn("p-2 rounded-lg bg-muted flex-shrink-0", getTypeColor(alt.type))}>
+                <div
+                  className={cn("p-2 rounded-lg bg-muted flex-shrink-0", getTypeColor(alt.type))}
+                >
                   <AlternativeIcon type={alt.type} />
                 </div>
                 <div className="flex-1 min-w-0">
@@ -280,7 +282,7 @@ function PlausibilityRater({ alternatives, ratings, onRate }: PlausibilityRaterP
                   <div className="flex items-center gap-4 mt-4">
                     <div className="flex items-center gap-1">
                       <span className="text-xs text-muted-foreground mr-2">Plausibility:</span>
-                      {[1, 2, 3, 4, 5].map(star => (
+                      {[1, 2, 3, 4, 5].map((star) => (
                         <button
                           key={star}
                           type="button"
@@ -289,7 +291,7 @@ function PlausibilityRater({ alternatives, ratings, onRate }: PlausibilityRaterP
                             "p-0.5 transition-colors",
                             star <= plausibility
                               ? "text-amber-500"
-                              : "text-muted-foreground/30 hover:text-muted-foreground/60"
+                              : "text-muted-foreground/30 hover:text-muted-foreground/60",
                           )}
                         >
                           <Star
@@ -305,7 +307,7 @@ function PlausibilityRater({ alternatives, ratings, onRate }: PlausibilityRaterP
                   <div className="flex items-center gap-2 mt-3">
                     <span className="text-xs text-muted-foreground">Evidence discriminates:</span>
                     <div className="flex gap-1">
-                      {(["poor", "moderate", "good"] as const).map(level => (
+                      {(["poor", "moderate", "good"] as const).map((level) => (
                         <Button
                           key={level}
                           type="button"
@@ -339,7 +341,7 @@ interface TestListProps {
 }
 
 function TestList({ tests, alternatives, onPriorityChange }: TestListProps) {
-  const getAlternative = (altId: string) => alternatives.find(a => a.id === altId);
+  const getAlternative = (altId: string) => alternatives.find((a) => a.id === altId);
 
   if (tests.length === 0) {
     return (
@@ -368,8 +370,8 @@ function TestList({ tests, alternatives, onPriorityChange }: TestListProps) {
           <div>
             <p className="text-sm font-medium">Discriminating Tests</p>
             <p className="text-sm text-muted-foreground mt-1">
-              These tests could help distinguish between your original hypothesis
-              and the high-plausibility alternatives.
+              These tests could help distinguish between your original hypothesis and the
+              high-plausibility alternatives.
             </p>
           </div>
         </div>
@@ -388,7 +390,12 @@ function TestList({ tests, alternatives, onPriorityChange }: TestListProps) {
           >
             <div className="flex items-start justify-between gap-4 mb-3">
               <div className="flex items-center gap-2">
-                <span className={cn("px-2 py-0.5 text-xs rounded-full", feasibilityColors[test.feasibility])}>
+                <span
+                  className={cn(
+                    "px-2 py-0.5 text-xs rounded-full",
+                    feasibilityColors[test.feasibility],
+                  )}
+                >
                   {test.feasibility}
                 </span>
                 <span className="text-xs text-muted-foreground">
@@ -397,7 +404,7 @@ function TestList({ tests, alternatives, onPriorityChange }: TestListProps) {
               </div>
               {onPriorityChange && (
                 <div className="flex items-center gap-1">
-                  {[1, 2, 3].map(p => (
+                  {[1, 2, 3].map((p) => (
                     <button
                       key={p}
                       type="button"
@@ -406,7 +413,7 @@ function TestList({ tests, alternatives, onPriorityChange }: TestListProps) {
                         "size-6 rounded text-xs font-medium transition-colors",
                         test.priority === p
                           ? "bg-primary text-primary-foreground"
-                          : "bg-muted text-muted-foreground hover:bg-muted/80"
+                          : "bg-muted text-muted-foreground hover:bg-muted/80",
                       )}
                     >
                       {p}
@@ -481,7 +488,9 @@ export function ObjectTransposeSession({
   // Generate alternatives when entering that step
   React.useEffect(() => {
     if (currentStepConfig?.id === OBJECT_TRANSPOSE_STEP_IDS.GENERATE_ALTERNATIVES) {
-      const existing = getContent<AlternativeExplanation[]>(OBJECT_TRANSPOSE_STEP_IDS.GENERATE_ALTERNATIVES);
+      const existing = getContent<AlternativeExplanation[]>(
+        OBJECT_TRANSPOSE_STEP_IDS.GENERATE_ALTERNATIVES,
+      );
       if (!existing || existing.length === 0) {
         const alts = generateAlternatives(hypothesis);
         setContent(OBJECT_TRANSPOSE_STEP_IDS.GENERATE_ALTERNATIVES, alts);
@@ -490,47 +499,55 @@ export function ObjectTransposeSession({
   }, [currentStepConfig?.id, hypothesis, getContent, setContent]);
 
   // Get current state with stable references
-  const alternativesRaw = getContent<AlternativeExplanation[]>(OBJECT_TRANSPOSE_STEP_IDS.GENERATE_ALTERNATIVES);
+  const alternativesRaw = getContent<AlternativeExplanation[]>(
+    OBJECT_TRANSPOSE_STEP_IDS.GENERATE_ALTERNATIVES,
+  );
   const alternatives = React.useMemo(() => alternativesRaw ?? [], [alternativesRaw]);
 
-  const ratingsRaw = getSelection<PlausibilityRating[]>(OBJECT_TRANSPOSE_STEP_IDS.RATE_PLAUSIBILITY);
+  const ratingsRaw = getSelection<PlausibilityRating[]>(
+    OBJECT_TRANSPOSE_STEP_IDS.RATE_PLAUSIBILITY,
+  );
   const ratings = React.useMemo(() => ratingsRaw ?? [], [ratingsRaw]);
 
   const testsRaw = getContent<DiscriminatingTest[]>(OBJECT_TRANSPOSE_STEP_IDS.IDENTIFY_TESTS);
   const tests = React.useMemo(() => testsRaw ?? [], [testsRaw]);
 
   // Handle rating an alternative
-  const handleRate = React.useCallback((
-    alternativeId: string,
-    plausibility: number,
-    discrimination: "poor" | "moderate" | "good"
-  ) => {
-    const existingIndex = ratings.findIndex(r => r.alternativeId === alternativeId);
-    const newRating: PlausibilityRating = {
-      alternativeId,
-      plausibility,
-      evidenceDiscrimination: discrimination,
-    };
+  const handleRate = React.useCallback(
+    (alternativeId: string, plausibility: number, discrimination: "poor" | "moderate" | "good") => {
+      const existingIndex = ratings.findIndex((r) => r.alternativeId === alternativeId);
+      const newRating: PlausibilityRating = {
+        alternativeId,
+        plausibility,
+        evidenceDiscrimination: discrimination,
+      };
 
-    let updated: PlausibilityRating[];
-    if (existingIndex >= 0) {
-      updated = [...ratings];
-      updated[existingIndex] = newRating;
-    } else {
-      updated = [...ratings, newRating];
-    }
+      let updated: PlausibilityRating[];
+      if (existingIndex >= 0) {
+        updated = [...ratings];
+        updated[existingIndex] = newRating;
+      } else {
+        updated = [...ratings, newRating];
+      }
 
-    setSelection(OBJECT_TRANSPOSE_STEP_IDS.RATE_PLAUSIBILITY, updated);
-  }, [ratings, setSelection]);
+      setSelection(OBJECT_TRANSPOSE_STEP_IDS.RATE_PLAUSIBILITY, updated);
+    },
+    [ratings, setSelection],
+  );
 
   // Generate tests when entering that step
   React.useEffect(() => {
     if (currentStepConfig?.id === OBJECT_TRANSPOSE_STEP_IDS.IDENTIFY_TESTS) {
-      const existingTests = getContent<DiscriminatingTest[]>(OBJECT_TRANSPOSE_STEP_IDS.IDENTIFY_TESTS);
-      const highPlausibilityCount = ratings.filter(r => r.plausibility >= 3).length;
+      const existingTests = getContent<DiscriminatingTest[]>(
+        OBJECT_TRANSPOSE_STEP_IDS.IDENTIFY_TESTS,
+      );
+      const highPlausibilityCount = ratings.filter((r) => r.plausibility >= 3).length;
 
       // Regenerate if we have ratings and either no tests or different count
-      if (ratings.length > 0 && (!existingTests || existingTests.length !== highPlausibilityCount)) {
+      if (
+        ratings.length > 0 &&
+        (!existingTests || existingTests.length !== highPlausibilityCount)
+      ) {
         const newTests = generateDiscriminatingTests(alternatives, ratings);
         setContent(OBJECT_TRANSPOSE_STEP_IDS.IDENTIFY_TESTS, newTests);
       }
@@ -538,22 +555,21 @@ export function ObjectTransposeSession({
   }, [currentStepConfig?.id, alternatives, ratings, getContent, setContent]);
 
   // Handle test priority change
-  const handlePriorityChange = React.useCallback((testId: string, priority: number) => {
-    const updated = tests.map(t =>
-      t.id === testId ? { ...t, priority } : t
-    );
-    setContent(OBJECT_TRANSPOSE_STEP_IDS.IDENTIFY_TESTS, updated);
-  }, [tests, setContent]);
+  const handlePriorityChange = React.useCallback(
+    (testId: string, priority: number) => {
+      const updated = tests.map((t) => (t.id === testId ? { ...t, priority } : t));
+      setContent(OBJECT_TRANSPOSE_STEP_IDS.IDENTIFY_TESTS, updated);
+    },
+    [tests, setContent],
+  );
 
   // Handle completion
   const handleComplete = React.useCallback(() => {
     const highPriorityAlternativeIds = ratings
-      .filter(r => r.plausibility >= 3)
-      .map(r => r.alternativeId);
+      .filter((r) => r.plausibility >= 3)
+      .map((r) => r.alternativeId);
 
-    const selectedTestIds = tests
-      .filter(t => t.priority && t.priority > 0)
-      .map(t => t.id);
+    const selectedTestIds = tests.filter((t) => t.priority && t.priority > 0).map((t) => t.id);
 
     const result: ObjectTransposeResult = {
       alternatives,
@@ -577,8 +593,8 @@ export function ObjectTransposeSession({
           <div className="space-y-4">
             <div className="p-4 rounded-lg bg-muted/50 border border-border">
               <p className="text-sm text-muted-foreground">
-                Here are alternative explanations for your observed relationship.
-                Each represents a different causal story that could explain the same data.
+                Here are alternative explanations for your observed relationship. Each represents a
+                different causal story that could explain the same data.
               </p>
             </div>
             <AlternativeList alternatives={alternatives} showDetails />
@@ -587,11 +603,7 @@ export function ObjectTransposeSession({
 
       case OBJECT_TRANSPOSE_STEP_IDS.RATE_PLAUSIBILITY:
         return (
-          <PlausibilityRater
-            alternatives={alternatives}
-            ratings={ratings}
-            onRate={handleRate}
-          />
+          <PlausibilityRater alternatives={alternatives} ratings={ratings} onRate={handleRate} />
         );
 
       case OBJECT_TRANSPOSE_STEP_IDS.IDENTIFY_TESTS:
@@ -604,18 +616,12 @@ export function ObjectTransposeSession({
         );
 
       default:
-        return (
-          <div className="p-8 text-center text-muted-foreground">
-            Unknown step
-          </div>
-        );
+        return <div className="p-8 text-center text-muted-foreground">Unknown step</div>;
     }
   };
 
   // Use quotes or fallback
-  const displayQuotes = quotes && quotes.length > 0
-    ? quotes
-    : OBJECT_TRANSPOSE_FALLBACK_QUOTES;
+  const displayQuotes = quotes && quotes.length > 0 ? quotes : OBJECT_TRANSPOSE_FALLBACK_QUOTES;
 
   return (
     <OperatorShell

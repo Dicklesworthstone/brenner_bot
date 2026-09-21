@@ -16,12 +16,12 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 export type PlaybookCategory =
-  | 'protocol-kernel'
-  | 'prompt-hygiene'
-  | 'evidence-per-week'
-  | 'thread-operations'
-  | 'artifact-compilation'
-  | 'safety-and-gating';
+  | "protocol-kernel"
+  | "prompt-hygiene"
+  | "evidence-per-week"
+  | "thread-operations"
+  | "artifact-compilation"
+  | "safety-and-gating";
 
 export interface MemoryRule {
   /** The rule text, should be actionable ("if/when X, do Y") */
@@ -35,7 +35,7 @@ export interface MemoryRule {
   /** Source item ID from the artifact (e.g., "T1", "A2", "C1") */
   sourceId: string;
   /** Confidence level based on extraction heuristics */
-  confidence: 'high' | 'medium' | 'low';
+  confidence: "high" | "medium" | "low";
 }
 
 export interface MemoryExport {
@@ -51,7 +51,7 @@ export interface MemoryExport {
   stats: {
     totalExtracted: number;
     byCategory: Record<PlaybookCategory, number>;
-    byConfidence: Record<'high' | 'medium' | 'low', number>;
+    byConfidence: Record<"high" | "medium" | "low", number>;
   };
 }
 
@@ -92,7 +92,7 @@ interface Assumption {
   statement: string;
   load: string;
   test?: string;
-  status?: 'verified' | 'unchecked' | 'falsified';
+  status?: "verified" | "unchecked" | "falsified";
   scale_check?: boolean;
   calculation?: string;
   implication?: string;
@@ -146,11 +146,17 @@ export function extractMemoryRules(artifact: ArtifactInput): MemoryExport {
   rules.push(...testRules);
 
   // Extract from assumption ledger
-  const assumptionRules = extractFromAssumptions(artifact.sections.assumption_ledger || [], provenance);
+  const assumptionRules = extractFromAssumptions(
+    artifact.sections.assumption_ledger || [],
+    provenance,
+  );
   rules.push(...assumptionRules);
 
   // Extract from adversarial critique
-  const critiqueRules = extractFromCritiques(artifact.sections.adversarial_critique || [], provenance);
+  const critiqueRules = extractFromCritiques(
+    artifact.sections.adversarial_critique || [],
+    provenance,
+  );
   rules.push(...critiqueRules);
 
   // Extract from anomaly register
@@ -158,7 +164,10 @@ export function extractMemoryRules(artifact: ArtifactInput): MemoryExport {
   rules.push(...anomalyRules);
 
   // Extract from hypothesis slate (third alternatives)
-  const hypothesisRules = extractFromHypotheses(artifact.sections.hypothesis_slate || [], provenance);
+  const hypothesisRules = extractFromHypotheses(
+    artifact.sections.hypothesis_slate || [],
+    provenance,
+  );
   rules.push(...hypothesisRules);
 
   // Compute stats
@@ -187,24 +196,28 @@ function extractFromTests(tests: DiscriminativeTest[], provenance: string): Memo
     if (test.potency_check) {
       rules.push({
         rule: `When designing discriminative tests, always include potency controls. Example from ${test.name}: "${test.potency_check}"`,
-        category: 'evidence-per-week',
+        category: "evidence-per-week",
         provenance,
         rationale: `Test ${test.id} demonstrated value of potency verification.`,
         sourceId: test.id,
-        confidence: 'high',
+        confidence: "high",
       });
     }
 
     // Pattern: Tests with high likelihood ratio and low ambiguity
-    if (test.score?.likelihood_ratio !== undefined && test.score.likelihood_ratio >= 3 &&
-        test.score?.ambiguity !== undefined && test.score.ambiguity <= 2) {
+    if (
+      test.score?.likelihood_ratio !== undefined &&
+      test.score.likelihood_ratio >= 3 &&
+      test.score?.ambiguity !== undefined &&
+      test.score.ambiguity <= 2
+    ) {
       rules.push({
         rule: `Prefer tests with high likelihood ratios (≥3) and low ambiguity (≤2). Example: ${test.name} achieves clean separation between ${test.discriminates}.`,
-        category: 'evidence-per-week',
+        category: "evidence-per-week",
         provenance,
         rationale: `Test ${test.id} exemplifies "across-the-room differences" principle.`,
         sourceId: test.id,
-        confidence: 'high',
+        confidence: "high",
       });
     }
 
@@ -212,14 +225,14 @@ function extractFromTests(tests: DiscriminativeTest[], provenance: string): Memo
     if (test.discriminates && Object.keys(test.expected_outcomes).length >= 2) {
       const outcomes = Object.entries(test.expected_outcomes)
         .map(([h, o]) => `${h}: ${o}`)
-        .join('; ');
+        .join("; ");
       rules.push({
         rule: `Document expected outcomes for each hypothesis when designing tests. Pattern: ${outcomes}`,
-        category: 'evidence-per-week',
+        category: "evidence-per-week",
         provenance,
         rationale: `Test ${test.id} shows clear outcome documentation pattern.`,
         sourceId: test.id,
-        confidence: 'medium',
+        confidence: "medium",
       });
     }
   }
@@ -239,35 +252,35 @@ function extractFromAssumptions(assumptions: Assumption[], provenance: string): 
     if (assumption.scale_check && assumption.calculation) {
       rules.push({
         rule: `When hypotheses depend on physical processes, perform scale calculations to verify plausibility. Pattern: ${assumption.name} - check if ${assumption.statement}`,
-        category: 'evidence-per-week',
+        category: "evidence-per-week",
         provenance,
-        rationale: `Assumption ${assumption.id} demonstrates scale check methodology: ${assumption.implication || 'validates physical plausibility'}`,
+        rationale: `Assumption ${assumption.id} demonstrates scale check methodology: ${assumption.implication || "validates physical plausibility"}`,
         sourceId: assumption.id,
-        confidence: 'high',
+        confidence: "high",
       });
     }
 
     // Pattern: Verified assumptions with high load
-    if (assumption.status === 'verified' && assumption.load) {
+    if (assumption.status === "verified" && assumption.load) {
       rules.push({
         rule: `Verify load-bearing assumptions early. "${assumption.name}" was load-bearing: if wrong, ${assumption.load}`,
-        category: 'prompt-hygiene',
+        category: "prompt-hygiene",
         provenance,
         rationale: `Assumption ${assumption.id} shows importance of early verification.`,
         sourceId: assumption.id,
-        confidence: 'medium',
+        confidence: "medium",
       });
     }
 
     // Pattern: Unchecked assumptions with high load
-    if (assumption.status === 'unchecked' && assumption.load && assumption.test) {
+    if (assumption.status === "unchecked" && assumption.load && assumption.test) {
       rules.push({
         rule: `Flag unchecked assumptions with high load. Pattern: "${assumption.statement}" can be tested via: ${assumption.test}`,
-        category: 'prompt-hygiene',
+        category: "prompt-hygiene",
         provenance,
         rationale: `Assumption ${assumption.id} identified as needing verification.`,
         sourceId: assumption.id,
-        confidence: 'low',
+        confidence: "low",
       });
     }
   }
@@ -287,23 +300,23 @@ function extractFromCritiques(critiques: Critique[], provenance: string): Memory
     if (critique.real_third_alternative) {
       rules.push({
         rule: `Always consider third alternatives that invalidate the initial framing. Example: "${critique.name}" - ${critique.attack}`,
-        category: 'prompt-hygiene',
+        category: "prompt-hygiene",
         provenance,
         rationale: `Critique ${critique.id} identified a genuine third alternative beyond the original hypothesis space.`,
         sourceId: critique.id,
-        confidence: 'high',
+        confidence: "high",
       });
     }
 
     // Pattern: Critiques with high priority status
-    if (critique.current_status?.toLowerCase().includes('high priority')) {
+    if (critique.current_status?.toLowerCase().includes("high priority")) {
       rules.push({
         rule: `Investigate critiques marked high priority before proceeding. Pattern: "${critique.name}" identified as high priority.`,
-        category: 'evidence-per-week',
+        category: "evidence-per-week",
         provenance,
         rationale: `Critique ${critique.id} flagged for urgent investigation.`,
         sourceId: critique.id,
-        confidence: 'medium',
+        confidence: "medium",
       });
     }
 
@@ -311,11 +324,11 @@ function extractFromCritiques(critiques: Critique[], provenance: string): Memory
     if (critique.evidence) {
       rules.push({
         rule: `Ground critiques in specific evidence, not vague skepticism. Pattern: ${critique.attack} supported by: ${critique.evidence}`,
-        category: 'prompt-hygiene',
+        category: "prompt-hygiene",
         provenance,
         rationale: `Critique ${critique.id} demonstrates evidence-grounded criticism.`,
         sourceId: critique.id,
-        confidence: 'medium',
+        confidence: "medium",
       });
     }
   }
@@ -335,11 +348,11 @@ function extractFromAnomalies(anomalies: Anomaly[], provenance: string): MemoryR
     if (anomaly.observation && anomaly.implications) {
       rules.push({
         rule: `Document anomalies explicitly; don't sweep exceptions under Occam's broom. Pattern: "${anomaly.observation}" has implications: ${anomaly.implications}`,
-        category: 'evidence-per-week',
+        category: "evidence-per-week",
         provenance,
         rationale: `Anomaly ${anomaly.id} exemplifies proper exception tracking.`,
         sourceId: anomaly.id,
-        confidence: 'medium',
+        confidence: "medium",
       });
     }
 
@@ -347,11 +360,11 @@ function extractFromAnomalies(anomalies: Anomaly[], provenance: string): MemoryR
     if (anomaly.expected && anomaly.actual) {
       rules.push({
         rule: `Track expected vs actual outcomes explicitly. "${anomaly.name}": expected ${anomaly.expected}, observed ${anomaly.actual}.`,
-        category: 'evidence-per-week',
+        category: "evidence-per-week",
         provenance,
         rationale: `Anomaly ${anomaly.id} shows discrepancy documentation pattern.`,
         sourceId: anomaly.id,
-        confidence: 'medium',
+        confidence: "medium",
       });
     }
   }
@@ -367,17 +380,17 @@ function extractFromHypotheses(hypotheses: Hypothesis[], provenance: string): Me
   const rules: MemoryRule[] = [];
 
   // Pattern: Check if third alternative was included
-  const hasThirdAlt = hypotheses.some(h => h.third_alternative);
+  const hasThirdAlt = hypotheses.some((h) => h.third_alternative);
   if (hasThirdAlt) {
-    const thirdAlt = hypotheses.find(h => h.third_alternative);
+    const thirdAlt = hypotheses.find((h) => h.third_alternative);
     if (thirdAlt) {
       rules.push({
         rule: `Always include a "third alternative" hypothesis that challenges the initial framing. Pattern: "${thirdAlt.claim}"`,
-        category: 'protocol-kernel',
+        category: "protocol-kernel",
         provenance,
         rationale: `Hypothesis ${thirdAlt.id} demonstrates third alternative inclusion.`,
         sourceId: thirdAlt.id,
-        confidence: 'high',
+        confidence: "high",
       });
     }
   }
@@ -388,17 +401,17 @@ function extractFromHypotheses(hypotheses: Hypothesis[], provenance: string): Me
 /**
  * Compute summary statistics for the export.
  */
-function computeStats(rules: MemoryRule[]): MemoryExport['stats'] {
+function computeStats(rules: MemoryRule[]): MemoryExport["stats"] {
   const byCategory: Record<PlaybookCategory, number> = {
-    'protocol-kernel': 0,
-    'prompt-hygiene': 0,
-    'evidence-per-week': 0,
-    'thread-operations': 0,
-    'artifact-compilation': 0,
-    'safety-and-gating': 0,
+    "protocol-kernel": 0,
+    "prompt-hygiene": 0,
+    "evidence-per-week": 0,
+    "thread-operations": 0,
+    "artifact-compilation": 0,
+    "safety-and-gating": 0,
   };
 
-  const byConfidence: Record<'high' | 'medium' | 'low', number> = {
+  const byConfidence: Record<"high" | "medium" | "low", number> = {
     high: 0,
     medium: 0,
     low: 0,
@@ -426,18 +439,18 @@ function computeStats(rules: MemoryRule[]): MemoryExport['stats'] {
  */
 export function formatForPlaybook(
   exportData: MemoryExport,
-  options: { minConfidence?: 'high' | 'medium' | 'low' } = {}
+  options: { minConfidence?: "high" | "medium" | "low" } = {},
 ): string {
-  const minConfidence = options.minConfidence ?? 'medium';
+  const minConfidence = options.minConfidence ?? "medium";
   const confidenceLevels = { high: 3, medium: 2, low: 1 };
 
   const filteredRules = exportData.rules.filter(
-    r => confidenceLevels[r.confidence] >= confidenceLevels[minConfidence]
+    (r) => confidenceLevels[r.confidence] >= confidenceLevels[minConfidence],
   );
 
   const output = {
     meta: exportData.sourceArtifact,
-    rules: filteredRules.map(r => ({
+    rules: filteredRules.map((r) => ({
       rule: `Rule: ${r.rule} [Provenance: ${r.provenance}]`,
       category: r.category,
     })),
@@ -504,5 +517,5 @@ export function formatForReview(exportData: MemoryExport): string {
   lines.push(`---`);
   lines.push(`*Human review required before adding to cm playbook.*`);
 
-  return lines.join('\n');
+  return lines.join("\n");
 }

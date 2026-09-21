@@ -5,10 +5,10 @@
  * Uses mock operator data matching the BrennerOperatorPaletteEntry structure.
  */
 
-import { describe, expect, it, beforeEach, afterEach, vi } from "vitest";
-import { render, screen, fireEvent, waitFor, cleanup, act } from "@testing-library/react";
-import { OperatorsClient } from "./OperatorsClient";
+import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { BrennerOperatorPaletteEntry } from "@/lib/operators";
+import { OperatorsClient } from "./OperatorsClient";
 
 // Mock framer-motion to avoid animation issues
 vi.mock("framer-motion", async () => {
@@ -16,7 +16,7 @@ vi.mock("framer-motion", async () => {
   const MockDiv = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
     function MockDiv({ children, ...props }, ref) {
       return React.createElement("div", { ...props, ref }, children);
-    }
+    },
   );
   return {
     motion: {
@@ -195,7 +195,7 @@ describe("OperatorsClient", () => {
 
       // Find all buttons and click the one with "Thinking Moves" text
       const allButtons = screen.getAllByRole("button");
-      const thinkingButton = allButtons.find(btn => btn.textContent?.includes("Thinking Moves"));
+      const thinkingButton = allButtons.find((btn) => btn.textContent?.includes("Thinking Moves"));
       expect(thinkingButton).toBeDefined();
 
       await act(async () => {

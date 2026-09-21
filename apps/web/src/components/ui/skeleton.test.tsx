@@ -11,11 +11,11 @@ import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import {
   Skeleton,
-  SkeletonText,
-  SkeletonCard,
   SkeletonAvatar,
   SkeletonButton,
+  SkeletonCard,
   SkeletonInput,
+  SkeletonText,
 } from "./skeleton";
 
 describe("Skeleton", () => {

@@ -12,12 +12,12 @@
  */
 
 import {
-  test,
+  assertUrl,
+  type createE2ELogger,
   expect,
   takeScreenshot,
-  assertUrl,
+  test,
   waitForNetworkIdle,
-  createE2ELogger,
 } from "./utils";
 
 // ============================================================================
@@ -98,7 +98,7 @@ test.describe("Session Form Validation", () => {
       await page.waitForTimeout(100); // Allow for debounce
 
       // Check for error message
-      const errorMessage = page.locator('text=Thread ID is required');
+      const errorMessage = page.locator("text=Thread ID is required");
       const hasError = await errorMessage.isVisible().catch(() => false);
 
       if (hasError) {
@@ -128,11 +128,13 @@ test.describe("Session Form Validation", () => {
       await page.waitForTimeout(100);
 
       // Check for error (might be custom or HTML5 validation)
-      const errorMessage = page.locator('text=Sender name is required');
+      const errorMessage = page.locator("text=Sender name is required");
       const hasCustomError = await errorMessage.isVisible().catch(() => false);
       const isRequired = await senderInput.getAttribute("required");
 
-      logger.info(`Sender validation - Custom error: ${hasCustomError}, HTML5 required: ${isRequired !== null}`);
+      logger.info(
+        `Sender validation - Custom error: ${hasCustomError}, HTML5 required: ${isRequired !== null}`,
+      );
       await takeScreenshot(page, logger, "sender-required-validation");
     });
 
@@ -151,11 +153,13 @@ test.describe("Session Form Validation", () => {
       await page.waitForTimeout(100);
 
       // Check for error
-      const errorMessage = page.locator('text=At least one recipient is required');
+      const errorMessage = page.locator("text=At least one recipient is required");
       const hasCustomError = await errorMessage.isVisible().catch(() => false);
       const isRequired = await recipientsInput.getAttribute("required");
 
-      logger.info(`Recipients validation - Custom error: ${hasCustomError}, HTML5 required: ${isRequired !== null}`);
+      logger.info(
+        `Recipients validation - Custom error: ${hasCustomError}, HTML5 required: ${isRequired !== null}`,
+      );
       await takeScreenshot(page, logger, "recipients-required-validation");
     });
 
@@ -175,7 +179,7 @@ test.describe("Session Form Validation", () => {
       await page.waitForTimeout(100);
 
       // Check for min length error
-      const errorMessage = page.locator('text=at least 10 characters');
+      const errorMessage = page.locator("text=at least 10 characters");
       const hasError = await errorMessage.isVisible().catch(() => false);
 
       if (hasError) {
@@ -191,7 +195,11 @@ test.describe("Session Form Validation", () => {
   });
 
   test.describe("Pattern Validation", () => {
-    test("should validate threadId pattern (alphanumeric with dashes)", async ({ page, logger, context }) => {
+    test("should validate threadId pattern (alphanumeric with dashes)", async ({
+      page,
+      logger,
+      context,
+    }) => {
       const ready = await setupAuthenticatedSession(page, context, logger);
       if (!ready) return;
 
@@ -206,7 +214,7 @@ test.describe("Session Form Validation", () => {
       await page.waitForTimeout(100);
 
       // Check for pattern error
-      const errorText = page.locator('text=alphanumeric');
+      const errorText = page.locator("text=alphanumeric");
       const hasPatternError = await errorText.isVisible().catch(() => false);
 
       if (hasPatternError) {
@@ -243,7 +251,7 @@ test.describe("Session Form Validation", () => {
       await page.waitForTimeout(100);
 
       // Check for pattern error
-      const errorText = page.locator('text=PascalCase');
+      const errorText = page.locator("text=PascalCase");
       const hasPatternError = await errorText.isVisible().catch(() => false);
 
       if (hasPatternError) {
@@ -277,11 +285,13 @@ test.describe("Session Form Validation", () => {
       await page.waitForTimeout(100);
 
       // Check for max length error or truncation
-      const errorText = page.locator('text=64 characters');
+      const errorText = page.locator("text=64 characters");
       const hasError = await errorText.isVisible().catch(() => false);
       const actualValue = await threadIdInput.inputValue();
 
-      logger.info(`Max length validation - Error shown: ${hasError}, Value length: ${actualValue.length}`);
+      logger.info(
+        `Max length validation - Error shown: ${hasError}, Value length: ${actualValue.length}`,
+      );
 
       // Either error message or maxlength attribute should prevent overflow
       const maxLength = await threadIdInput.getAttribute("maxlength");
@@ -308,12 +318,14 @@ test.describe("Session Form Validation", () => {
       await subjectInput.blur();
       await page.waitForTimeout(100);
 
-      const errorText = page.locator('text=128 characters');
+      const errorText = page.locator("text=128 characters");
       const hasError = await errorText.isVisible().catch(() => false);
       const actualValue = await subjectInput.inputValue();
       const maxLength = await subjectInput.getAttribute("maxlength");
 
-      logger.info(`Subject max length - Error: ${hasError}, Value length: ${actualValue.length}, maxlength attr: ${maxLength}`);
+      logger.info(
+        `Subject max length - Error: ${hasError}, Value length: ${actualValue.length}, maxlength attr: ${maxLength}`,
+      );
       await takeScreenshot(page, logger, "subject-max-length");
     });
 
@@ -335,18 +347,24 @@ test.describe("Session Form Validation", () => {
       await questionInput.blur();
       await page.waitForTimeout(100);
 
-      const errorText = page.locator('text=256 characters');
+      const errorText = page.locator("text=256 characters");
       const hasError = await errorText.isVisible().catch(() => false);
       const actualValue = await questionInput.inputValue();
       const maxLength = await questionInput.getAttribute("maxlength");
 
-      logger.info(`Question max length - Error: ${hasError}, Value length: ${actualValue.length}, maxlength attr: ${maxLength}`);
+      logger.info(
+        `Question max length - Error: ${hasError}, Value length: ${actualValue.length}, maxlength attr: ${maxLength}`,
+      );
       await takeScreenshot(page, logger, "question-max-length");
     });
   });
 
   test.describe("Error Message Accessibility", () => {
-    test("should have accessible error messages with aria attributes", async ({ page, logger, context }) => {
+    test("should have accessible error messages with aria attributes", async ({
+      page,
+      logger,
+      context,
+    }) => {
       const ready = await setupAuthenticatedSession(page, context, logger);
       if (!ready) return;
 
@@ -364,7 +382,9 @@ test.describe("Session Form Validation", () => {
       const ariaDescribedBy = await threadIdInput.getAttribute("aria-describedby");
       const ariaInvalid = await threadIdInput.getAttribute("aria-invalid");
 
-      logger.info(`Accessibility attributes - aria-describedby: ${ariaDescribedBy}, aria-invalid: ${ariaInvalid}`);
+      logger.info(
+        `Accessibility attributes - aria-describedby: ${ariaDescribedBy}, aria-invalid: ${ariaInvalid}`,
+      );
 
       // If aria-describedby is set, verify the error element exists
       if (ariaDescribedBy) {
@@ -388,7 +408,7 @@ test.describe("Session Form Validation", () => {
       logger.step("Testing screen reader error announcements");
 
       // Look for aria-live regions
-      const liveRegions = page.locator('[aria-live]');
+      const liveRegions = page.locator("[aria-live]");
       const liveCount = await liveRegions.count();
       logger.info(`aria-live regions found: ${liveCount}`);
 
@@ -396,7 +416,9 @@ test.describe("Session Form Validation", () => {
       const politeRegions = page.locator('[aria-live="polite"]');
       const assertiveRegions = page.locator('[aria-live="assertive"]');
 
-      logger.info(`Polite regions: ${await politeRegions.count()}, Assertive regions: ${await assertiveRegions.count()}`);
+      logger.info(
+        `Polite regions: ${await politeRegions.count()}, Assertive regions: ${await assertiveRegions.count()}`,
+      );
 
       await takeScreenshot(page, logger, "aria-live-regions");
     });
@@ -420,7 +442,7 @@ test.describe("Session Form Validation", () => {
       }
 
       // Check immediately - error might not show yet (debounced)
-      const immediateError = page.locator('text=alphanumeric');
+      const immediateError = page.locator("text=alphanumeric");
       const hasImmediateError = await immediateError.isVisible().catch(() => false);
       logger.info(`Error visible immediately after typing: ${hasImmediateError}`);
 
@@ -451,7 +473,7 @@ test.describe("Session Form Validation", () => {
       await threadIdInput.blur();
       await page.waitForTimeout(200);
 
-      const errorText = page.locator('text=alphanumeric');
+      const errorText = page.locator("text=alphanumeric");
       const hasErrorInitially = await errorText.isVisible().catch(() => false);
       logger.info(`Error visible after invalid input: ${hasErrorInitially}`);
 
@@ -523,7 +545,9 @@ test.describe("Search Input Validation", () => {
       await page.waitForTimeout(200);
     }
 
-    const searchInput = page.locator('input[placeholder*="search" i], input[type="search"]').first();
+    const searchInput = page
+      .locator('input[placeholder*="search" i], input[type="search"]')
+      .first();
 
     if (await searchInput.isVisible()) {
       // Press Enter on empty input
@@ -549,7 +573,9 @@ test.describe("Search Input Validation", () => {
     await page.keyboard.press("Meta+k");
     await page.waitForTimeout(200);
 
-    const searchInput = page.locator('input[placeholder*="search" i], input[type="search"]').first();
+    const searchInput = page
+      .locator('input[placeholder*="search" i], input[type="search"]')
+      .first();
 
     if (await searchInput.isVisible()) {
       // Type quickly
@@ -557,7 +583,7 @@ test.describe("Search Input Validation", () => {
 
       // Check for loading indicator
       await page.waitForTimeout(100);
-      const loadingSpinner = page.locator('.animate-spin');
+      const loadingSpinner = page.locator(".animate-spin");
       const isLoading = await loadingSpinner.isVisible().catch(() => false);
 
       logger.info(`Loading indicator visible during search: ${isLoading}`);
@@ -581,7 +607,9 @@ test.describe("Search Input Validation", () => {
     await page.keyboard.press("Meta+k");
     await page.waitForTimeout(200);
 
-    const searchInput = page.locator('input[placeholder*="search" i], input[type="search"]').first();
+    const searchInput = page
+      .locator('input[placeholder*="search" i], input[type="search"]')
+      .first();
 
     if (await searchInput.isVisible()) {
       // Search for something that might not exist
@@ -589,7 +617,7 @@ test.describe("Search Input Validation", () => {
       await page.waitForTimeout(500);
 
       // Should show either results or "no results" message
-      const noResults = page.locator('text=no results');
+      const noResults = page.locator("text=no results");
       const hasNoResults = await noResults.isVisible().catch(() => false);
 
       logger.info(`No results message visible: ${hasNoResults}`);
@@ -611,7 +639,9 @@ test.describe("Excerpt Basket Validation", () => {
     await waitForNetworkIdle(page, logger);
 
     // Look for excerpt basket trigger button
-    const excerptButton = page.locator('button[aria-label*="excerpt" i], button:has-text("Excerpt")').first();
+    const excerptButton = page
+      .locator('button[aria-label*="excerpt" i], button:has-text("Excerpt")')
+      .first();
 
     if (await excerptButton.isVisible()) {
       await excerptButton.click();
@@ -619,10 +649,11 @@ test.describe("Excerpt Basket Validation", () => {
 
       // Check if basket dialog/drawer opened
       const basketDialog = page.locator('[role="dialog"][aria-label*="excerpt" i]');
-      const basketDrawer = page.locator('text=Excerpt Basket');
+      const basketDrawer = page.locator("text=Excerpt Basket");
 
-      const isOpen = (await basketDialog.isVisible().catch(() => false)) ||
-                     (await basketDrawer.isVisible().catch(() => false));
+      const isOpen =
+        (await basketDialog.isVisible().catch(() => false)) ||
+        (await basketDrawer.isVisible().catch(() => false));
 
       logger.info(`Excerpt basket opened: ${isOpen}`);
 
@@ -656,14 +687,16 @@ test.describe("Excerpt Basket Validation", () => {
     await page.reload();
     await waitForNetworkIdle(page, logger);
 
-    const excerptButton = page.locator('button[aria-label*="excerpt" i], button:has-text("Excerpt")').first();
+    const excerptButton = page
+      .locator('button[aria-label*="excerpt" i], button:has-text("Excerpt")')
+      .first();
 
     if (await excerptButton.isVisible()) {
       await excerptButton.click();
       await page.waitForTimeout(200);
 
       // Check for empty state message
-      const emptyState = page.locator('text=No selections yet');
+      const emptyState = page.locator("text=No selections yet");
       const hasEmptyState = await emptyState.isVisible().catch(() => false);
 
       logger.info(`Empty basket state visible: ${hasEmptyState}`);
@@ -677,7 +710,9 @@ test.describe("Excerpt Basket Validation", () => {
     await page.goto("/");
     await waitForNetworkIdle(page, logger);
 
-    const excerptButton = page.locator('button[aria-label*="excerpt" i], button:has-text("Excerpt")').first();
+    const excerptButton = page
+      .locator('button[aria-label*="excerpt" i], button:has-text("Excerpt")')
+      .first();
 
     if (await excerptButton.isVisible()) {
       await excerptButton.click();
@@ -707,13 +742,15 @@ test.describe("Excerpt Basket Validation", () => {
 
     // Add a test item to localStorage directly
     await page.evaluate(() => {
-      const testItems = [{
-        id: "test-item-1",
-        anchor: "§42",
-        quote: "This is a test quote for E2E testing",
-        title: "Test Document",
-        addedAt: Date.now(),
-      }];
+      const testItems = [
+        {
+          id: "test-item-1",
+          anchor: "§42",
+          quote: "This is a test quote for E2E testing",
+          title: "Test Document",
+          addedAt: Date.now(),
+        },
+      ];
       localStorage.setItem("brenner-excerpt-basket", JSON.stringify(testItems));
     });
 
@@ -722,21 +759,26 @@ test.describe("Excerpt Basket Validation", () => {
     await waitForNetworkIdle(page, logger);
 
     // Open basket
-    const excerptButton = page.locator('button[aria-label*="excerpt" i], button:has-text("Excerpt")').first();
+    const excerptButton = page
+      .locator('button[aria-label*="excerpt" i], button:has-text("Excerpt")')
+      .first();
 
     if (await excerptButton.isVisible()) {
       await excerptButton.click();
       await page.waitForTimeout(200);
 
       // Check if item is displayed
-      const testQuote = page.locator('text=test quote for E2E');
+      const testQuote = page.locator("text=test quote for E2E");
       const hasItem = await testQuote.isVisible().catch(() => false);
 
       logger.info(`Persisted basket item visible after reload: ${hasItem}`);
 
       // Check for item count badge (look for badge-like elements near the excerpt button)
       // Use more specific selectors to avoid matching random "1"s on the page
-      const badgeWithCount = page.locator('[data-testid*="badge"], [class*="badge"], [aria-label*="item"], [role="status"]').filter({ hasText: "1" }).first();
+      const badgeWithCount = page
+        .locator('[data-testid*="badge"], [class*="badge"], [aria-label*="item"], [role="status"]')
+        .filter({ hasText: "1" })
+        .first();
       const hasBadge = await badgeWithCount.isVisible().catch(() => false);
 
       logger.info(`Item count badge visible: ${hasBadge}`);
@@ -757,12 +799,14 @@ test.describe("Excerpt Basket Validation", () => {
 test.describe("Form Keyboard Accessibility", () => {
   test("should support tab navigation through form fields", async ({ page, logger, context }) => {
     const labSecret = process.env.BRENNER_LAB_SECRET || "test-secret-for-e2e";
-    await context.addCookies([{
-      name: "brenner_lab_secret",
-      value: labSecret,
-      domain: getCookieDomain(),
-      path: "/",
-    }]);
+    await context.addCookies([
+      {
+        name: "brenner_lab_secret",
+        value: labSecret,
+        domain: getCookieDomain(),
+        path: "/",
+      },
+    ]);
 
     const response = await page.goto("/sessions/new");
     await waitForNetworkIdle(page, logger);
@@ -785,7 +829,16 @@ test.describe("Form Keyboard Accessibility", () => {
     await threadIdInput.focus();
 
     // Tab through fields
-    const expectedFields = ["threadId", "sender", "to", "subject", "excerpt", "theme", "domain", "question"];
+    const expectedFields = [
+      "threadId",
+      "sender",
+      "to",
+      "subject",
+      "excerpt",
+      "theme",
+      "domain",
+      "question",
+    ];
     const actualOrder: string[] = [];
 
     for (let i = 0; i < expectedFields.length + 2; i++) {

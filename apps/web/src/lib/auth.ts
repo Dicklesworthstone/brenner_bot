@@ -76,7 +76,7 @@ function hasCloudflareAccessHeaders(headers?: { get?: (name: string) => string |
  */
 export function hasValidLabSecret(
   headers?: { get?: (name: string) => string | null },
-  cookies?: { get?: (name: string) => { value: string } | undefined }
+  cookies?: { get?: (name: string) => { value: string } | undefined },
 ): boolean {
   const configuredSecret = getLabSecret();
 
@@ -104,7 +104,7 @@ export function hasValidLabSecret(
  */
 export function checkOrchestrationAuth(
   headers?: { get?: (name: string) => string | null },
-  cookies?: { get?: (name: string) => { value: string } | undefined }
+  cookies?: { get?: (name: string) => { value: string } | undefined },
 ): { authorized: boolean; reason: string } {
   // Check 1: Lab mode must be enabled
   if (!isLabModeEnabled()) {
@@ -138,15 +138,15 @@ export function checkOrchestrationAuth(
   if (secretConfigured) {
     return {
       authorized: false,
-      reason: "Invalid or missing lab secret. Provide via x-brenner-lab-secret header or brenner_lab_secret cookie.",
+      reason:
+        "Invalid or missing lab secret. Provide via x-brenner-lab-secret header or brenner_lab_secret cookie.",
     };
   }
 
   if (!shouldTrustCloudflareAccessHeaders()) {
     return {
       authorized: false,
-      reason:
-        `No BRENNER_LAB_SECRET configured. Set BRENNER_LAB_SECRET, or (if behind Cloudflare Access) set ${TRUST_CF_ACCESS_ENV}=1.`,
+      reason: `No BRENNER_LAB_SECRET configured. Set BRENNER_LAB_SECRET, or (if behind Cloudflare Access) set ${TRUST_CF_ACCESS_ENV}=1.`,
     };
   }
 
@@ -162,7 +162,7 @@ export function checkOrchestrationAuth(
  */
 export function assertOrchestrationAuth(
   headers?: { get?: (name: string) => string | null },
-  cookies?: { get?: (name: string) => { value: string } | undefined }
+  cookies?: { get?: (name: string) => { value: string } | undefined },
 ): void {
   const { authorized, reason } = checkOrchestrationAuth(headers, cookies);
   if (!authorized) {

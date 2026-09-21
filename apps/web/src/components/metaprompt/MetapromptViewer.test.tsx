@@ -7,20 +7,16 @@
  * Run with: cd apps/web && bun run test -- src/components/metaprompt/MetapromptViewer.test.tsx
  */
 
-import { describe, it, expect } from "vitest";
 import { render, screen } from "@testing-library/react";
-import type { ParsedMetaprompt, MetapromptSection } from "@/lib/metaprompt-parser";
+import { describe, expect, it } from "vitest";
+import type { MetapromptSection, ParsedMetaprompt } from "@/lib/metaprompt-parser";
 import { MetapromptViewer } from "./MetapromptViewer";
 
 // ============================================================================
 // Test Fixtures - Realistic ParsedMetaprompt data
 // ============================================================================
 
-function createTestSection(
-  level: number,
-  title: string,
-  content: string
-): MetapromptSection {
+function createTestSection(level: number, title: string, content: string): MetapromptSection {
   return { level, title, content };
 }
 
@@ -43,36 +39,56 @@ const comprehensiveMetaprompt: ParsedMetaprompt = {
   description: "A structured prompt for conducting rigorous scientific inquiry",
   wordCount: 2500,
   sections: [
-    createTestSection(1, "Core Principles", `The Brenner Method emphasizes discriminative testing over confirmatory approaches.
+    createTestSection(
+      1,
+      "Core Principles",
+      `The Brenner Method emphasizes discriminative testing over confirmatory approaches.
 
 > Exclusion is always a tremendously good thing in science.
 
 Key principles include:
 - Design tests that can exclude hypotheses
 - Prioritize evidence per week
-- Always consider the third alternative`),
-    createTestSection(2, "Hypothesis Formation", `When formulating hypotheses:
+- Always consider the third alternative`,
+    ),
+    createTestSection(
+      2,
+      "Hypothesis Formation",
+      `When formulating hypotheses:
 
 1. State the claim clearly
 2. Identify the mechanism
 3. List testable predictions
-4. Consider what would falsify each hypothesis`),
-    createTestSection(1, "Discriminative Tests", `Tests should discriminate between competing hypotheses.
+4. Consider what would falsify each hypothesis`,
+    ),
+    createTestSection(
+      1,
+      "Discriminative Tests",
+      `Tests should discriminate between competing hypotheses.
 
 A good test satisfies these criteria:
 - Clear expected outcomes for each hypothesis
 - Potency check to verify test sensitivity
-- Feasibility within resource constraints`),
-    createTestSection(2, "Test Design Patterns", `Common patterns for discriminative tests:
+- Feasibility within resource constraints`,
+    ),
+    createTestSection(
+      2,
+      "Test Design Patterns",
+      `Common patterns for discriminative tests:
 
 - A/B comparison with clear predictions
 - Elimination cascades
-- Orthogonal tests for independent verification`),
-    createTestSection(3, "Evidence Per Week", `The "evidence per week" metric prioritizes experiments that:
+- Orthogonal tests for independent verification`,
+    ),
+    createTestSection(
+      3,
+      "Evidence Per Week",
+      `The "evidence per week" metric prioritizes experiments that:
 
 1. Yield results quickly
 2. Have high discriminative power
-3. Are resource efficient`),
+3. Are resource efficient`,
+    ),
   ],
 };
 
@@ -116,7 +132,9 @@ describe("MetapromptViewer Hero", () => {
   it("renders description when provided", () => {
     render(<MetapromptViewer data={comprehensiveMetaprompt} />);
 
-    expect(screen.getByText("A structured prompt for conducting rigorous scientific inquiry")).toBeInTheDocument();
+    expect(
+      screen.getByText("A structured prompt for conducting rigorous scientific inquiry"),
+    ).toBeInTheDocument();
   });
 
   it("hides description when not provided", () => {
@@ -201,7 +219,9 @@ describe("MetapromptViewer Sections", () => {
   it("renders paragraph content", () => {
     const { container } = render(<MetapromptViewer data={minimalMetaprompt} />);
 
-    expect(container.textContent).toContain("Guide agents through Brenner Method research sessions");
+    expect(container.textContent).toContain(
+      "Guide agents through Brenner Method research sessions",
+    );
   });
 
   it("assigns section IDs for navigation", () => {
@@ -223,7 +243,9 @@ describe("MetapromptViewer Content Types", () => {
 
     const blockquotes = container.querySelectorAll("blockquote");
     expect(blockquotes.length).toBeGreaterThan(0);
-    expect(container.textContent).toContain("Exclusion is always a tremendously good thing in science");
+    expect(container.textContent).toContain(
+      "Exclusion is always a tremendously good thing in science",
+    );
   });
 
   it("renders unordered lists", () => {

@@ -19,31 +19,51 @@ import { CopyButton } from "@/components/ui/copy-button";
 // Icons
 const RocketLaunchIcon = () => (
   <svg className="size-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M15.59 14.37a6 6 0 01-5.84 7.38v-4.8m5.84-2.58a14.98 14.98 0 006.16-12.12A14.98 14.98 0 009.631 8.41m5.96 5.96a14.926 14.926 0 01-5.841 2.58m-.119-8.54a6 6 0 00-7.381 5.84h4.8m2.581-5.84a14.927 14.927 0 00-2.58 5.84m2.699 2.7c-.103.021-.207.041-.311.06a15.09 15.09 0 01-2.448-2.448 14.9 14.9 0 01.06-.312m-2.24 2.39a4.493 4.493 0 00-1.757 4.306 4.493 4.493 0 004.306-1.758M16.5 9a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z" />
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M15.59 14.37a6 6 0 01-5.84 7.38v-4.8m5.84-2.58a14.98 14.98 0 006.16-12.12A14.98 14.98 0 009.631 8.41m5.96 5.96a14.926 14.926 0 01-5.841 2.58m-.119-8.54a6 6 0 00-7.381 5.84h4.8m2.581-5.84a14.927 14.927 0 00-2.58 5.84m2.699 2.7c-.103.021-.207.041-.311.06a15.09 15.09 0 01-2.448-2.448 14.9 14.9 0 01.06-.312m-2.24 2.39a4.493 4.493 0 00-1.757 4.306 4.493 4.493 0 004.306-1.758M16.5 9a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z"
+    />
   </svg>
 );
 
 const BeakerIcon = () => (
   <svg className="size-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M9.75 3.104v5.714a2.25 2.25 0 01-.659 1.591L5 14.5M9.75 3.104c-.251.023-.501.05-.75.082m.75-.082a24.301 24.301 0 014.5 0m0 0v5.714c0 .597.237 1.17.659 1.591L19.8 15.3M14.25 3.104c.251.023.501.05.75.082M19.8 15.3l-1.57.393A9.065 9.065 0 0112 15a9.065 9.065 0 00-6.23.693L5 14.5m14.8.8l1.402 1.402c1.232 1.232.65 3.318-1.067 3.611A48.309 48.309 0 0112 21c-2.773 0-5.491-.235-8.135-.687-1.718-.293-2.3-2.379-1.067-3.61L5 14.5" />
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M9.75 3.104v5.714a2.25 2.25 0 01-.659 1.591L5 14.5M9.75 3.104c-.251.023-.501.05-.75.082m.75-.082a24.301 24.301 0 014.5 0m0 0v5.714c0 .597.237 1.17.659 1.591L19.8 15.3M14.25 3.104c.251.023.501.05.75.082M19.8 15.3l-1.57.393A9.065 9.065 0 0112 15a9.065 9.065 0 00-6.23.693L5 14.5m14.8.8l1.402 1.402c1.232 1.232.65 3.318-1.067 3.611A48.309 48.309 0 0112 21c-2.773 0-5.491-.235-8.135-.687-1.718-.293-2.3-2.379-1.067-3.61L5 14.5"
+    />
   </svg>
 );
 
 const CodeBracketIcon = () => (
   <svg className="size-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M17.25 6.75L22.5 12l-5.25 5.25m-10.5 0L1.5 12l5.25-5.25m7.5-3l-4.5 16.5" />
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M17.25 6.75L22.5 12l-5.25 5.25m-10.5 0L1.5 12l5.25-5.25m7.5-3l-4.5 16.5"
+    />
   </svg>
 );
 
 const BookOpenIcon = () => (
   <svg className="size-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" />
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25"
+    />
   </svg>
 );
 
 const TerminalIcon = () => (
   <svg className="size-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 7.5l3 2.25-3 2.25m4.5 0h3m-9 8.25h13.5A2.25 2.25 0 0021 18V6a2.25 2.25 0 00-2.25-2.25H5.25A2.25 2.25 0 003 6v12a2.25 2.25 0 002.25 2.25z" />
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M6.75 7.5l3 2.25-3 2.25m4.5 0h3m-9 8.25h13.5A2.25 2.25 0 0021 18V6a2.25 2.25 0 00-2.25-2.25H5.25A2.25 2.25 0 003 6v12a2.25 2.25 0 002.25 2.25z"
+    />
   </svg>
 );
 
@@ -55,7 +75,11 @@ const ArrowRightIcon = () => (
 
 const CheckCircleIcon = () => (
   <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+    />
   </svg>
 );
 
@@ -118,11 +142,17 @@ const userPaths = [
 const quickStartCommands = [
   { comment: "Verify installation", command: "brenner doctor --skip-ntm --skip-cass --skip-cm" },
   { comment: "Search the corpus", command: 'brenner corpus search "discriminative test"' },
-  { comment: "Build an excerpt", command: "brenner excerpt build --sections 58,78,161 > excerpt.md" },
-  { comment: "Start a session", command: `brenner session start \\
+  {
+    comment: "Build an excerpt",
+    command: "brenner excerpt build --sections 58,78,161 > excerpt.md",
+  },
+  {
+    comment: "Start a session",
+    command: `brenner session start \\
   --thread-id RS-$(date +%Y%m%d)-first \\
   --excerpt-file excerpt.md \\
-  --question "What makes a good discriminative test?"` },
+  --question "What makes a good discriminative test?"`,
+  },
 ];
 
 const socialProof = [
@@ -212,11 +242,15 @@ export function GetStartedSection() {
               <div className="space-y-4">
                 {/* Icon + Title */}
                 <div className="flex items-start gap-4">
-                  <div className={`flex size-12 items-center justify-center rounded-xl ${path.iconBg} ${path.iconColor} shadow-inner`}>
+                  <div
+                    className={`flex size-12 items-center justify-center rounded-xl ${path.iconBg} ${path.iconColor} shadow-inner`}
+                  >
                     {path.icon}
                   </div>
                   <div className="flex-1">
-                    <p className="text-[11px] uppercase tracking-wide text-muted-foreground">{path.subtitle}</p>
+                    <p className="text-[11px] uppercase tracking-wide text-muted-foreground">
+                      {path.subtitle}
+                    </p>
                     <h3 className="text-lg font-semibold text-foreground">{path.title}</h3>
                   </div>
                 </div>
@@ -309,7 +343,10 @@ export function GetStartedSection() {
             Get Started Now
           </Link>
           <div className="flex items-center justify-center gap-4 text-sm">
-            <Link href="/docs" className="text-muted-foreground hover:text-foreground transition-colors">
+            <Link
+              href="/docs"
+              className="text-muted-foreground hover:text-foreground transition-colors"
+            >
               Read the Docs
             </Link>
             <span className="text-border">|</span>
@@ -326,7 +363,8 @@ export function GetStartedSection() {
 
         {/* Footer Note */}
         <p className="text-center text-xs text-muted-foreground max-w-xl mx-auto">
-          Brenner Bot is 100% free and open source. No hidden costs, no data collection, no vendor lock-in. Just rigorous research tools.
+          Brenner Bot is 100% free and open source. No hidden costs, no data collection, no vendor
+          lock-in. Just rigorous research tools.
         </p>
       </div>
     </section>

@@ -14,12 +14,12 @@
  * - Mobile-optimized with larger touch targets
  */
 
+import { AnimatePresence, motion, useMotionValue, useTransform } from "framer-motion";
+import { ChevronDown, Code, Command, Copy, Terminal } from "lucide-react";
 import * as React from "react";
-import { motion, AnimatePresence, useMotionValue, useTransform } from "framer-motion";
-import { ChevronDown, Terminal, Code, Command, Copy } from "lucide-react";
-import { cn } from "@/lib/utils";
 import { CopyButton } from "@/components/ui/copy-button";
-import type { CodeLanguage, CodeDiff } from "@/lib/tutorial-types";
+import type { CodeDiff, CodeLanguage } from "@/lib/tutorial-types";
+import { cn } from "@/lib/utils";
 
 // ============================================================================
 // Types
@@ -113,9 +113,11 @@ function CodeLine({
     <div
       className={cn(
         "flex group/line transition-colors duration-150",
-        diffType === "add" && "bg-[oklch(0.72_0.19_145/0.1)] border-l-2 border-[oklch(0.72_0.19_145)]",
-        diffType === "remove" && "bg-destructive/10 border-l-2 border-destructive line-through opacity-70",
-        isHighlighted && !diffType && "bg-primary/10"
+        diffType === "add" &&
+          "bg-[oklch(0.72_0.19_145/0.1)] border-l-2 border-[oklch(0.72_0.19_145)]",
+        diffType === "remove" &&
+          "bg-destructive/10 border-l-2 border-destructive line-through opacity-70",
+        isHighlighted && !diffType && "bg-primary/10",
       )}
       onMouseEnter={() => onHover?.(lineNumber)}
       onMouseLeave={() => onHover?.(null)}
@@ -124,14 +126,18 @@ function CodeLine({
         <span
           className={cn(
             "select-none w-12 pr-4 text-right shrink-0 transition-colors duration-150 font-mono text-xs",
-            isHighlighted ? "text-primary" : "text-muted-foreground/40 group-hover/line:text-muted-foreground/60"
+            isHighlighted
+              ? "text-primary"
+              : "text-muted-foreground/40 group-hover/line:text-muted-foreground/60",
           )}
         >
           {lineNumber}
         </span>
       )}
       <span className="flex-1 pr-4">
-        {diffType === "add" && <span className="text-[oklch(0.72_0.19_145)] mr-1 font-bold">+</span>}
+        {diffType === "add" && (
+          <span className="text-[oklch(0.72_0.19_145)] mr-1 font-bold">+</span>
+        )}
         {diffType === "remove" && <span className="text-destructive mr-1 font-bold">-</span>}
         {language === "bash" ? renderBashLine(line) : line || " "}
       </span>
@@ -216,7 +222,8 @@ export function TutorialCodeBlock({
   }, [updateScrollProgress, displayCode]);
 
   // Detect platform for keyboard shortcut display (use userAgent since platform is deprecated)
-  const isMac = typeof navigator !== "undefined" && /Mac|iPhone|iPad|iPod/.test(navigator.userAgent);
+  const isMac =
+    typeof navigator !== "undefined" && /Mac|iPhone|iPad|iPod/.test(navigator.userAgent);
 
   // Header content - Terminal style with traffic lights (ACFS pattern)
   const headerContent = (
@@ -249,7 +256,7 @@ export function TutorialCodeBlock({
                 "px-2 py-0.5 text-xs rounded transition-colors",
                 activeTab === "before"
                   ? "bg-destructive/20 text-destructive"
-                  : "text-muted-foreground hover:text-foreground"
+                  : "text-muted-foreground hover:text-foreground",
               )}
             >
               Before
@@ -261,7 +268,7 @@ export function TutorialCodeBlock({
                 "px-2 py-0.5 text-xs rounded transition-colors",
                 activeTab === "after"
                   ? "bg-success/20 text-success"
-                  : "text-muted-foreground hover:text-foreground"
+                  : "text-muted-foreground hover:text-foreground",
               )}
             >
               After
@@ -280,11 +287,7 @@ export function TutorialCodeBlock({
               exit={{ opacity: 0, x: 10 }}
               className="hidden sm:flex items-center gap-1 text-xs text-muted-foreground/60"
             >
-              {isMac ? (
-                <Command className="size-3" />
-              ) : (
-                <span className="text-[10px]">Ctrl</span>
-              )}
+              {isMac ? <Command className="size-3" /> : <span className="text-[10px]">Ctrl</span>}
               <span>+</span>
               <Copy className="size-3" />
             </motion.div>
@@ -299,7 +302,7 @@ export function TutorialCodeBlock({
             className={cn(
               "p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-all duration-200",
               "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-              "touch-manipulation active:scale-95"
+              "touch-manipulation active:scale-95",
             )}
             aria-expanded={!isCollapsed}
             aria-label={isCollapsed ? "Expand code" : "Collapse code"}
@@ -342,7 +345,7 @@ export function TutorialCodeBlock({
         className={cn(
           "overflow-x-auto font-mono text-sm leading-relaxed scrollbar-hide scroll-smooth",
           maxHeight && "overflow-y-auto",
-          !collapsible && isLong && !maxHeight && "max-h-[400px] overflow-y-auto"
+          !collapsible && isLong && !maxHeight && "max-h-[400px] overflow-y-auto",
         )}
         style={maxHeight ? { maxHeight } : undefined}
       >
@@ -383,10 +386,7 @@ export function TutorialCodeBlock({
             className="absolute bottom-2 right-2 sm:hidden flex items-center gap-1 px-2 py-1 rounded-full bg-primary/20 text-primary text-xs backdrop-blur-sm"
           >
             <span>Scroll</span>
-            <motion.span
-              animate={{ x: [0, 4, 0] }}
-              transition={{ duration: 1, repeat: Infinity }}
-            >
+            <motion.span animate={{ x: [0, 4, 0] }} transition={{ duration: 1, repeat: Infinity }}>
               →
             </motion.span>
           </motion.div>
@@ -405,7 +405,7 @@ export function TutorialCodeBlock({
       className={cn(
         "rounded-xl border border-border/50 bg-[oklch(0.12_0.015_260)] overflow-hidden",
         "shadow-md transition-all duration-300 hover:shadow-xl hover:shadow-primary/5 hover:border-primary/30",
-        className
+        className,
       )}
     >
       {/* Header */}
@@ -458,7 +458,7 @@ export function InlineCode({ children, className, copyable = false }: InlineCode
         "border border-border/50",
         "transition-all duration-200 hover:bg-muted/80 hover:border-primary/30",
         copyable && "group pr-7 cursor-pointer hover:shadow-sm",
-        className
+        className,
       )}
     >
       <span className="text-primary/90">{children}</span>

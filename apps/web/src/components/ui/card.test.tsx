@@ -8,17 +8,17 @@
  * @see @/components/ui/card.tsx
  */
 
-import { createRef } from "react";
 import { render, screen } from "@testing-library/react";
+import { createRef } from "react";
 import { describe, expect, it } from "vitest";
 import {
   Card,
+  CardAction,
+  CardContent,
+  CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
-  CardDescription,
-  CardContent,
-  CardFooter,
-  CardAction,
   FeatureCard,
 } from "./card";
 
@@ -190,7 +190,7 @@ describe("Card", () => {
           <CardFooter>
             <CardAction>Actions</CardAction>
           </CardFooter>
-        </Card>
+        </Card>,
       );
 
       expect(screen.getByRole("heading", { name: "Test Card" })).toBeInTheDocument();

@@ -1,16 +1,16 @@
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
 import {
-  PredictionSchema,
-  HypothesisPredictionSchema,
-  PredictionStatusSchema,
-  validateDiscriminativePower,
+  createBinaryPrediction,
+  createPrediction,
   estimateDiscriminativePower,
   generatePredictionId,
-  isValidPredictionId,
-  createPrediction,
-  createBinaryPrediction,
-  type Prediction,
   type HypothesisPrediction,
+  HypothesisPredictionSchema,
+  isValidPredictionId,
+  type Prediction,
+  PredictionSchema,
+  PredictionStatusSchema,
+  validateDiscriminativePower,
 } from "./prediction";
 
 describe("Prediction Schema", () => {
@@ -133,9 +133,7 @@ describe("Prediction Schema", () => {
     it("requires at least 2 hypothesis predictions", () => {
       const invalid = {
         ...validPrediction,
-        hypothesisPredictions: [
-          { hypothesisId: "H-RS20251230-001", prediction: "Effect present" },
-        ],
+        hypothesisPredictions: [{ hypothesisId: "H-RS20251230-001", prediction: "Effect present" }],
       };
       expect(() => PredictionSchema.parse(invalid)).toThrow(/at least 2/);
     });
@@ -226,7 +224,7 @@ describe("Prediction Schema", () => {
       const result = validateDiscriminativePower(prediction);
       expect(result.isDiscriminative).toBe(false);
       expect(result.issues).toContain(
-        "Some hypotheses have identical predictions - not discriminative"
+        "Some hypotheses have identical predictions - not discriminative",
       );
     });
 
@@ -422,7 +420,7 @@ describe("Prediction Schema", () => {
           hypothesis1: { id: "H-RS20251230-001", predictsPositive: true },
           hypothesis2: { id: "H-RS20251230-002", predictsPositive: true },
           sessionId: "RS20251230",
-        })
+        }),
       ).toThrow(/not discriminative.*both hypotheses predict positive/);
     });
 
@@ -434,7 +432,7 @@ describe("Prediction Schema", () => {
           hypothesis1: { id: "H-RS20251230-001", predictsPositive: false },
           hypothesis2: { id: "H-RS20251230-002", predictsPositive: false },
           sessionId: "RS20251230",
-        })
+        }),
       ).toThrow(/not discriminative.*both hypotheses predict negative/);
     });
 
@@ -459,9 +457,7 @@ describe("Prediction Schema", () => {
 
       expect(prediction.name).toBe("Gene X knockout test");
       expect(prediction.proposedBy).toBe("Brenner");
-      expect(prediction.hypothesisPredictions[0].rationale).toBe(
-        "Gene X activates the pathway"
-      );
+      expect(prediction.hypothesisPredictions[0].rationale).toBe("Gene X activates the pathway");
     });
   });
 });

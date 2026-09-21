@@ -13,76 +13,69 @@
  * - TutorialPathCard: Card for selecting tutorial paths
  */
 
-// Progress indicator
-export {
-  TutorialProgress,
-  SidebarProgress,
-  HeaderProgress,
-} from "./TutorialProgress";
-export type { TutorialProgressProps } from "./TutorialProgress";
-
-// Step container
-export { TutorialStep } from "./TutorialStep";
-export type { TutorialStepProps } from "./TutorialStep";
-
-// Code blocks
-export { TutorialCodeBlock, InlineCode } from "./TutorialCodeBlock";
+// Re-export types from lib
 export type {
-  TutorialCodeBlockProps,
-  InlineCodeProps,
-} from "./TutorialCodeBlock";
-
-// Tips and callouts
-export {
-  TutorialTip,
-  ProTip,
-  Warning,
-  Note,
-  Important,
-} from "./TutorialTip";
-export type { TutorialTipProps } from "./TutorialTip";
-
+  CheckpointData,
+  CodeBlockData,
+  CodeDiff,
+  CodeLanguage,
+  DifficultyLevel,
+  TipVariant,
+  TroubleshootingItem,
+  TutorialAccent,
+  TutorialLayoutProps,
+  TutorialLayoutVariant,
+  TutorialNavigation,
+  TutorialPath,
+  TutorialPathId,
+  TutorialProgress as TutorialProgressType,
+  TutorialProgressJSON,
+  TutorialStep as TutorialStepType,
+  TutorialStepMeta,
+  TutorialTipData,
+} from "@/lib/tutorial-types";
+export type { MobileDesktopGateProps } from "./MobileDesktopGate";
+// Mobile desktop gate
+export { MobileDesktopGate } from "./MobileDesktopGate";
+export type { PromptCardProps, PromptListItemProps } from "./PromptCard";
+// Prompt cards
+export { PromptCard, PromptListItem } from "./PromptCard";
+export type { TutorialCheckpointProps } from "./TutorialCheckpoint";
 // Checkpoints
 export { TutorialCheckpoint } from "./TutorialCheckpoint";
-export type { TutorialCheckpointProps } from "./TutorialCheckpoint";
+export type {
+  InlineCodeProps,
+  TutorialCodeBlockProps,
+} from "./TutorialCodeBlock";
+// Code blocks
+export { InlineCode, TutorialCodeBlock } from "./TutorialCodeBlock";
+export type {
+  PathStatus,
+  TutorialPathCardProps,
+  TutorialPathGridProps,
+} from "./TutorialPathCard";
 
 // Path cards
 export {
   TutorialPathCard,
   TutorialPathGrid,
 } from "./TutorialPathCard";
-export type {
-  TutorialPathCardProps,
-  TutorialPathGridProps,
-  PathStatus,
-} from "./TutorialPathCard";
-
-// Prompt cards
-export { PromptCard, PromptListItem } from "./PromptCard";
-export type { PromptCardProps, PromptListItemProps } from "./PromptCard";
-
-// Mobile desktop gate
-export { MobileDesktopGate } from "./MobileDesktopGate";
-export type { MobileDesktopGateProps } from "./MobileDesktopGate";
-
-// Re-export types from lib
-export type {
-  TutorialPath,
-  TutorialPathId,
-  TutorialAccent,
-  DifficultyLevel,
-  TutorialStep as TutorialStepType,
-  TutorialStepMeta,
-  TroubleshootingItem,
-  CheckpointData,
-  CodeLanguage,
-  CodeBlockData,
-  CodeDiff,
-  TipVariant,
-  TutorialTipData,
-  TutorialProgress as TutorialProgressType,
-  TutorialProgressJSON,
-  TutorialNavigation,
-  TutorialLayoutVariant,
-  TutorialLayoutProps,
-} from "@/lib/tutorial-types";
+export type { TutorialProgressProps } from "./TutorialProgress";
+// Progress indicator
+export {
+  HeaderProgress,
+  SidebarProgress,
+  TutorialProgress,
+} from "./TutorialProgress";
+export type { TutorialStepProps } from "./TutorialStep";
+// Step container
+export { TutorialStep } from "./TutorialStep";
+export type { TutorialTipProps } from "./TutorialTip";
+// Tips and callouts
+export {
+  Important,
+  Note,
+  ProTip,
+  TutorialTip,
+  Warning,
+} from "./TutorialTip";

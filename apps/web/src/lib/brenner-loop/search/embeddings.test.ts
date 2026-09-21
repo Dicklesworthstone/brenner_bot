@@ -6,11 +6,11 @@
 
 import { describe, expect, it } from "vitest";
 import {
-  embedText,
   cosineSimilarity,
-  findSimilar,
   EMBEDDING_DIMENSION,
   type EmbeddingEntry,
+  embedText,
+  findSimilar,
 } from "./embeddings";
 
 describe("embedText", () => {
@@ -21,9 +21,7 @@ describe("embedText", () => {
 
   it("produces normalized vectors (unit length)", () => {
     const embedding = embedText("Test normalization");
-    const magnitude = Math.sqrt(
-      embedding.reduce((sum, val) => sum + val * val, 0)
-    );
+    const magnitude = Math.sqrt(embedding.reduce((sum, val) => sum + val * val, 0));
     expect(magnitude).toBeCloseTo(1.0, 5);
   });
 

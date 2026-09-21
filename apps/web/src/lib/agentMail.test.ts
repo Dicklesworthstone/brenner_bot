@@ -9,8 +9,8 @@
  * Run with: cd apps/web && bun run test -- src/lib/agentMail.test.ts
  */
 
-import { describe, expect, it, beforeEach, afterEach, vi } from "vitest";
-import { AgentMailClient, AgentMailInbox, AgentMailMessage } from "./agentMail";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { AgentMailClient, type AgentMailInbox, type AgentMailMessage } from "./agentMail";
 
 // ============================================================================
 // Test Helpers
@@ -181,7 +181,7 @@ describe("AgentMailClient constructor", () => {
             bearerToken: "explicit-token",
           });
           expect(client).toBeInstanceOf(AgentMailClient);
-        }
+        },
       );
     });
   });
@@ -622,7 +622,11 @@ describe("resource JSON parsing", () => {
     stubAgentMailJsonRpcFetch();
     const client = new AgentMailClient({ baseUrl: "http://example.com" });
 
-    const thread = await client.readThread({ projectKey: "/project", threadId: "thread-abc", includeBodies: true });
+    const thread = await client.readThread({
+      projectKey: "/project",
+      threadId: "thread-abc",
+      includeBodies: true,
+    });
     expect(thread.project).toBe("/project");
     expect(thread.thread_id).toBe("thread-abc");
     expect(Array.isArray(thread.messages)).toBe(true);
@@ -637,7 +641,9 @@ describe("resource JSON parsing", () => {
     });
 
     const client = new AgentMailClient({ baseUrl: "http://example.com" });
-    await expect(client.readInbox({ projectKey: "/project", agentName: "agent" })).rejects.toThrow(/missing contents/);
+    await expect(client.readInbox({ projectKey: "/project", agentName: "agent" })).rejects.toThrow(
+      /missing contents/,
+    );
   });
 
   it("throws when resources/read returns non-JSON text", async () => {
@@ -653,7 +659,9 @@ describe("resource JSON parsing", () => {
     });
 
     const client = new AgentMailClient({ baseUrl: "http://example.com" });
-    await expect(client.readInbox({ projectKey: "/project", agentName: "agent" })).rejects.toThrow(/non-JSON text/);
+    await expect(client.readInbox({ projectKey: "/project", agentName: "agent" })).rejects.toThrow(
+      /non-JSON text/,
+    );
   });
 });
 

@@ -8,15 +8,13 @@
  * @see brenner_bot-s797 (Tutorial Path: Quick Start)
  */
 
-import * as React from "react";
+import { motion } from "framer-motion";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { motion } from "framer-motion";
-import { TutorialStep } from "@/components/tutorial";
-import { ProTip } from "@/components/tutorial";
-import { TutorialCheckpoint } from "@/components/tutorial";
+import * as React from "react";
+import { ProTip, TutorialCheckpoint, TutorialStep } from "@/components/tutorial";
 import { useTutorial } from "@/lib/tutorial-context";
-import type { TutorialStep as TutorialStepType, CheckpointData } from "@/lib/tutorial-types";
+import type { CheckpointData, TutorialStep as TutorialStepType } from "@/lib/tutorial-types";
 
 // ============================================================================
 // Step Data
@@ -32,7 +30,8 @@ const checkpoint: CheckpointData = {
     "Ran your first AI-powered research session",
     "Produced a structured research artifact",
   ],
-  nextPreview: "You're now ready to iterate on your research or try the Agent-Assisted path for more advanced workflows.",
+  nextPreview:
+    "You're now ready to iterate on your research or try the Agent-Assisted path for more advanced workflows.",
 };
 
 const stepData: TutorialStepType = {
@@ -73,8 +72,10 @@ const artifactSections = [
     name: "Hypothesis Slate",
     operator: "Level Split (Σ)",
     color: "primary",
-    description: "2-5 competing explanations for your phenomenon, including at least one genuine \"third alternative\" that challenges both leading theories.",
-    whyItMatters: "Brenner never tested a single hypothesis in isolation. Multiple competing explanations force you to think about what would differentiate them.",
+    description:
+      '2-5 competing explanations for your phenomenon, including at least one genuine "third alternative" that challenges both leading theories.',
+    whyItMatters:
+      "Brenner never tested a single hypothesis in isolation. Multiple competing explanations force you to think about what would differentiate them.",
     lookFor: [
       "At least 3 distinct hypotheses",
       "A genuine third alternative (not a strawman)",
@@ -86,8 +87,10 @@ const artifactSections = [
     name: "Discriminative Tests",
     operator: "Exclusion Test (⊘)",
     color: "accent",
-    description: "Tests designed to eliminate hypotheses, not just confirm your favorite. Each test should give a different result depending on which hypothesis is true.",
-    whyItMatters: "\"The best experiment is one that can give a clean answer\" — Brenner. Tests that only confirm don't advance knowledge as efficiently as tests that discriminate.",
+    description:
+      "Tests designed to eliminate hypotheses, not just confirm your favorite. Each test should give a different result depending on which hypothesis is true.",
+    whyItMatters:
+      '"The best experiment is one that can give a clean answer" — Brenner. Tests that only confirm don\'t advance knowledge as efficiently as tests that discriminate.',
     lookFor: [
       "Tests that produce different outcomes for different hypotheses",
       "Potency checks (what would a negative result mean?)",
@@ -99,8 +102,10 @@ const artifactSections = [
     name: "Assumption Ledger",
     operator: "Scale Check (⊙)",
     color: "[oklch(0.7_0.15_30)]",
-    description: "Explicit load-bearing beliefs that your hypotheses rest on. These are the hidden premises that could invalidate your conclusions if wrong.",
-    whyItMatters: "Every hypothesis depends on assumptions about scale, boundary conditions, and mechanisms. Making them explicit reveals vulnerability points.",
+    description:
+      "Explicit load-bearing beliefs that your hypotheses rest on. These are the hidden premises that could invalidate your conclusions if wrong.",
+    whyItMatters:
+      "Every hypothesis depends on assumptions about scale, boundary conditions, and mechanisms. Making them explicit reveals vulnerability points.",
     lookFor: [
       "Scale assumptions (at what level of analysis?)",
       "Boundary conditions (when does this apply?)",
@@ -112,13 +117,15 @@ const artifactSections = [
     name: "Adversarial Critique",
     operator: "Object Transpose (⟳)",
     color: "[oklch(0.65_0.2_250)]",
-    description: "Attacks on your own framing. A devil's advocate perspective that challenges whether you've even asked the right question.",
-    whyItMatters: "The hardest part of research is realizing your entire frame might be wrong. This section forces confrontation with that possibility.",
+    description:
+      "Attacks on your own framing. A devil's advocate perspective that challenges whether you've even asked the right question.",
+    whyItMatters:
+      "The hardest part of research is realizing your entire frame might be wrong. This section forces confrontation with that possibility.",
     lookFor: [
       "Attacks on the question itself, not just the answers",
       "Alternative framings suggested",
       "Hidden biases exposed",
-      "\"Real third alternative\" check",
+      '"Real third alternative" check',
     ],
   },
 ];
@@ -147,16 +154,11 @@ export default function QuickStartStep7() {
   };
 
   return (
-    <TutorialStep
-      step={stepData}
-      totalSteps={7}
-      onBack={handleBack}
-      onNext={handleComplete}
-    >
+    <TutorialStep step={stepData} totalSteps={7} onBack={handleBack} onNext={handleComplete}>
       <section className="space-y-6">
         <p className="text-muted-foreground leading-relaxed">
-          Let&apos;s walk through each section of your research artifact and understand
-          why it matters for rigorous scientific thinking.
+          Let&apos;s walk through each section of your research artifact and understand why it
+          matters for rigorous scientific thinking.
         </p>
 
         {/* Artifact Sections */}
@@ -172,7 +174,9 @@ export default function QuickStartStep7() {
               <div className="flex items-start justify-between gap-4">
                 <div>
                   <h3 className="text-lg font-semibold flex items-center gap-2">
-                    <span className={`flex items-center justify-center size-7 rounded-lg bg-${section.color}/10 text-${section.color} text-sm font-bold`}>
+                    <span
+                      className={`flex items-center justify-center size-7 rounded-lg bg-${section.color}/10 text-${section.color} text-sm font-bold`}
+                    >
                       {index + 1}
                     </span>
                     {section.name}
@@ -183,9 +187,7 @@ export default function QuickStartStep7() {
                 </div>
               </div>
 
-              <p className="text-sm text-muted-foreground leading-relaxed">
-                {section.description}
-              </p>
+              <p className="text-sm text-muted-foreground leading-relaxed">{section.description}</p>
 
               <div className="p-3 rounded-lg bg-muted/30 border border-border/50">
                 <p className="text-xs font-medium text-foreground mb-1">Why it matters:</p>
@@ -216,7 +218,10 @@ export default function QuickStartStep7() {
           <div className="grid grid-cols-2 gap-2 text-xs">
             <div className="p-2 rounded-lg bg-card border border-border">
               <span className="font-bold text-primary">Σ Level Split</span>
-              <span className="text-muted-foreground"> — Multiple hypotheses at different levels</span>
+              <span className="text-muted-foreground">
+                {" "}
+                — Multiple hypotheses at different levels
+              </span>
             </div>
             <div className="p-2 rounded-lg bg-card border border-border">
               <span className="font-bold text-accent">⊘ Exclusion Test</span>
@@ -240,29 +245,29 @@ export default function QuickStartStep7() {
             <div className="p-4 rounded-xl border border-border bg-card">
               <h4 className="font-medium mb-2">Refine Your Artifact</h4>
               <p className="text-sm text-muted-foreground">
-                Use the Adversarial Critique section to identify weaknesses, then
-                iterate on your hypotheses and tests.
+                Use the Adversarial Critique section to identify weaknesses, then iterate on your
+                hypotheses and tests.
               </p>
             </div>
             <div className="p-4 rounded-xl border border-border bg-card">
               <h4 className="font-medium mb-2">Run Discriminative Tests</h4>
               <p className="text-sm text-muted-foreground">
-                Pick the highest-priority test and actually run it (or gather
-                existing evidence that addresses it).
+                Pick the highest-priority test and actually run it (or gather existing evidence that
+                addresses it).
               </p>
             </div>
             <div className="p-4 rounded-xl border border-border bg-card">
               <h4 className="font-medium mb-2">Try Agent-Assisted</h4>
               <p className="text-sm text-muted-foreground">
-                For more sophisticated research, try the Agent-Assisted path
-                with Claude Code or GPT Codex.
+                For more sophisticated research, try the Agent-Assisted path with Claude Code or GPT
+                Codex.
               </p>
             </div>
             <div className="p-4 rounded-xl border border-border bg-card">
               <h4 className="font-medium mb-2">Explore the Corpus</h4>
               <p className="text-sm text-muted-foreground">
-                Dive deeper into Brenner&apos;s wisdom with the full corpus browser
-                at brennerbot.org/corpus.
+                Dive deeper into Brenner&apos;s wisdom with the full corpus browser at
+                brennerbot.org/corpus.
               </p>
             </div>
           </div>
@@ -273,15 +278,18 @@ export default function QuickStartStep7() {
               Compare your output to a canonical example (biology) and notice how the hypotheses,
               predictions, tests, and critiques are phrased to be genuinely discriminative.
             </p>
-            <Link href="/tutorial/examples/biology-cell-fate" className="text-sm text-primary hover:underline">
+            <Link
+              href="/tutorial/examples/biology-cell-fate"
+              className="text-sm text-primary hover:underline"
+            >
               Open the biology example →
             </Link>
           </div>
         </div>
 
         <ProTip>
-          The best artifacts get better with iteration. Don&apos;t treat your first
-          artifact as final — use it as a starting point for deeper thinking.
+          The best artifacts get better with iteration. Don&apos;t treat your first artifact as
+          final — use it as a starting point for deeper thinking.
         </ProTip>
 
         {/* Checkpoint */}
@@ -291,8 +299,8 @@ export default function QuickStartStep7() {
         <div className="p-6 rounded-2xl border border-primary/30 bg-gradient-to-br from-primary/5 via-primary/10 to-accent/5 text-center space-y-4">
           <h3 className="text-xl font-semibold">Congratulations!</h3>
           <p className="text-muted-foreground">
-            You&apos;ve completed the Quick Start tutorial and produced your first
-            Brenner-style research artifact. You&apos;re thinking more rigorously already.
+            You&apos;ve completed the Quick Start tutorial and produced your first Brenner-style
+            research artifact. You&apos;re thinking more rigorously already.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
             <Link

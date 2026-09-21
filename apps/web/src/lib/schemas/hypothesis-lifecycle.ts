@@ -165,8 +165,7 @@ export const TransitionErrorCode = {
   TERMINAL_STATE: "TERMINAL_STATE",
 } as const;
 
-export type TransitionErrorCode =
-  (typeof TransitionErrorCode)[keyof typeof TransitionErrorCode];
+export type TransitionErrorCode = (typeof TransitionErrorCode)[keyof typeof TransitionErrorCode];
 
 export interface TransitionError {
   code: TransitionErrorCode;
@@ -187,10 +186,7 @@ export type TransitionResult =
 /**
  * Check if a transition is valid according to the state machine.
  */
-export function isValidTransition(
-  fromState: HypothesisState,
-  trigger: TransitionTrigger
-): boolean {
+export function isValidTransition(fromState: HypothesisState, trigger: TransitionTrigger): boolean {
   const transitions = VALID_TRANSITIONS[fromState];
   return trigger in transitions;
 }
@@ -200,7 +196,7 @@ export function isValidTransition(
  */
 export function getTargetState(
   fromState: HypothesisState,
-  trigger: TransitionTrigger
+  trigger: TransitionTrigger,
 ): HypothesisState | null {
   const transitions = VALID_TRANSITIONS[fromState];
   return (transitions[trigger] as HypothesisState) ?? null;
@@ -233,7 +229,7 @@ export function validateTransitionRequirements(
   options: {
     testResultId?: string;
     childHypothesisId?: string;
-  }
+  },
 ): { valid: boolean; error?: string } {
   switch (trigger) {
     case "refute":
@@ -250,7 +246,8 @@ export function validateTransitionRequirements(
       if (!options.childHypothesisId) {
         return {
           valid: false,
-          error: "supersede transition requires a childHypothesisId linking to the replacement hypothesis",
+          error:
+            "supersede transition requires a childHypothesisId linking to the replacement hypothesis",
         };
       }
       break;
@@ -298,7 +295,7 @@ export function transitionHypothesis(
     childHypothesisId?: string;
     reason?: string;
     sessionId?: string;
-  } = {}
+  } = {},
 ): TransitionResult {
   const fromState = hypothesis.state;
 
@@ -389,7 +386,7 @@ export function transitionHypothesis(
  */
 export function activateHypothesis(
   hypothesis: Hypothesis,
-  options: { triggeredBy?: string; reason?: string; sessionId?: string } = {}
+  options: { triggeredBy?: string; reason?: string; sessionId?: string } = {},
 ): TransitionResult {
   return transitionHypothesis(hypothesis, "activate", options);
 }
@@ -401,7 +398,7 @@ export function activateHypothesis(
 export function refuteHypothesis(
   hypothesis: Hypothesis,
   testResultId: string,
-  options: { triggeredBy?: string; reason?: string; sessionId?: string } = {}
+  options: { triggeredBy?: string; reason?: string; sessionId?: string } = {},
 ): TransitionResult {
   return transitionHypothesis(hypothesis, "refute", {
     ...options,
@@ -416,7 +413,7 @@ export function refuteHypothesis(
 export function confirmHypothesis(
   hypothesis: Hypothesis,
   testResultId: string,
-  options: { triggeredBy?: string; reason?: string; sessionId?: string } = {}
+  options: { triggeredBy?: string; reason?: string; sessionId?: string } = {},
 ): TransitionResult {
   return transitionHypothesis(hypothesis, "confirm", {
     ...options,
@@ -430,7 +427,7 @@ export function confirmHypothesis(
 export function supersedeHypothesis(
   hypothesis: Hypothesis,
   childHypothesisId: string,
-  options: { triggeredBy?: string; reason?: string; sessionId?: string } = {}
+  options: { triggeredBy?: string; reason?: string; sessionId?: string } = {},
 ): TransitionResult {
   return transitionHypothesis(hypothesis, "supersede", {
     ...options,
@@ -443,7 +440,7 @@ export function supersedeHypothesis(
  */
 export function deferHypothesis(
   hypothesis: Hypothesis,
-  options: { triggeredBy?: string; reason?: string; sessionId?: string } = {}
+  options: { triggeredBy?: string; reason?: string; sessionId?: string } = {},
 ): TransitionResult {
   return transitionHypothesis(hypothesis, "defer", options);
 }
@@ -453,7 +450,7 @@ export function deferHypothesis(
  */
 export function reactivateHypothesis(
   hypothesis: Hypothesis,
-  options: { triggeredBy?: string; reason?: string; sessionId?: string } = {}
+  options: { triggeredBy?: string; reason?: string; sessionId?: string } = {},
 ): TransitionResult {
   return transitionHypothesis(hypothesis, "reactivate", options);
 }
@@ -529,9 +526,7 @@ export class TransitionHistoryStore {
     for (const transitions of this.history.values()) {
       all.push(...transitions);
     }
-    return all.sort(
-      (a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
-    );
+    return all.sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
   }
 
   /**
@@ -570,6 +565,6 @@ export class TransitionHistoryStore {
 // ============================================================================
 
 export {
-  HypothesisStateSchema,
   type HypothesisState,
+  HypothesisStateSchema,
 } from "./hypothesis";

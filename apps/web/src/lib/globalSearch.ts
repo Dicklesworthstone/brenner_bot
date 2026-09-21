@@ -19,26 +19,26 @@
  * Client components should use the server action in globalSearchAction.ts instead.
  */
 
-import { CORPUS_DOCS, type CorpusDoc, readCorpusDoc } from "./corpus";
-import { parseTranscript } from "./transcriptParser";
-import { parseDistillation } from "./distillation-parser";
-import { parseQuoteBank as parseQuoteBankDoc } from "./quotebank-parser";
 import {
   makeDistillationSectionDomId,
   makeTranscriptSectionDomId,
   quoteBankDomIdFromSectionId,
   slugifyHeadingForAnchor,
 } from "./anchors";
+import { CORPUS_DOCS, type CorpusDoc, readCorpusDoc } from "./corpus";
+import { parseDistillation } from "./distillation-parser";
 import type {
   DocCategory,
-  SearchCategory,
   GlobalSearchHit,
   GlobalSearchResult,
+  SearchCategory,
 } from "./globalSearchTypes";
+import { parseQuoteBank as parseQuoteBankDoc } from "./quotebank-parser";
+import { parseTranscript } from "./transcriptParser";
 
-// Re-export types for server-side usage
-export type { DocCategory, SearchCategory, GlobalSearchHit, GlobalSearchResult };
 export { getCategoryInfo } from "./globalSearchTypes";
+// Re-export types for server-side usage
+export type { DocCategory, GlobalSearchHit, GlobalSearchResult, SearchCategory };
 
 interface IndexedChunk {
   id: string;
@@ -335,7 +335,7 @@ export async function globalSearch(
     category?: SearchCategory;
     model?: "gpt" | "opus" | "gemini";
     docIds?: string[];
-  } = {}
+  } = {},
 ): Promise<GlobalSearchResult> {
   const { limit = 20, category = "all", model, docIds } = options;
   const startTime = performance.now();
@@ -392,7 +392,11 @@ export async function globalSearch(
   }
 
   // Search and score
-  const scoredHits: Array<{ chunk: IndexedChunk; score: number; matchType: "title" | "body" | "both" }> = [];
+  const scoredHits: Array<{
+    chunk: IndexedChunk;
+    score: number;
+    matchType: "title" | "body" | "both";
+  }> = [];
   const categoryCounts: Record<DocCategory, number> = {
     transcript: 0,
     "quote-bank": 0,
@@ -457,7 +461,7 @@ function computeScore(
   query: string,
   terms: string[],
   inTitle: boolean,
-  inBody: boolean
+  inBody: boolean,
 ): number {
   let score = 0.1; // Base score
 
@@ -507,7 +511,7 @@ function computeScore(
   // Term coverage bonus (for multi-word queries)
   if (terms.length > 1) {
     const termMatches = terms.filter(
-      (t) => chunk.titleLower.includes(t) || chunk.contentLower.includes(t)
+      (t) => chunk.titleLower.includes(t) || chunk.contentLower.includes(t),
     ).length;
     score += (termMatches / terms.length) * 0.1;
   }
@@ -575,7 +579,7 @@ function extractHighlights(text: string, terms: string[]): string[] {
     while (true) {
       const index = lowerText.indexOf(term, pos);
       if (index === -1) break;
-      
+
       // Get original case from text
       highlights.push(text.slice(index, index + term.length));
       pos = index + term.length;

@@ -9,67 +9,127 @@
  * @see brenner_bot-pts6 (routes bead)
  */
 
-import * as React from "react";
+import { motion } from "framer-motion";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { motion } from "framer-motion";
+import * as React from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { cn } from "@/lib/utils";
-import { DemoFeaturePreview } from "@/components/sessions/DemoFeaturePreview";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { AgentProgress } from "@/components/brenner-loop/AgentProgress";
-import {
-  TooltipProvider,
-} from "@/components/ui/tooltip";
+import { DemoFeaturePreview } from "@/components/sessions/DemoFeaturePreview";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import { recordSessionResumeEntry } from "@/lib/brenner-loop";
 import { isDemoThreadId, normalizeThreadId } from "@/lib/demo-mode";
+import { cn } from "@/lib/utils";
 
 // ============================================================================
 // Icons
 // ============================================================================
 
 const ChevronLeftIcon = ({ className }: { className?: string }) => (
-  <svg className={cn("size-4", className)} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+  <svg
+    className={cn("size-4", className)}
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+    strokeWidth={2}
+  >
     <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
   </svg>
 );
 
 const UsersIcon = ({ className }: { className?: string }) => (
-  <svg className={cn("size-5", className)} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" />
+  <svg
+    className={cn("size-5", className)}
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+    strokeWidth={1.5}
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z"
+    />
   </svg>
 );
 
 const CheckIcon = ({ className }: { className?: string }) => (
-  <svg className={cn("size-4", className)} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+  <svg
+    className={cn("size-4", className)}
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+    strokeWidth={2}
+  >
     <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
   </svg>
 );
 
 const ClockIcon = ({ className }: { className?: string }) => (
-  <svg className={cn("size-4", className)} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+  <svg
+    className={cn("size-4", className)}
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+    strokeWidth={2}
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"
+    />
   </svg>
 );
 
 const ExclamationTriangleIcon = ({ className }: { className?: string }) => (
-  <svg className={cn("size-4", className)} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+  <svg
+    className={cn("size-4", className)}
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+    strokeWidth={2}
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"
+    />
   </svg>
 );
 
 const SparklesIcon = ({ className }: { className?: string }) => (
-  <svg className={cn("size-4", className)} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" />
+  <svg
+    className={cn("size-4", className)}
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+    strokeWidth={1.5}
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z"
+    />
   </svg>
 );
 
 const PlayIcon = ({ className }: { className?: string }) => (
-  <svg className={cn("size-4", className)} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.347a1.125 1.125 0 010 1.972l-11.54 6.347a1.125 1.125 0 01-1.667-.986V5.653z" />
+  <svg
+    className={cn("size-4", className)}
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+    strokeWidth={2}
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.347a1.125 1.125 0 010 1.972l-11.54 6.347a1.125 1.125 0 01-1.667-.986V5.653z"
+    />
   </svg>
 );
 
@@ -94,7 +154,8 @@ const AGENTS: AgentConfig[] = [
     id: "devils_advocate",
     name: "Devil's Advocate",
     role: "Challenger",
-    description: "Actively challenges hypotheses, finds weaknesses, and proposes alternative explanations.",
+    description:
+      "Actively challenges hypotheses, finds weaknesses, and proposes alternative explanations.",
     color: "text-red-500",
     bgColor: "bg-red-500/10",
     borderColor: "border-red-500/30",
@@ -105,7 +166,8 @@ const AGENTS: AgentConfig[] = [
     id: "experiment_designer",
     name: "Experiment Designer",
     role: "Methodologist",
-    description: "Designs discriminative tests between competing hypotheses with practical constraints.",
+    description:
+      "Designs discriminative tests between competing hypotheses with practical constraints.",
     color: "text-blue-500",
     bgColor: "bg-blue-500/10",
     borderColor: "border-blue-500/30",
@@ -223,7 +285,7 @@ function AgentCard({
       className={cn(
         "rounded-xl border-2 overflow-hidden transition-all",
         status === "thinking" && "animate-pulse",
-        agent.borderColor
+        agent.borderColor,
       )}
     >
       {/* Header */}
@@ -231,10 +293,13 @@ function AgentCard({
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-3">
             {/* Avatar */}
-            <div className={cn(
-              "flex items-center justify-center size-12 rounded-xl text-lg font-bold shadow-lg",
-              agent.bgColor, agent.color
-            )}>
+            <div
+              className={cn(
+                "flex items-center justify-center size-12 rounded-xl text-lg font-bold shadow-lg",
+                agent.bgColor,
+                agent.color,
+              )}
+            >
               {agent.avatar}
             </div>
             <div>
@@ -244,19 +309,20 @@ function AgentCard({
                   {agent.role}
                 </Badge>
                 {agent.model && (
-                  <span className="text-xs text-muted-foreground font-mono">
-                    {agent.model}
-                  </span>
+                  <span className="text-xs text-muted-foreground font-mono">{agent.model}</span>
                 )}
               </div>
             </div>
           </div>
 
           {/* Status Badge */}
-          <div className={cn(
-            "flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium",
-            statusInfo.bg, statusInfo.color
-          )}>
+          <div
+            className={cn(
+              "flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium",
+              statusInfo.bg,
+              statusInfo.color,
+            )}
+          >
             {status === "thinking" && (
               <div className="size-2 rounded-full bg-current animate-pulse" />
             )}
@@ -271,9 +337,7 @@ function AgentCard({
       {/* Response Content */}
       {response ? (
         <div className="p-4 bg-background prose prose-sm max-w-none dark:prose-invert">
-          <ReactMarkdown remarkPlugins={[remarkGfm]}>
-            {response.content}
-          </ReactMarkdown>
+          <ReactMarkdown remarkPlugins={[remarkGfm]}>{response.content}</ReactMarkdown>
 
           {/* Suggestions */}
           {response.suggestions && response.suggestions.length > 0 && (
@@ -326,12 +390,7 @@ function AgentCard({
                   className="w-full"
                 />
                 {onCancel && (
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={onCancel}
-                    className="mt-3"
-                  >
+                  <Button size="sm" variant="outline" onClick={onCancel} className="mt-3">
                     Cancel
                   </Button>
                 )}
@@ -380,9 +439,7 @@ function SynthesisPanel({ responses, disagreements }: SynthesisPanelProps) {
           <SparklesIcon className="size-5 text-primary" />
           Synthesis
         </CardTitle>
-        <CardDescription>
-          Consolidated insights from agent tribunal
-        </CardDescription>
+        <CardDescription>Consolidated insights from agent tribunal</CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
         {/* Status */}
@@ -414,10 +471,7 @@ function SynthesisPanel({ responses, disagreements }: SynthesisPanelProps) {
                 const agent2 = AGENTS.find((a) => a.id === d.agents[1]);
 
                 return (
-                  <div
-                    key={d.id}
-                    className="p-3 rounded-lg border border-warning/30 bg-warning/5"
-                  >
+                  <div key={d.id} className="p-3 rounded-lg border border-warning/30 bg-warning/5">
                     <div className="flex items-center gap-2 mb-2">
                       <Badge variant="outline" className={agent1?.color}>
                         {agent1?.avatar}
@@ -507,32 +561,37 @@ function AgentsPageContent({ threadId }: { threadId: string }) {
     brenner_channeler: "idle",
   }));
 
-  const [responses, setResponses] = React.useState<AgentResponse[]>(() => (
-    isLiveThread ? [] : [
-      {
-        agentId: "devils_advocate",
-        content: "I challenge the assumption that dopamine-driven feedback loops are the primary mechanism. Alternative explanations include: (1) selection effects where anxious individuals gravitate toward social media, (2) sleep disruption as the mediating factor, and (3) social comparison rather than reward mechanisms driving anxiety.",
-        timestamp: MOCK_RESPONSE_TIMESTAMP,
-        confidence: 72,
-        disagreements: ["The proposed mechanism may be too specific"],
-        suggestions: [
-          "Include a control group with similar screen time but no social features",
-          "Measure dopamine activity directly via neuroimaging",
+  const [responses, setResponses] = React.useState<AgentResponse[]>(() =>
+    isLiveThread
+      ? []
+      : [
+          {
+            agentId: "devils_advocate",
+            content:
+              "I challenge the assumption that dopamine-driven feedback loops are the primary mechanism. Alternative explanations include: (1) selection effects where anxious individuals gravitate toward social media, (2) sleep disruption as the mediating factor, and (3) social comparison rather than reward mechanisms driving anxiety.",
+            timestamp: MOCK_RESPONSE_TIMESTAMP,
+            confidence: 72,
+            disagreements: ["The proposed mechanism may be too specific"],
+            suggestions: [
+              "Include a control group with similar screen time but no social features",
+              "Measure dopamine activity directly via neuroimaging",
+            ],
+          },
         ],
-      },
-    ]
-  ));
+  );
 
-  const [disagreements] = React.useState<Disagreement[]>(() => (
-    isLiveThread ? [] : [
-      {
-        id: "d1",
-        agents: ["devils_advocate", "experiment_designer"],
-        topic: "Whether neuroimaging is feasible within resource constraints",
-        resolutionStatus: "open",
-      },
-    ]
-  ));
+  const [disagreements] = React.useState<Disagreement[]>(() =>
+    isLiveThread
+      ? []
+      : [
+          {
+            id: "d1",
+            agents: ["devils_advocate", "experiment_designer"],
+            topic: "Whether neuroimaging is feasible within resource constraints",
+            resolutionStatus: "open",
+          },
+        ],
+  );
 
   const [agentProgress, setAgentProgress] = React.useState<Record<string, number>>({
     devils_advocate: 0,
@@ -672,12 +731,15 @@ function AgentsPageContent({ threadId }: { threadId: string }) {
     setAgentProgress((prev) => ({ ...prev, [agentId]: 0 }));
 
     const progressTimers = AGENT_PROGRESS_STEPS.map((_, index) =>
-      setTimeout(() => {
-        setAgentProgress((prev) => ({
-          ...prev,
-          [agentId]: Math.min(index + 1, AGENT_PROGRESS_STEPS.length - 1),
-        }));
-      }, (index + 1) * 700)
+      setTimeout(
+        () => {
+          setAgentProgress((prev) => ({
+            ...prev,
+            [agentId]: Math.min(index + 1, AGENT_PROGRESS_STEPS.length - 1),
+          }));
+        },
+        (index + 1) * 700,
+      ),
     );
 
     progressTimersRef.current[agentId] = progressTimers;
@@ -689,7 +751,8 @@ function AgentsPageContent({ threadId }: { threadId: string }) {
 
       const mockResponses: Record<string, Omit<AgentResponse, "agentId">> = {
         experiment_designer: {
-          content: "I propose a 2x2 factorial design: (Social Media + Notifications vs Social Media + No Notifications) x (Active Use vs Passive Scrolling). This separates the reward mechanism from the content exposure. Primary outcome: validated anxiety scale (GAD-7). Power analysis suggests n=120 per cell.",
+          content:
+            "I propose a 2x2 factorial design: (Social Media + Notifications vs Social Media + No Notifications) x (Active Use vs Passive Scrolling). This separates the reward mechanism from the content exposure. Primary outcome: validated anxiety scale (GAD-7). Power analysis suggests n=120 per cell.",
           timestamp: new Date(),
           suggestions: [
             "Use smartphone logging apps for objective usage data",
@@ -698,7 +761,8 @@ function AgentsPageContent({ threadId }: { threadId: string }) {
           ],
         },
         brenner_channeler: {
-          content: "\"Before you start, do your sums.\" The scale check reveals that the proposed dopamine mechanism operates on millisecond timescales, while anxiety is measured over weeks. We need to specify the bridging mechanism. Consider: what is the minimum exposure duration that could produce detectable anxiety changes?",
+          content:
+            '"Before you start, do your sums." The scale check reveals that the proposed dopamine mechanism operates on millisecond timescales, while anxiety is measured over weeks. We need to specify the bridging mechanism. Consider: what is the minimum exposure duration that could produce detectable anxiety changes?',
           timestamp: new Date(),
           suggestions: [
             "Apply the Level Split operator to distinguish acute vs. chronic effects",
@@ -709,10 +773,7 @@ function AgentsPageContent({ threadId }: { threadId: string }) {
       };
 
       if (mockResponses[agentId]) {
-        setResponses((prev) => [
-          ...prev,
-          { agentId, ...mockResponses[agentId] },
-        ]);
+        setResponses((prev) => [...prev, { agentId, ...mockResponses[agentId] }]);
       }
     }, 3000);
 
@@ -744,7 +805,10 @@ function AgentsPageContent({ threadId }: { threadId: string }) {
             Sessions
           </Link>
           <span>/</span>
-          <Link href={`/sessions/${threadId}`} className="hover:text-foreground transition-colors font-mono">
+          <Link
+            href={`/sessions/${threadId}`}
+            className="hover:text-foreground transition-colors font-mono"
+          >
             {threadId.slice(0, 12)}...
           </Link>
           <span>/</span>

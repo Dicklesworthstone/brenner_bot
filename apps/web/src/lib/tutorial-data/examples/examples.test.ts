@@ -23,4 +23,3 @@ describe("tutorial domain examples", () => {
     expect(report.summary.errors).toBe(0);
   });
 });
-

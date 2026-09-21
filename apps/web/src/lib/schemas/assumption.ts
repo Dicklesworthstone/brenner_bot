@@ -87,23 +87,14 @@ export type AssumptionType = z.infer<typeof AssumptionTypeSchema>;
  * - verified: Evidence supports it
  * - falsified: Evidence contradicts it (triggers propagation!)
  */
-export const AssumptionStatusSchema = z.enum([
-  "unchecked",
-  "challenged",
-  "verified",
-  "falsified",
-]);
+export const AssumptionStatusSchema = z.enum(["unchecked", "challenged", "verified", "falsified"]);
 
 export type AssumptionStatus = z.infer<typeof AssumptionStatusSchema>;
 
 /**
  * How load-bearing this assumption is.
  */
-export const AssumptionCriticalitySchema = z.enum([
-  "foundational",
-  "important",
-  "minor",
-]);
+export const AssumptionCriticalitySchema = z.enum(["foundational", "important", "minor"]);
 
 export type AssumptionCriticality = z.infer<typeof AssumptionCriticalitySchema>;
 
@@ -122,15 +113,13 @@ export const AssumptionLoadSchema = z.object({
    * Hypothesis IDs that depend on this assumption (H-{session}-{seq} format).
    */
   affectedHypotheses: z.array(
-    z.string().regex(hypothesisIdPattern, "Invalid hypothesis ID format")
+    z.string().regex(hypothesisIdPattern, "Invalid hypothesis ID format"),
   ),
 
   /**
    * Test IDs that require this assumption (T-{session}-{seq} or T{n} format).
    */
-  affectedTests: z.array(
-    z.string().regex(testIdPattern, "Invalid test ID format")
-  ),
+  affectedTests: z.array(z.string().regex(testIdPattern, "Invalid test ID format")),
 
   /**
    * Human-readable description of what depends on this assumption.
@@ -198,119 +187,118 @@ export type ScaleCalculation = z.infer<typeof ScaleCalculationSchema>;
  * 3. Lifecycle state changes trigger propagation
  * 4. Provenance via anchors for traceability
  */
-export const AssumptionSchema = z
-  .object({
-    // === IDENTITY ===
+export const AssumptionSchema = z.object({
+  // === IDENTITY ===
 
-    /**
-     * Stable ID format: A-{session_id}-{sequence}
-     * @example "A-RS20251230-001"
-     */
-    id: z
-      .string()
-      .regex(assumptionIdPattern, "Invalid assumption ID format (expected A-{session}-{seq} or A{n})"),
+  /**
+   * Stable ID format: A-{session_id}-{sequence}
+   * @example "A-RS20251230-001"
+   */
+  id: z
+    .string()
+    .regex(
+      assumptionIdPattern,
+      "Invalid assumption ID format (expected A-{session}-{seq} or A{n})",
+    ),
 
-    /**
-     * What are we assuming is true?
-     * Should be clear and specific.
-     */
-    statement: z
-      .string()
-      .min(10, "Statement must be at least 10 characters")
-      .max(500, "Statement must be at most 500 characters"),
+  /**
+   * What are we assuming is true?
+   * Should be clear and specific.
+   */
+  statement: z
+    .string()
+    .min(10, "Statement must be at least 10 characters")
+    .max(500, "Statement must be at most 500 characters"),
 
-    // === CLASSIFICATION ===
+  // === CLASSIFICATION ===
 
-    /**
-     * Type of assumption.
-     */
-    type: AssumptionTypeSchema,
+  /**
+   * Type of assumption.
+   */
+  type: AssumptionTypeSchema,
 
-    /**
-     * How load-bearing this assumption is.
-     */
-    criticality: AssumptionCriticalitySchema.default("important"),
+  /**
+   * How load-bearing this assumption is.
+   */
+  criticality: AssumptionCriticalitySchema.default("important"),
 
-    /**
-     * Current lifecycle status.
-     */
-    status: AssumptionStatusSchema,
+  /**
+   * Current lifecycle status.
+   */
+  status: AssumptionStatusSchema,
 
-    /**
-     * Other assumptions that must hold for this assumption to remain valid.
-     */
-    dependsOn: z
-      .array(
-        z.string().regex(
+  /**
+   * Other assumptions that must hold for this assumption to remain valid.
+   */
+  dependsOn: z
+    .array(
+      z
+        .string()
+        .regex(
           assumptionIdPattern,
-          "Invalid assumption ID format (expected A-{session}-{seq} or A{n})"
-        )
-      )
-      .default([]),
+          "Invalid assumption ID format (expected A-{session}-{seq} or A{n})",
+        ),
+    )
+    .default([]),
 
-    // === LOAD TRACKING ===
+  // === LOAD TRACKING ===
 
-    /**
-     * What breaks if this assumption is wrong?
-     * Links to dependent hypotheses and tests.
-     */
-    load: AssumptionLoadSchema,
+  /**
+   * What breaks if this assumption is wrong?
+   * Links to dependent hypotheses and tests.
+   */
+  load: AssumptionLoadSchema,
 
-    // === TEST METHOD ===
+  // === TEST METHOD ===
 
-    /**
-     * How could this assumption be checked?
-     * Describes how to verify or falsify this assumption.
-     */
-    testMethod: z
-      .string()
-      .max(1000, "Test method description is too long")
-      .optional(),
+  /**
+   * How could this assumption be checked?
+   * Describes how to verify or falsify this assumption.
+   */
+  testMethod: z.string().max(1000, "Test method description is too long").optional(),
 
-    // === SCALE CALCULATION (for scale_physics type) ===
+  // === SCALE CALCULATION (for scale_physics type) ===
 
-    /**
-     * For scale_physics type: the actual calculation.
-     * REQUIRED when type is scale_physics.
-     */
-    calculation: ScaleCalculationSchema.optional(),
+  /**
+   * For scale_physics type: the actual calculation.
+   * REQUIRED when type is scale_physics.
+   */
+  calculation: ScaleCalculationSchema.optional(),
 
-    // === PROVENANCE ===
+  // === PROVENANCE ===
 
-    /**
-     * §n transcript anchors for grounding.
-     * Use when this assumption derives from transcript content.
-     */
-    anchors: z
-      .array(
-        z.string().regex(anchorPattern, "Invalid anchor format (expected §n or §n-m)")
-      )
-      .optional(),
+  /**
+   * §n transcript anchors for grounding.
+   * Use when this assumption derives from transcript content.
+   */
+  anchors: z
+    .array(z.string().regex(anchorPattern, "Invalid anchor format (expected §n or §n-m)"))
+    .optional(),
 
-    // === SESSION CONTEXT ===
+  // === SESSION CONTEXT ===
 
-    /**
-     * Session where this assumption was recorded.
-     */
-    sessionId: z.string().min(1, "Session ID is required"),
+  /**
+   * Session where this assumption was recorded.
+   */
+  sessionId: z.string().min(1, "Session ID is required"),
 
-    /**
-     * Agent that recorded this assumption.
-     */
-    recordedBy: z.string().optional(),
+  /**
+   * Agent that recorded this assumption.
+   */
+  recordedBy: z.string().optional(),
 
-    // === TIMESTAMPS ===
+  // === TIMESTAMPS ===
 
-    createdAt: z.string().datetime(),
-    updatedAt: z.string().datetime(),
+  createdAt: z.string().datetime(),
+  updatedAt: z.string().datetime(),
 
-    // === METADATA ===
+  // === METADATA ===
 
-    /**
-     * Free-form notes.
-     */
-    notes: z.string().max(2000, "Notes too long").optional(),
-  });
+  /**
+   * Free-form notes.
+   */
+  notes: z.string().max(2000, "Notes too long").optional(),
+});
 
 export type Assumption = z.infer<typeof AssumptionSchema>;
 
@@ -417,10 +405,7 @@ const MAX_ASSUMPTION_SEQUENCE = 999;
  *
  * @throws Error if the session already has 999 assumptions (sequence overflow)
  */
-export function generateAssumptionId(
-  sessionId: string,
-  existingIds: string[]
-): string {
+export function generateAssumptionId(sessionId: string, existingIds: string[]): string {
   const prefix = `A-${sessionId}-`;
   const sequences = existingIds
     .filter((id) => id.startsWith(prefix))
@@ -433,7 +418,7 @@ export function generateAssumptionId(
 
   if (nextSeq > MAX_ASSUMPTION_SEQUENCE) {
     throw new Error(
-      `Assumption sequence overflow for session "${sessionId}": maximum ${MAX_ASSUMPTION_SEQUENCE} assumptions per session exceeded`
+      `Assumption sequence overflow for session "${sessionId}": maximum ${MAX_ASSUMPTION_SEQUENCE} assumptions per session exceeded`,
     );
   }
 
@@ -465,23 +450,21 @@ export function isValidAnchor(anchor: string): boolean {
 /**
  * Create a new assumption with required fields and sensible defaults.
  */
-export function createAssumption(
-  input: {
-    id: string;
-    statement: string;
-    type: AssumptionType;
-    sessionId: string;
-    load: AssumptionLoad;
-    criticality?: AssumptionCriticality;
-    status?: AssumptionStatus;
-    dependsOn?: string[];
-    testMethod?: string;
-    calculation?: ScaleCalculation;
-    anchors?: string[];
-    recordedBy?: string;
-    notes?: string;
-  }
-): Assumption {
+export function createAssumption(input: {
+  id: string;
+  statement: string;
+  type: AssumptionType;
+  sessionId: string;
+  load: AssumptionLoad;
+  criticality?: AssumptionCriticality;
+  status?: AssumptionStatus;
+  dependsOn?: string[];
+  testMethod?: string;
+  calculation?: ScaleCalculation;
+  anchors?: string[];
+  recordedBy?: string;
+  notes?: string;
+}): Assumption {
   const now = new Date().toISOString();
   return AssumptionSchema.parse({
     id: input.id,
@@ -506,21 +489,19 @@ export function createAssumption(
  * Create a scale_physics assumption (convenience factory).
  * Calculation is required for full rigor.
  */
-export function createScaleAssumption(
-  input: {
-    id: string;
-    statement: string;
-    sessionId: string;
-    load: AssumptionLoad;
-    calculation: ScaleCalculation;
-    criticality?: AssumptionCriticality;
-    dependsOn?: string[];
-    testMethod?: string;
-    anchors?: string[];
-    recordedBy?: string;
-    notes?: string;
-  }
-): Assumption {
+export function createScaleAssumption(input: {
+  id: string;
+  statement: string;
+  sessionId: string;
+  load: AssumptionLoad;
+  calculation: ScaleCalculation;
+  criticality?: AssumptionCriticality;
+  dependsOn?: string[];
+  testMethod?: string;
+  anchors?: string[];
+  recordedBy?: string;
+  notes?: string;
+}): Assumption {
   return createAssumption({
     ...input,
     type: "scale_physics",

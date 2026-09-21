@@ -1,6 +1,6 @@
 export {
-  SpotlightSearch,
   SearchProvider,
   SearchTrigger,
+  SpotlightSearch,
   useSearch,
 } from "./SpotlightSearch";

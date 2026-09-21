@@ -5,10 +5,29 @@
  * Philosophy: Make failures easy to diagnose with step-by-step output.
  */
 
-import type { Page, TestInfo, ConsoleMessage } from "@playwright/test";
+import type { ConsoleMessage, Page, TestInfo } from "@playwright/test";
 
 export type E2ELogLevel = "debug" | "info" | "step" | "warn" | "error";
-export type ConsoleLogLevel = "log" | "debug" | "info" | "warning" | "error" | "trace" | "dir" | "dirxml" | "table" | "count" | "countReset" | "timeEnd" | "assert" | "profile" | "profileEnd" | "clear" | "startGroup" | "startGroupCollapsed" | "endGroup";
+export type ConsoleLogLevel =
+  | "log"
+  | "debug"
+  | "info"
+  | "warning"
+  | "error"
+  | "trace"
+  | "dir"
+  | "dirxml"
+  | "table"
+  | "count"
+  | "countReset"
+  | "timeEnd"
+  | "assert"
+  | "profile"
+  | "profileEnd"
+  | "clear"
+  | "startGroup"
+  | "startGroupCollapsed"
+  | "endGroup";
 
 export interface E2ELogEntry {
   timestamp: string;
@@ -98,7 +117,7 @@ export function log(
   testTitle: string,
   level: E2ELogLevel,
   message: string,
-  options?: { url?: string; duration?: number; data?: unknown }
+  options?: { url?: string; duration?: number; data?: unknown },
 ): void {
   const context = getTestContext(testTitle);
   const entry: E2ELogEntry = {
@@ -255,7 +274,7 @@ export function formatLogsAsJson(testTitle: string): string {
       pageErrors: context.pageErrors,
     },
     null,
-    2
+    2,
   );
 }
 
@@ -276,7 +295,7 @@ export function formatLogsAsText(testTitle: string): string {
   });
 
   const consoleIssues = context.consoleLogs.filter(
-    (l) => l.level === "error" || l.level === "warning"
+    (l) => l.level === "error" || l.level === "warning",
   );
   const pageErrors = context.pageErrors;
 
@@ -333,7 +352,7 @@ export async function withStep<T>(
   logger: ReturnType<typeof createE2ELogger>,
   page: Page,
   description: string,
-  action: () => Promise<T>
+  action: () => Promise<T>,
 ): Promise<T> {
   const startTime = Date.now();
   logger.step(`Starting: ${description}`, { url: page.url() });
@@ -347,9 +366,10 @@ export async function withStep<T>(
     return result;
   } catch (error) {
     logger.error(`Failed: ${description}`, {
-      error: error instanceof Error
-        ? { name: error.name, message: error.message, stack: error.stack }
-        : error,
+      error:
+        error instanceof Error
+          ? { name: error.name, message: error.message, stack: error.stack }
+          : error,
     });
     throw error;
   }
@@ -420,10 +440,7 @@ export function formatConsoleLogsAsText(testTitle: string): string {
 /**
  * Attach logs to Playwright test info for reporting.
  */
-export async function attachLogsToTest(
-  testInfo: TestInfo,
-  testTitle: string
-): Promise<void> {
+export async function attachLogsToTest(testInfo: TestInfo, testTitle: string): Promise<void> {
   const context = getTestContext(testTitle);
   const jsonLogs = formatLogsAsJson(testTitle);
   const textLogs = formatLogsAsText(testTitle);
@@ -441,10 +458,14 @@ export async function attachLogsToTest(
   // Attach console logs separately if there are any errors or warnings
   if (context.consoleLogs.length > 0 || context.pageErrors.length > 0) {
     await testInfo.attach("console-logs.json", {
-      body: JSON.stringify({
-        consoleLogs: context.consoleLogs,
-        pageErrors: context.pageErrors,
-      }, null, 2),
+      body: JSON.stringify(
+        {
+          consoleLogs: context.consoleLogs,
+          pageErrors: context.pageErrors,
+        },
+        null,
+        2,
+      ),
       contentType: "application/json",
     });
 

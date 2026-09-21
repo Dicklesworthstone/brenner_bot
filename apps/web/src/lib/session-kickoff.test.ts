@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
 
 import {
-  DEFAULT_ROLE,
-  getAgentRole,
   composeKickoffMessages,
   composeUnifiedKickoff,
+  DEFAULT_ROLE,
+  getAgentRole,
 } from "./session-kickoff";
 
 describe("session-kickoff", () => {

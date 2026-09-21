@@ -15,13 +15,13 @@
  */
 
 import {
-  test,
   expect,
   navigateTo,
-  takeScreenshot,
-  waitForNetworkIdle,
-  type SessionConfig,
   type SeededAgent,
+  type SessionConfig,
+  takeScreenshot,
+  test,
+  waitForNetworkIdle,
 } from "./utils";
 import { withStep } from "./utils/e2e-logging";
 
@@ -63,7 +63,7 @@ async function setupLabAuth(context: import("@playwright/test").BrowserContext) 
 async function shouldSkipTest(
   page: import("@playwright/test").Page,
   logger: { info: (msg: string) => void; warn: (msg: string) => void },
-  testName: string
+  testName: string,
 ): Promise<boolean> {
   const pageText = await page.locator("body").textContent();
 
@@ -98,9 +98,19 @@ async function shouldSkipTest(
  * The BrennerBot agent roster for multi-agent orchestration.
  */
 const BRENNERBOT_AGENTS: SeededAgent[] = [
-  { name: "HypothesisAgent", role: "hypothesis_generator", program: "claude-code", model: "opus-4.5" },
+  {
+    name: "HypothesisAgent",
+    role: "hypothesis_generator",
+    program: "claude-code",
+    model: "opus-4.5",
+  },
   { name: "TestDesigner", role: "test_designer", program: "codex-cli", model: "gpt-5" },
-  { name: "AdversarialCritic", role: "adversarial_critic", program: "gemini-cli", model: "gemini-3" },
+  {
+    name: "AdversarialCritic",
+    role: "adversarial_critic",
+    program: "gemini-cli",
+    model: "gemini-3",
+  },
   { name: "Orchestrator", role: "orchestrator", program: "claude-code", model: "opus-4.5" },
 ];
 
@@ -524,12 +534,7 @@ revision_note: Added specific metric per R2C1 feedback
 // ============================================================================
 
 test.describe("Multi-Agent Orchestration: Handoff Patterns", () => {
-  test("displays complete agent handoff chain", async ({
-    page,
-    logger,
-    context,
-    testSession,
-  }) => {
+  test("displays complete agent handoff chain", async ({ page, logger, context, testSession }) => {
     const threadId = `E2E-HANDOFF-${Date.now()}`;
     const config = createHandoffSession(threadId);
 
@@ -690,12 +695,7 @@ test.describe("Multi-Agent Orchestration: Concurrent Responses", () => {
 });
 
 test.describe("Multi-Agent Orchestration: Agent-to-Agent Communication", () => {
-  test("shows direct agent-to-agent messages", async ({
-    page,
-    logger,
-    context,
-    testSession,
-  }) => {
+  test("shows direct agent-to-agent messages", async ({ page, logger, context, testSession }) => {
     const threadId = `E2E-A2A-${Date.now()}`;
     const config = createAgentToAgentSession(threadId);
 
@@ -717,8 +717,7 @@ test.describe("Multi-Agent Orchestration: Agent-to-Agent Communication", () => {
       const pageText = await page.locator("body").textContent();
 
       const hasMention =
-        pageText?.includes("@TestDesigner") ||
-        pageText?.includes("@HypothesisAgent");
+        pageText?.includes("@TestDesigner") || pageText?.includes("@HypothesisAgent");
 
       logger.info(`Agent mentions found: ${hasMention}`);
       expect(hasMention).toBeTruthy();
@@ -730,8 +729,7 @@ test.describe("Multi-Agent Orchestration: Agent-to-Agent Communication", () => {
 
       // Should see response patterns
       const hasResponse =
-        pageText?.includes("is testable") ||
-        pageText?.includes("Suggested modification");
+        pageText?.includes("is testable") || pageText?.includes("Suggested modification");
 
       logger.info(`Direct response found: ${hasResponse}`);
       expect(hasResponse).toBeTruthy();
@@ -740,12 +738,7 @@ test.describe("Multi-Agent Orchestration: Agent-to-Agent Communication", () => {
     await takeScreenshot(page, logger, "multi-agent-direct-communication");
   });
 
-  test("displays interjection from third agent", async ({
-    page,
-    logger,
-    context,
-    testSession,
-  }) => {
+  test("displays interjection from third agent", async ({ page, logger, context, testSession }) => {
     const threadId = `E2E-INTERJECT-${Date.now()}`;
     const config = createAgentToAgentSession(threadId);
 
@@ -775,12 +768,7 @@ test.describe("Multi-Agent Orchestration: Agent-to-Agent Communication", () => {
 });
 
 test.describe("Multi-Agent Orchestration: Multi-Round Coordination", () => {
-  test("displays multiple rounds of refinement", async ({
-    page,
-    logger,
-    context,
-    testSession,
-  }) => {
+  test("displays multiple rounds of refinement", async ({ page, logger, context, testSession }) => {
     const threadId = `E2E-MULTIROUND-${Date.now()}`;
     const config = createMultiRoundSession(threadId);
 
@@ -849,9 +837,7 @@ test.describe("Multi-Agent Orchestration: Multi-Round Coordination", () => {
       const pageText = await page.locator("body").textContent();
 
       // The revision should reference the critique
-      const hasFeedbackRef =
-        pageText?.includes("per R2C1") ||
-        pageText?.includes("feedback");
+      const hasFeedbackRef = pageText?.includes("per R2C1") || pageText?.includes("feedback");
 
       logger.info(`Feedback reference found: ${hasFeedbackRef}`);
       expect(hasFeedbackRef).toBeTruthy();

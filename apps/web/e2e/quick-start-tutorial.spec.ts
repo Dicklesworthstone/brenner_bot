@@ -9,15 +9,15 @@
  */
 
 import {
-  test,
-  expect,
-  navigateTo,
-  clickElement,
-  takeScreenshot,
+  assertPageHasContent,
   assertTextContent,
   assertUrl,
+  clickElement,
+  expect,
+  navigateTo,
+  takeScreenshot,
+  test,
   waitForNetworkIdle,
-  assertPageHasContent,
 } from "./utils";
 
 // ============================================================================
@@ -49,7 +49,7 @@ async function clearTutorialProgress(page: import("@playwright/test").Page) {
 async function setTutorialProgress(
   page: import("@playwright/test").Page,
   currentStep: number,
-  completedSteps: number[]
+  completedSteps: number[],
 ) {
   // Match the actual structure saved by tutorial-context.tsx
   const progress = {
@@ -61,25 +61,22 @@ async function setTutorialProgress(
   };
   await page.evaluate(
     ([key, value]) => localStorage.setItem(key, value),
-    [STORAGE_KEY, JSON.stringify(progress)]
+    [STORAGE_KEY, JSON.stringify(progress)],
   );
 }
 
 async function getTutorialProgress(page: import("@playwright/test").Page) {
-  const raw = await page.evaluate(
-    (key) => localStorage.getItem(key),
-    STORAGE_KEY
-  );
+  const raw = await page.evaluate((key) => localStorage.getItem(key), STORAGE_KEY);
   return raw ? JSON.parse(raw) : null;
 }
 
 async function clickNextButton(
   page: import("@playwright/test").Page,
-  logger: ReturnType<typeof import("./utils/e2e-logging").createE2ELogger>
+  logger: ReturnType<typeof import("./utils/e2e-logging").createE2ELogger>,
 ) {
-  const nextButton = page.locator(
-    'button:has-text("Next"), button:has-text("Continue"), a:has-text("Next")'
-  ).first();
+  const nextButton = page
+    .locator('button:has-text("Next"), button:has-text("Continue"), a:has-text("Next")')
+    .first();
   await clickElement(page, logger, nextButton, "Next button");
 }
 
@@ -124,7 +121,7 @@ test.describe("Quick Start Tutorial - Happy Path", () => {
         logger,
         "body",
         new RegExp(STEP_TITLES[step - 1], "i"),
-        `Step ${step} title`
+        `Step ${step} title`,
       );
 
       await takeScreenshot(page, logger, `quick-start-step-${step}`);
@@ -145,27 +142,9 @@ test.describe("Quick Start Tutorial - Happy Path", () => {
     await waitForNetworkIdle(page, logger);
 
     logger.step("Verifying Two Axioms content");
-    await assertTextContent(
-      page,
-      logger,
-      "body",
-      /Two Axioms/i,
-      "Two Axioms heading"
-    );
-    await assertTextContent(
-      page,
-      logger,
-      "body",
-      /Reality has a generative grammar/i,
-      "Axiom 1"
-    );
-    await assertTextContent(
-      page,
-      logger,
-      "body",
-      /To understand is to reconstruct/i,
-      "Axiom 2"
-    );
+    await assertTextContent(page, logger, "body", /Two Axioms/i, "Two Axioms heading");
+    await assertTextContent(page, logger, "body", /Reality has a generative grammar/i, "Axiom 1");
+    await assertTextContent(page, logger, "body", /To understand is to reconstruct/i, "Axiom 2");
 
     await takeScreenshot(page, logger, "step-1-axioms");
     logger.info("Step 1 Two Axioms content verified");
@@ -189,7 +168,7 @@ test.describe("Quick Start Tutorial - Happy Path", () => {
         logger,
         "body",
         new RegExp(section, "i"),
-        `Artifact section: ${section}`
+        `Artifact section: ${section}`,
       );
     }
 
@@ -201,18 +180,11 @@ test.describe("Quick Start Tutorial - Happy Path", () => {
     await waitForNetworkIdle(page, logger);
 
     logger.step("Verifying final step content");
-    await assertTextContent(
-      page,
-      logger,
-      "body",
-      /Understand the Output/i,
-      "Step 7 title"
-    );
+    await assertTextContent(page, logger, "body", /Understand the Output/i, "Step 7 title");
 
     // Should have finish/complete button or next steps
     const bodyText = await page.locator("body").textContent();
-    const hasCompletion =
-      /finish|complete|next steps|congratulations/i.test(bodyText || "");
+    const hasCompletion = /finish|complete|next steps|congratulations/i.test(bodyText || "");
     expect(hasCompletion).toBeTruthy();
 
     await takeScreenshot(page, logger, "step-7-completion");
@@ -236,13 +208,7 @@ test.describe("Quick Start Tutorial - Navigation", () => {
     await waitForNetworkIdle(page, logger);
 
     await assertUrl(page, logger, `${QUICK_START_PATH}/4`);
-    await assertTextContent(
-      page,
-      logger,
-      "body",
-      /Search the Corpus/i,
-      "Step 4 title"
-    );
+    await assertTextContent(page, logger, "body", /Search the Corpus/i, "Step 4 title");
 
     await takeScreenshot(page, logger, "direct-nav-step-4");
     logger.info("Direct URL navigation works");
@@ -271,9 +237,9 @@ test.describe("Quick Start Tutorial - Navigation", () => {
     await waitForNetworkIdle(page, logger);
 
     logger.step("Looking for Previous button");
-    const prevButton = page.locator(
-      'button:has-text("Previous"), button:has-text("Back"), a:has-text("Previous")'
-    ).first();
+    const prevButton = page
+      .locator('button:has-text("Previous"), button:has-text("Back"), a:has-text("Previous")')
+      .first();
 
     if (await prevButton.isVisible()) {
       await clickElement(page, logger, prevButton, "Previous button");
@@ -290,9 +256,7 @@ test.describe("Quick Start Tutorial - Navigation", () => {
     await waitForNetworkIdle(page, logger);
 
     logger.step("Verifying Previous button is disabled on step 1");
-    const prevButton = page.locator(
-      'button:has-text("Previous"), button:has-text("Back")'
-    ).first();
+    const prevButton = page.locator('button:has-text("Previous"), button:has-text("Back")').first();
 
     const isVisible = await prevButton.isVisible().catch(() => false);
     if (isVisible) {
@@ -311,9 +275,9 @@ test.describe("Quick Start Tutorial - Navigation", () => {
     await waitForNetworkIdle(page, logger);
 
     logger.step("Looking for Start button");
-    const startButton = page.locator(
-      'a:has-text("Start Step 1"), button:has-text("Start"), a:has-text("Begin")'
-    ).first();
+    const startButton = page
+      .locator('a:has-text("Start Step 1"), button:has-text("Start"), a:has-text("Begin")')
+      .first();
 
     await clickElement(page, logger, startButton, "Start button");
     await waitForNetworkIdle(page, logger);
@@ -354,9 +318,7 @@ test.describe("Quick Start Tutorial - Mobile", () => {
     await assertPageHasContent(page, logger, 100);
 
     // Next button should be visible and clickable
-    const nextButton = page.locator(
-      'button:has-text("Next"), button:has-text("Continue")'
-    ).first();
+    const nextButton = page.locator('button:has-text("Next"), button:has-text("Continue")').first();
     const isVisible = await nextButton.isVisible().catch(() => false);
     expect(isVisible).toBeTruthy();
 
@@ -404,7 +366,9 @@ test.describe("Quick Start Tutorial - Persistence", () => {
     expect(progress.currentStep).toBeDefined();
     expect(progress.completedSteps).toBeDefined();
 
-    logger.info(`Progress saved: currentStep=${progress.currentStep}, completed=${progress.completedSteps?.length || 0}`);
+    logger.info(
+      `Progress saved: currentStep=${progress.currentStep}, completed=${progress.completedSteps?.length || 0}`,
+    );
   });
 
   test("should restore progress after page reload", async ({ page, logger }) => {
@@ -514,8 +478,7 @@ test.describe("Quick Start Tutorial - Edge Cases", () => {
 
     // Look for step indicator (e.g., "Step 4 of 7" or "4/7")
     const bodyText = await page.locator("body").textContent();
-    const hasStepIndicator =
-      /step\s*4/i.test(bodyText || "") || /4\s*\/\s*7/i.test(bodyText || "");
+    const hasStepIndicator = /step\s*4/i.test(bodyText || "") || /4\s*\/\s*7/i.test(bodyText || "");
 
     if (hasStepIndicator) {
       logger.info("Step indicator found");

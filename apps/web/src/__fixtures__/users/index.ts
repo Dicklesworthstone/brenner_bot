@@ -136,7 +136,8 @@ export const minimalUserFixture: User = {
  */
 export const validAuthSessionFixture: AuthSession = {
   user: authenticatedUserFixture,
-  access_token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ1c2VyLXJlc2VhcmNoZXItMDAxIiwiZW1haWwiOiJyZXNlYXJjaGVyQGV4YW1wbGUuY29tIiwiaWF0IjoxNzM1NTcwMDAwLCJleHAiOjE3MzU1NzM2MDB9.test-signature",
+  access_token:
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ1c2VyLXJlc2VhcmNoZXItMDAxIiwiZW1haWwiOiJyZXNlYXJjaGVyQGV4YW1wbGUuY29tIiwiaWF0IjoxNzM1NTcwMDAwLCJleHAiOjE3MzU1NzM2MDB9.test-signature",
   refresh_token: "refresh-token-abc123",
   expires_at: "2025-12-30T13:00:00Z",
   issued_at: "2025-12-30T12:00:00Z",

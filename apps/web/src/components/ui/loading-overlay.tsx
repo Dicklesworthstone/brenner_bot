@@ -8,10 +8,10 @@
  * @see brenner_bot-ik2s (bead)
  */
 
-import * as React from "react";
 import { Loader2 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import * as React from "react";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 export interface LoadingOverlayProps {
   visible: boolean;

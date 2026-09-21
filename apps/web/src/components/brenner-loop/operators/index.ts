@@ -9,39 +9,35 @@
  * @module components/brenner-loop/operators
  */
 
-// Shell component
-export { OperatorShell, type OperatorShellProps } from "./OperatorShell";
-
-// Progress indicator
-export { OperatorProgress, type OperatorProgressProps } from "./OperatorProgress";
-
 // Brenner quotes sidebar
 export {
   BrennerQuoteSidebar,
   type BrennerQuoteSidebarProps,
 } from "./BrennerQuoteSidebar";
-
-// Navigation controls
-export {
-  OperatorNavigation,
-  CompactNavigation,
-  type OperatorNavigationProps,
-  type CompactNavigationProps,
-} from "./OperatorNavigation";
-
 // Help & Tips - bead yh1c
 export {
   OperatorHelp,
   OperatorHelpPanel,
-  type OperatorHelpProps,
   type OperatorHelpPanelProps,
+  type OperatorHelpProps,
 } from "./OperatorHelp";
+// Navigation controls
+export {
+  CompactNavigation,
+  type CompactNavigationProps,
+  OperatorNavigation,
+  type OperatorNavigationProps,
+} from "./OperatorNavigation";
+// Progress indicator
+export { OperatorProgress, type OperatorProgressProps } from "./OperatorProgress";
+// Shell component
+export { OperatorShell, type OperatorShellProps } from "./OperatorShell";
 
 export {
-  OperatorTip,
   CustomTip,
-  type OperatorTipProps,
   type CustomTipProps,
+  OperatorTip,
+  type OperatorTipProps,
 } from "./OperatorTip";
 
 // ============================================================================

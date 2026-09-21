@@ -7,44 +7,19 @@
  * @module tutorial-data
  */
 
-// Prompt templates for Agent-Assisted path
-export {
-  AGENT_ONBOARDING_PROMPT,
-  INPUT_GENERATION_PROMPT,
-  BRENNER_LOOP_PROMPT,
-  ARTIFACT_REVISION_PROMPT,
-  PROMPT_REGISTRY,
-  getAllPrompts,
-  getPromptsByTag,
-  getPromptsForStep,
-  fillPromptVariables,
-  getAllTags,
-} from "./prompts";
-export type { PromptTemplate, PromptVariable } from "./prompts";
-
+export type {
+  AgentAssistedStepData,
+  ChecklistGroup,
+  ChecklistItem,
+  OperatorCheck,
+  VerificationQuestion,
+} from "./agent-assisted";
 // Agent-Assisted path content
 export {
-  // Path metadata
-  AGENT_ASSISTED_PATH,
-  // Code blocks
-  AA_CODE_BLOCKS,
-  // Troubleshooting
-  AA_TROUBLESHOOTING,
   // Checkpoints
   AA_CHECKPOINTS,
-  // Review checklist
-  REVIEW_CHECKLIST_GROUPS,
-  ALL_CHECKLIST_ITEMS,
-  // Verification (Step 4)
-  VERIFICATION_QUESTIONS,
-  OPERATOR_CHECKS,
-  STEP_4_SUCCESS_CRITERIA,
-  // Comparison data (Step 1)
-  DIRECT_PROMPTING_TRAITS,
-  AGENT_ASSISTED_TRAITS,
-  HUMAN_PROVIDES,
-  AGENT_PROVIDES,
-  HIGH_LEVERAGE_REASONS,
+  // Code blocks
+  AA_CODE_BLOCKS,
   // Next steps (Step 8)
   AA_NEXT_STEPS,
   // Individual steps
@@ -56,71 +31,57 @@ export {
   AA_STEP_6,
   AA_STEP_7,
   AA_STEP_8,
-  // Helper functions
-  getAllAgentAssistedSteps,
-  getAgentAssistedStep,
-  getAgentAssistedStepMeta,
+  // Troubleshooting
+  AA_TROUBLESHOOTING,
+  // Path metadata
+  AGENT_ASSISTED_PATH,
+  AGENT_ASSISTED_TRAITS,
+  AGENT_PROVIDES,
+  ALL_CHECKLIST_ITEMS,
+  // Comparison data (Step 1)
+  DIRECT_PROMPTING_TRAITS,
   getAACodeBlock,
   getAACodeBlocksForStep,
   getAATotalEstimatedTime,
+  getAgentAssistedStep,
+  getAgentAssistedStepMeta,
+  // Helper functions
+  getAllAgentAssistedSteps,
   getChecklistGroup,
   getChecklistItem,
   getChecklistItemCount,
+  HIGH_LEVERAGE_REASONS,
+  HUMAN_PROVIDES,
+  OPERATOR_CHECKS,
+  // Review checklist
+  REVIEW_CHECKLIST_GROUPS,
+  STEP_4_SUCCESS_CRITERIA,
+  // Verification (Step 4)
+  VERIFICATION_QUESTIONS,
 } from "./agent-assisted";
-export type {
-  AgentAssistedStepData,
-  ChecklistItem,
-  ChecklistGroup,
-  VerificationQuestion,
-  OperatorCheck,
-} from "./agent-assisted";
-
-// Quick Start path content
+export type { TutorialDomainExample, TutorialExampleDomain } from "./examples";
+// Domain examples (worked artifacts)
 export {
-  // Path metadata
-  QUICK_START_PATH,
-  // Code blocks
-  CODE_BLOCKS,
-  // Troubleshooting
-  TROUBLESHOOTING,
-  // Checkpoints
-  CHECKPOINTS,
-  // Individual steps
-  STEP_1,
-  STEP_2,
-  STEP_3,
-  STEP_4,
-  STEP_5,
-  STEP_6,
-  STEP_7,
-  // Step 7 data
-  ARTIFACT_SECTIONS,
-  BRENNER_OPERATORS,
-  // Step 1 data
-  TWO_AXIOMS,
-  ARTIFACT_PREVIEW_ITEMS,
-  // Step 7 next steps
-  NEXT_STEPS,
-  // Helper functions
-  getAllQuickStartSteps,
-  getQuickStartStep,
-  getQuickStartStepMeta,
-  getCodeBlock,
-  getCodeBlocksForStep,
-  getTotalEstimatedTime,
-} from "./quick-start";
-export type { QuickStartStepData, ArtifactSectionData } from "./quick-start";
-
+  BIOLOGY_CELL_FATE_EXAMPLE,
+  CS_LLM_HALLUCINATION_EXAMPLE,
+  getAllTutorialDomainExamples,
+  getTutorialDomainExample,
+  getTutorialDomainExamplesByDomain,
+  SOCIAL_COMMUNITY_TOXICITY_EXAMPLE,
+  TUTORIAL_DOMAIN_EXAMPLES,
+} from "./examples";
+export type { MultiAgentStepData } from "./multi-agent";
 // Multi-Agent Cockpit path content
 export {
-  // Path metadata
-  MULTI_AGENT_COCKPIT_PATH,
-  // Code blocks
-  MAC_CODE_BLOCKS,
-  // Troubleshooting
-  MAC_TROUBLESHOOTING,
+  // Helper functions
+  getAllMultiAgentSteps,
+  getMACCodeBlock,
+  getMACTotalEstimatedTime,
+  getMultiAgentStep,
   // Checkpoints
   MAC_CHECKPOINTS,
+  // Code blocks
+  MAC_CODE_BLOCKS,
   // Individual steps
   MAC_STEP_1,
   MAC_STEP_2,
@@ -132,22 +93,57 @@ export {
   MAC_STEP_8,
   MAC_STEP_9,
   MAC_STEP_10,
-  // Helper functions
-  getAllMultiAgentSteps,
-  getMultiAgentStep,
-  getMACCodeBlock,
-  getMACTotalEstimatedTime,
+  // Troubleshooting
+  MAC_TROUBLESHOOTING,
+  // Path metadata
+  MULTI_AGENT_COCKPIT_PATH,
 } from "./multi-agent";
-export type { MultiAgentStepData } from "./multi-agent";
-
-// Domain examples (worked artifacts)
+export type { PromptTemplate, PromptVariable } from "./prompts";
+// Prompt templates for Agent-Assisted path
 export {
-  BIOLOGY_CELL_FATE_EXAMPLE,
-  CS_LLM_HALLUCINATION_EXAMPLE,
-  SOCIAL_COMMUNITY_TOXICITY_EXAMPLE,
-  TUTORIAL_DOMAIN_EXAMPLES,
-  getAllTutorialDomainExamples,
-  getTutorialDomainExample,
-  getTutorialDomainExamplesByDomain,
-} from "./examples";
-export type { TutorialDomainExample, TutorialExampleDomain } from "./examples";
+  AGENT_ONBOARDING_PROMPT,
+  ARTIFACT_REVISION_PROMPT,
+  BRENNER_LOOP_PROMPT,
+  fillPromptVariables,
+  getAllPrompts,
+  getAllTags,
+  getPromptsByTag,
+  getPromptsForStep,
+  INPUT_GENERATION_PROMPT,
+  PROMPT_REGISTRY,
+} from "./prompts";
+export type { ArtifactSectionData, QuickStartStepData } from "./quick-start";
+// Quick Start path content
+export {
+  ARTIFACT_PREVIEW_ITEMS,
+  // Step 7 data
+  ARTIFACT_SECTIONS,
+  BRENNER_OPERATORS,
+  // Checkpoints
+  CHECKPOINTS,
+  // Code blocks
+  CODE_BLOCKS,
+  // Helper functions
+  getAllQuickStartSteps,
+  getCodeBlock,
+  getCodeBlocksForStep,
+  getQuickStartStep,
+  getQuickStartStepMeta,
+  getTotalEstimatedTime,
+  // Step 7 next steps
+  NEXT_STEPS,
+  // Path metadata
+  QUICK_START_PATH,
+  // Individual steps
+  STEP_1,
+  STEP_2,
+  STEP_3,
+  STEP_4,
+  STEP_5,
+  STEP_6,
+  STEP_7,
+  // Troubleshooting
+  TROUBLESHOOTING,
+  // Step 1 data
+  TWO_AXIOMS,
+} from "./quick-start";

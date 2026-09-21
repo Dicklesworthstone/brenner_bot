@@ -11,11 +11,7 @@
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
-import {
-  OperatorSelector,
-  DEFAULT_OPERATORS,
-  type OperatorSelection,
-} from "./OperatorSelector";
+import { DEFAULT_OPERATORS, type OperatorSelection, OperatorSelector } from "./OperatorSelector";
 
 // ============================================================================
 // Test Helpers
@@ -26,7 +22,7 @@ function renderOperatorSelector(
     value: OperatorSelection;
     onChange: (selection: OperatorSelection) => void;
     disabled: boolean;
-  }> = {}
+  }> = {},
 ) {
   const defaultProps = {
     value: { ...DEFAULT_OPERATORS },
@@ -88,9 +84,15 @@ describe("OperatorSelector", () => {
       const adversarialCard = roleCards[2];
 
       // Default operators counts
-      expect(within(hypothesisCard as HTMLElement).getByText("3 operators selected")).toBeInTheDocument();
-      expect(within(testDesignerCard as HTMLElement).getByText("4 operators selected")).toBeInTheDocument();
-      expect(within(adversarialCard as HTMLElement).getByText("3 operators selected")).toBeInTheDocument();
+      expect(
+        within(hypothesisCard as HTMLElement).getByText("3 operators selected"),
+      ).toBeInTheDocument();
+      expect(
+        within(testDesignerCard as HTMLElement).getByText("4 operators selected"),
+      ).toBeInTheDocument();
+      expect(
+        within(adversarialCard as HTMLElement).getByText("3 operators selected"),
+      ).toBeInTheDocument();
     });
 
     it("shows Custom badge when operators differ from defaults", async () => {
@@ -156,11 +158,8 @@ describe("OperatorSelector", () => {
 
       expect(onChange).toHaveBeenCalledWith(
         expect.objectContaining({
-          hypothesis_generator: expect.arrayContaining([
-            "⊘ Level-Split",
-            "⊕ Cross-Domain",
-          ]),
-        })
+          hypothesis_generator: expect.arrayContaining(["⊘ Level-Split", "⊕ Cross-Domain"]),
+        }),
       );
     });
 
@@ -186,7 +185,7 @@ describe("OperatorSelector", () => {
       expect(onChange).toHaveBeenCalledWith(
         expect.objectContaining({
           hypothesis_generator: expect.not.arrayContaining(["⊘ Level-Split"]),
-        })
+        }),
       );
     });
 
@@ -289,7 +288,7 @@ describe("OperatorSelector", () => {
     it("updates operator count when operators change", async () => {
       const user = userEvent.setup();
       const { rerender } = render(
-        <OperatorSelector value={DEFAULT_OPERATORS} onChange={vi.fn()} />
+        <OperatorSelector value={DEFAULT_OPERATORS} onChange={vi.fn()} />,
       );
 
       await user.click(screen.getByRole("button", { name: /operator selection/i }));
@@ -299,7 +298,9 @@ describe("OperatorSelector", () => {
       const hypothesisCard = roleCards[0];
 
       // Should show 3 operators for hypothesis_generator
-      expect(within(hypothesisCard as HTMLElement).getByText("3 operators selected")).toBeInTheDocument();
+      expect(
+        within(hypothesisCard as HTMLElement).getByText("3 operators selected"),
+      ).toBeInTheDocument();
 
       // Rerender with fewer operators
       rerender(
@@ -309,10 +310,12 @@ describe("OperatorSelector", () => {
             hypothesis_generator: ["⊘ Level-Split"],
           }}
           onChange={vi.fn()}
-        />
+        />,
       );
 
-      expect(within(hypothesisCard as HTMLElement).getByText("1 operator selected")).toBeInTheDocument();
+      expect(
+        within(hypothesisCard as HTMLElement).getByText("1 operator selected"),
+      ).toBeInTheDocument();
     });
   });
 
@@ -328,20 +331,18 @@ describe("OperatorSelector", () => {
       const user = userEvent.setup();
       // First render enabled to expand
       const { rerender } = render(
-        <OperatorSelector value={DEFAULT_OPERATORS} onChange={vi.fn()} disabled={false} />
+        <OperatorSelector value={DEFAULT_OPERATORS} onChange={vi.fn()} disabled={false} />,
       );
 
       await user.click(screen.getByRole("button", { name: /operator selection/i }));
 
       // Now disable and check operator buttons
-      rerender(
-        <OperatorSelector value={DEFAULT_OPERATORS} onChange={vi.fn()} disabled={true} />
-      );
+      rerender(<OperatorSelector value={DEFAULT_OPERATORS} onChange={vi.fn()} disabled={true} />);
 
       // Find any operator button
-      const operatorButtons = screen.getAllByRole("button").filter(
-        (btn) => btn.textContent?.includes("Level-Split")
-      );
+      const operatorButtons = screen
+        .getAllByRole("button")
+        .filter((btn) => btn.textContent?.includes("Level-Split"));
 
       operatorButtons.forEach((btn) => {
         expect(btn).toBeDisabled();
@@ -354,15 +355,13 @@ describe("OperatorSelector", () => {
 
       // Start enabled to expand
       const { rerender } = render(
-        <OperatorSelector value={DEFAULT_OPERATORS} onChange={onChange} disabled={false} />
+        <OperatorSelector value={DEFAULT_OPERATORS} onChange={onChange} disabled={false} />,
       );
 
       await user.click(screen.getByRole("button", { name: /operator selection/i }));
 
       // Now disable
-      rerender(
-        <OperatorSelector value={DEFAULT_OPERATORS} onChange={onChange} disabled={true} />
-      );
+      rerender(<OperatorSelector value={DEFAULT_OPERATORS} onChange={onChange} disabled={true} />);
 
       // Try to click an operator (should do nothing since disabled)
       const roleCards = document.querySelectorAll('[class*="bg-gradient-to-br"]');

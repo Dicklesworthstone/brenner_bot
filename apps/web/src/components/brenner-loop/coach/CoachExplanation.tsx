@@ -9,20 +9,13 @@
 
 "use client";
 
-import React, { useState, useCallback } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { cn } from "@/lib/utils";
+import { AnimatePresence, motion } from "framer-motion";
+import { BookOpen, Check, ChevronDown, ChevronUp, ExternalLink, Lightbulb, X } from "lucide-react";
+import type React from "react";
+import { useCallback, useState } from "react";
 import { Button } from "@/components/ui/button";
-import {
-  Lightbulb,
-  ChevronDown,
-  ChevronUp,
-  BookOpen,
-  ExternalLink,
-  Check,
-  X,
-} from "lucide-react";
-import { useCoach, type ConceptId } from "@/lib/brenner-loop/coach-context";
+import { type ConceptId, useCoach } from "@/lib/brenner-loop/coach-context";
+import { cn } from "@/lib/utils";
 
 // ============================================================================
 // Types
@@ -83,13 +76,8 @@ export function CoachExplanation({
   onShowMore,
   className,
 }: CoachExplanationProps): React.ReactElement | null {
-  const {
-    isCoachActive,
-    effectiveLevel,
-    shouldShowExplanation,
-    markConceptSeen,
-    settings,
-  } = useCoach();
+  const { isCoachActive, effectiveLevel, shouldShowExplanation, markConceptSeen, settings } =
+    useCoach();
 
   const [isExpanded, setIsExpanded] = useState(defaultExpanded);
   const [showFull, setShowFull] = useState(effectiveLevel === "beginner");
@@ -122,7 +110,7 @@ export function CoachExplanation({
       className={cn(
         "rounded-lg border border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/30",
         "overflow-hidden",
-        className
+        className,
       )}
     >
       {/* Header */}
@@ -131,14 +119,12 @@ export function CoachExplanation({
         className={cn(
           "w-full flex items-center justify-between px-4 py-3",
           "text-left hover:bg-amber-100 dark:hover:bg-amber-900/30",
-          "transition-colors"
+          "transition-colors",
         )}
       >
         <div className="flex items-center gap-2">
           <Lightbulb className="h-5 w-5 text-amber-600 dark:text-amber-400" />
-          <span className="font-medium text-amber-900 dark:text-amber-100">
-            COACH: {title}
-          </span>
+          <span className="font-medium text-amber-900 dark:text-amber-100">COACH: {title}</span>
         </div>
         {isExpanded ? (
           <ChevronUp className="h-4 w-4 text-amber-600 dark:text-amber-400" />
@@ -158,9 +144,7 @@ export function CoachExplanation({
           >
             <div className="px-4 pb-4 space-y-4">
               {/* Brief explanation */}
-              <p className="text-sm text-amber-800 dark:text-amber-200">
-                {brief}
-              </p>
+              <p className="text-sm text-amber-800 dark:text-amber-200">{brief}</p>
 
               {/* Full explanation (conditional) */}
               {showFull && full && (
@@ -183,9 +167,7 @@ export function CoachExplanation({
                         key={idx}
                         className="flex items-start gap-2 text-sm text-amber-800 dark:text-amber-200"
                       >
-                        <span className="text-amber-600 dark:text-amber-400 mt-1">
-                          •
-                        </span>
+                        <span className="text-amber-600 dark:text-amber-400 mt-1">•</span>
                         <span>{point}</span>
                       </li>
                     ))}
@@ -212,9 +194,7 @@ export function CoachExplanation({
                       Example
                     </span>
                   </div>
-                  <p className="text-sm text-amber-800 dark:text-amber-200">
-                    {example}
-                  </p>
+                  <p className="text-sm text-amber-800 dark:text-amber-200">{example}</p>
                 </div>
               )}
 
@@ -313,16 +293,13 @@ export function CoachTip({
       className={cn(
         "flex items-start gap-2 rounded-md border px-3 py-2",
         variantStyles[variant],
-        className
+        className,
       )}
     >
       <Lightbulb className={cn("h-4 w-4 mt-0.5 shrink-0", iconColors[variant])} />
       <div className="flex-1 text-sm">{children}</div>
       {dismissible && (
-        <button
-          onClick={handleDismiss}
-          className="shrink-0 hover:opacity-70 transition-opacity"
-        >
+        <button onClick={handleDismiss} className="shrink-0 hover:opacity-70 transition-opacity">
           <X className="h-4 w-4" />
         </button>
       )}

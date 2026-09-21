@@ -9,10 +9,10 @@
  * @see brenner_bot-w5p6 (Tutorial Path: Agent-Assisted Research)
  */
 
-import * as React from "react";
-import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { TutorialStep, TutorialCodeBlock, ProTip, Important } from "@/components/tutorial";
+import { useRouter } from "next/navigation";
+import * as React from "react";
+import { Important, ProTip, TutorialCodeBlock, TutorialStep } from "@/components/tutorial";
 import { useTutorial } from "@/lib/tutorial-context";
 import type { TutorialStep as TutorialStepType } from "@/lib/tutorial-types";
 
@@ -39,15 +39,18 @@ const stepData: TutorialStepType = {
   troubleshooting: [
     {
       problem: "Agent only generated 2 hypotheses",
-      solution: "Explicitly ask for more alternatives. 'What other mechanisms could produce the same observation?'",
+      solution:
+        "Explicitly ask for more alternatives. 'What other mechanisms could produce the same observation?'",
     },
     {
       problem: "Third alternatives seem far-fetched",
-      solution: "That's often intentional! The point is to expand your hypothesis space. Evaluate them later.",
+      solution:
+        "That's often intentional! The point is to expand your hypothesis space. Evaluate them later.",
     },
     {
       problem: "Assumption ledger is too short",
-      solution: "Prompt the agent to consider methodological, theoretical, and background assumptions separately.",
+      solution:
+        "Prompt the agent to consider methodological, theoretical, and background assumptions separately.",
     },
   ],
 };
@@ -127,8 +130,8 @@ Take your time. Be thorough. This is the foundation for everything that follows.
         <div className="space-y-4">
           <h2 className="text-xl font-semibold">What We&apos;re Building</h2>
           <p className="text-muted-foreground">
-            The Brenner loop needs structured inputs to work with. Your agent will
-            generate these using the operators it learned earlier:
+            The Brenner loop needs structured inputs to work with. Your agent will generate these
+            using the operators it learned earlier:
           </p>
 
           <div className="grid gap-4 sm:grid-cols-2">
@@ -184,14 +187,13 @@ Take your time. Be thorough. This is the foundation for everything that follows.
         <div className="space-y-4">
           <h2 className="text-xl font-semibold">The Input Generation Prompt</h2>
           <p className="text-muted-foreground">
-            Replace <code className="px-1.5 py-0.5 rounded bg-muted text-xs">[YOUR REFINED QUESTION FROM STEP 5]</code> with
-            your actual refined question and give this to your agent:
+            Replace{" "}
+            <code className="px-1.5 py-0.5 rounded bg-muted text-xs">
+              [YOUR REFINED QUESTION FROM STEP 5]
+            </code>{" "}
+            with your actual refined question and give this to your agent:
           </p>
-          <TutorialCodeBlock
-            code={inputPrompt}
-            language="text"
-            title="Prompt to your agent"
-          />
+          <TutorialCodeBlock code={inputPrompt} language="text" title="Prompt to your agent" />
         </div>
 
         {/* What Good Outputs Look Like */}
@@ -205,11 +207,25 @@ Take your time. Be thorough. This is the foundation for everything that follows.
                 Good Hypothesis Slate
               </h4>
               <div className="space-y-2 text-sm text-muted-foreground">
-                <p><strong>H1 (Obvious):</strong> X directly causes Y through mechanism M.</p>
-                <p><strong>H2 (Alternative mechanism):</strong> X causes Y, but through mechanism N, not M.</p>
-                <p><strong>H3 (Reversed causation):</strong> Y causes X, and we&apos;ve misidentified the direction.</p>
-                <p><strong>H4 (Third variable):</strong> Z causes both X and Y; they&apos;re correlated but neither causes the other.</p>
-                <p><strong>H5 (Level shift):</strong> The relationship holds at molecular level but not at systems level (or vice versa).</p>
+                <p>
+                  <strong>H1 (Obvious):</strong> X directly causes Y through mechanism M.
+                </p>
+                <p>
+                  <strong>H2 (Alternative mechanism):</strong> X causes Y, but through mechanism N,
+                  not M.
+                </p>
+                <p>
+                  <strong>H3 (Reversed causation):</strong> Y causes X, and we&apos;ve misidentified
+                  the direction.
+                </p>
+                <p>
+                  <strong>H4 (Third variable):</strong> Z causes both X and Y; they&apos;re
+                  correlated but neither causes the other.
+                </p>
+                <p>
+                  <strong>H5 (Level shift):</strong> The relationship holds at molecular level but
+                  not at systems level (or vice versa).
+                </p>
               </div>
             </div>
 
@@ -219,18 +235,27 @@ Take your time. Be thorough. This is the foundation for everything that follows.
                 Good Assumption Ledger
               </h4>
               <div className="space-y-2 text-sm text-muted-foreground">
-                <p><strong>Theoretical:</strong> &quot;We assume X and Y are distinct entities, not different manifestations of the same process.&quot;</p>
-                <p><strong>Methodological:</strong> &quot;We assume our measurement of X doesn&apos;t itself affect Y.&quot;</p>
-                <p><strong>Background:</strong> &quot;We assume the standard model of [domain] is correct in this context.&quot;</p>
+                <p>
+                  <strong>Theoretical:</strong> &quot;We assume X and Y are distinct entities, not
+                  different manifestations of the same process.&quot;
+                </p>
+                <p>
+                  <strong>Methodological:</strong> &quot;We assume our measurement of X doesn&apos;t
+                  itself affect Y.&quot;
+                </p>
+                <p>
+                  <strong>Background:</strong> &quot;We assume the standard model of [domain] is
+                  correct in this context.&quot;
+                </p>
               </div>
             </div>
           </div>
         </div>
 
         <Important>
-          The quality of your hypothesis slate determines everything. If you only
-          consider one explanation, no amount of testing will save you from
-          confirmation bias. Demand at least 4 genuinely different hypotheses.
+          The quality of your hypothesis slate determines everything. If you only consider one
+          explanation, no amount of testing will save you from confirmation bias. Demand at least 4
+          genuinely different hypotheses.
         </Important>
 
         {/* Reviewing the Output */}
@@ -263,10 +288,7 @@ Take your time. Be thorough. This is the foundation for everything that follows.
                 fix: "Ask for order-of-magnitude estimates with explicit numbers.",
               },
             ].map((item, i) => (
-              <div
-                key={i}
-                className="p-4 rounded-xl border border-border bg-muted/30"
-              >
+              <div key={i} className="p-4 rounded-xl border border-border bg-muted/30">
                 <h4 className="font-semibold text-sm mb-1">{item.check}</h4>
                 <p className="text-sm text-muted-foreground mb-2">{item.question}</p>
                 <p className="text-xs text-primary">
@@ -279,8 +301,8 @@ Take your time. Be thorough. This is the foundation for everything that follows.
 
         <ProTip>
           Save the agent&apos;s output! Copy it to a file or note. You&apos;ll reference these
-          artifacts throughout the rest of the loop, and you&apos;ll want them for
-          documentation when you&apos;re done.
+          artifacts throughout the rest of the loop, and you&apos;ll want them for documentation
+          when you&apos;re done.
         </ProTip>
 
         {/* Success Criteria */}
@@ -312,9 +334,9 @@ Take your time. Be thorough. This is the foundation for everything that follows.
         {/* Next Step Preview */}
         <div className="p-4 rounded-xl border border-border bg-card/50">
           <p className="text-sm text-muted-foreground">
-            <strong className="text-foreground">Next up:</strong> In Step 7, you&apos;ll
-            have your agent run the full Brenner loop &mdash; designing discriminative
-            tests and ranking them by potency.
+            <strong className="text-foreground">Next up:</strong> In Step 7, you&apos;ll have your
+            agent run the full Brenner loop &mdash; designing discriminative tests and ranking them
+            by potency.
           </p>
         </div>
       </section>

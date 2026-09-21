@@ -66,7 +66,8 @@ export const CS_LLM_HALLUCINATION_ARTIFACT: Artifact = {
       },
       {
         id: "P2",
-        condition: "Add an explicit ‘ask clarifying question / abstain’ option with reward for calibrated uncertainty",
+        condition:
+          "Add an explicit ‘ask clarifying question / abstain’ option with reward for calibrated uncertainty",
         predictions: {
           H1: "Moderate improvement; uncertainty signaling helps but grounding still missing for truly unknown facts.",
           H2: "Large improvement; when abstention is rewarded, hallucinations drop sharply.",
@@ -192,8 +193,14 @@ export const CS_LLM_HALLUCINATION_EXAMPLE = {
     { anchor: "§161", note: "Mechanism-first: what causal machinery produces the behavior?" },
     { anchor: "§147", note: "Avoid level confusion: training vs decoding vs interface policy." },
     { anchor: "§89", note: "Prefer discriminative tests that can rule out causes." },
-    { anchor: "§58", note: "Do the sums: quantify how much the metric changes under controlled interventions." },
-    { anchor: "domain", note: "Use empirical A/Bs: base vs RLHF, with and without RAG, under fixed prompts." },
+    {
+      anchor: "§58",
+      note: "Do the sums: quantify how much the metric changes under controlled interventions.",
+    },
+    {
+      anchor: "domain",
+      note: "Use empirical A/Bs: base vs RLHF, with and without RAG, under fixed prompts.",
+    },
   ],
   artifact: CS_LLM_HALLUCINATION_ARTIFACT,
   operatorAnnotations: [

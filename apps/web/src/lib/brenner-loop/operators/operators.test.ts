@@ -1,14 +1,33 @@
 import { describe, expect, it } from "vitest";
-import { createHypothesisCard, generateHypothesisCardId } from "../hypothesis";
 import type { HypothesisCard } from "../hypothesis";
+import { createHypothesisCard, generateHypothesisCardId } from "../hypothesis";
+import {
+  getCommonMistakes,
+  getOperatorDocumentation,
+  getStepTip,
+  getSuccessCriteria,
+} from "./docs";
+import {
+  buildExclusionTestResult,
+  CATEGORY_DEFAULT_POWER,
+  createCustomTest,
+  EXCLUSION_TEST_STEP_IDS,
+  EXCLUSION_TEST_STEPS,
+  generateExclusionTests,
+  generateProtocols,
+  generateProtocolTemplate,
+  getCategoryColor,
+  getDiscriminativePowerLabel,
+  getDiscriminativePowerStars,
+  getFeasibilityColor,
+} from "./exclusion-test";
 import type { OperatorSession, OperatorStepConfig } from "./framework";
 import {
-  OPERATOR_METADATA,
   canGoBack,
   canProceedToNext,
   canSkipCurrent,
-  createStepStates,
   createSession,
+  createStepStates,
   deserializeSession,
   generateInsightId,
   generateSessionId,
@@ -17,52 +36,31 @@ import {
   getProgress,
   getSessionSummary,
   isOperatorType,
+  OPERATOR_METADATA,
   serializeSession,
   sessionReducer,
 } from "./framework";
 import {
-  getCommonMistakes,
-  getOperatorDocumentation,
-  getStepTip,
-  getSuccessCriteria,
-} from "./docs";
-import {
-  LEVEL_SPLIT_STEP_IDS,
-  LEVEL_SPLIT_STEPS,
   buildLevelSplitResult,
   generateCombinationMatrix,
   generateSubHypothesis,
   generateXLevels,
   generateYLevels,
+  LEVEL_SPLIT_STEP_IDS,
+  LEVEL_SPLIT_STEPS,
   type LevelSplitResult,
 } from "./level-split";
 import {
-  CATEGORY_DEFAULT_POWER,
-  EXCLUSION_TEST_STEP_IDS,
-  EXCLUSION_TEST_STEPS,
-  buildExclusionTestResult,
-  createCustomTest,
-  generateExclusionTests,
-  generateProtocolTemplate,
-  generateProtocols,
-  getCategoryColor,
-  getDiscriminativePowerLabel,
-  getDiscriminativePowerStars,
-  getFeasibilityColor,
-} from "./exclusion-test";
-import {
-  OBJECT_TRANSPOSE_STEP_IDS,
-  OBJECT_TRANSPOSE_STEPS,
+  type AlternativeExplanation,
   buildObjectTransposeResult,
   generateAlternatives,
   generateDiscriminatingTests,
   generateThirdVariables,
-  type AlternativeExplanation,
+  OBJECT_TRANSPOSE_STEP_IDS,
+  OBJECT_TRANSPOSE_STEPS,
   type PlausibilityRating,
 } from "./object-transpose";
 import {
-  SCALE_CHECK_STEP_IDS,
-  SCALE_CHECK_STEPS,
   approximateSampleSize,
   buildScaleCheckResult,
   classifyEffectSize,
@@ -70,6 +68,8 @@ import {
   generateContextComparison,
   generatePopulationConsiderations,
   getDomainContext,
+  SCALE_CHECK_STEP_IDS,
+  SCALE_CHECK_STEPS,
   varianceExplained,
 } from "./scale-check";
 
@@ -78,12 +78,19 @@ function makeHypothesis(overrides: Partial<HypothesisCard> = {}): HypothesisCard
 
   return createHypothesisCard({
     id: overrides.id ?? generateHypothesisCardId(sessionId, 1),
-    statement: overrides.statement ?? "Caffeine causes insomnia through adenosine receptor blockade",
+    statement:
+      overrides.statement ?? "Caffeine causes insomnia through adenosine receptor blockade",
     mechanism: overrides.mechanism ?? "Adenosine signaling disruption",
     domain: overrides.domain ?? ["psychology"],
-    predictionsIfTrue: overrides.predictionsIfTrue ?? ["Higher caffeine intake predicts worse sleep quality"],
-    predictionsIfFalse: overrides.predictionsIfFalse ?? ["Sleep quality is unrelated to caffeine intake"],
-    impossibleIfTrue: overrides.impossibleIfTrue ?? ["Insomnia persists when caffeine is eliminated"],
+    predictionsIfTrue: overrides.predictionsIfTrue ?? [
+      "Higher caffeine intake predicts worse sleep quality",
+    ],
+    predictionsIfFalse: overrides.predictionsIfFalse ?? [
+      "Sleep quality is unrelated to caffeine intake",
+    ],
+    impossibleIfTrue: overrides.impossibleIfTrue ?? [
+      "Insomnia persists when caffeine is eliminated",
+    ],
     confidence: overrides.confidence,
     sessionId,
     tags: overrides.tags,
@@ -271,7 +278,10 @@ describe("operators/level-split", () => {
     session = sessionReducer(session, {
       type: "SET_SELECTION",
       key: LEVEL_SPLIT_STEP_IDS.REVIEW_MATRIX,
-      value: combos.map((combo) => ({ ...combo, selected: combo.xLevel.id === combos[0].xLevel.id })),
+      value: combos.map((combo) => ({
+        ...combo,
+        selected: combo.xLevel.id === combos[0].xLevel.id,
+      })),
     });
     session = sessionReducer(session, {
       type: "SET_CONTENT",
@@ -427,7 +437,9 @@ describe("operators/exclusion-test", () => {
     const hypothesis = makeHypothesis();
     const tests = generateExclusionTests(hypothesis);
     expect(tests.length).toBeGreaterThan(0);
-    expect(tests[0].discriminativePower).toBeGreaterThanOrEqual(tests.at(-1)?.discriminativePower ?? 0);
+    expect(tests[0].discriminativePower).toBeGreaterThanOrEqual(
+      tests.at(-1)?.discriminativePower ?? 0,
+    );
 
     const custom = createCustomTest("Custom", "Desc", "Falsify", "Support", 5, "high");
     expect(custom.category).toBe("custom");
@@ -588,7 +600,10 @@ describe("operators/exclusion-test", () => {
   });
 
   it("extracts hypothesis terms with and without causal phrasing", () => {
-    const hypothesis = makeHypothesis({ statement: "Caffeine causes insomnia", mechanism: "Adenosine blockade" });
+    const hypothesis = makeHypothesis({
+      statement: "Caffeine causes insomnia",
+      mechanism: "Adenosine blockade",
+    });
     const tests1 = generateExclusionTests(hypothesis);
     expect(tests1.some((t) => t.name.includes("Caffeine"))).toBe(true);
 
@@ -682,7 +697,12 @@ describe("operators/object-transpose", () => {
 
     const alternatives = generateAlternatives(hypothesis);
     const ratings = [
-      { alternativeId: alternatives[0]?.id, plausibility: 3, evidenceDiscrimination: "poor", notes: "" },
+      {
+        alternativeId: alternatives[0]?.id,
+        plausibility: 3,
+        evidenceDiscrimination: "poor",
+        notes: "",
+      },
     ];
 
     const partiallyRated = {
@@ -752,7 +772,7 @@ describe("operators/scale-check", () => {
 
     const comparison = generateContextComparison(
       { type: "r", value: 0.95, direction: "increase" },
-      context
+      context,
     );
     expect(comparison.relativeToNorm).toBe("exceptional");
     expect(comparison.warnings.length).toBeGreaterThan(0);
@@ -765,9 +785,21 @@ describe("operators/scale-check", () => {
         [SCALE_CHECK_STEP_IDS.CONTEXTUALIZE]: comparison,
       },
       userSelections: {
-        [SCALE_CHECK_STEP_IDS.QUANTIFY]: { type: "estimate", estimate: "medium", direction: "change" },
-        [SCALE_CHECK_STEP_IDS.PRECISION]: { isDetectable: false, powerNotes: "low power", warnings: [] },
-        [SCALE_CHECK_STEP_IDS.PRACTICAL]: { isPracticallyMeaningful: true, stakeholders: ["users"], reasoning: "ok" },
+        [SCALE_CHECK_STEP_IDS.QUANTIFY]: {
+          type: "estimate",
+          estimate: "medium",
+          direction: "change",
+        },
+        [SCALE_CHECK_STEP_IDS.PRECISION]: {
+          isDetectable: false,
+          powerNotes: "low power",
+          warnings: [],
+        },
+        [SCALE_CHECK_STEP_IDS.PRACTICAL]: {
+          isPracticallyMeaningful: true,
+          stakeholders: ["users"],
+          reasoning: "ok",
+        },
         [SCALE_CHECK_STEP_IDS.POPULATION]: population,
       },
       notes: "summary",
@@ -830,7 +862,7 @@ describe("operators/scale-check", () => {
     // Test with estimate only
     const comparison = generateContextComparison(
       { type: "d", estimate: "large", direction: "increase" },
-      context
+      context,
     );
     expect(comparison.relativeToNorm).toBe("above_typical");
   });
@@ -839,10 +871,7 @@ describe("operators/scale-check", () => {
     const context = getDomainContext(makeHypothesis({ domain: ["psychology"] }));
 
     // Test with neither value nor estimate
-    const comparison = generateContextComparison(
-      { type: "r", direction: "increase" },
-      context
-    );
+    const comparison = generateContextComparison({ type: "r", direction: "increase" }, context);
     expect(comparison.warnings).toContain("Effect size not fully specified");
   });
 
@@ -851,7 +880,7 @@ describe("operators/scale-check", () => {
 
     const comparison = generateContextComparison(
       { type: "r", value: 0.3, direction: "increase" },
-      context
+      context,
     );
     expect(comparison.varianceExplained).toBeCloseTo(9, 1);
     expect(comparison.insights.some((i) => i.includes("variance"))).toBe(true);
@@ -862,19 +891,25 @@ describe("operators/scale-check", () => {
 
     const comparison = generateContextComparison(
       { type: "d", value: 1.0, direction: "increase" },
-      context
+      context,
     );
     expect(comparison.warnings.some((w) => w.includes("exceeds typical maximum"))).toBe(true);
   });
 
   it("marks small effects as below typical and skips domain threshold for OR/RR types", () => {
     const psych = getDomainContext(makeHypothesis({ domain: ["psychology"] }));
-    const below = generateContextComparison({ type: "r", value: 0.05, direction: "increase" }, psych);
+    const below = generateContextComparison(
+      { type: "r", value: 0.05, direction: "increase" },
+      psych,
+    );
     expect(below.relativeToNorm).toBe("below_typical");
     expect(below.benchmarksWithComparisons.some((b) => b.comparison === "smaller")).toBe(true);
 
     const med = getDomainContext(makeHypothesis({ domain: ["medicine"] }));
-    const orResult = generateContextComparison({ type: "OR", value: 0.9, direction: "change" }, med);
+    const orResult = generateContextComparison(
+      { type: "OR", value: 0.9, direction: "change" },
+      med,
+    );
     expect(orResult.relativeToNorm).toBe("below_typical");
     expect(orResult.warnings.some((w) => w.includes("exceeds typical maximum"))).toBe(false);
   });
@@ -882,7 +917,9 @@ describe("operators/scale-check", () => {
   it("gets domain context for different domains", () => {
     expect(getDomainContext(makeHypothesis({ domain: ["medicine"] })).domain).toBe("Medicine");
     expect(getDomainContext(makeHypothesis({ domain: ["education"] })).domain).toBe("Education");
-    expect(getDomainContext(makeHypothesis({ domain: ["social_science"] })).domain).toBe("Social Science");
+    expect(getDomainContext(makeHypothesis({ domain: ["social_science"] })).domain).toBe(
+      "Social Science",
+    );
     expect(getDomainContext(makeHypothesis({ domain: ["unknown_domain"] })).domain).toBe("General");
   });
 
@@ -891,9 +928,21 @@ describe("operators/scale-check", () => {
     const sessionNeedsInfo = {
       generatedContent: {},
       userSelections: {
-        [SCALE_CHECK_STEP_IDS.QUANTIFY]: { type: "estimate", estimate: "medium", direction: "change" },
-        [SCALE_CHECK_STEP_IDS.PRECISION]: { isDetectable: null, powerNotes: "pending", warnings: [] },
-        [SCALE_CHECK_STEP_IDS.PRACTICAL]: { isPracticallyMeaningful: null, stakeholders: [], reasoning: "tbd" },
+        [SCALE_CHECK_STEP_IDS.QUANTIFY]: {
+          type: "estimate",
+          estimate: "medium",
+          direction: "change",
+        },
+        [SCALE_CHECK_STEP_IDS.PRECISION]: {
+          isDetectable: null,
+          powerNotes: "pending",
+          warnings: [],
+        },
+        [SCALE_CHECK_STEP_IDS.PRACTICAL]: {
+          isPracticallyMeaningful: null,
+          stakeholders: [],
+          reasoning: "tbd",
+        },
         [SCALE_CHECK_STEP_IDS.POPULATION]: [],
       },
       notes: "",
@@ -913,9 +962,17 @@ describe("operators/scale-check", () => {
         },
       },
       userSelections: {
-        [SCALE_CHECK_STEP_IDS.QUANTIFY]: { type: "estimate", estimate: "medium", direction: "change" },
+        [SCALE_CHECK_STEP_IDS.QUANTIFY]: {
+          type: "estimate",
+          estimate: "medium",
+          direction: "change",
+        },
         [SCALE_CHECK_STEP_IDS.PRECISION]: { isDetectable: true, powerNotes: "ok", warnings: [] },
-        [SCALE_CHECK_STEP_IDS.PRACTICAL]: { isPracticallyMeaningful: true, stakeholders: ["users"], reasoning: "ok" },
+        [SCALE_CHECK_STEP_IDS.PRACTICAL]: {
+          isPracticallyMeaningful: true,
+          stakeholders: ["users"],
+          reasoning: "ok",
+        },
         [SCALE_CHECK_STEP_IDS.POPULATION]: [],
       },
       notes: "",
@@ -935,9 +992,21 @@ describe("operators/scale-check", () => {
         },
       },
       userSelections: {
-        [SCALE_CHECK_STEP_IDS.QUANTIFY]: { type: "estimate", estimate: "medium", direction: "change" },
-        [SCALE_CHECK_STEP_IDS.PRECISION]: { isDetectable: true, powerNotes: "adequate", warnings: [] },
-        [SCALE_CHECK_STEP_IDS.PRACTICAL]: { isPracticallyMeaningful: true, stakeholders: ["users"], reasoning: "clear" },
+        [SCALE_CHECK_STEP_IDS.QUANTIFY]: {
+          type: "estimate",
+          estimate: "medium",
+          direction: "change",
+        },
+        [SCALE_CHECK_STEP_IDS.PRECISION]: {
+          isDetectable: true,
+          powerNotes: "adequate",
+          warnings: [],
+        },
+        [SCALE_CHECK_STEP_IDS.PRACTICAL]: {
+          isPracticallyMeaningful: true,
+          stakeholders: ["users"],
+          reasoning: "clear",
+        },
         [SCALE_CHECK_STEP_IDS.POPULATION]: [],
       },
       notes: "",
@@ -980,7 +1049,10 @@ describe("operators/scale-check", () => {
     session = sessionReducer(session, {
       type: "SET_CONTENT",
       key: SCALE_CHECK_STEP_IDS.CONTEXTUALIZE,
-      value: generateContextComparison({ type: "r", value: 0.05, direction: "increase" }, getDomainContext(hypothesis)),
+      value: generateContextComparison(
+        { type: "r", value: 0.05, direction: "increase" },
+        getDomainContext(hypothesis),
+      ),
     });
     expect(contextStep?.isComplete?.(session)).toBe(true);
 

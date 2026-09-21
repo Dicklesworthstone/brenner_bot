@@ -20,27 +20,23 @@
  * ```
  */
 
-import * as React from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { cn } from "@/lib/utils";
+import { AnimatePresence, motion } from "framer-motion";
 import {
-  composeExcerpt,
-  type ExcerptSection,
-  type ComposedExcerpt,
-} from "@/lib/excerpt-builder";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import {
-  Plus,
-  X,
+  AlertCircle,
+  ChevronDown,
+  ChevronUp,
   Clipboard,
   ClipboardCheck,
   Download,
+  Plus,
   Trash2,
-  ChevronDown,
-  ChevronUp,
-  AlertCircle,
+  X,
 } from "lucide-react";
+import * as React from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { type ComposedExcerpt, composeExcerpt, type ExcerptSection } from "@/lib/excerpt-builder";
+import { cn } from "@/lib/utils";
 
 // Animation spring config for smooth, responsive feel
 const springConfig = {
@@ -118,7 +114,7 @@ function useLocalStorage<T>(key: string, initialValue: T) {
         console.warn("Failed to save to localStorage:", error);
       }
     },
-    [key, storedValue]
+    [key, storedValue],
   );
 
   return [storedValue, setValue] as const;
@@ -154,7 +150,7 @@ export function ExcerptBasket({
         setLocalItems(updater);
       }
     },
-    [isControlled, controlledItems, onItemsChange, setLocalItems]
+    [isControlled, controlledItems, onItemsChange, setLocalItems],
   );
 
   const [excerptTheme, setExcerptTheme] = React.useState(theme ?? "");
@@ -189,7 +185,7 @@ export function ExcerptBasket({
     (id: string) => {
       setItems((prev) => prev.filter((item) => item.id !== id));
     },
-    [setItems]
+    [setItems],
   );
 
   // Reorder items
@@ -202,7 +198,7 @@ export function ExcerptBasket({
         return newItems;
       });
     },
-    [setItems]
+    [setItems],
   );
 
   // Clear all items
@@ -270,11 +266,14 @@ export function ExcerptBasket({
               <X className="size-4" />
             </Button>
           )}
-          <motion.div
-            animate={{ rotate: isExpanded ? 180 : 0 }}
-            transition={springConfig}
-          >
-            <Button type="button" variant="ghost" size="sm" className="size-8 p-0" aria-label="Toggle excerpt basket">
+          <motion.div animate={{ rotate: isExpanded ? 180 : 0 }} transition={springConfig}>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="size-8 p-0"
+              aria-label="Toggle excerpt basket"
+            >
               <ChevronDown className="size-4" />
             </Button>
           </motion.div>
@@ -305,98 +304,98 @@ export function ExcerptBasket({
             className="overflow-hidden"
           >
             <div className="p-4 space-y-4">
-          {/* Theme Input */}
-          <Input
-            value={excerptTheme}
-            onChange={(e) => setExcerptTheme(e.target.value)}
-            placeholder="Excerpt theme (optional)"
-            className="text-sm"
-          />
+              {/* Theme Input */}
+              <Input
+                value={excerptTheme}
+                onChange={(e) => setExcerptTheme(e.target.value)}
+                placeholder="Excerpt theme (optional)"
+                className="text-sm"
+              />
 
-          {/* Items List */}
-          {items.length === 0 ? (
-            <EmptyState />
-          ) : (
-            <div className="space-y-2">
-              {items.map((item, index) => (
-                <BasketItemRow
-                  key={item.id}
-                  item={item}
-                  index={index}
-                  totalItems={items.length}
-                  onRemove={() => removeItem(item.id)}
-                  onMoveUp={() => moveItem(index, Math.max(0, index - 1))}
-                  onMoveDown={() => moveItem(index, Math.min(items.length - 1, index + 1))}
-                />
-              ))}
-            </div>
-          )}
-
-          {/* Warnings */}
-          {composed && composed.warnings.length > 0 && (
-            <div className="flex items-start gap-2 p-3 rounded-lg bg-amber-500/10 border border-amber-500/20">
-              <AlertCircle className="size-4 text-amber-500 mt-0.5 flex-shrink-0" />
-              <div className="text-sm text-amber-600 dark:text-amber-400">
-                {composed.warnings.map((w, i) => (
-                  <p key={i}>{w}</p>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Stats */}
-          {composed && (
-            <div className="flex items-center gap-4 text-xs text-muted-foreground">
-              <span>{composed.anchors.length} sections</span>
-              <span>~{composed.wordCount} words</span>
-            </div>
-          )}
-
-          {/* Actions */}
-          <div className="flex items-center gap-2 pt-2 border-t border-border/50">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={copyToClipboard}
-              disabled={!composed || items.length === 0}
-              className="gap-2"
-            >
-              {copied ? (
-                <>
-                  <ClipboardCheck className="size-4" />
-                  Copied!
-                </>
+              {/* Items List */}
+              {items.length === 0 ? (
+                <EmptyState />
               ) : (
-                <>
-                  <Clipboard className="size-4" />
-                  Copy
-                </>
+                <div className="space-y-2">
+                  {items.map((item, index) => (
+                    <BasketItemRow
+                      key={item.id}
+                      item={item}
+                      index={index}
+                      totalItems={items.length}
+                      onRemove={() => removeItem(item.id)}
+                      onMoveUp={() => moveItem(index, Math.max(0, index - 1))}
+                      onMoveDown={() => moveItem(index, Math.min(items.length - 1, index + 1))}
+                    />
+                  ))}
+                </div>
               )}
-            </Button>
-            {onExport && (
-              <Button
-                variant="default"
-                size="sm"
-                onClick={handleExport}
-                disabled={!composed || items.length === 0}
-                className="gap-2"
-              >
-                <Download className="size-4" />
-                {exportLabel ?? "Export"}
-              </Button>
-            )}
-            <div className="flex-1" />
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={clearBasket}
-              disabled={items.length === 0}
-              className="text-destructive hover:text-destructive gap-2"
-            >
-              <Trash2 className="size-4" />
-              Clear
-            </Button>
-          </div>
+
+              {/* Warnings */}
+              {composed && composed.warnings.length > 0 && (
+                <div className="flex items-start gap-2 p-3 rounded-lg bg-amber-500/10 border border-amber-500/20">
+                  <AlertCircle className="size-4 text-amber-500 mt-0.5 flex-shrink-0" />
+                  <div className="text-sm text-amber-600 dark:text-amber-400">
+                    {composed.warnings.map((w, i) => (
+                      <p key={i}>{w}</p>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Stats */}
+              {composed && (
+                <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                  <span>{composed.anchors.length} sections</span>
+                  <span>~{composed.wordCount} words</span>
+                </div>
+              )}
+
+              {/* Actions */}
+              <div className="flex items-center gap-2 pt-2 border-t border-border/50">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={copyToClipboard}
+                  disabled={!composed || items.length === 0}
+                  className="gap-2"
+                >
+                  {copied ? (
+                    <>
+                      <ClipboardCheck className="size-4" />
+                      Copied!
+                    </>
+                  ) : (
+                    <>
+                      <Clipboard className="size-4" />
+                      Copy
+                    </>
+                  )}
+                </Button>
+                {onExport && (
+                  <Button
+                    variant="default"
+                    size="sm"
+                    onClick={handleExport}
+                    disabled={!composed || items.length === 0}
+                    className="gap-2"
+                  >
+                    <Download className="size-4" />
+                    {exportLabel ?? "Export"}
+                  </Button>
+                )}
+                <div className="flex-1" />
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={clearBasket}
+                  disabled={items.length === 0}
+                  className="text-destructive hover:text-destructive gap-2"
+                >
+                  <Trash2 className="size-4" />
+                  Clear
+                </Button>
+              </div>
             </div>
           </motion.div>
         )}
@@ -417,7 +416,8 @@ function EmptyState() {
       </div>
       <h4 className="text-sm font-medium text-foreground mb-1">No selections yet</h4>
       <p className="text-xs text-muted-foreground max-w-xs mx-auto">
-        Use search (Cmd+K) to find transcript sections/quotes, then click the + icon (or press ⇧ + Enter) to add them here.
+        Use search (Cmd+K) to find transcript sections/quotes, then click the + icon (or press ⇧ +
+        Enter) to add them here.
       </p>
     </div>
   );
@@ -478,14 +478,10 @@ function BasketItemRow({
             {item.anchor}
           </span>
           {item.title && (
-            <span className="text-sm font-medium text-foreground truncate">
-              {item.title}
-            </span>
+            <span className="text-sm font-medium text-foreground truncate">{item.title}</span>
           )}
         </div>
-        <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed">
-          {item.quote}
-        </p>
+        <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed">{item.quote}</p>
       </div>
 
       {/* Remove Button - always visible on touch, hover on desktop */}

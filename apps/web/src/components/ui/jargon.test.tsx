@@ -10,7 +10,7 @@
 
 import { act, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, it, vi, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { Jargon } from "@/components/jargon";
 import { getJargon, jargonDictionary } from "@/lib/jargon";
 
@@ -332,7 +332,7 @@ describe("Jargon", () => {
           <Jargon term="c-elegans" />
           <Jargon term="level-split" />
           <Jargon term="recode" />
-        </div>
+        </div>,
       );
 
       expect(screen.getAllByRole("button")).toHaveLength(3);
@@ -380,13 +380,7 @@ describe("Jargon", () => {
     });
 
     it("includes core biology terms", () => {
-      const biologyTerms = [
-        "c-elegans",
-        "genetic-code",
-        "mrna",
-        "phenotype",
-        "genotype",
-      ];
+      const biologyTerms = ["c-elegans", "genetic-code", "mrna", "phenotype", "genotype"];
 
       for (const term of biologyTerms) {
         expect(getJargon(term), `Missing biology term: ${term}`).toBeDefined();
@@ -394,14 +388,7 @@ describe("Jargon", () => {
     });
 
     it("includes project-specific terms", () => {
-      const projectTerms = [
-        "agent-mail",
-        "thread",
-        "kickoff",
-        "artifact",
-        "corpus",
-        "beads",
-      ];
+      const projectTerms = ["agent-mail", "thread", "kickoff", "artifact", "corpus", "beads"];
 
       for (const term of projectTerms) {
         expect(getJargon(term), `Missing project term: ${term}`).toBeDefined();

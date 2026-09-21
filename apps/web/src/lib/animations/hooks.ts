@@ -8,8 +8,8 @@
 
 "use client";
 
-import { useEffect, useState, useCallback, useRef, useMemo, useSyncExternalStore } from "react";
-import { useScroll, useTransform, useSpring, type MotionValue } from "framer-motion";
+import { type MotionValue, useScroll, useSpring, useTransform } from "framer-motion";
+import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { TIMING } from "./motion-variants";
 
 // ============================================================================
@@ -35,7 +35,7 @@ export function useReducedMotion(): boolean {
       return () => mediaQuery.removeEventListener("change", callback);
     },
     () => window.matchMedia("(prefers-reduced-motion: reduce)").matches,
-    () => false // Server snapshot
+    () => false, // Server snapshot
   );
 }
 
@@ -59,7 +59,7 @@ export function useAnimationPreference() {
       microDuration: prefersReducedMotion ? 0 : TIMING.micro,
       slowDuration: prefersReducedMotion ? 0 : TIMING.slow,
     }),
-    [prefersReducedMotion]
+    [prefersReducedMotion],
   );
 }
 
@@ -139,7 +139,7 @@ interface UseScrollProgressOptions {
  */
 export function useScrollProgress(
   elementRef: React.RefObject<HTMLElement | null>,
-  options: UseScrollProgressOptions = {}
+  options: UseScrollProgressOptions = {},
 ): MotionValue<number> {
   const { offset = ["start end", "end start"] } = options;
 
@@ -188,7 +188,7 @@ export function useScrollVelocity(): MotionValue<number> {
 
   const velocity = useSpring(
     useTransform(scrollY, (current) => current),
-    { stiffness: 100, damping: 20 }
+    { stiffness: 100, damping: 20 },
   );
 
   return velocity;
@@ -219,11 +219,7 @@ export function useScrollVelocity(): MotionValue<number> {
  * }
  * ```
  */
-export function useStaggerDelays(
-  count: number,
-  baseDelay = 0,
-  staggerDelay = 75
-): number[] {
+export function useStaggerDelays(count: number, baseDelay = 0, staggerDelay = 75): number[] {
   return useMemo(() => {
     const delays: number[] = [];
     for (let i = 0; i < count; i++) {
@@ -271,7 +267,7 @@ interface UseIntersectionAnimationOptions {
  * ```
  */
 export function useIntersectionAnimation<T extends HTMLElement = HTMLDivElement>(
-  options: UseIntersectionAnimationOptions = {}
+  options: UseIntersectionAnimationOptions = {},
 ) {
   const {
     threshold = 0.1,
@@ -311,7 +307,7 @@ export function useIntersectionAnimation<T extends HTMLElement = HTMLDivElement>
           setIsInView(false);
         }
       },
-      { threshold, rootMargin }
+      { threshold, rootMargin },
     );
 
     observer.observe(element);

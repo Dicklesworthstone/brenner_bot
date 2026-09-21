@@ -12,10 +12,7 @@
  */
 
 import type { HypothesisCard } from "../hypothesis";
-import type {
-  OperatorStepConfig,
-  OperatorSession,
-} from "./framework";
+import type { OperatorSession, OperatorStepConfig } from "./framework";
 
 // ============================================================================
 // Types
@@ -41,12 +38,12 @@ export interface Level {
  * Categories of analysis levels
  */
 export type LevelCategory =
-  | "temporal"       // Acute vs chronic, immediate vs delayed
-  | "measurement"    // How is the variable operationalized?
-  | "population"     // Who is affected? Individual vs group
-  | "mechanism"      // What pathway? Direct vs indirect
+  | "temporal" // Acute vs chronic, immediate vs delayed
+  | "measurement" // How is the variable operationalized?
+  | "population" // Who is affected? Individual vs group
+  | "mechanism" // What pathway? Direct vs indirect
   | "implementation" // Platform level vs algorithm level
-  | "scale"          // Micro vs macro effects
+  | "scale" // Micro vs macro effects
   | "other";
 
 /**
@@ -117,7 +114,7 @@ export const LEVEL_SPLIT_STEP_IDS = {
  */
 function hasXLevelsSelected(session: OperatorSession): boolean {
   const xLevels = session.userSelections[LEVEL_SPLIT_STEP_IDS.IDENTIFY_X] as Level[] | undefined;
-  return Array.isArray(xLevels) && xLevels.some(l => l.selected);
+  return Array.isArray(xLevels) && xLevels.some((l) => l.selected);
 }
 
 /**
@@ -125,22 +122,26 @@ function hasXLevelsSelected(session: OperatorSession): boolean {
  */
 function hasYLevelsSelected(session: OperatorSession): boolean {
   const yLevels = session.userSelections[LEVEL_SPLIT_STEP_IDS.IDENTIFY_Y] as Level[] | undefined;
-  return Array.isArray(yLevels) && yLevels.some(l => l.selected);
+  return Array.isArray(yLevels) && yLevels.some((l) => l.selected);
 }
 
 /**
  * Check if combinations have been selected
  */
 function hasCombinationsSelected(session: OperatorSession): boolean {
-  const combinations = session.userSelections[LEVEL_SPLIT_STEP_IDS.REVIEW_MATRIX] as LevelCombination[] | undefined;
-  return Array.isArray(combinations) && combinations.some(c => c.selected);
+  const combinations = session.userSelections[LEVEL_SPLIT_STEP_IDS.REVIEW_MATRIX] as
+    | LevelCombination[]
+    | undefined;
+  return Array.isArray(combinations) && combinations.some((c) => c.selected);
 }
 
 /**
  * Check if sub-hypotheses have been generated
  */
 function hasSubHypotheses(session: OperatorSession): boolean {
-  const subs = session.generatedContent[LEVEL_SPLIT_STEP_IDS.GENERATE_SUB] as SubHypothesis[] | undefined;
+  const subs = session.generatedContent[LEVEL_SPLIT_STEP_IDS.GENERATE_SUB] as
+    | SubHypothesis[]
+    | undefined;
   return Array.isArray(subs) && subs.length > 0;
 }
 
@@ -186,8 +187,7 @@ Select all levels that could apply to your X variable.
   {
     id: LEVEL_SPLIT_STEP_IDS.IDENTIFY_Y,
     name: "Identify Y Levels",
-    description:
-      "Now consider your outcome (Y). It also spans multiple levels of analysis.",
+    description: "Now consider your outcome (Y). It also spans multiple levels of analysis.",
     helpText: `
 **Why this matters:**
 Outcomes are measured and defined in many ways. "Depression" could mean:
@@ -232,8 +232,10 @@ Select only the combinations that apply to your research question.
           warnings: [],
         };
       }
-      const combinations = session.userSelections[LEVEL_SPLIT_STEP_IDS.REVIEW_MATRIX] as LevelCombination[];
-      const selectedCount = combinations.filter(c => c.selected).length;
+      const combinations = session.userSelections[
+        LEVEL_SPLIT_STEP_IDS.REVIEW_MATRIX
+      ] as LevelCombination[];
+      const selectedCount = combinations.filter((c) => c.selected).length;
       if (selectedCount > 5) {
         return {
           valid: true,
@@ -260,8 +262,7 @@ investigated independently.
   {
     id: LEVEL_SPLIT_STEP_IDS.CHOOSE_FOCUS,
     name: "Choose Focus",
-    description:
-      "Which sub-hypothesis will you pursue first? The others can be addressed later.",
+    description: "Which sub-hypothesis will you pursue first? The others can be addressed later.",
     helpText: `
 **Why focus matters:**
 Brenner emphasized focusing ruthlessly. You can't investigate everything
@@ -486,13 +487,14 @@ export function generateXLevels(hypothesis: HypothesisCard): Level[] {
   levels.push(...X_LEVEL_TEMPLATES.mechanism);
 
   // Add population levels if domain includes social/psych
-  const domains = hypothesis.domain.map(d => d.toLowerCase());
+  const domains = hypothesis.domain.map((d) => d.toLowerCase());
   if (
-    domains.some(d =>
-      d.includes("social") ||
-      d.includes("psych") ||
-      d.includes("health") ||
-      d.includes("epidemiology")
+    domains.some(
+      (d) =>
+        d.includes("social") ||
+        d.includes("psych") ||
+        d.includes("health") ||
+        d.includes("epidemiology"),
     )
   ) {
     levels.push(...X_LEVEL_TEMPLATES.population);
@@ -500,11 +502,12 @@ export function generateXLevels(hypothesis: HypothesisCard): Level[] {
 
   // Add implementation levels if domain includes tech/media
   if (
-    domains.some(d =>
-      d.includes("tech") ||
-      d.includes("media") ||
-      d.includes("digital") ||
-      d.includes("software")
+    domains.some(
+      (d) =>
+        d.includes("tech") ||
+        d.includes("media") ||
+        d.includes("digital") ||
+        d.includes("software"),
     )
   ) {
     levels.push(...X_LEVEL_TEMPLATES.implementation);
@@ -529,13 +532,14 @@ export function generateYLevels(hypothesis: HypothesisCard): Level[] {
   levels.push(...Y_LEVEL_TEMPLATES.mechanism);
 
   // Add population levels if relevant
-  const domains = hypothesis.domain.map(d => d.toLowerCase());
+  const domains = hypothesis.domain.map((d) => d.toLowerCase());
   if (
-    domains.some(d =>
-      d.includes("social") ||
-      d.includes("psych") ||
-      d.includes("health") ||
-      d.includes("epidemiology")
+    domains.some(
+      (d) =>
+        d.includes("social") ||
+        d.includes("psych") ||
+        d.includes("health") ||
+        d.includes("epidemiology"),
     )
   ) {
     levels.push(...Y_LEVEL_TEMPLATES.population);
@@ -550,12 +554,9 @@ export function generateYLevels(hypothesis: HypothesisCard): Level[] {
 /**
  * Generate the level combination matrix
  */
-export function generateCombinationMatrix(
-  xLevels: Level[],
-  yLevels: Level[]
-): LevelCombination[] {
-  const selectedXLevels = xLevels.filter(l => l.selected);
-  const selectedYLevels = yLevels.filter(l => l.selected);
+export function generateCombinationMatrix(xLevels: Level[], yLevels: Level[]): LevelCombination[] {
+  const selectedXLevels = xLevels.filter((l) => l.selected);
+  const selectedYLevels = yLevels.filter((l) => l.selected);
 
   const combinations: LevelCombination[] = [];
 
@@ -577,7 +578,7 @@ export function generateCombinationMatrix(
  */
 export function generateSubHypothesis(
   originalHypothesis: HypothesisCard,
-  combination: LevelCombination
+  combination: LevelCombination,
 ): SubHypothesis {
   const id = `sub-${combination.xLevel.id}-${combination.yLevel.id}`;
 
@@ -585,7 +586,7 @@ export function generateSubHypothesis(
   const statement = refineStatement(
     originalHypothesis.statement,
     combination.xLevel,
-    combination.yLevel
+    combination.yLevel,
   );
 
   return {
@@ -599,11 +600,7 @@ export function generateSubHypothesis(
 /**
  * Refine the hypothesis statement for a specific level combination
  */
-function refineStatement(
-  originalStatement: string,
-  xLevel: Level,
-  yLevel: Level
-): string {
+function refineStatement(originalStatement: string, xLevel: Level, yLevel: Level): string {
   // Extract key parts and refine
   // This is a simplified version - could be enhanced with NLP
   const xQualifier = xLevel.name.toLowerCase();
@@ -617,18 +614,21 @@ function refineStatement(
  * Build the complete Level Split result from session state
  */
 export function buildLevelSplitResult(
-  session: OperatorSession<LevelSplitResult>
+  session: OperatorSession<LevelSplitResult>,
 ): LevelSplitResult {
   const xLevels = (session.userSelections[LEVEL_SPLIT_STEP_IDS.IDENTIFY_X] as Level[]) ?? [];
   const yLevels = (session.userSelections[LEVEL_SPLIT_STEP_IDS.IDENTIFY_Y] as Level[]) ?? [];
-  const combinations = (session.userSelections[LEVEL_SPLIT_STEP_IDS.REVIEW_MATRIX] as LevelCombination[]) ?? [];
-  const subHypotheses = (session.generatedContent[LEVEL_SPLIT_STEP_IDS.GENERATE_SUB] as SubHypothesis[]) ?? [];
-  const focusedHypothesisId = (session.userSelections[LEVEL_SPLIT_STEP_IDS.CHOOSE_FOCUS] as string) ?? null;
+  const combinations =
+    (session.userSelections[LEVEL_SPLIT_STEP_IDS.REVIEW_MATRIX] as LevelCombination[]) ?? [];
+  const subHypotheses =
+    (session.generatedContent[LEVEL_SPLIT_STEP_IDS.GENERATE_SUB] as SubHypothesis[]) ?? [];
+  const focusedHypothesisId =
+    (session.userSelections[LEVEL_SPLIT_STEP_IDS.CHOOSE_FOCUS] as string) ?? null;
 
   return {
-    xLevels: xLevels.filter(l => l.selected),
-    yLevels: yLevels.filter(l => l.selected),
-    selectedCombinations: combinations.filter(c => c.selected),
+    xLevels: xLevels.filter((l) => l.selected),
+    yLevels: yLevels.filter((l) => l.selected),
+    selectedCombinations: combinations.filter((c) => c.selected),
     subHypotheses,
     focusedHypothesisId,
   };

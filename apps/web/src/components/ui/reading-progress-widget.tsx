@@ -64,21 +64,10 @@ export function ReadingProgressWidget({
   const strokeDashoffset = circumference - (progress / 100) * circumference;
 
   return (
-    <div
-      className={cn(
-        "reading-widget",
-        visible && "visible",
-        className
-      )}
-    >
+    <div className={cn("reading-widget", visible && "visible", className)}>
       <div className="reading-widget-progress">
         <svg viewBox="0 0 48 48">
-          <circle
-            className="reading-widget-progress-bg"
-            cx="24"
-            cy="24"
-            r={radius}
-          />
+          <circle className="reading-widget-progress-bg" cx="24" cy="24" r={radius} />
           <circle
             className="reading-widget-progress-bar"
             cx="24"
@@ -88,9 +77,7 @@ export function ReadingProgressWidget({
             strokeDashoffset={strokeDashoffset}
           />
         </svg>
-        <span className="reading-widget-text">
-          {Math.round(progress)}%
-        </span>
+        <span className="reading-widget-text">{Math.round(progress)}%</span>
       </div>
       {showTimeEstimate && timeRemaining && (
         <div className="reading-widget-time">{timeRemaining}</div>

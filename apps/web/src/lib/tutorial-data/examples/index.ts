@@ -33,7 +33,8 @@ export function getTutorialDomainExample(slug: string): TutorialDomainExample | 
   return TUTORIAL_DOMAIN_EXAMPLES.find((ex) => ex.slug === slug);
 }
 
-export function getTutorialDomainExamplesByDomain(domain: TutorialExampleDomain): TutorialDomainExample[] {
+export function getTutorialDomainExamplesByDomain(
+  domain: TutorialExampleDomain,
+): TutorialDomainExample[] {
   return TUTORIAL_DOMAIN_EXAMPLES.filter((ex) => ex.domain === domain);
 }
-

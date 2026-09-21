@@ -8,13 +8,21 @@
  * @see brenner_bot-s797 (Tutorial Path: Quick Start)
  */
 
-import * as React from "react";
 import { useRouter } from "next/navigation";
-import { TutorialStep } from "@/components/tutorial";
-import { TutorialCodeBlock, ProTip, Note } from "@/components/tutorial";
-import { TutorialCheckpoint } from "@/components/tutorial";
+import * as React from "react";
+import {
+  Note,
+  ProTip,
+  TutorialCheckpoint,
+  TutorialCodeBlock,
+  TutorialStep,
+} from "@/components/tutorial";
 import { useTutorial } from "@/lib/tutorial-context";
-import type { TutorialStep as TutorialStepType, TroubleshootingItem, CheckpointData } from "@/lib/tutorial-types";
+import type {
+  CheckpointData,
+  TroubleshootingItem,
+  TutorialStep as TutorialStepType,
+} from "@/lib/tutorial-types";
 
 // ============================================================================
 // Step Data
@@ -30,12 +38,14 @@ const troubleshooting: TroubleshootingItem[] = [
   {
     problem: "bun install hangs or times out",
     symptoms: ["Installation seems stuck", "Network timeouts"],
-    solution: "Check your internet connection. If behind a corporate proxy, configure Bun's proxy settings.",
+    solution:
+      "Check your internet connection. If behind a corporate proxy, configure Bun's proxy settings.",
   },
   {
     problem: "Doctor command shows warnings",
     symptoms: ["Yellow warnings in doctor output"],
-    solution: "Warnings about Agent Mail or optional features are fine for Quick Start. Only errors (red) need attention.",
+    solution:
+      "Warnings about Agent Mail or optional features are fine for Quick Start. Only errors (red) need attention.",
   },
 ];
 
@@ -92,16 +102,11 @@ export default function QuickStartStep3() {
   };
 
   return (
-    <TutorialStep
-      step={stepData}
-      totalSteps={7}
-      onBack={handleBack}
-      onNext={handleNext}
-    >
+    <TutorialStep step={stepData} totalSteps={7} onBack={handleBack} onNext={handleNext}>
       <section className="space-y-6">
         <p className="text-muted-foreground leading-relaxed">
-          Now let&apos;s get BrennerBot running on your machine. This involves cloning the repository,
-          installing dependencies, and verifying everything works.
+          Now let&apos;s get BrennerBot running on your machine. This involves cloning the
+          repository, installing dependencies, and verifying everything works.
         </p>
 
         {/* Clone */}
@@ -122,8 +127,9 @@ cd brenner_bot`}
             title="Terminal"
           />
           <p className="text-sm text-muted-foreground">
-            This creates a <code className="px-1.5 py-0.5 rounded bg-muted text-foreground">brenner_bot</code> directory
-            with all the source code.
+            This creates a{" "}
+            <code className="px-1.5 py-0.5 rounded bg-muted text-foreground">brenner_bot</code>{" "}
+            directory with all the source code.
           </p>
         </div>
 
@@ -135,14 +141,8 @@ cd brenner_bot`}
             </span>
             Install Dependencies
           </h2>
-          <p className="text-sm text-muted-foreground">
-            Bun will install all required packages:
-          </p>
-          <TutorialCodeBlock
-            code="bun install"
-            language="bash"
-            title="Terminal"
-          />
+          <p className="text-sm text-muted-foreground">Bun will install all required packages:</p>
+          <TutorialCodeBlock code="bun install" language="bash" title="Terminal" />
           <p className="text-sm text-muted-foreground">
             This may take a minute or two depending on your connection. You&apos;ll see progress as
             packages are downloaded.
@@ -160,14 +160,8 @@ cd brenner_bot`}
           <p className="text-sm text-muted-foreground">
             Run the doctor command to check that everything is set up correctly:
           </p>
-          <TutorialCodeBlock
-            code="./brenner doctor"
-            language="bash"
-            title="Terminal"
-          />
-          <p className="text-sm text-muted-foreground">
-            You should see output like this:
-          </p>
+          <TutorialCodeBlock code="./brenner doctor" language="bash" title="Terminal" />
+          <p className="text-sm text-muted-foreground">You should see output like this:</p>
           <TutorialCodeBlock
             code={`BrennerBot Doctor Report
 ========================

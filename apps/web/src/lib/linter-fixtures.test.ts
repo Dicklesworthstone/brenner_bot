@@ -8,10 +8,10 @@
  * Run with: bun run test apps/web/src/lib/linter-fixtures.test.ts
  */
 
-import { describe, expect, test } from "vitest";
-import { lintArtifact, formatLintReportJson, type Artifact } from "./artifact-merge";
 import { readFileSync } from "fs";
 import { join } from "path";
+import { describe, expect, test } from "vitest";
+import { type Artifact, formatLintReportJson, lintArtifact } from "./artifact-merge";
 
 // ============================================================================
 // Fixture Loader
@@ -54,7 +54,7 @@ describe("Linter Fixtures", () => {
 
       // No structural errors
       const structuralErrors = report.violations.filter(
-        (v) => v.severity === "error" && (v.id.startsWith("ER-") || v.id.startsWith("EH-"))
+        (v) => v.severity === "error" && (v.id.startsWith("ER-") || v.id.startsWith("EH-")),
       );
       expect(structuralErrors).toHaveLength(0);
     });
@@ -171,7 +171,7 @@ describe("Linter Fixtures", () => {
       // H1 uses only evidence citations (EV-001, EV-001#E1), no transcript §n
       // Should NOT trigger WH-001 (missing anchors) warning
       const missingAnchorWarnings = report.violations.filter(
-        (v) => v.id === "WH-001" && v.message.includes("H1")
+        (v) => v.id === "WH-001" && v.message.includes("H1"),
       );
       expect(missingAnchorWarnings).toHaveLength(0);
     });
@@ -183,7 +183,7 @@ describe("Linter Fixtures", () => {
       // H2 uses mixed evidence (EV-001#E2) + transcript (§155)
       // Should NOT trigger any anchor warnings
       const h2Warnings = report.violations.filter(
-        (v) => v.message.includes("H2") && v.id.includes("-P")
+        (v) => v.message.includes("H2") && v.id.includes("-P"),
       );
       expect(h2Warnings).toHaveLength(0);
     });
@@ -205,7 +205,7 @@ describe("Linter Fixtures", () => {
       // H3 uses EV-003#E1 + [inference]
       // The evidence citation provides context, so WP-P02 should not fire
       const pureInferenceWarnings = report.violations.filter(
-        (v) => v.id === "WP-P02" && v.message.includes("H3")
+        (v) => v.id === "WP-P02" && v.message.includes("H3"),
       );
       expect(pureInferenceWarnings).toHaveLength(0);
     });

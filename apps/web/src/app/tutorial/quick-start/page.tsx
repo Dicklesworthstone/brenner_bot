@@ -1,4 +1,4 @@
-import { Metadata } from "next";
+import type { Metadata } from "next";
 import Link from "next/link";
 import { HeroBackground } from "@/components/ui/animated-element";
 
@@ -12,32 +12,68 @@ export const metadata: Metadata = {
 // ============================================================================
 
 const ArrowLeftIcon = () => (
-  <svg className="size-4 transition-transform group-hover:-translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+  <svg
+    className="size-4 transition-transform group-hover:-translate-x-1"
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+    strokeWidth={2}
+  >
     <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
   </svg>
 );
 
 const ArrowRightIcon = () => (
-  <svg className="size-4 transition-transform group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+  <svg
+    className="size-4 transition-transform group-hover:translate-x-1"
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+    strokeWidth={2}
+  >
     <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
   </svg>
 );
 
 const RocketIcon = () => (
   <svg className="size-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M15.59 14.37a6 6 0 01-5.84 7.38v-4.8m5.84-2.58a14.98 14.98 0 006.16-12.12A14.98 14.98 0 009.631 8.41m5.96 5.96a14.926 14.926 0 01-5.841 2.58m-.119-8.54a6 6 0 00-7.381 5.84h4.8m2.581-5.84a14.927 14.927 0 00-2.58 5.84m2.699 2.7c-.103.021-.207.041-.311.06a15.09 15.09 0 01-2.448-2.448 14.9 14.9 0 01.06-.312m-2.24 2.39a4.493 4.493 0 00-1.757 4.306 4.493 4.493 0 004.306-1.758M16.5 9a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z" />
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M15.59 14.37a6 6 0 01-5.84 7.38v-4.8m5.84-2.58a14.98 14.98 0 006.16-12.12A14.98 14.98 0 009.631 8.41m5.96 5.96a14.926 14.926 0 01-5.841 2.58m-.119-8.54a6 6 0 00-7.381 5.84h4.8m2.581-5.84a14.927 14.927 0 00-2.58 5.84m2.699 2.7c-.103.021-.207.041-.311.06a15.09 15.09 0 01-2.448-2.448 14.9 14.9 0 01.06-.312m-2.24 2.39a4.493 4.493 0 00-1.757 4.306 4.493 4.493 0 004.306-1.758M16.5 9a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z"
+    />
   </svg>
 );
 
 const CheckCircleIcon = () => (
-  <svg className="size-5 text-[oklch(0.72_0.19_145)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+  <svg
+    className="size-5 text-[oklch(0.72_0.19_145)]"
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+    strokeWidth={2}
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+    />
   </svg>
 );
 
 const ClockIcon = () => (
-  <svg className="size-4 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+  <svg
+    className="size-4 text-muted-foreground"
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+    strokeWidth={1.5}
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"
+    />
   </svg>
 );
 
@@ -50,7 +86,8 @@ const steps = [
     number: 1,
     title: "What Is This?",
     duration: "~3 min",
-    description: "Understand BrennerBot, the Two Axioms, and what you'll produce by the end of this tutorial.",
+    description:
+      "Understand BrennerBot, the Two Axioms, and what you'll produce by the end of this tutorial.",
     whatYouLearn: [
       "Sydney Brenner's methodology in 60 seconds",
       "The Two Axioms that underpin scientific inquiry",
@@ -60,7 +97,8 @@ const steps = [
     number: 2,
     title: "Prerequisites",
     duration: "~2 min",
-    description: "Verify you have Git, terminal access, and Bun installed. Quick checks for all platforms.",
+    description:
+      "Verify you have Git, terminal access, and Bun installed. Quick checks for all platforms.",
     whatYouLearn: [
       "Confirming your development environment is ready",
       "Platform-specific setup tips (Mac, Windows, Linux)",
@@ -70,7 +108,8 @@ const steps = [
     number: 3,
     title: "Clone & Install",
     duration: "~5 min",
-    description: "Get the BrennerBot repository and install dependencies. Verify with the doctor command.",
+    description:
+      "Get the BrennerBot repository and install dependencies. Verify with the doctor command.",
     whatYouLearn: [
       "Setting up the local BrennerBot environment",
       "Using the doctor command to verify installation",
@@ -80,7 +119,8 @@ const steps = [
     number: 4,
     title: "Search the Corpus",
     duration: "~5 min",
-    description: "Learn to search Brenner's wisdom using the CLI. Find relevant quotes with §n anchors.",
+    description:
+      "Learn to search Brenner's wisdom using the CLI. Find relevant quotes with §n anchors.",
     whatYouLearn: [
       "How corpus search returns transcript segments",
       "Using §n references for stable citations",
@@ -90,7 +130,8 @@ const steps = [
     number: 5,
     title: "Build an Excerpt",
     duration: "~5 min",
-    description: "Compose relevant transcript sections into a curated excerpt for your research question.",
+    description:
+      "Compose relevant transcript sections into a curated excerpt for your research question.",
     whatYouLearn: [
       "Why excerpts matter for grounding your research",
       "Building a personalized Brenner reference document",
@@ -110,7 +151,8 @@ const steps = [
     number: 7,
     title: "Understand the Output",
     duration: "~5 min",
-    description: "Walk through each artifact section and understand why it matters for rigorous research.",
+    description:
+      "Walk through each artifact section and understand why it matters for rigorous research.",
     whatYouLearn: [
       "The anatomy of a Brenner research artifact",
       "Connecting outputs back to the Brenner operators",
@@ -158,8 +200,8 @@ export default function QuickStartPage() {
           </h1>
 
           <p className="max-w-xl mx-auto text-base sm:text-lg text-muted-foreground leading-relaxed">
-            Apply the Brenner method to your research question in 30 minutes.
-            No complex infrastructure required — just a terminal, git, bun, and any AI chat interface.
+            Apply the Brenner method to your research question in 30 minutes. No complex
+            infrastructure required — just a terminal, git, bun, and any AI chat interface.
           </p>
 
           <div className="flex items-center justify-center gap-4 text-sm text-muted-foreground">
@@ -236,8 +278,8 @@ export default function QuickStartPage() {
         <div className="max-w-xl mx-auto text-center space-y-6 p-8 rounded-2xl border border-primary/30 bg-gradient-to-br from-primary/5 via-primary/10 to-accent/5">
           <h3 className="text-xl font-semibold">Ready to Begin?</h3>
           <p className="text-sm text-muted-foreground">
-            Start with Step 1 to learn what BrennerBot is and what you&apos;ll create.
-            The full tutorial takes about 30 minutes.
+            Start with Step 1 to learn what BrennerBot is and what you&apos;ll create. The full
+            tutorial takes about 30 minutes.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
             <Link

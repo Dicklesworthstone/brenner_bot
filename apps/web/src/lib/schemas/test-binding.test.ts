@@ -10,19 +10,19 @@
  * @see @/lib/schemas/test-binding.ts
  */
 
-import { describe, expect, it, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
+import type { Hypothesis } from "./hypothesis";
+import type { Prediction } from "./prediction";
 import {
-  recordTestExecution,
-  suggestTransitionsFromExecution,
   applyTransitionSuggestions,
-  processTestExecution,
   categorizePredictions,
   type ExecutionInput,
+  processTestExecution,
+  recordTestExecution,
+  suggestTransitionsFromExecution,
   type TransitionSuggestion,
 } from "./test-binding";
-import type { Hypothesis } from "./hypothesis";
 import type { TestRecord } from "./test-record";
-import type { Prediction } from "./prediction";
 
 // ============================================================================
 // Test Fixtures
@@ -174,9 +174,9 @@ describe("recordTestExecution", () => {
       const result = recordTestExecution(input, test, predictions);
 
       expect(result.success).toBe(false);
-      expect(
-        result.errors.some((e) => e.includes("cannot be both matched and violated"))
-      ).toBe(true);
+      expect(result.errors.some((e) => e.includes("cannot be both matched and violated"))).toBe(
+        true,
+      );
     });
   });
 
@@ -346,7 +346,7 @@ describe("suggestTransitionsFromExecution", () => {
       const result = suggestTransitionsFromExecution(input, predictions, hypotheses);
 
       const validateSuggestions = result.suggestions.filter(
-        (s) => s.suggestedAction === "validate"
+        (s) => s.suggestedAction === "validate",
       );
       expect(validateSuggestions).toHaveLength(1);
       expect(validateSuggestions[0].hypothesisId).toBe("H-TEST-001");
@@ -360,9 +360,7 @@ describe("suggestTransitionsFromExecution", () => {
       });
 
       const result = suggestTransitionsFromExecution(input, predictions, hypotheses);
-      const validateSuggestion = result.suggestions.find(
-        (s) => s.suggestedAction === "validate"
-      );
+      const validateSuggestion = result.suggestions.find((s) => s.suggestedAction === "validate");
 
       expect(validateSuggestion).toBeDefined();
       expect(validateSuggestion!.reason).toContain("P-TEST-001");
@@ -382,9 +380,7 @@ describe("suggestTransitionsFromExecution", () => {
       const result = suggestTransitionsFromExecution(input, predictions, hypotheses);
 
       expect(result.warnings.some((w) => w.includes("H-TEST-001"))).toBe(true);
-      expect(
-        result.suggestions.every((s) => s.hypothesisId !== "H-TEST-001")
-      ).toBe(true);
+      expect(result.suggestions.every((s) => s.hypothesisId !== "H-TEST-001")).toBe(true);
     });
 
     it("warns when trying to kill already refuted hypothesis", () => {
@@ -453,7 +449,7 @@ describe("suggestTransitionsFromExecution", () => {
       // Add a hypothesis prediction with clear polarity that will be matched/violated
       predictions[0].hypothesisPredictions.push({
         hypothesisId: "H-UNKNOWN-001",
-        prediction: "Effect present",  // Clear positive polarity
+        prediction: "Effect present", // Clear positive polarity
       });
       const input = createExecutionInput({
         result: "Effect present",
@@ -471,7 +467,7 @@ describe("suggestTransitionsFromExecution", () => {
       // Add a hypothesis prediction with ambiguous polarity for a non-existent hypothesis
       predictions[0].hypothesisPredictions.push({
         hypothesisId: "H-UNKNOWN-001",
-        prediction: "Something unclear",  // Ambiguous - no polarity indicators
+        prediction: "Something unclear", // Ambiguous - no polarity indicators
       });
       const input = createExecutionInput({
         result: "Effect present",
@@ -503,7 +499,7 @@ describe("suggestTransitionsFromExecution", () => {
 
       // Use an ambiguous result (no polarity indicators like "observed", "present", etc.)
       const input = createExecutionInput({
-        result: "Inconclusive data - cannot determine outcome",  // Truly ambiguous
+        result: "Inconclusive data - cannot determine outcome", // Truly ambiguous
         matchedPredictions: ["P-TEST-001"],
         violatedPredictions: [],
       });
@@ -773,7 +769,7 @@ describe("processTestExecution", () => {
     });
 
     const appliedWithTransition = result.applyResult!.applied.find(
-      (a) => a.success && a.transition
+      (a) => a.success && a.transition,
     );
     expect(appliedWithTransition?.transition?.triggeredBy).toBe("TestAgent");
     expect(appliedWithTransition?.transition?.sessionId).toBe("SESSION-001");
@@ -791,15 +787,11 @@ describe("categorizePredictions", () => {
     predictions = [
       createTestPrediction({
         id: "P-TEST-001",
-        hypothesisPredictions: [
-          { hypothesisId: "H-TEST-001", prediction: "Effect present" },
-        ],
+        hypothesisPredictions: [{ hypothesisId: "H-TEST-001", prediction: "Effect present" }],
       }),
       createTestPrediction({
         id: "P-TEST-002",
-        hypothesisPredictions: [
-          { hypothesisId: "H-TEST-001", prediction: "No effect / absent" },
-        ],
+        hypothesisPredictions: [{ hypothesisId: "H-TEST-001", prediction: "No effect / absent" }],
       }),
     ];
   });
@@ -844,9 +836,7 @@ describe("categorizePredictions", () => {
     ];
 
     for (const { result: r, prediction: p } of indicators) {
-      predictions[0].hypothesisPredictions = [
-        { hypothesisId: "H-TEST-001", prediction: p },
-      ];
+      predictions[0].hypothesisPredictions = [{ hypothesisId: "H-TEST-001", prediction: p }];
       const categorized = categorizePredictions(r, predictions, "H-TEST-001");
       expect(categorized.matched).toContain("P-TEST-001");
     }
@@ -860,9 +850,7 @@ describe("categorizePredictions", () => {
     ];
 
     for (const { result: r, prediction: p } of indicators) {
-      predictions[0].hypothesisPredictions = [
-        { hypothesisId: "H-TEST-001", prediction: p },
-      ];
+      predictions[0].hypothesisPredictions = [{ hypothesisId: "H-TEST-001", prediction: p }];
       const categorized = categorizePredictions(r, predictions, "H-TEST-001");
       expect(categorized.matched).toContain("P-TEST-001");
     }
@@ -911,19 +899,19 @@ describe("integration scenarios", () => {
 
       // Verify H-TEST-001 is killed (its prediction of "present" was violated by "absent" result)
       const h1Suggestion = result.suggestResult!.suggestions.find(
-        (s) => s.hypothesisId === "H-TEST-001"
+        (s) => s.hypothesisId === "H-TEST-001",
       );
       expect(h1Suggestion!.suggestedAction).toBe("kill");
 
       // Verify H-TEST-002 is validated (its prediction of "absent" matched the result)
       const h2Suggestion = result.suggestResult!.suggestions.find(
-        (s) => s.hypothesisId === "H-TEST-002"
+        (s) => s.hypothesisId === "H-TEST-002",
       );
       expect(h2Suggestion!.suggestedAction).toBe("validate");
 
       // Verify transitions applied
       const killApplied = result.applyResult!.applied.find(
-        (a) => a.success && a.transition?.trigger === "refute"
+        (a) => a.success && a.transition?.trigger === "refute",
       );
       expect(killApplied).toBeDefined();
     });
@@ -961,13 +949,13 @@ describe("integration scenarios", () => {
 
       // Verify H-TEST-001 is validated (its prediction matched)
       const h1Suggestion = result.suggestResult!.suggestions.find(
-        (s) => s.hypothesisId === "H-TEST-001"
+        (s) => s.hypothesisId === "H-TEST-001",
       );
       expect(h1Suggestion!.suggestedAction).toBe("validate");
 
       // Verify transition applied
       const confirmApplied = result.applyResult!.applied.find(
-        (a) => a.success && a.transition?.trigger === "confirm"
+        (a) => a.success && a.transition?.trigger === "confirm",
       );
       expect(confirmApplied).toBeDefined();
     });
@@ -979,9 +967,7 @@ describe("integration scenarios", () => {
       const predictions = [
         createTestPrediction({
           id: "P-TEST-001",
-          hypothesisPredictions: [
-            { hypothesisId: "H-TEST-001", prediction: "Effect present" },
-          ],
+          hypothesisPredictions: [{ hypothesisId: "H-TEST-001", prediction: "Effect present" }],
         }),
       ];
       const hypotheses = [createTestHypothesis({ id: "H-TEST-001", state: "active" })];
@@ -1023,7 +1009,7 @@ describe("integration scenarios", () => {
       const result = processTestExecution(input, test, predictions, hypotheses);
 
       expect(result.recordResult.warnings.some((w) => w.includes("Potency check failed"))).toBe(
-        true
+        true,
       );
 
       // Confidence should be reduced

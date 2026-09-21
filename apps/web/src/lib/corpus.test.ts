@@ -7,16 +7,16 @@
  * Run with: cd apps/web && bun run test -- src/lib/corpus.test.ts
  */
 
-import { describe, it, expect, beforeAll, vi } from "vitest";
-import { resolve } from "node:path";
 import { access } from "node:fs/promises";
+import { resolve } from "node:path";
+import { beforeAll, describe, expect, it, vi } from "vitest";
 import {
-  CORPUS_DOCS,
   __private,
-  listCorpusDocs,
-  readCorpusDoc,
+  CORPUS_DOCS,
   type CorpusDoc,
   type DocCategory,
+  listCorpusDocs,
+  readCorpusDoc,
 } from "./corpus";
 
 // ============================================================================
@@ -39,7 +39,7 @@ beforeAll(async () => {
     } catch {
       throw new Error(
         `Required corpus file not found: ${fullPath}. ` +
-          `Ensure 'bun run build' has been executed to copy corpus files.`
+          `Ensure 'bun run build' has been executed to copy corpus files.`,
       );
     }
   }
@@ -129,7 +129,7 @@ describe("CORPUS_DOCS", () => {
     for (const model of expectedModels) {
       it(`has distillation from ${model}`, () => {
         const distillation = CORPUS_DOCS.find(
-          (d) => d.category === "distillation" && d.model === model
+          (d) => d.category === "distillation" && d.model === model,
         );
         expect(distillation).toBeDefined();
         expect(distillation?.title).toContain("Final Distillation");
@@ -218,7 +218,11 @@ describe("readCorpusDoc", () => {
     });
 
     it("reads distillation documents", async () => {
-      const distillationIds = ["distillation-gpt-52", "distillation-opus-45", "distillation-gemini-3"];
+      const distillationIds = [
+        "distillation-gpt-52",
+        "distillation-opus-45",
+        "distillation-gemini-3",
+      ];
 
       for (const id of distillationIds) {
         const result = await readCorpusDoc(id);
@@ -350,7 +354,9 @@ describe("category filtering", () => {
 
 describe("__private (internal helpers)", () => {
   it("normalizeBaseUrl strips path/query/hash and trailing slash", () => {
-    expect(__private.normalizeBaseUrl("https://example.com/a/b?x=1#y", "X")).toBe("https://example.com");
+    expect(__private.normalizeBaseUrl("https://example.com/a/b?x=1#y", "X")).toBe(
+      "https://example.com",
+    );
     expect(__private.normalizeBaseUrl("http://example.com/", "X")).toBe("http://example.com");
   });
 
@@ -414,7 +420,10 @@ describe("__private (internal helpers)", () => {
   it("fetchFromPublicUrl fetches corpus content from BRENNER_PUBLIC_BASE_URL", async () => {
     vi.stubGlobal("fetch", async (input: unknown) => {
       expect(String(input)).toContain("/_corpus/test-corpus.md");
-      return new Response("hello from corpus", { status: 200, headers: { "content-type": "text/plain" } });
+      return new Response("hello from corpus", {
+        status: 200,
+        headers: { "content-type": "text/plain" },
+      });
     });
 
     const saved = process.env.BRENNER_PUBLIC_BASE_URL;
@@ -439,7 +448,9 @@ describe("__private (internal helpers)", () => {
     process.env.BRENNER_PUBLIC_BASE_URL = "https://example.com";
 
     try {
-      await expect(__private.fetchFromPublicUrl("missing.md")).rejects.toThrow(/Failed to fetch corpus file/);
+      await expect(__private.fetchFromPublicUrl("missing.md")).rejects.toThrow(
+        /Failed to fetch corpus file/,
+      );
     } finally {
       if (saved === undefined) delete process.env.BRENNER_PUBLIC_BASE_URL;
       else process.env.BRENNER_PUBLIC_BASE_URL = saved;

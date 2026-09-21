@@ -12,7 +12,7 @@
  */
 
 import type { HypothesisCard } from "../hypothesis";
-import type { OperatorStepConfig, OperatorSession } from "./framework";
+import type { OperatorSession, OperatorStepConfig } from "./framework";
 
 // ============================================================================
 // Types
@@ -22,14 +22,14 @@ import type { OperatorStepConfig, OperatorSession } from "./framework";
  * Categories of exclusion tests, ranked by typical discriminative power
  */
 export type ExclusionTestCategory =
-  | "natural_experiment"  // ★★★★★ Find situations where cause varies naturally
-  | "cross_context"       // ★★★★★ Same cause, different context
-  | "mechanism_block"     // ★★★★★ Interrupt the proposed mechanism
-  | "dose_response"       // ★★★☆☆ More cause should mean more effect
-  | "temporal_sequence"   // ★★★☆☆ Cause must precede effect
-  | "specificity"         // ★★☆☆☆ Does cause affect only what you predict?
-  | "coherence"           // ★★☆☆☆ Does relationship fit established knowledge?
-  | "custom";             // User-defined test
+  | "natural_experiment" // ★★★★★ Find situations where cause varies naturally
+  | "cross_context" // ★★★★★ Same cause, different context
+  | "mechanism_block" // ★★★★★ Interrupt the proposed mechanism
+  | "dose_response" // ★★★☆☆ More cause should mean more effect
+  | "temporal_sequence" // ★★★☆☆ Cause must precede effect
+  | "specificity" // ★★☆☆☆ Does cause affect only what you predict?
+  | "coherence" // ★★☆☆☆ Does relationship fit established knowledge?
+  | "custom"; // User-defined test
 
 /**
  * Labels for exclusion test categories
@@ -247,8 +247,7 @@ Period. No "well, maybe..." or "it depends..."
   {
     id: EXCLUSION_TEST_STEP_IDS.SELECT_TESTS,
     name: "Select Tests",
-    description:
-      "Choose which tests to pursue. You can also add custom tests.",
+    description: "Choose which tests to pursue. You can also add custom tests.",
     helpText: `
 **Selection criteria:**
 1. **Discriminative power** - Can it definitively falsify?
@@ -282,8 +281,7 @@ actually conduct.
   {
     id: EXCLUSION_TEST_STEP_IDS.GENERATE_PROTOCOLS,
     name: "Design Protocols",
-    description:
-      "For each selected test, define what you'd need to actually run it.",
+    description: "For each selected test, define what you'd need to actually run it.",
     helpText: `
 **Protocol elements:**
 - What data do you need?
@@ -298,8 +296,7 @@ Be specific. Vague protocols lead to ambiguous results.
   {
     id: EXCLUSION_TEST_STEP_IDS.RECORD_TESTS,
     name: "Record Tests",
-    description:
-      "Confirm the tests to add to your session's test plan.",
+    description: "Confirm the tests to add to your session's test plan.",
     helpText: `
 **What happens next:**
 These tests become part of your session's test plan. You can:
@@ -464,7 +461,7 @@ function extractTerms(hypothesis: HypothesisCard): {
 
   // Try to find "X causes Y" or similar patterns
   const causeMatch = statement.match(
-    /^(.+?)\s+(?:causes?|leads?\s+to|produces?|affects?|influences?)\s+(.+?)(?:\s+(?:through|via|by)\s+(.+))?$/i
+    /^(.+?)\s+(?:causes?|leads?\s+to|produces?|affects?|influences?)\s+(.+?)(?:\s+(?:through|via|by)\s+(.+))?$/i,
   );
 
   if (causeMatch) {
@@ -487,7 +484,10 @@ function extractTerms(hypothesis: HypothesisCard): {
 /**
  * Fill a template with hypothesis terms
  */
-function fillTemplate(template: string, terms: { cause: string; effect: string; mechanism: string }): string {
+function fillTemplate(
+  template: string,
+  terms: { cause: string; effect: string; mechanism: string },
+): string {
   return template
     .replace(/\{cause\}/g, terms.cause)
     .replace(/\{effect\}/g, terms.effect)
@@ -533,7 +533,7 @@ export function createCustomTest(
   falsificationCondition: string,
   supportCondition: string,
   discriminativePower: 1 | 2 | 3 | 4 | 5 = 3,
-  feasibility: TestFeasibility = "medium"
+  feasibility: TestFeasibility = "medium",
 ): ExclusionTest {
   return {
     id: generateTestId(),
@@ -565,7 +565,8 @@ export function generateProtocolTemplate(test: ExclusionTest): TestProtocol {
     passingCriteria: test.supportCondition,
     failingCriteria: test.falsificationCondition,
     limitations: [],
-    estimatedEffort: test.feasibility === "high" ? "days" : test.feasibility === "medium" ? "weeks" : "months",
+    estimatedEffort:
+      test.feasibility === "high" ? "days" : test.feasibility === "medium" ? "weeks" : "months",
     notes: "",
   };
 }
@@ -585,7 +586,7 @@ export function generateProtocols(tests: ExclusionTest[]): TestProtocol[] {
  * Build the complete Exclusion Test result from session state
  */
 export function buildExclusionTestResult(
-  session: OperatorSession<ExclusionTestResult>
+  session: OperatorSession<ExclusionTestResult>,
 ): ExclusionTestResult {
   const generatedTests =
     (session.generatedContent[EXCLUSION_TEST_STEP_IDS.GENERATE_TESTS] as ExclusionTest[]) ?? [];

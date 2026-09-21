@@ -7,7 +7,7 @@
  * @see brenner_bot-ukd1.4 - FEATURE: Domain Templates
  */
 
-import type { DomainTemplate, DomainId, DomainOption, DomainConfound } from "./types";
+import type { DomainConfound, DomainId, DomainOption, DomainTemplate } from "./types";
 
 // ============================================================================
 // Psychology Domain Template
@@ -24,7 +24,8 @@ export const psychologyTemplate: DomainTemplate = {
     {
       id: "selection_bias",
       name: "Selection Bias",
-      description: "Participants who volunteer or are selected differ systematically from the population of interest. WEIRD samples (Western, Educated, Industrialized, Rich, Democratic) are particularly problematic.",
+      description:
+        "Participants who volunteer or are selected differ systematically from the population of interest. WEIRD samples (Western, Educated, Industrialized, Rich, Democratic) are particularly problematic.",
       whenToCheck: "Any study with voluntary participation or convenience samples",
       mitigationStrategies: [
         "Use random sampling from target population",
@@ -38,8 +39,10 @@ export const psychologyTemplate: DomainTemplate = {
     {
       id: "demand_characteristics",
       name: "Demand Characteristics",
-      description: "Participants guess the hypothesis and adjust behavior to confirm or disconfirm it. They may try to be 'good subjects' or sabotage the study.",
-      whenToCheck: "Any study where participants interact with researchers or know they're being studied",
+      description:
+        "Participants guess the hypothesis and adjust behavior to confirm or disconfirm it. They may try to be 'good subjects' or sabotage the study.",
+      whenToCheck:
+        "Any study where participants interact with researchers or know they're being studied",
       mitigationStrategies: [
         "Use deception (with ethical approval)",
         "Use implicit measures",
@@ -52,7 +55,8 @@ export const psychologyTemplate: DomainTemplate = {
     {
       id: "social_desirability",
       name: "Social Desirability Bias",
-      description: "Participants report what is socially acceptable rather than their true attitudes or behaviors. Especially problematic for sensitive topics.",
+      description:
+        "Participants report what is socially acceptable rather than their true attitudes or behaviors. Especially problematic for sensitive topics.",
       whenToCheck: "Self-report measures, especially for stigmatized behaviors or attitudes",
       mitigationStrategies: [
         "Use implicit measures (IAT, priming)",
@@ -65,7 +69,8 @@ export const psychologyTemplate: DomainTemplate = {
     {
       id: "reverse_causation",
       name: "Reverse Causation",
-      description: "The presumed effect actually causes the presumed cause. Common in cross-sectional studies where temporal ordering is unclear.",
+      description:
+        "The presumed effect actually causes the presumed cause. Common in cross-sectional studies where temporal ordering is unclear.",
       whenToCheck: "Cross-sectional designs, correlational studies",
       mitigationStrategies: [
         "Use longitudinal designs",
@@ -79,7 +84,8 @@ export const psychologyTemplate: DomainTemplate = {
     {
       id: "maturation",
       name: "Maturation Effects",
-      description: "Changes in participants over time that are independent of the treatment. Development, learning, fatigue, or boredom.",
+      description:
+        "Changes in participants over time that are independent of the treatment. Development, learning, fatigue, or boredom.",
       whenToCheck: "Longitudinal studies, developmental research, training studies",
       mitigationStrategies: [
         "Use control groups",
@@ -92,7 +98,8 @@ export const psychologyTemplate: DomainTemplate = {
     {
       id: "regression_to_mean",
       name: "Regression to the Mean",
-      description: "Extreme scores tend to move toward the average on retesting. Selection based on extreme scores guarantees apparent improvement/decline.",
+      description:
+        "Extreme scores tend to move toward the average on retesting. Selection based on extreme scores guarantees apparent improvement/decline.",
       whenToCheck: "Studies selecting participants based on extreme scores, pre-post designs",
       mitigationStrategies: [
         "Use control groups",
@@ -106,7 +113,8 @@ export const psychologyTemplate: DomainTemplate = {
     {
       id: "experimenter_expectancy",
       name: "Experimenter Expectancy",
-      description: "Researchers unconsciously influence participants toward expected results through subtle cues, differential attention, or biased interpretation.",
+      description:
+        "Researchers unconsciously influence participants toward expected results through subtle cues, differential attention, or biased interpretation.",
       whenToCheck: "Studies with human interaction between researcher and participant",
       mitigationStrategies: [
         "Use double-blind procedures",
@@ -166,8 +174,10 @@ export const psychologyTemplate: DomainTemplate = {
     small: 0.2,
     medium: 0.5,
     large: 0.8,
-    typicalDescription: "Most psychology effects are d = 0.2-0.4. Replication studies often find effects 50% smaller than original.",
-    caveats: "Social psychology effects tend smaller; clinical interventions can be larger. Publication bias inflates reported effects.",
+    typicalDescription:
+      "Most psychology effects are d = 0.2-0.4. Replication studies often find effects 50% smaller than original.",
+    caveats:
+      "Social psychology effects tend smaller; clinical interventions can be larger. Publication bias inflates reported effects.",
   },
 
   literatureSources: [
@@ -193,16 +203,33 @@ export const psychologyTemplate: DomainTemplate = {
 
   commonLevelSplits: {
     cause: ["Self-report", "Behavioral observation", "Physiological measure", "Neural activity"],
-    effect: ["Clinical diagnosis", "Symptom score", "Behavioral outcome", "Self-reported experience"],
+    effect: [
+      "Clinical diagnosis",
+      "Symptom score",
+      "Behavioral outcome",
+      "Self-reported experience",
+    ],
     moderators: ["Age", "Gender", "Culture", "Personality", "Prior experience"],
     mediators: ["Attention", "Motivation", "Emotion", "Memory", "Executive function"],
   },
 
   glossary: [
-    { term: "Effect size", definition: "Standardized measure of the magnitude of an effect, independent of sample size" },
-    { term: "Power", definition: "Probability of detecting a true effect. Convention is 80% minimum." },
-    { term: "p-hacking", definition: "Trying multiple analyses until finding p < .05. Inflates false positives." },
-    { term: "Pre-registration", definition: "Publicly committing to hypotheses and analyses before data collection" },
+    {
+      term: "Effect size",
+      definition: "Standardized measure of the magnitude of an effect, independent of sample size",
+    },
+    {
+      term: "Power",
+      definition: "Probability of detecting a true effect. Convention is 80% minimum.",
+    },
+    {
+      term: "p-hacking",
+      definition: "Trying multiple analyses until finding p < .05. Inflates false positives.",
+    },
+    {
+      term: "Pre-registration",
+      definition: "Publicly committing to hypotheses and analyses before data collection",
+    },
   ],
 
   relevantBrennerSections: [50, 89, 91, 93, 95],
@@ -230,7 +257,8 @@ export const epidemiologyTemplate: DomainTemplate = {
     {
       id: "healthy_user_bias",
       name: "Healthy User Bias",
-      description: "People who take preventive measures are healthier overall. Those who take vitamins also exercise, eat well, and avoid smoking.",
+      description:
+        "People who take preventive measures are healthier overall. Those who take vitamins also exercise, eat well, and avoid smoking.",
       whenToCheck: "Observational studies of health behaviors or medications",
       mitigationStrategies: [
         "Randomize treatment assignment",
@@ -243,7 +271,8 @@ export const epidemiologyTemplate: DomainTemplate = {
     {
       id: "confounding_by_indication",
       name: "Confounding by Indication",
-      description: "Treatment is given because of underlying condition. Drug appears harmful because sicker patients receive it.",
+      description:
+        "Treatment is given because of underlying condition. Drug appears harmful because sicker patients receive it.",
       whenToCheck: "Any observational study of medical treatments",
       mitigationStrategies: [
         "Use instrumental variables",
@@ -257,7 +286,8 @@ export const epidemiologyTemplate: DomainTemplate = {
     {
       id: "temporal_ambiguity",
       name: "Temporal Ambiguity",
-      description: "Unclear whether exposure preceded outcome. Critical for establishing causation.",
+      description:
+        "Unclear whether exposure preceded outcome. Critical for establishing causation.",
       whenToCheck: "Cross-sectional studies, case-control studies with imprecise timing",
       mitigationStrategies: [
         "Use prospective cohort designs",
@@ -270,7 +300,8 @@ export const epidemiologyTemplate: DomainTemplate = {
     {
       id: "surveillance_bias",
       name: "Surveillance/Detection Bias",
-      description: "More monitoring leads to more detection. Screening programs increase apparent incidence without changing true incidence.",
+      description:
+        "More monitoring leads to more detection. Screening programs increase apparent incidence without changing true incidence.",
       whenToCheck: "Studies of screened conditions, incidental findings",
       mitigationStrategies: [
         "Use mortality rather than incidence",
@@ -283,7 +314,8 @@ export const epidemiologyTemplate: DomainTemplate = {
     {
       id: "immortal_time_bias",
       name: "Immortal Time Bias",
-      description: "Period between cohort entry and treatment initiation during which outcome cannot occur. Misclassifying this time inflates treatment benefit.",
+      description:
+        "Period between cohort entry and treatment initiation during which outcome cannot occur. Misclassifying this time inflates treatment benefit.",
       whenToCheck: "Any study where treatment starts after cohort entry",
       mitigationStrategies: [
         "Time-varying exposure analysis",
@@ -296,7 +328,8 @@ export const epidemiologyTemplate: DomainTemplate = {
     {
       id: "recall_bias",
       name: "Recall Bias",
-      description: "Cases remember exposures differently than controls. Mothers of sick children ruminate more on pregnancy exposures.",
+      description:
+        "Cases remember exposures differently than controls. Mothers of sick children ruminate more on pregnancy exposures.",
       whenToCheck: "Case-control studies with retrospective exposure assessment",
       mitigationStrategies: [
         "Use prospective designs",
@@ -312,7 +345,8 @@ export const epidemiologyTemplate: DomainTemplate = {
     {
       id: "cohort",
       name: "Prospective Cohort Study",
-      description: "Follow exposed and unexposed groups forward in time to compare outcome incidence",
+      description:
+        "Follow exposed and unexposed groups forward in time to compare outcome incidence",
       discriminativePower: 8,
       feasibility: "low",
       exampleUse: "Framingham Heart Study: risk factors for cardiovascular disease",
@@ -356,8 +390,10 @@ export const epidemiologyTemplate: DomainTemplate = {
     small: 1.2,
     medium: 1.5,
     large: 2.0,
-    typicalDescription: "OR > 2 is considered strong in epidemiology. Smoking-lung cancer OR was ~10-30. Most associations are OR 1.1-1.5.",
-    caveats: "Absolute risk matters more for clinical decisions. A large RR on a rare outcome may be less important than small RR on common outcome.",
+    typicalDescription:
+      "OR > 2 is considered strong in epidemiology. Smoking-lung cancer OR was ~10-30. Most associations are OR 1.1-1.5.",
+    caveats:
+      "Absolute risk matters more for clinical decisions. A large RR on a rare outcome may be less important than small RR on common outcome.",
   },
 
   literatureSources: [
@@ -382,7 +418,13 @@ export const epidemiologyTemplate: DomainTemplate = {
   ],
 
   commonLevelSplits: {
-    cause: ["Molecular/genetic", "Cellular", "Individual behavior", "Social/environmental", "Policy/structural"],
+    cause: [
+      "Molecular/genetic",
+      "Cellular",
+      "Individual behavior",
+      "Social/environmental",
+      "Policy/structural",
+    ],
     effect: ["Biomarker", "Clinical diagnosis", "Hospitalization", "Mortality", "Quality of life"],
     moderators: ["Age", "Sex", "Socioeconomic status", "Comorbidities", "Geographic region"],
     mediators: ["Inflammatory markers", "Behavioral changes", "Access to care"],
@@ -391,8 +433,14 @@ export const epidemiologyTemplate: DomainTemplate = {
   glossary: [
     { term: "Incidence", definition: "New cases over time. Rate = cases / person-time at risk." },
     { term: "Prevalence", definition: "Existing cases at a point in time. Includes old cases." },
-    { term: "DAG", definition: "Directed acyclic graph. Visual tool for identifying confounders and mediators." },
-    { term: "Number needed to treat", definition: "1 / absolute risk reduction. How many to treat to prevent one outcome." },
+    {
+      term: "DAG",
+      definition: "Directed acyclic graph. Visual tool for identifying confounders and mediators.",
+    },
+    {
+      term: "Number needed to treat",
+      definition: "1 / absolute risk reduction. How many to treat to prevent one outcome.",
+    },
   ],
 
   relevantBrennerSections: [50, 89, 91, 93],
@@ -420,7 +468,8 @@ export const economicsTemplate: DomainTemplate = {
     {
       id: "omitted_variable",
       name: "Omitted Variable Bias",
-      description: "Important variable correlated with both X and Y is missing. Classic example: education-earnings confounded by ability.",
+      description:
+        "Important variable correlated with both X and Y is missing. Classic example: education-earnings confounded by ability.",
       whenToCheck: "Any regression without random assignment",
       mitigationStrategies: [
         "Add controls for omitted variables",
@@ -434,7 +483,8 @@ export const economicsTemplate: DomainTemplate = {
     {
       id: "simultaneity",
       name: "Simultaneity Bias",
-      description: "X affects Y and Y affects X at the same time. Supply and demand simultaneously determine price and quantity.",
+      description:
+        "X affects Y and Y affects X at the same time. Supply and demand simultaneously determine price and quantity.",
       whenToCheck: "Market equilibrium models, feedback systems",
       mitigationStrategies: [
         "Use instrumental variables",
@@ -447,7 +497,8 @@ export const economicsTemplate: DomainTemplate = {
     {
       id: "selection_into_treatment",
       name: "Selection into Treatment",
-      description: "People choose treatments based on expected benefits. Those who take job training differ from those who don't.",
+      description:
+        "People choose treatments based on expected benefits. Those who take job training differ from those who don't.",
       whenToCheck: "Any policy evaluation without random assignment",
       mitigationStrategies: [
         "Random assignment (RCT)",
@@ -460,7 +511,8 @@ export const economicsTemplate: DomainTemplate = {
     {
       id: "measurement_error",
       name: "Measurement Error",
-      description: "Variables measured with noise. Attenuation bias in X; classical measurement error biases coefficient toward zero.",
+      description:
+        "Variables measured with noise. Attenuation bias in X; classical measurement error biases coefficient toward zero.",
       whenToCheck: "Self-reported data, proxy variables",
       mitigationStrategies: [
         "Use multiple measures",
@@ -473,7 +525,8 @@ export const economicsTemplate: DomainTemplate = {
     {
       id: "general_equilibrium",
       name: "General Equilibrium Effects",
-      description: "Partial equilibrium analysis ignores market-wide adjustments. Minimum wage might reduce employment in one sector but increase it elsewhere.",
+      description:
+        "Partial equilibrium analysis ignores market-wide adjustments. Minimum wage might reduce employment in one sector but increase it elsewhere.",
       whenToCheck: "Large-scale policy interventions, market-wide treatments",
       mitigationStrategies: [
         "Use general equilibrium models",
@@ -533,8 +586,10 @@ export const economicsTemplate: DomainTemplate = {
     small: 0.05,
     medium: 0.15,
     large: 0.3,
-    typicalDescription: "A 1% increase in X causing a 0.1% increase in Y is typical. Elasticities > 0.5 are considered large.",
-    caveats: "Effect sizes vary enormously by context. Labor supply elasticities differ from consumer demand elasticities.",
+    typicalDescription:
+      "A 1% increase in X causing a 0.1% increase in Y is typical. Elasticities > 0.5 are considered large.",
+    caveats:
+      "Effect sizes vary enormously by context. Labor supply elasticities differ from consumer demand elasticities.",
   },
 
   literatureSources: [
@@ -559,7 +614,13 @@ export const economicsTemplate: DomainTemplate = {
   ],
 
   commonLevelSplits: {
-    cause: ["Individual incentive", "Firm behavior", "Market mechanism", "Policy/institutional", "Macroeconomic"],
+    cause: [
+      "Individual incentive",
+      "Firm behavior",
+      "Market mechanism",
+      "Policy/institutional",
+      "Macroeconomic",
+    ],
     effect: ["Individual outcome", "Firm outcome", "Market equilibrium", "Aggregate/macro"],
     moderators: ["Income level", "Education", "Industry", "Time period", "Geographic region"],
     mediators: ["Prices", "Information", "Credit access", "Labor market conditions"],
@@ -567,9 +628,19 @@ export const economicsTemplate: DomainTemplate = {
 
   glossary: [
     { term: "Elasticity", definition: "Percent change in Y for 1% change in X. Unitless measure." },
-    { term: "LATE", definition: "Local Average Treatment Effect. Effect for compliers in IV designs." },
-    { term: "Parallel trends", definition: "Assumption that treatment and control would have followed same trend absent treatment." },
-    { term: "External validity", definition: "Whether findings generalize to other settings, times, or populations." },
+    {
+      term: "LATE",
+      definition: "Local Average Treatment Effect. Effect for compliers in IV designs.",
+    },
+    {
+      term: "Parallel trends",
+      definition:
+        "Assumption that treatment and control would have followed same trend absent treatment.",
+    },
+    {
+      term: "External validity",
+      definition: "Whether findings generalize to other settings, times, or populations.",
+    },
   ],
 
   relevantBrennerSections: [89, 91, 93, 95],
@@ -597,7 +668,8 @@ export const biologyMedicineTemplate: DomainTemplate = {
     {
       id: "batch_effects",
       name: "Batch Effects",
-      description: "Technical variation between experimental batches overwhelms biological signal. Common in high-throughput experiments.",
+      description:
+        "Technical variation between experimental batches overwhelms biological signal. Common in high-throughput experiments.",
       whenToCheck: "Any multi-batch experiment, especially -omics studies",
       mitigationStrategies: [
         "Randomize samples across batches",
@@ -610,7 +682,8 @@ export const biologyMedicineTemplate: DomainTemplate = {
     {
       id: "cell_line_drift",
       name: "Cell Line Drift",
-      description: "Cultured cells evolve over passages, acquiring mutations and losing original characteristics. HeLa contamination has affected thousands of studies.",
+      description:
+        "Cultured cells evolve over passages, acquiring mutations and losing original characteristics. HeLa contamination has affected thousands of studies.",
       whenToCheck: "Any cell culture experiment, especially with immortalized lines",
       mitigationStrategies: [
         "Use early-passage cells",
@@ -624,7 +697,8 @@ export const biologyMedicineTemplate: DomainTemplate = {
     {
       id: "off_target_effects",
       name: "Off-Target Effects",
-      description: "CRISPR guides, siRNAs, or drugs affect unintended targets. Phenotype may be due to off-target activity.",
+      description:
+        "CRISPR guides, siRNAs, or drugs affect unintended targets. Phenotype may be due to off-target activity.",
       whenToCheck: "Any genetic perturbation or pharmacological study",
       mitigationStrategies: [
         "Use multiple guides/siRNAs",
@@ -637,7 +711,8 @@ export const biologyMedicineTemplate: DomainTemplate = {
     {
       id: "antibody_nonspecificity",
       name: "Antibody Non-Specificity",
-      description: "Antibody binds multiple proteins or epitopes. Western blot bands may be wrong protein.",
+      description:
+        "Antibody binds multiple proteins or epitopes. Western blot bands may be wrong protein.",
       whenToCheck: "Any immunoassay, Western blot, immunofluorescence",
       mitigationStrategies: [
         "Validate with knockout/knockdown",
@@ -650,7 +725,8 @@ export const biologyMedicineTemplate: DomainTemplate = {
     {
       id: "circadian_variation",
       name: "Circadian/Temporal Variation",
-      description: "Biological parameters vary with time of day, feeding state, or season. Measuring at different times introduces noise.",
+      description:
+        "Biological parameters vary with time of day, feeding state, or season. Measuring at different times introduces noise.",
       whenToCheck: "Any in vivo or cell culture study",
       mitigationStrategies: [
         "Standardize collection time",
@@ -663,7 +739,8 @@ export const biologyMedicineTemplate: DomainTemplate = {
     {
       id: "cage_effects",
       name: "Cage/Housing Effects",
-      description: "Animals in same cage are not independent. Microbiome, social hierarchy, and stress differ by cage.",
+      description:
+        "Animals in same cage are not independent. Microbiome, social hierarchy, and stress differ by cage.",
       whenToCheck: "Any animal study",
       mitigationStrategies: [
         "Randomize across cages",
@@ -679,7 +756,8 @@ export const biologyMedicineTemplate: DomainTemplate = {
     {
       id: "rct_clinical",
       name: "Randomized Clinical Trial",
-      description: "Gold standard for clinical interventions. Random assignment, blinding, placebo control.",
+      description:
+        "Gold standard for clinical interventions. Random assignment, blinding, placebo control.",
       discriminativePower: 10,
       feasibility: "low",
       exampleUse: "Testing new drug efficacy",
@@ -723,8 +801,10 @@ export const biologyMedicineTemplate: DomainTemplate = {
     small: 1.5,
     medium: 2.0,
     large: 4.0,
-    typicalDescription: "2-fold change is commonly used threshold. In -omics, 1.5-fold with adjusted p < 0.05 is typical cutoff.",
-    caveats: "Biological significance differs from statistical significance. Small fold changes in key pathways may be more important than large changes elsewhere.",
+    typicalDescription:
+      "2-fold change is commonly used threshold. In -omics, 1.5-fold with adjusted p < 0.05 is typical cutoff.",
+    caveats:
+      "Biological significance differs from statistical significance. Small fold changes in key pathways may be more important than large changes elsewhere.",
   },
 
   literatureSources: [
@@ -749,17 +829,44 @@ export const biologyMedicineTemplate: DomainTemplate = {
   ],
 
   commonLevelSplits: {
-    cause: ["Genetic variant", "Molecular/biochemical", "Cellular", "Tissue/organ", "Systemic/organism"],
-    effect: ["Molecular readout", "Cellular phenotype", "Histological", "Physiological", "Clinical outcome"],
+    cause: [
+      "Genetic variant",
+      "Molecular/biochemical",
+      "Cellular",
+      "Tissue/organ",
+      "Systemic/organism",
+    ],
+    effect: [
+      "Molecular readout",
+      "Cellular phenotype",
+      "Histological",
+      "Physiological",
+      "Clinical outcome",
+    ],
     moderators: ["Genetic background", "Age", "Sex", "Diet", "Microbiome"],
     mediators: ["Signaling pathways", "Gene expression", "Protein activity", "Metabolites"],
   },
 
   glossary: [
-    { term: "Orthogonal", definition: "Independent method using different principles. Confirms finding isn't method artifact." },
-    { term: "Rescue", definition: "Reversing phenotype by adding back gene/protein. Confirms specificity." },
-    { term: "FDR", definition: "False Discovery Rate. Expected proportion of false positives among significant results." },
-    { term: "Biological replicate", definition: "Independent samples. Technical replicates (same sample, multiple measurements) don't count." },
+    {
+      term: "Orthogonal",
+      definition:
+        "Independent method using different principles. Confirms finding isn't method artifact.",
+    },
+    {
+      term: "Rescue",
+      definition: "Reversing phenotype by adding back gene/protein. Confirms specificity.",
+    },
+    {
+      term: "FDR",
+      definition:
+        "False Discovery Rate. Expected proportion of false positives among significant results.",
+    },
+    {
+      term: "Biological replicate",
+      definition:
+        "Independent samples. Technical replicates (same sample, multiple measurements) don't count.",
+    },
   ],
 
   relevantBrennerSections: [50, 89, 91, 93, 95, 97],
@@ -787,7 +894,8 @@ export const computerScienceTemplate: DomainTemplate = {
     {
       id: "data_leakage",
       name: "Data Leakage",
-      description: "Information from test set leaks into training. Includes temporal leakage (using future data), target leakage, and train-test contamination.",
+      description:
+        "Information from test set leaks into training. Includes temporal leakage (using future data), target leakage, and train-test contamination.",
       whenToCheck: "Any ML model evaluation",
       mitigationStrategies: [
         "Strict train/test splits before any preprocessing",
@@ -800,7 +908,8 @@ export const computerScienceTemplate: DomainTemplate = {
     {
       id: "benchmark_overfitting",
       name: "Benchmark Overfitting",
-      description: "Methods tuned to specific benchmarks don't generalize. ImageNet accuracy doesn't predict real-world performance.",
+      description:
+        "Methods tuned to specific benchmarks don't generalize. ImageNet accuracy doesn't predict real-world performance.",
       whenToCheck: "Any method claiming state-of-the-art on benchmarks",
       mitigationStrategies: [
         "Test on held-out datasets",
@@ -813,7 +922,8 @@ export const computerScienceTemplate: DomainTemplate = {
     {
       id: "compute_confound",
       name: "Compute Advantage Confound",
-      description: "Improvements come from more compute, not better methods. Scaling laws mean more GPUs often beats algorithmic innovation.",
+      description:
+        "Improvements come from more compute, not better methods. Scaling laws mean more GPUs often beats algorithmic innovation.",
       whenToCheck: "Any comparison of methods with different computational budgets",
       mitigationStrategies: [
         "Control for compute (FLOPs, GPU-hours)",
@@ -826,7 +936,8 @@ export const computerScienceTemplate: DomainTemplate = {
     {
       id: "implementation_differences",
       name: "Implementation Differences",
-      description: "Results differ due to code, not method. Hyperparameter tuning, random seeds, libraries affect outcomes.",
+      description:
+        "Results differ due to code, not method. Hyperparameter tuning, random seeds, libraries affect outcomes.",
       whenToCheck: "Any comparison to prior work",
       mitigationStrategies: [
         "Use same codebase for baselines",
@@ -840,7 +951,8 @@ export const computerScienceTemplate: DomainTemplate = {
     {
       id: "distribution_shift",
       name: "Distribution Shift",
-      description: "Test distribution differs from training. Common in deployed ML systems where data drifts over time.",
+      description:
+        "Test distribution differs from training. Common in deployed ML systems where data drifts over time.",
       whenToCheck: "Any real-world deployment, any dataset created at different time/place",
       mitigationStrategies: [
         "Test on multiple distributions",
@@ -900,15 +1012,18 @@ export const computerScienceTemplate: DomainTemplate = {
     small: 0.01,
     medium: 0.03,
     large: 0.1,
-    typicalDescription: "1-2% accuracy improvement is often publishable. 10%+ is major breakthrough or new paradigm.",
-    caveats: "Depends heavily on task difficulty. Easy tasks saturate quickly. Report confidence intervals.",
+    typicalDescription:
+      "1-2% accuracy improvement is often publishable. 10%+ is major breakthrough or new paradigm.",
+    caveats:
+      "Depends heavily on task difficulty. Easy tasks saturate quickly. Report confidence intervals.",
   },
 
   literatureSources: [
     {
       name: "arXiv",
       url: "https://arxiv.org/list/cs/recent",
-      searchTips: "Preprints. Most ML research here first. Use semantic scholar for related papers.",
+      searchTips:
+        "Preprints. Most ML research here first. Use semantic scholar for related papers.",
       priority: "primary",
     },
     {
@@ -926,8 +1041,20 @@ export const computerScienceTemplate: DomainTemplate = {
   ],
 
   commonLevelSplits: {
-    cause: ["Algorithm/architecture", "Training data", "Hyperparameters", "Hardware/infrastructure", "Human factors"],
-    effect: ["Accuracy metric", "Latency/throughput", "Resource usage", "User experience", "Business outcome"],
+    cause: [
+      "Algorithm/architecture",
+      "Training data",
+      "Hyperparameters",
+      "Hardware/infrastructure",
+      "Human factors",
+    ],
+    effect: [
+      "Accuracy metric",
+      "Latency/throughput",
+      "Resource usage",
+      "User experience",
+      "Business outcome",
+    ],
     moderators: ["Data scale", "Domain/task", "Hardware", "User population"],
     mediators: ["Representations", "Attention patterns", "Gradient flow"],
   },
@@ -935,8 +1062,14 @@ export const computerScienceTemplate: DomainTemplate = {
   glossary: [
     { term: "SOTA", definition: "State of the art. Best published result on a benchmark." },
     { term: "Ablation", definition: "Removing components to measure their contribution." },
-    { term: "OOD", definition: "Out of distribution. Data from different distribution than training." },
-    { term: "Compute-optimal", definition: "Best performance for given compute budget (Chinchilla scaling)." },
+    {
+      term: "OOD",
+      definition: "Out of distribution. Data from different distribution than training.",
+    },
+    {
+      term: "Compute-optimal",
+      definition: "Best performance for given compute budget (Chinchilla scaling).",
+    },
   ],
 
   relevantBrennerSections: [50, 89, 91],
@@ -956,7 +1089,8 @@ export const computerScienceTemplate: DomainTemplate = {
 export const neuroscienceTemplate: DomainTemplate = {
   id: "neuroscience",
   name: "Neuroscience",
-  description: "Cognitive neuroscience, neuroimaging, computational neuroscience, systems neuroscience",
+  description:
+    "Cognitive neuroscience, neuroimaging, computational neuroscience, systems neuroscience",
   icon: "Zap",
   colorClass: "text-pink-600",
 
@@ -964,7 +1098,8 @@ export const neuroscienceTemplate: DomainTemplate = {
     {
       id: "motion_artifacts",
       name: "Motion Artifacts",
-      description: "Head movement during fMRI creates false activations. Patient populations move more, creating systematic group differences.",
+      description:
+        "Head movement during fMRI creates false activations. Patient populations move more, creating systematic group differences.",
       whenToCheck: "Any fMRI study, especially comparing groups",
       mitigationStrategies: [
         "Motion scrubbing/censoring",
@@ -977,7 +1112,8 @@ export const neuroscienceTemplate: DomainTemplate = {
     {
       id: "reverse_inference",
       name: "Reverse Inference",
-      description: "Inferring cognitive process from brain activation. Amygdala activates to many things, not just fear.",
+      description:
+        "Inferring cognitive process from brain activation. Amygdala activates to many things, not just fear.",
       whenToCheck: "Any claim about what activation 'means' for cognition",
       mitigationStrategies: [
         "Use behavioral measures alongside imaging",
@@ -991,7 +1127,8 @@ export const neuroscienceTemplate: DomainTemplate = {
     {
       id: "low_power",
       name: "Low Statistical Power",
-      description: "Typical fMRI studies have ~20 subjects and are underpowered. Effect sizes are inflated, false positives high.",
+      description:
+        "Typical fMRI studies have ~20 subjects and are underpowered. Effect sizes are inflated, false positives high.",
       whenToCheck: "Any neuroimaging study with N < 50",
       mitigationStrategies: [
         "Power analysis before data collection",
@@ -1004,7 +1141,8 @@ export const neuroscienceTemplate: DomainTemplate = {
     {
       id: "double_dipping",
       name: "Double Dipping / Circular Analysis",
-      description: "Same data used to select regions and test hypotheses. Guarantees significant results.",
+      description:
+        "Same data used to select regions and test hypotheses. Guarantees significant results.",
       whenToCheck: "Any ROI analysis where ROIs were defined from the same data",
       mitigationStrategies: [
         "Independent localizers",
@@ -1017,7 +1155,8 @@ export const neuroscienceTemplate: DomainTemplate = {
     {
       id: "task_impurity",
       name: "Task Impurity",
-      description: "Cognitive tasks engage multiple processes. 'Memory task' also involves attention, perception, motor response.",
+      description:
+        "Cognitive tasks engage multiple processes. 'Memory task' also involves attention, perception, motor response.",
       whenToCheck: "Any task-based study",
       mitigationStrategies: [
         "Careful subtraction logic",
@@ -1077,8 +1216,10 @@ export const neuroscienceTemplate: DomainTemplate = {
     small: 0.2,
     medium: 0.5,
     large: 0.8,
-    typicalDescription: "fMRI effects typically d = 0.5-1.0 in well-powered studies. Meta-analyses suggest many published effects are inflated.",
-    caveats: "BOLD signal is indirect. 1% signal change is considered robust. Effect sizes depend heavily on region and task.",
+    typicalDescription:
+      "fMRI effects typically d = 0.5-1.0 in well-powered studies. Meta-analyses suggest many published effects are inflated.",
+    caveats:
+      "BOLD signal is indirect. 1% signal change is considered robust. Effect sizes depend heavily on region and task.",
   },
 
   literatureSources: [
@@ -1103,17 +1244,32 @@ export const neuroscienceTemplate: DomainTemplate = {
   ],
 
   commonLevelSplits: {
-    cause: ["Molecular/neurotransmitter", "Cellular/circuit", "Systems/network", "Cognitive/computational", "Behavioral"],
+    cause: [
+      "Molecular/neurotransmitter",
+      "Cellular/circuit",
+      "Systems/network",
+      "Cognitive/computational",
+      "Behavioral",
+    ],
     effect: ["Spike rate", "LFP/oscillation", "BOLD signal", "EEG/MEG", "Behavior"],
     moderators: ["Attention", "Arousal", "Task demands", "Individual differences"],
     mediators: ["Neural computations", "Connectivity patterns", "Neuromodulation"],
   },
 
   glossary: [
-    { term: "BOLD", definition: "Blood-oxygen-level-dependent. fMRI signal reflecting blood oxygenation changes." },
+    {
+      term: "BOLD",
+      definition: "Blood-oxygen-level-dependent. fMRI signal reflecting blood oxygenation changes.",
+    },
     { term: "Localizer", definition: "Separate scan to define ROIs independently of main task." },
-    { term: "Decoding", definition: "Using pattern classification to infer what subject experienced." },
-    { term: "Connectivity", definition: "Correlations or directed relationships between brain regions." },
+    {
+      term: "Decoding",
+      definition: "Using pattern classification to infer what subject experienced.",
+    },
+    {
+      term: "Connectivity",
+      definition: "Correlations or directed relationships between brain regions.",
+    },
   ],
 
   relevantBrennerSections: [50, 89, 91, 93, 95, 97],
@@ -1214,7 +1370,7 @@ export function listDomainOptions(): DomainOption[] {
  */
 export function getDomainConfounds(
   domainId: DomainId,
-  minLikelihood: number = 0
+  minLikelihood: number = 0,
 ): DomainConfound[] {
   const template = getDomainTemplate(domainId);
   return template.confoundLibrary.filter((c) => c.baseLikelihood >= minLikelihood);

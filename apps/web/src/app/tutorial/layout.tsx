@@ -11,16 +11,14 @@
  * @see brenner_bot-e521 (Tutorial Layout)
  */
 
-import * as React from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { motion, AnimatePresence } from "framer-motion";
-import { cn } from "@/lib/utils";
+import * as React from "react";
+import { SidebarProgress } from "@/components/tutorial";
 import { TutorialProvider, useTutorialOptional } from "@/lib/tutorial-context";
-import {
-  SidebarProgress,
-} from "@/components/tutorial";
-import type { TutorialStepMeta, TutorialPathId } from "@/lib/tutorial-types";
+import type { TutorialPathId, TutorialStepMeta } from "@/lib/tutorial-types";
+import { cn } from "@/lib/utils";
 
 // ============================================================================
 // Icons
@@ -34,11 +32,7 @@ const ChevronLeftIcon = ({ className }: { className?: string }) => (
     stroke="currentColor"
     strokeWidth={2}
   >
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      d="M15.75 19.5L8.25 12l7.5-7.5"
-    />
+    <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
   </svg>
 );
 
@@ -66,11 +60,7 @@ const XIcon = ({ className }: { className?: string }) => (
     stroke="currentColor"
     strokeWidth={2}
   >
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      d="M6 18L18 6M6 6l12 12"
-    />
+    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
   </svg>
 );
 
@@ -94,15 +84,67 @@ const PATH_CONFIGS: Record<string, PathConfig> = {
     accent: "oklch(0.72 0.19 145)",
     steps: [
       // Step 1: Mobile-friendly (reading/understanding)
-      { id: "qs-1", stepNumber: 1, title: "What Is This?", estimatedTime: "~3 min", completed: false },
+      {
+        id: "qs-1",
+        stepNumber: 1,
+        title: "What Is This?",
+        estimatedTime: "~3 min",
+        completed: false,
+      },
       // Step 2-6: Desktop required (terminal commands)
-      { id: "qs-2", stepNumber: 2, title: "Prerequisites", estimatedTime: "~2 min", completed: false, requiresDesktop: true, mobileAlternative: "Review the prerequisites to prepare your desktop" },
-      { id: "qs-3", stepNumber: 3, title: "Clone & Install", estimatedTime: "~5 min", completed: false, requiresDesktop: true, mobileAlternative: "Run git clone and bun install on your desktop" },
-      { id: "qs-4", stepNumber: 4, title: "Search the Corpus", estimatedTime: "~5 min", completed: false, requiresDesktop: true, mobileAlternative: "Run brenner search commands in your terminal" },
-      { id: "qs-5", stepNumber: 5, title: "Build an Excerpt", estimatedTime: "~5 min", completed: false, requiresDesktop: true, mobileAlternative: "Create an excerpt file using the CLI" },
-      { id: "qs-6", stepNumber: 6, title: "Your First Session", estimatedTime: "~8 min", completed: false, requiresDesktop: true, mobileAlternative: "Run your first brenner session in the terminal" },
+      {
+        id: "qs-2",
+        stepNumber: 2,
+        title: "Prerequisites",
+        estimatedTime: "~2 min",
+        completed: false,
+        requiresDesktop: true,
+        mobileAlternative: "Review the prerequisites to prepare your desktop",
+      },
+      {
+        id: "qs-3",
+        stepNumber: 3,
+        title: "Clone & Install",
+        estimatedTime: "~5 min",
+        completed: false,
+        requiresDesktop: true,
+        mobileAlternative: "Run git clone and bun install on your desktop",
+      },
+      {
+        id: "qs-4",
+        stepNumber: 4,
+        title: "Search the Corpus",
+        estimatedTime: "~5 min",
+        completed: false,
+        requiresDesktop: true,
+        mobileAlternative: "Run brenner search commands in your terminal",
+      },
+      {
+        id: "qs-5",
+        stepNumber: 5,
+        title: "Build an Excerpt",
+        estimatedTime: "~5 min",
+        completed: false,
+        requiresDesktop: true,
+        mobileAlternative: "Create an excerpt file using the CLI",
+      },
+      {
+        id: "qs-6",
+        stepNumber: 6,
+        title: "Your First Session",
+        estimatedTime: "~8 min",
+        completed: false,
+        requiresDesktop: true,
+        mobileAlternative: "Run your first brenner session in the terminal",
+      },
       // Step 7: Mobile-friendly (reading output)
-      { id: "qs-7", stepNumber: 7, title: "Understand the Output", estimatedTime: "~5 min", completed: false },
+      {
+        id: "qs-7",
+        stepNumber: 7,
+        title: "Understand the Output",
+        estimatedTime: "~5 min",
+        completed: false,
+      },
     ],
   },
   "agent-assisted": {
@@ -112,16 +154,76 @@ const PATH_CONFIGS: Record<string, PathConfig> = {
     accent: "oklch(0.65 0.2 250)",
     steps: [
       // Step 1: Mobile-friendly (reading/understanding)
-      { id: "aa-1", stepNumber: 1, title: "Why Agent-Assisted?", estimatedTime: "~3 min", completed: false },
+      {
+        id: "aa-1",
+        stepNumber: 1,
+        title: "Why Agent-Assisted?",
+        estimatedTime: "~3 min",
+        completed: false,
+      },
       // Steps 2-7: Desktop required (agent execution)
-      { id: "aa-2", stepNumber: 2, title: "Prerequisites", estimatedTime: "~5 min", completed: false, requiresDesktop: true, mobileAlternative: "Ensure Claude Code or Codex CLI is installed" },
-      { id: "aa-3", stepNumber: 3, title: "Clone into Agent Context", estimatedTime: "~5 min", completed: false, requiresDesktop: true, mobileAlternative: "Clone the repo within your AI agent session" },
-      { id: "aa-4", stepNumber: 4, title: "Agent Studies the System", estimatedTime: "~10 min", completed: false, requiresDesktop: true, mobileAlternative: "Have your agent explore the codebase" },
-      { id: "aa-5", stepNumber: 5, title: "Define Your Research Problem", estimatedTime: "~5 min", completed: false, requiresDesktop: true, mobileAlternative: "Provide your hypothesis to the agent" },
-      { id: "aa-6", stepNumber: 6, title: "Agent Builds the Inputs", estimatedTime: "~10 min", completed: false, requiresDesktop: true, mobileAlternative: "Agent creates excerpts and session config" },
-      { id: "aa-7", stepNumber: 7, title: "Agent Runs the Brenner Loop", estimatedTime: "~10 min", completed: false, requiresDesktop: true, mobileAlternative: "Agent executes the protocol loop" },
+      {
+        id: "aa-2",
+        stepNumber: 2,
+        title: "Prerequisites",
+        estimatedTime: "~5 min",
+        completed: false,
+        requiresDesktop: true,
+        mobileAlternative: "Ensure Claude Code or Codex CLI is installed",
+      },
+      {
+        id: "aa-3",
+        stepNumber: 3,
+        title: "Clone into Agent Context",
+        estimatedTime: "~5 min",
+        completed: false,
+        requiresDesktop: true,
+        mobileAlternative: "Clone the repo within your AI agent session",
+      },
+      {
+        id: "aa-4",
+        stepNumber: 4,
+        title: "Agent Studies the System",
+        estimatedTime: "~10 min",
+        completed: false,
+        requiresDesktop: true,
+        mobileAlternative: "Have your agent explore the codebase",
+      },
+      {
+        id: "aa-5",
+        stepNumber: 5,
+        title: "Define Your Research Problem",
+        estimatedTime: "~5 min",
+        completed: false,
+        requiresDesktop: true,
+        mobileAlternative: "Provide your hypothesis to the agent",
+      },
+      {
+        id: "aa-6",
+        stepNumber: 6,
+        title: "Agent Builds the Inputs",
+        estimatedTime: "~10 min",
+        completed: false,
+        requiresDesktop: true,
+        mobileAlternative: "Agent creates excerpts and session config",
+      },
+      {
+        id: "aa-7",
+        stepNumber: 7,
+        title: "Agent Runs the Brenner Loop",
+        estimatedTime: "~10 min",
+        completed: false,
+        requiresDesktop: true,
+        mobileAlternative: "Agent executes the protocol loop",
+      },
       // Step 8: Mobile-friendly (human review)
-      { id: "aa-8", stepNumber: 8, title: "Human Review", estimatedTime: "~5 min", completed: false },
+      {
+        id: "aa-8",
+        stepNumber: 8,
+        title: "Human Review",
+        estimatedTime: "~5 min",
+        completed: false,
+      },
     ],
   },
   "multi-agent": {
@@ -131,16 +233,96 @@ const PATH_CONFIGS: Record<string, PathConfig> = {
     accent: "oklch(0.7 0.15 30)",
     steps: [
       // All multi-agent steps require desktop (infrastructure setup)
-      { id: "ma-1", stepNumber: 1, title: "Cockpit Overview", estimatedTime: "~5 min", completed: false, requiresDesktop: true, mobileAlternative: "Understand the multi-agent architecture" },
-      { id: "ma-2", stepNumber: 2, title: "Agent Mail Setup", estimatedTime: "~10 min", completed: false, requiresDesktop: true, mobileAlternative: "Configure Agent Mail MCP server" },
-      { id: "ma-3", stepNumber: 3, title: "Register Agents", estimatedTime: "~10 min", completed: false, requiresDesktop: true, mobileAlternative: "Register agents with the mail system" },
-      { id: "ma-4", stepNumber: 4, title: "Define Roles", estimatedTime: "~10 min", completed: false, requiresDesktop: true, mobileAlternative: "Assign roles to each agent" },
-      { id: "ma-5", stepNumber: 5, title: "Coordinate Research", estimatedTime: "~15 min", completed: false, requiresDesktop: true, mobileAlternative: "Orchestrate agent collaboration" },
-      { id: "ma-6", stepNumber: 6, title: "Handle Disagreements", estimatedTime: "~10 min", completed: false, requiresDesktop: true, mobileAlternative: "Resolve agent conflicts" },
-      { id: "ma-7", stepNumber: 7, title: "Synthesize Results", estimatedTime: "~10 min", completed: false, requiresDesktop: true, mobileAlternative: "Combine agent outputs" },
-      { id: "ma-8", stepNumber: 8, title: "File Reservations", estimatedTime: "~5 min", completed: false, requiresDesktop: true, mobileAlternative: "Manage file locks between agents" },
-      { id: "ma-9", stepNumber: 9, title: "Best Practices", estimatedTime: "~5 min", completed: false, requiresDesktop: true, mobileAlternative: "Learn multi-agent best practices" },
-      { id: "ma-10", stepNumber: 10, title: "Advanced Patterns", estimatedTime: "~10 min", completed: false, requiresDesktop: true, mobileAlternative: "Explore advanced orchestration" },
+      {
+        id: "ma-1",
+        stepNumber: 1,
+        title: "Cockpit Overview",
+        estimatedTime: "~5 min",
+        completed: false,
+        requiresDesktop: true,
+        mobileAlternative: "Understand the multi-agent architecture",
+      },
+      {
+        id: "ma-2",
+        stepNumber: 2,
+        title: "Agent Mail Setup",
+        estimatedTime: "~10 min",
+        completed: false,
+        requiresDesktop: true,
+        mobileAlternative: "Configure Agent Mail MCP server",
+      },
+      {
+        id: "ma-3",
+        stepNumber: 3,
+        title: "Register Agents",
+        estimatedTime: "~10 min",
+        completed: false,
+        requiresDesktop: true,
+        mobileAlternative: "Register agents with the mail system",
+      },
+      {
+        id: "ma-4",
+        stepNumber: 4,
+        title: "Define Roles",
+        estimatedTime: "~10 min",
+        completed: false,
+        requiresDesktop: true,
+        mobileAlternative: "Assign roles to each agent",
+      },
+      {
+        id: "ma-5",
+        stepNumber: 5,
+        title: "Coordinate Research",
+        estimatedTime: "~15 min",
+        completed: false,
+        requiresDesktop: true,
+        mobileAlternative: "Orchestrate agent collaboration",
+      },
+      {
+        id: "ma-6",
+        stepNumber: 6,
+        title: "Handle Disagreements",
+        estimatedTime: "~10 min",
+        completed: false,
+        requiresDesktop: true,
+        mobileAlternative: "Resolve agent conflicts",
+      },
+      {
+        id: "ma-7",
+        stepNumber: 7,
+        title: "Synthesize Results",
+        estimatedTime: "~10 min",
+        completed: false,
+        requiresDesktop: true,
+        mobileAlternative: "Combine agent outputs",
+      },
+      {
+        id: "ma-8",
+        stepNumber: 8,
+        title: "File Reservations",
+        estimatedTime: "~5 min",
+        completed: false,
+        requiresDesktop: true,
+        mobileAlternative: "Manage file locks between agents",
+      },
+      {
+        id: "ma-9",
+        stepNumber: 9,
+        title: "Best Practices",
+        estimatedTime: "~5 min",
+        completed: false,
+        requiresDesktop: true,
+        mobileAlternative: "Learn multi-agent best practices",
+      },
+      {
+        id: "ma-10",
+        stepNumber: 10,
+        title: "Advanced Patterns",
+        estimatedTime: "~10 min",
+        completed: false,
+        requiresDesktop: true,
+        mobileAlternative: "Explore advanced orchestration",
+      },
     ],
   },
 };
@@ -195,7 +377,7 @@ function Sidebar({
         "fixed left-0 top-16 bottom-0 z-40",
         "border-r border-border bg-card/95 backdrop-blur-sm",
         "transition-all duration-300 ease-out",
-        collapsed ? "w-16" : "w-72"
+        collapsed ? "w-16" : "w-72",
       )}
     >
       <div className="flex flex-col h-full">
@@ -205,7 +387,7 @@ function Sidebar({
             href="/tutorial"
             className={cn(
               "group inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors",
-              collapsed && "justify-center"
+              collapsed && "justify-center",
             )}
           >
             <ChevronLeftIcon className="group-hover:-translate-x-0.5 transition-transform" />
@@ -228,8 +410,10 @@ function Sidebar({
                     className={cn(
                       "size-3 rounded-full transition-all",
                       isCompleted && "bg-primary",
-                      isCurrent && !isCompleted && "bg-primary/60 ring-2 ring-primary ring-offset-2 ring-offset-card",
-                      !isCurrent && !isCompleted && "bg-muted-foreground/30"
+                      isCurrent &&
+                        !isCompleted &&
+                        "bg-primary/60 ring-2 ring-primary ring-offset-2 ring-offset-card",
+                      !isCurrent && !isCompleted && "bg-muted-foreground/30",
                     )}
                     aria-label={`Step ${step.stepNumber}: ${step.title}`}
                   />
@@ -279,20 +463,12 @@ interface MobileHeaderProps {
   onMenuClick: () => void;
 }
 
-function MobileHeader({
-  config,
-  currentStep,
-  totalSteps,
-  onMenuClick,
-}: MobileHeaderProps) {
+function MobileHeader({ config, currentStep, totalSteps, onMenuClick }: MobileHeaderProps) {
   // Note: This component is wrapped with md:hidden in parent, so no responsive hiding needed here
   return (
     <div className="fixed top-16 left-0 right-0 z-40">
       <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-card/95 backdrop-blur-sm">
-        <button
-          onClick={onMenuClick}
-          className="flex items-center gap-2 text-sm font-medium"
-        >
+        <button onClick={onMenuClick} className="flex items-center gap-2 text-sm font-medium">
           <MenuIcon />
           <span>{config.shortTitle}</span>
         </button>
@@ -342,10 +518,7 @@ function MobileMenu({
       className="fixed inset-0 z-50 lg:hidden"
     >
       {/* Backdrop */}
-      <div
-        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-        onClick={onClose}
-      />
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
 
       {/* Menu panel */}
       <motion.div
@@ -366,10 +539,7 @@ function MobileMenu({
               <ChevronLeftIcon className="inline mr-1" />
               All Tutorials
             </Link>
-            <button
-              onClick={onClose}
-              className="p-2 rounded-lg hover:bg-muted transition-colors"
-            >
+            <button onClick={onClose} className="p-2 rounded-lg hover:bg-muted transition-colors">
               <XIcon />
             </button>
           </div>
@@ -430,7 +600,7 @@ function TutorialLayoutContent({ children }: { children: React.ReactNode }) {
       // In the future, navigate to step page
       // router.push(`/tutorial/${pathConfig.id}/step/${index + 1}`);
     },
-    [tutorial]
+    [tutorial],
   );
 
   // Close mobile menu on route change
@@ -459,9 +629,7 @@ function TutorialLayoutContent({ children }: { children: React.ReactNode }) {
   if (!isStepPage) {
     return (
       <main className="min-h-screen">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
-          {children}
-        </div>
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">{children}</div>
       </main>
     );
   }
@@ -510,12 +678,10 @@ function TutorialLayoutContent({ children }: { children: React.ReactNode }) {
           // Tablet: collapsed sidebar (16px), Desktop: full sidebar (72rem = 288px)
           "md:pl-16 lg:pl-72",
           // Mobile: header offset, Tablet+: no offset (sidebar handles spacing)
-          "pt-[60px] md:pt-0"
+          "pt-[60px] md:pt-0",
         )}
       >
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
-          {children}
-        </div>
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">{children}</div>
       </main>
     </>
   );
@@ -525,11 +691,7 @@ function TutorialLayoutContent({ children }: { children: React.ReactNode }) {
 // Main Layout Export
 // ============================================================================
 
-export default function TutorialLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function TutorialLayout({ children }: { children: React.ReactNode }) {
   return (
     <TutorialProvider>
       <TutorialLayoutContent>{children}</TutorialLayoutContent>

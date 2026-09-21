@@ -19,9 +19,9 @@
  * ```
  */
 
-import { useQuery, type UseQueryOptions } from "@tanstack/react-query";
-import { fetchCorpusDoc } from "@/lib/corpusActions";
+import { type UseQueryOptions, useQuery } from "@tanstack/react-query";
 import type { CorpusDoc } from "@/lib/corpus";
+import { fetchCorpusDoc } from "@/lib/corpusActions";
 
 // ============================================================================
 // Types
@@ -101,7 +101,7 @@ export function useCorpusDoc(id: string, options?: Omit<UseCorpusDocOptions, "id
  */
 export async function prefetchCorpusDoc(
   queryClient: import("@tanstack/react-query").QueryClient,
-  id: string
+  id: string,
 ): Promise<void> {
   await queryClient.prefetchQuery({
     queryKey: corpusDocKeys.detail(id),

@@ -8,10 +8,10 @@
  * @see brenner_bot-w5p6 (Tutorial Path: Agent-Assisted Research)
  */
 
-import * as React from "react";
-import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { TutorialStep, TutorialCodeBlock, ProTip, Important } from "@/components/tutorial";
+import { useRouter } from "next/navigation";
+import * as React from "react";
+import { Important, ProTip, TutorialCodeBlock, TutorialStep } from "@/components/tutorial";
 import { useTutorial } from "@/lib/tutorial-context";
 import type { TutorialStep as TutorialStepType } from "@/lib/tutorial-types";
 
@@ -38,11 +38,13 @@ const stepData: TutorialStepType = {
   troubleshooting: [
     {
       problem: "Agent's summary is too superficial",
-      solution: "Ask follow-up questions about specific operators or concepts to deepen its understanding.",
+      solution:
+        "Ask follow-up questions about specific operators or concepts to deepen its understanding.",
     },
     {
       problem: "Agent didn't mention all four operators",
-      solution: "Explicitly ask it to read specs/operator_library_v0.1.md and summarize each operator.",
+      solution:
+        "Explicitly ask it to read specs/operator_library_v0.1.md and summarize each operator.",
     },
   ],
 };
@@ -101,10 +103,9 @@ Take your time to read carefully. This will inform how you help with research qu
             </h2>
           </div>
           <p className="text-muted-foreground leading-relaxed">
-            This is where the magic happens. By having your agent systematically study
-            the Brenner documentation, it builds a working understanding of the methodology.
-            It won&apos;t just follow instructions &mdash; it will <em>think with</em> the
-            cognitive operators.
+            This is where the magic happens. By having your agent systematically study the Brenner
+            documentation, it builds a working understanding of the methodology. It won&apos;t just
+            follow instructions &mdash; it will <em>think with</em> the cognitive operators.
           </p>
         </motion.div>
 
@@ -112,22 +113,18 @@ Take your time to read carefully. This will inform how you help with research qu
         <div className="space-y-4">
           <h2 className="text-xl font-semibold">The Study Prompt</h2>
           <p className="text-muted-foreground">
-            Copy and paste this prompt to your agent. It will read the key documents
-            and build its understanding:
+            Copy and paste this prompt to your agent. It will read the key documents and build its
+            understanding:
           </p>
-          <TutorialCodeBlock
-            code={studyPrompt}
-            language="text"
-            title="Prompt to your agent"
-          />
+          <TutorialCodeBlock code={studyPrompt} language="text" title="Prompt to your agent" />
         </div>
 
         {/* What to Expect */}
         <div className="space-y-4">
           <h2 className="text-xl font-semibold">What to Expect</h2>
           <p className="text-muted-foreground">
-            Your agent will spend a few minutes reading the documents. When it responds,
-            its summary should demonstrate understanding of:
+            Your agent will spend a few minutes reading the documents. When it responds, its summary
+            should demonstrate understanding of:
           </p>
 
           <div className="grid gap-3 sm:grid-cols-2">
@@ -149,10 +146,7 @@ Take your time to read carefully. This will inform how you help with research qu
                 check: "Verifying effect sizes make physical/biological sense",
               },
             ].map((item, i) => (
-              <div
-                key={i}
-                className="p-4 rounded-xl border border-border bg-card/50"
-              >
+              <div key={i} className="p-4 rounded-xl border border-border bg-card/50">
                 <h4 className="font-semibold text-sm mb-1">{item.title}</h4>
                 <p className="text-xs text-muted-foreground">{item.check}</p>
               </div>
@@ -188,15 +182,15 @@ Take your time to read carefully. This will inform how you help with research qu
         </div>
 
         <Important>
-          Don&apos;t rush this step. The quality of the agent&apos;s research assistance
-          depends on how well it has internalized the methodology. Spending 10 minutes
-          here will save you hours of suboptimal guidance later.
+          Don&apos;t rush this step. The quality of the agent&apos;s research assistance depends on
+          how well it has internalized the methodology. Spending 10 minutes here will save you hours
+          of suboptimal guidance later.
         </Important>
 
         <ProTip>
-          You can ask the agent to quote specific passages from the transcript that
-          illustrate each operator. This deepens its understanding and gives you
-          concrete examples to reference later.
+          You can ask the agent to quote specific passages from the transcript that illustrate each
+          operator. This deepens its understanding and gives you concrete examples to reference
+          later.
         </ProTip>
 
         {/* Success Criteria */}
@@ -228,9 +222,9 @@ Take your time to read carefully. This will inform how you help with research qu
         {/* Next Step Preview */}
         <div className="p-4 rounded-xl border border-border bg-card/50">
           <p className="text-sm text-muted-foreground">
-            <strong className="text-foreground">Next up:</strong> In Step 5, you&apos;ll
-            define your research problem and have the agent help refine it using
-            Brenner&apos;s criteria for good questions.
+            <strong className="text-foreground">Next up:</strong> In Step 5, you&apos;ll define your
+            research problem and have the agent help refine it using Brenner&apos;s criteria for
+            good questions.
           </p>
         </div>
       </section>

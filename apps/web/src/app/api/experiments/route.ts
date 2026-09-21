@@ -7,15 +7,15 @@
  * POST /api/experiments
  * Body: { projectKey, threadId, testId, command, timeout?, cwd? }
  * Returns: ExperimentResult JSON (stdout/stderr/exit code/duration + provenance)
-  */
+ */
 
-  import { randomUUID } from "node:crypto";
-  import { dirname, isAbsolute, join, relative, resolve, sep, win32 } from "node:path";
-  import { spawn, spawnSync } from "node:child_process";
-  import { mkdirSync, writeFileSync } from "node:fs";
-  import { headers, cookies } from "next/headers";
-  import { NextResponse, type NextRequest } from "next/server";
-  import { checkOrchestrationAuth } from "@/lib/auth";
+import { spawn, spawnSync } from "node:child_process";
+import { randomUUID } from "node:crypto";
+import { mkdirSync, writeFileSync } from "node:fs";
+import { dirname, isAbsolute, join, relative, resolve, sep, win32 } from "node:path";
+import { cookies, headers } from "next/headers";
+import { type NextRequest, NextResponse } from "next/server";
+import { checkOrchestrationAuth } from "@/lib/auth";
 
 export const runtime = "nodejs";
 
@@ -191,18 +191,27 @@ function formatUtcTimestampForFilename(date: Date): string {
   return date.toISOString().replace(/[:.]/g, "-").slice(0, 19);
 }
 
-function bestEffortGitProvenance(cwd: string): { sha: string; branch: string | null; dirty: boolean } | null {
+function bestEffortGitProvenance(
+  cwd: string,
+): { sha: string; branch: string | null; dirty: boolean } | null {
   try {
     const shaProc = spawnSync("git", ["rev-parse", "HEAD"], { cwd, encoding: "utf8" });
     if (shaProc.status !== 0 || shaProc.error) return null;
     const sha = (shaProc.stdout ?? "").trim();
     if (!sha) return null;
 
-    const branchProc = spawnSync("git", ["rev-parse", "--abbrev-ref", "HEAD"], { cwd, encoding: "utf8" });
-    const branch = branchProc.status === 0 && !branchProc.error ? (branchProc.stdout ?? "").trim() || null : null;
+    const branchProc = spawnSync("git", ["rev-parse", "--abbrev-ref", "HEAD"], {
+      cwd,
+      encoding: "utf8",
+    });
+    const branch =
+      branchProc.status === 0 && !branchProc.error
+        ? (branchProc.stdout ?? "").trim() || null
+        : null;
 
     const statusProc = spawnSync("git", ["status", "--porcelain"], { cwd, encoding: "utf8" });
-    const dirty = statusProc.status === 0 && !statusProc.error && (statusProc.stdout ?? "").trim().length > 0;
+    const dirty =
+      statusProc.status === 0 && !statusProc.error && (statusProc.stdout ?? "").trim().length > 0;
 
     return { sha, branch, dirty };
   } catch {
@@ -221,7 +230,9 @@ function isWithinDir(baseDir: string, candidatePath: string): boolean {
 // POST Handler
 // ============================================================================
 
-export async function POST(request: NextRequest): Promise<NextResponse<ExperimentRunResponse | ErrorResponse>> {
+export async function POST(
+  request: NextRequest,
+): Promise<NextResponse<ExperimentRunResponse | ErrorResponse>> {
   // Auth check (lab mode + orchestration auth)
   const reqHeaders = await headers();
   const reqCookies = await cookies();
@@ -230,7 +241,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<Experimen
   if (!authResult.authorized) {
     return NextResponse.json(
       { success: false, error: "Not found", code: "AUTH_ERROR" },
-      { status: 404 }
+      { status: 404 },
     );
   }
 
@@ -241,7 +252,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<Experimen
   } catch {
     return NextResponse.json(
       { success: false, error: "Invalid JSON body", code: "VALIDATION_ERROR" },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
@@ -251,44 +262,60 @@ export async function POST(request: NextRequest): Promise<NextResponse<Experimen
   if (!threadId?.trim()) {
     return NextResponse.json(
       { success: false, error: "Missing threadId", code: "VALIDATION_ERROR" },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
   if (!testId?.trim()) {
     return NextResponse.json(
       { success: false, error: "Missing testId", code: "VALIDATION_ERROR" },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
   if (!Array.isArray(command) || command.length === 0) {
     return NextResponse.json(
-      { success: false, error: "Missing or invalid command (must be non-empty array)", code: "VALIDATION_ERROR" },
-      { status: 400 }
+      {
+        success: false,
+        error: "Missing or invalid command (must be non-empty array)",
+        code: "VALIDATION_ERROR",
+      },
+      { status: 400 },
     );
   }
 
   // Validate command elements are strings
   if (!command.every((arg) => typeof arg === "string")) {
     return NextResponse.json(
-      { success: false, error: "Command array must contain only strings", code: "VALIDATION_ERROR" },
-      { status: 400 }
+      {
+        success: false,
+        error: "Command array must contain only strings",
+        code: "VALIDATION_ERROR",
+      },
+      { status: 400 },
     );
   }
 
   if (typeof command[0] !== "string" || command[0].trim().length === 0) {
     return NextResponse.json(
-      { success: false, error: "Invalid command: first element must be a non-empty string", code: "VALIDATION_ERROR" },
-      { status: 400 }
+      {
+        success: false,
+        error: "Invalid command: first element must be a non-empty string",
+        code: "VALIDATION_ERROR",
+      },
+      { status: 400 },
     );
   }
 
   // Validate command is in whitelist
   if (!isCommandAllowed(command[0])) {
     return NextResponse.json(
-      { success: false, error: `Command not allowed: ${command[0]}. Only whitelisted commands can be executed.`, code: "VALIDATION_ERROR" },
-      { status: 403 }
+      {
+        success: false,
+        error: `Command not allowed: ${command[0]}. Only whitelisted commands can be executed.`,
+        code: "VALIDATION_ERROR",
+      },
+      { status: 403 },
     );
   }
 
@@ -296,19 +323,28 @@ export async function POST(request: NextRequest): Promise<NextResponse<Experimen
   const timeout = body.timeout ?? 900;
   if (typeof timeout !== "number" || timeout <= 0 || timeout > 3600) {
     return NextResponse.json(
-      { success: false, error: "Invalid timeout: must be 1-3600 seconds", code: "VALIDATION_ERROR" },
-      { status: 400 }
+      {
+        success: false,
+        error: "Invalid timeout: must be 1-3600 seconds",
+        code: "VALIDATION_ERROR",
+      },
+      { status: 400 },
     );
   }
 
   try {
     // Resolve paths
-    const rawProjectKey = body.projectKey || process.env.BRENNER_PROJECT_KEY || repoRootFromWebCwd();
+    const rawProjectKey =
+      body.projectKey || process.env.BRENNER_PROJECT_KEY || repoRootFromWebCwd();
     const isAbsoluteProjectKey = isAbsolute(rawProjectKey) || win32.isAbsolute(rawProjectKey);
     if (!isAbsoluteProjectKey) {
       return NextResponse.json(
-        { success: false, error: "Invalid projectKey: must be an absolute path", code: "VALIDATION_ERROR" },
-        { status: 400 }
+        {
+          success: false,
+          error: "Invalid projectKey: must be an absolute path",
+          code: "VALIDATION_ERROR",
+        },
+        { status: 400 },
       );
     }
 
@@ -316,16 +352,24 @@ export async function POST(request: NextRequest): Promise<NextResponse<Experimen
 
     if (body.cwd && (isAbsolute(body.cwd) || win32.isAbsolute(body.cwd))) {
       return NextResponse.json(
-        { success: false, error: "Invalid cwd: must be a relative path within projectKey", code: "VALIDATION_ERROR" },
-        { status: 400 }
+        {
+          success: false,
+          error: "Invalid cwd: must be a relative path within projectKey",
+          code: "VALIDATION_ERROR",
+        },
+        { status: 400 },
       );
     }
 
     const cwd = body.cwd ? resolve(projectKey, body.cwd) : projectKey;
     if (!isWithinDir(projectKey, cwd)) {
       return NextResponse.json(
-        { success: false, error: "Invalid cwd: resolves outside projectKey", code: "VALIDATION_ERROR" },
-        { status: 400 }
+        {
+          success: false,
+          error: "Invalid cwd: resolves outside projectKey",
+          code: "VALIDATION_ERROR",
+        },
+        { status: 400 },
       );
     }
 
@@ -337,8 +381,12 @@ export async function POST(request: NextRequest): Promise<NextResponse<Experimen
     const safeTestId = sanitizeForFilename(testId.trim());
     if (isReservedPathSegment(safeThreadId) || isReservedPathSegment(safeTestId)) {
       return NextResponse.json(
-        { success: false, error: "Invalid threadId/testId (reserved path segment)", code: "VALIDATION_ERROR" },
-        { status: 400 }
+        {
+          success: false,
+          error: "Invalid threadId/testId (reserved path segment)",
+          code: "VALIDATION_ERROR",
+        },
+        { status: 400 },
       );
     }
     const resultFile = join(
@@ -347,7 +395,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<Experimen
       safeThreadId,
       "experiments",
       safeTestId,
-      `${timestamp}_${resultId}.json`
+      `${timestamp}_${resultId}.json`,
     );
 
     // Execute command with timeout
@@ -430,7 +478,8 @@ export async function POST(request: NextRequest): Promise<NextResponse<Experimen
       const finishedAt = new Date();
       const durationMs = finishedAt.getTime() - startedAt.getTime();
       const git = bestEffortGitProvenance(cwd);
-      const bun_version = (process.versions as unknown as Record<string, string | undefined>).bun ?? "unknown";
+      const bun_version =
+        (process.versions as unknown as Record<string, string | undefined>).bun ?? "unknown";
 
       const result: ExperimentResultV01 = {
         schema_version: "experiment_result_v0.1",
@@ -475,7 +524,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<Experimen
     const message = err instanceof Error ? err.message : String(err);
     return NextResponse.json(
       { success: false, error: `Execution failed: ${message}`, code: "EXECUTION_ERROR" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

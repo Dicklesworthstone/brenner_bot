@@ -20,7 +20,8 @@ const loopStages: LoopStage[] = [
     title: "Problem Selection",
     shortTitle: "Problem",
     description: "Choose the right problem - one that is tractable yet significant.",
-    quote: "I think many fields of science could do a great deal better if they went back to the classical approach of studying a problem.",
+    quote:
+      "I think many fields of science could do a great deal better if they went back to the classical approach of studying a problem.",
   },
   {
     stage: 2,
@@ -55,7 +56,7 @@ const loopStages: LoopStage[] = [
 // Calculate pentagon positions
 function getStagePosition(index: number, total: number, radius: number) {
   // Start from top (-90 degrees) and go clockwise
-  const angle = ((2 * Math.PI * index) / total) - (Math.PI / 2);
+  const angle = (2 * Math.PI * index) / total - Math.PI / 2;
   return {
     x: Math.cos(angle) * radius,
     y: Math.sin(angle) * radius,
@@ -82,10 +83,7 @@ export function BrennerLoopDiagram() {
           setActiveStage(null);
         }}
       >
-        <div
-          className="relative mx-auto"
-          style={{ width: svgSize }}
-        >
+        <div className="relative mx-auto" style={{ width: svgSize }}>
           <svg
             viewBox={`0 0 ${svgSize} ${svgSize}`}
             width={svgSize}
@@ -125,11 +123,7 @@ export function BrennerLoopDiagram() {
                 refY="3.5"
                 orient="auto"
               >
-                <polygon
-                  points="0 0, 10 3.5, 0 7"
-                  fill="var(--color-primary)"
-                  opacity="0.6"
-                />
+                <polygon points="0 0, 10 3.5, 0 7" fill="var(--color-primary)" opacity="0.6" />
               </marker>
             </defs>
 
@@ -248,21 +242,18 @@ export function BrennerLoopDiagram() {
 
             {/* Center iteration indicator */}
             <g transform={`translate(${center}, ${center})`}>
-              <circle
-                r="24"
-                fill="var(--color-muted)"
-                opacity="0.5"
-              />
+              <circle r="24" fill="var(--color-muted)" opacity="0.5" />
               <RefreshIcon />
             </g>
           </svg>
-
         </div>
 
         {/* Active stage detail card - positioned below the diagram */}
         <div
           className={`mx-auto w-80 mt-4 transition-all duration-300 ${
-            activeStage ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-2 pointer-events-none h-0 overflow-hidden"
+            activeStage
+              ? "opacity-100 translate-y-0"
+              : "opacity-0 -translate-y-2 pointer-events-none h-0 overflow-hidden"
           }`}
         >
           {activeStage && (
@@ -309,9 +300,11 @@ export function BrennerLoopDiagram() {
                   {stage.stage}
                 </button>
                 {index < loopStages.length - 1 && (
-                  <div className={`w-0.5 h-full min-h-[60px] my-1 transition-colors duration-200 ${
-                    isExpanded ? "bg-primary/50" : "bg-border"
-                  }`} />
+                  <div
+                    className={`w-0.5 h-full min-h-[60px] my-1 transition-colors duration-200 ${
+                      isExpanded ? "bg-primary/50" : "bg-border"
+                    }`}
+                  />
                 )}
                 {isIterateStage && (
                   <div className="flex flex-col items-center mt-2">
@@ -328,9 +321,7 @@ export function BrennerLoopDiagram() {
                         d="M9 15L3 9m0 0l6-6M3 9h12a6 6 0 010 12h-3"
                       />
                     </svg>
-                    <span className="text-[10px] text-muted-foreground mt-1">
-                      Loop back
-                    </span>
+                    <span className="text-[10px] text-muted-foreground mt-1">Loop back</span>
                   </div>
                 )}
               </div>
@@ -342,22 +333,26 @@ export function BrennerLoopDiagram() {
                   isExpanded ? "opacity-100" : "opacity-80"
                 }`}
               >
-                <div className={`rounded-xl p-3 -ml-1 transition-all duration-200 ${
-                  isExpanded
-                    ? "bg-muted/50 border border-border shadow-sm"
-                    : "hover:bg-muted/30"
-                }`}>
-                  <h3 className={`font-semibold mb-1 transition-colors duration-200 ${
-                    isExpanded ? "text-primary" : "text-foreground"
-                  }`}>
+                <div
+                  className={`rounded-xl p-3 -ml-1 transition-all duration-200 ${
+                    isExpanded ? "bg-muted/50 border border-border shadow-sm" : "hover:bg-muted/30"
+                  }`}
+                >
+                  <h3
+                    className={`font-semibold mb-1 transition-colors duration-200 ${
+                      isExpanded ? "text-primary" : "text-foreground"
+                    }`}
+                  >
                     {stage.title}
                   </h3>
                   <p className="text-sm text-muted-foreground mb-2 leading-relaxed">
                     {stage.description}
                   </p>
-                  <blockquote className={`text-xs italic text-muted-foreground border-l-2 pl-2 transition-all duration-200 ${
-                    isExpanded ? "border-primary/50" : "border-primary/30"
-                  }`}>
+                  <blockquote
+                    className={`text-xs italic text-muted-foreground border-l-2 pl-2 transition-all duration-200 ${
+                      isExpanded ? "border-primary/50" : "border-primary/30"
+                    }`}
+                  >
                     &ldquo;{stage.quote}&rdquo;
                   </blockquote>
                 </div>

@@ -15,50 +15,45 @@
  * @module components/brenner-loop/evidence/WhatIfSimulator
  */
 
-import * as React from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import {
-  FlaskConical,
-  TrendingUp,
-  TrendingDown,
-  Minus,
-  Scale,
-  Layers,
   BarChart3,
   ChevronRight,
-  Plus,
-  X,
+  FlaskConical,
   Info,
+  Layers,
+  Minus,
+  Plus,
+  Scale,
   Sparkles,
+  TrendingDown,
+  TrendingUp,
+  X,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import * as React from "react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import type { TestQueueItem } from "@/lib/brenner-loop/test-queue";
-import type { EvidenceResult } from "@/lib/brenner-loop/evidence";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { formatConfidence, formatDelta, getStarRating } from "@/lib/brenner-loop/confidence";
+import type { EvidenceResult } from "@/lib/brenner-loop/evidence";
+import type { TestQueueItem } from "@/lib/brenner-loop/test-queue";
 import {
+  type AssumedTestResult,
+  addTestToScenario,
+  analyzeScenario,
   analyzeTestQueueItem,
   compareTests,
   createScenario,
-  addTestToScenario,
-  removeTestFromScenario,
-  updateTestInScenario,
-  analyzeScenario,
-  getRecommendationStars,
-  getRecommendationColor,
   formatInformationValue,
-  summarizeScenario,
+  getRecommendationColor,
+  getRecommendationStars,
   RECOMMENDATION_LABELS,
+  removeTestFromScenario,
+  summarizeScenario,
+  updateTestInScenario,
   type WhatIfScenario,
-  type AssumedTestResult,
 } from "@/lib/brenner-loop/what-if";
+import { cn } from "@/lib/utils";
 
 // ============================================================================
 // Types
@@ -121,13 +116,11 @@ interface SingleTestViewProps {
 
 function SingleTestView({ currentConfidence, tests, onRunTest }: SingleTestViewProps) {
   const [selectedTestId, setSelectedTestId] = React.useState<string | null>(
-    tests.length > 0 ? tests[0].id : null
+    tests.length > 0 ? tests[0].id : null,
   );
 
   const selectedTest = tests.find((t) => t.id === selectedTestId);
-  const analysis = selectedTest
-    ? analyzeTestQueueItem(currentConfidence, selectedTest)
-    : null;
+  const analysis = selectedTest ? analyzeTestQueueItem(currentConfidence, selectedTest) : null;
 
   if (tests.length === 0) {
     return (
@@ -137,8 +130,7 @@ function SingleTestView({ currentConfidence, tests, onRunTest }: SingleTestViewP
         </div>
         <h3 className="text-lg font-medium mb-2">No Tests Available</h3>
         <p className="text-sm text-muted-foreground max-w-sm">
-          Add tests to your queue from the Exclusion Test operator to see what-if
-          projections.
+          Add tests to your queue from the Exclusion Test operator to see what-if projections.
         </p>
       </div>
     );
@@ -158,7 +150,7 @@ function SingleTestView({ currentConfidence, tests, onRunTest }: SingleTestViewP
                 "px-3 py-2 rounded-lg border text-sm transition-colors",
                 selectedTestId === test.id
                   ? "border-primary bg-primary/10 text-primary"
-                  : "border-border bg-background hover:bg-muted"
+                  : "border-border bg-background hover:bg-muted",
               )}
             >
               <span className="font-medium">{test.test.name}</span>
@@ -200,9 +192,12 @@ function SingleTestView({ currentConfidence, tests, onRunTest }: SingleTestViewP
                   key={result}
                   className={cn(
                     "p-4 rounded-lg border",
-                    result === "supports" && "bg-green-50 border-green-200 dark:bg-green-950/30 dark:border-green-900",
-                    result === "challenges" && "bg-red-50 border-red-200 dark:bg-red-950/30 dark:border-red-900",
-                    result === "inconclusive" && "bg-amber-50 border-amber-200 dark:bg-amber-950/30 dark:border-amber-900"
+                    result === "supports" &&
+                      "bg-green-50 border-green-200 dark:bg-green-950/30 dark:border-green-900",
+                    result === "challenges" &&
+                      "bg-red-50 border-red-200 dark:bg-red-950/30 dark:border-red-900",
+                    result === "inconclusive" &&
+                      "bg-amber-50 border-amber-200 dark:bg-amber-950/30 dark:border-amber-900",
                   )}
                 >
                   <div className="flex items-center justify-between mb-2">
@@ -219,7 +214,8 @@ function SingleTestView({ currentConfidence, tests, onRunTest }: SingleTestViewP
 
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-muted-foreground">
-                      {formatConfidence(currentConfidence)} → {formatConfidence(outcome.newConfidence)}
+                      {formatConfidence(currentConfidence)} →{" "}
+                      {formatConfidence(outcome.newConfidence)}
                     </span>
                     <span className={cn("font-medium", config.color)}>
                       {formatDelta(outcome.delta)}
@@ -241,12 +237,15 @@ function SingleTestView({ currentConfidence, tests, onRunTest }: SingleTestViewP
             <div className="flex items-center justify-between">
               <span className="text-sm text-muted-foreground">Discriminative Power</span>
               <span className="font-medium">
-                {getStarRating(selectedTest.discriminativePower)} ({selectedTest.discriminativePower}/5)
+                {getStarRating(selectedTest.discriminativePower)} (
+                {selectedTest.discriminativePower}/5)
               </span>
             </div>
             <div className="flex items-center justify-between">
               <span className="text-sm text-muted-foreground">Information Value</span>
-              <span className="font-medium">{formatInformationValue(analysis.informationValue)}</span>
+              <span className="font-medium">
+                {formatInformationValue(analysis.informationValue)}
+              </span>
             </div>
             <div className="flex items-center justify-between">
               <span className="text-sm text-muted-foreground">Max Potential Impact</span>
@@ -290,12 +289,12 @@ function ScenarioBuilderView({
       sessionId,
       hypothesisId,
       startingConfidence: currentConfidence,
-    })
+    }),
   );
 
   // Get tests not yet in scenario
   const availableTests = tests.filter(
-    (t) => !scenario.assumedTests.some((at) => at.testId === t.id)
+    (t) => !scenario.assumedTests.some((at) => at.testId === t.id),
   );
 
   const analysis = analyzeScenario(scenario);
@@ -325,7 +324,7 @@ function ScenarioBuilderView({
         sessionId,
         hypothesisId,
         startingConfidence: currentConfidence,
-      })
+      }),
     );
   };
 
@@ -360,7 +359,7 @@ function ScenarioBuilderView({
               className={cn(
                 "text-2xl font-bold",
                 scenario.confidenceDelta > 0 && "text-green-600",
-                scenario.confidenceDelta < 0 && "text-red-600"
+                scenario.confidenceDelta < 0 && "text-red-600",
               )}
             >
               {formatConfidence(scenario.projectedConfidence)}
@@ -373,9 +372,7 @@ function ScenarioBuilderView({
         </div>
 
         {scenario.assumedTests.length > 0 && (
-          <div className="mt-3 text-sm text-muted-foreground">
-            {summarizeScenario(scenario)}
-          </div>
+          <div className="mt-3 text-sm text-muted-foreground">{summarizeScenario(scenario)}</div>
         )}
       </div>
 
@@ -440,7 +437,7 @@ function ScenarioBuilderView({
                                     "p-1.5 rounded transition-colors",
                                     isActive
                                       ? cn("bg-primary/10", rc.color)
-                                      : "text-muted-foreground hover:bg-muted"
+                                      : "text-muted-foreground hover:bg-muted",
                                   )}
                                 >
                                   <ResultIcon className="size-4" />
@@ -452,7 +449,7 @@ function ScenarioBuilderView({
                             </Tooltip>
                           </TooltipProvider>
                         );
-                      }
+                      },
                     )}
                   </div>
 
@@ -498,7 +495,7 @@ function ScenarioBuilderView({
                                 onClick={() => handleAddTest(test, result)}
                                 className={cn(
                                   "p-1.5 rounded text-muted-foreground hover:bg-muted transition-colors",
-                                  rc.hoverColor
+                                  rc.hoverColor,
                                 )}
                               >
                                 <Plus className="size-4" />
@@ -510,7 +507,7 @@ function ScenarioBuilderView({
                           </Tooltip>
                         </TooltipProvider>
                       );
-                    }
+                    },
                   )}
                 </div>
               </div>
@@ -540,11 +537,7 @@ interface TestComparisonViewProps {
   onRunTest?: (test: TestQueueItem) => void;
 }
 
-function TestComparisonView({
-  currentConfidence,
-  tests,
-  onRunTest,
-}: TestComparisonViewProps) {
+function TestComparisonView({ currentConfidence, tests, onRunTest }: TestComparisonViewProps) {
   const comparison = compareTests(currentConfidence, tests);
 
   if (tests.length === 0) {
@@ -634,9 +627,7 @@ function TestComparisonView({
                     </span>
                   </td>
                   <td className="px-3 py-3 text-center">
-                    <span className="font-medium">
-                      ±{item.informationValue.toFixed(1)}%
-                    </span>
+                    <span className="font-medium">±{item.informationValue.toFixed(1)}%</span>
                   </td>
                   <td className="px-3 py-3 text-center">
                     <TooltipProvider>
@@ -677,9 +668,8 @@ function TestComparisonView({
       <div className="flex items-start gap-2 p-3 rounded-lg bg-muted/50 text-sm">
         <Info className="size-4 mt-0.5 text-muted-foreground flex-shrink-0" />
         <p className="text-muted-foreground">
-          Tests are ranked by <em>information value</em> - how much your confidence could
-          change based on the result. Higher-ranked tests will teach you more about your
-          hypothesis.
+          Tests are ranked by <em>information value</em> - how much your confidence could change
+          based on the result. Higher-ranked tests will teach you more about your hypothesis.
         </p>
       </div>
     </div>

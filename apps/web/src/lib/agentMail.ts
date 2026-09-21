@@ -1,5 +1,5 @@
-import type { JsonValue } from "./json";
 import { normalizeSystemError, nowMs, trackSystemEvent, trackSystemLatency } from "./analytics";
+import type { JsonValue } from "./json";
 
 export type AgentMailConfig = {
   baseUrl: string;
@@ -169,16 +169,21 @@ async function readJsonRpcEnvelopeFromSse(res: Response): Promise<unknown> {
 }
 
 function readFirstResourceText(result: JsonValue): string {
-  if (!isRecord(result)) throw new Error(`Agent Mail malformed resources/read response: ${JSON.stringify(result)}`);
+  if (!isRecord(result))
+    throw new Error(`Agent Mail malformed resources/read response: ${JSON.stringify(result)}`);
 
   const contents = result.contents;
   if (!Array.isArray(contents) || contents.length === 0) {
-    throw new Error(`Agent Mail resources/read response missing contents: ${JSON.stringify(result)}`);
+    throw new Error(
+      `Agent Mail resources/read response missing contents: ${JSON.stringify(result)}`,
+    );
   }
 
   const first = contents[0];
   if (!isRecord(first) || typeof first.text !== "string") {
-    throw new Error(`Agent Mail resources/read response missing first.text: ${JSON.stringify(result)}`);
+    throw new Error(
+      `Agent Mail resources/read response missing first.text: ${JSON.stringify(result)}`,
+    );
   }
 
   return first.text;
@@ -197,10 +202,11 @@ export class AgentMailClient {
   private readonly config: AgentMailConfig;
 
   constructor(config?: Partial<AgentMailConfig>) {
-    const baseUrl = (config?.baseUrl ?? process.env.AGENT_MAIL_BASE_URL ?? "http://127.0.0.1:8765").replace(
-      /\/+$/,
-      "",
-    );
+    const baseUrl = (
+      config?.baseUrl ??
+      process.env.AGENT_MAIL_BASE_URL ??
+      "http://127.0.0.1:8765"
+    ).replace(/\/+$/, "");
     const rawPath = config?.path ?? process.env.AGENT_MAIL_PATH ?? "/mcp/";
     const path = rawPath.startsWith("/") ? rawPath : `/${rawPath}`;
     const bearerToken = config?.bearerToken ?? process.env.AGENT_MAIL_BEARER_TOKEN;
@@ -230,7 +236,7 @@ export class AgentMailClient {
       status = res.status;
       const contentType = res.headers.get("content-type")?.toLowerCase() ?? "";
 
-      let data: unknown = undefined;
+      let data: unknown;
       if (contentType.includes("text/event-stream")) {
         data = await readJsonRpcEnvelopeFromSse(res);
       } else {
@@ -238,13 +244,16 @@ export class AgentMailClient {
         try {
           data = text ? (JSON.parse(text) as unknown) : undefined;
         } catch {
-          throw new Error(`Agent Mail non-JSON response (HTTP ${res.status}): ${text.slice(0, 400)}`);
+          throw new Error(
+            `Agent Mail non-JSON response (HTTP ${res.status}): ${text.slice(0, 400)}`,
+          );
         }
       }
 
       if (!res.ok) throw new Error(`Agent Mail HTTP ${res.status}: ${JSON.stringify(data)}`);
       if (!isRecord(data)) throw new Error(`Agent Mail malformed JSON: ${JSON.stringify(data)}`);
-      if ("error" in data && data.error) throw new Error(`Agent Mail MCP error: ${JSON.stringify(data.error)}`);
+      if ("error" in data && data.error)
+        throw new Error(`Agent Mail MCP error: ${JSON.stringify(data.error)}`);
       return ("result" in data ? (data.result as JsonValue) : null) satisfies JsonValue;
     } catch (err) {
       errorInfo = normalizeSystemError(err);
@@ -285,7 +294,10 @@ export class AgentMailClient {
     return result as T;
   }
 
-  private resourceUri(path: string, query?: Record<string, string | number | boolean | null | undefined>): string {
+  private resourceUri(
+    path: string,
+    query?: Record<string, string | number | boolean | null | undefined>,
+  ): string {
     const url = new URL(`resource://${path}`);
     for (const [key, value] of Object.entries(query ?? {})) {
       if (value === undefined || value === null) continue;
@@ -313,7 +325,11 @@ export class AgentMailClient {
     return parseResourceJson<AgentMailInbox>(result);
   }
 
-  async readThread(args: { projectKey: string; threadId: string; includeBodies?: boolean }): Promise<AgentMailThread> {
+  async readThread(args: {
+    projectKey: string;
+    threadId: string;
+    includeBodies?: boolean;
+  }): Promise<AgentMailThread> {
     const uri = this.resourceUri(`thread/${args.threadId}`, {
       project: args.projectKey,
       include_bodies: args.includeBodies ?? false,
@@ -322,7 +338,11 @@ export class AgentMailClient {
     return parseResourceJson<AgentMailThread>(result);
   }
 
-  async markMessageRead(args: { projectKey: string; agentName: string; messageId: number }): Promise<JsonValue> {
+  async markMessageRead(args: {
+    projectKey: string;
+    agentName: string;
+    messageId: number;
+  }): Promise<JsonValue> {
     const result = await this.toolsCall("mark_message_read", {
       project_key: args.projectKey,
       agent_name: args.agentName,

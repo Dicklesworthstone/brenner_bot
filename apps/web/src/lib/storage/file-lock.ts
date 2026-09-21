@@ -1,5 +1,5 @@
 import { mkdir, rmdir, stat } from "node:fs/promises";
-import { join, dirname } from "node:path";
+import { dirname, join } from "node:path";
 
 const LOCK_STALE_MS = 30_000; // 30 seconds
 const LOCK_RETRY_DELAY_MS = 50;
@@ -79,11 +79,11 @@ async function releaseLock(lockPath: string): Promise<void> {
 export async function withFileLock<T>(
   baseDir: string,
   resourceName: string,
-  fn: () => Promise<T>
+  fn: () => Promise<T>,
 ): Promise<T> {
   // Store locks in .research/.locks/
   const lockPath = join(baseDir, ".research", ".locks", `${resourceName}.lock`);
-  
+
   await acquireLock(lockPath);
   try {
     return await fn();

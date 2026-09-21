@@ -1,8 +1,11 @@
 import { copyFile, mkdir, readFile, stat } from "node:fs/promises";
-import { resolve, dirname } from "node:path";
+import { dirname, resolve } from "node:path";
 import { CORPUS_DOCS } from "../src/lib/corpus";
 
-const EXTRA_CORPUS_FILES = ["specs/operator_library_v0.1.md", "specs/role_prompts_v0.1.md"] as const;
+const EXTRA_CORPUS_FILES = [
+  "specs/operator_library_v0.1.md",
+  "specs/role_prompts_v0.1.md",
+] as const;
 
 async function fileExists(path: string): Promise<boolean> {
   try {
@@ -37,9 +40,14 @@ async function main(): Promise<void> {
     if (await fileExists(outputPath)) {
       const [sourceStats, outputStats] = await Promise.all([stat(sourcePath), stat(outputPath)]);
       if (sourceStats.size === outputStats.size) {
-        const [sourceBuf, outputBuf] = await Promise.all([readFile(sourcePath), readFile(outputPath)]);
+        const [sourceBuf, outputBuf] = await Promise.all([
+          readFile(sourcePath),
+          readFile(outputPath),
+        ]);
         if (sourceBuf.equals(outputBuf)) {
-          console.log(`[copy-corpus] Skipping ${relativePath} - unchanged (${Math.round(outputStats.size / 1024)}KB)`);
+          console.log(
+            `[copy-corpus] Skipping ${relativePath} - unchanged (${Math.round(outputStats.size / 1024)}KB)`,
+          );
           return;
         }
       }

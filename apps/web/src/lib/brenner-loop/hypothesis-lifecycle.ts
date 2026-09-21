@@ -247,7 +247,7 @@ export const HYPOTHESIS_STATE_CONFIG: Record<HypothesisState, HypothesisStateCon
  */
 type TransitionGuard = (
   hypothesis: HypothesisWithLifecycle,
-  event: HypothesisLifecycleEvent
+  event: HypothesisLifecycleEvent,
 ) => { valid: boolean; error?: string };
 
 /**
@@ -255,10 +255,7 @@ type TransitionGuard = (
  * Also validates that the specified prediction index is valid and not already locked.
  */
 const hasUnlockedPredictions: TransitionGuard = (hypothesis, event) => {
-  const allPredictions = [
-    ...hypothesis.predictionsIfTrue,
-    ...hypothesis.predictionsIfFalse,
-  ];
+  const allPredictions = [...hypothesis.predictionsIfTrue, ...hypothesis.predictionsIfFalse];
 
   if (allPredictions.length === 0) {
     return { valid: false, error: "No predictions available to lock" };
@@ -327,7 +324,7 @@ interface TransitionDef {
   guards: TransitionGuard[];
   action: (
     hypothesis: HypothesisWithLifecycle,
-    event: HypothesisLifecycleEvent
+    event: HypothesisLifecycleEvent,
   ) => Partial<HypothesisWithLifecycle>;
 }
 
@@ -440,7 +437,7 @@ const TRANSITIONS: Record<HypothesisLifecycleEvent["type"], TransitionDef> = {
  */
 export function transitionHypothesis(
   hypothesis: HypothesisWithLifecycle,
-  event: HypothesisLifecycleEvent
+  event: HypothesisLifecycleEvent,
 ): LifecycleTransitionResult {
   const transition = TRANSITIONS[event.type];
 
@@ -521,7 +518,7 @@ export function transitionHypothesis(
  * @returns Array of available event types
  */
 export function getAvailableTransitions(
-  hypothesis: HypothesisWithLifecycle
+  hypothesis: HypothesisWithLifecycle,
 ): HypothesisLifecycleEvent["type"][] {
   return HYPOTHESIS_STATE_CONFIG[hypothesis.state].transitions;
 }
@@ -539,7 +536,7 @@ export function getAvailableTransitions(
  */
 export function canTransition(
   hypothesis: HypothesisWithLifecycle,
-  eventType: HypothesisLifecycleEvent["type"]
+  eventType: HypothesisLifecycleEvent["type"],
 ): boolean {
   const transition = TRANSITIONS[eventType];
   if (!transition) return false;
@@ -558,7 +555,7 @@ export function canTransition(
  */
 export function canTransitionWithEvent(
   hypothesis: HypothesisWithLifecycle,
-  event: HypothesisLifecycleEvent
+  event: HypothesisLifecycleEvent,
 ): boolean {
   const transition = TRANSITIONS[event.type];
   if (!transition) return false;
@@ -606,14 +603,13 @@ export function isResolvable(state: HypothesisState): boolean {
  */
 export function shouldBeDormant(
   hypothesis: HypothesisWithLifecycle,
-  now: Date = new Date()
+  now: Date = new Date(),
 ): boolean {
   if (hypothesis.state !== "active") return false;
 
   // Use getTimeMs to handle both Date objects and ISO strings
   const lastActivityMs = getTimeMs(hypothesis.lastActivityAt as Date | string);
-  const daysSinceActivity =
-    (now.getTime() - lastActivityMs) / (1000 * 60 * 60 * 24);
+  const daysSinceActivity = (now.getTime() - lastActivityMs) / (1000 * 60 * 60 * 24);
 
   return daysSinceActivity >= hypothesis.dormancyThresholdDays;
 }
@@ -633,7 +629,7 @@ export function createHypothesisWithLifecycle(
   card: HypothesisCard,
   options: {
     dormancyThresholdDays?: number;
-  } = {}
+  } = {},
 ): HypothesisWithLifecycle {
   const now = new Date();
 
@@ -659,14 +655,12 @@ export function createHypothesisWithLifecycle(
  */
 export function upgradeToLifecycle(
   card: HypothesisCard,
-  currentState: HypothesisState = "draft"
+  currentState: HypothesisState = "draft",
 ): HypothesisWithLifecycle {
   const now = new Date();
 
   // Handle updatedAt being either a Date or a string (from JSON deserialization)
-  const lastActivity = card.updatedAt
-    ? toDate(card.updatedAt as Date | string)
-    : now;
+  const lastActivity = card.updatedAt ? toDate(card.updatedAt as Date | string) : now;
 
   return {
     ...card,
@@ -733,7 +727,7 @@ export function isHypothesisState(value: unknown): value is HypothesisState {
   return (
     typeof value === "string" &&
     ["draft", "active", "testing", "supported", "falsified", "superseded", "dormant"].includes(
-      value
+      value,
     )
   );
 }
@@ -747,9 +741,7 @@ export function isHypothesisState(value: unknown): value is HypothesisState {
  * @param obj - The object to check
  * @returns Whether the object is a HypothesisWithLifecycle
  */
-export function isHypothesisWithLifecycle(
-  obj: unknown
-): obj is HypothesisWithLifecycle {
+export function isHypothesisWithLifecycle(obj: unknown): obj is HypothesisWithLifecycle {
   if (typeof obj !== "object" || obj === null) return false;
 
   const hyp = obj as Record<string, unknown>;
@@ -805,9 +797,7 @@ export function getStateIcon(state: HypothesisState): string {
  * @param state - The state
  * @returns Color class object
  */
-export function getStateColors(
-  state: HypothesisState
-): HypothesisStateConfig["color"] {
+export function getStateColors(state: HypothesisState): HypothesisStateConfig["color"] {
   return HYPOTHESIS_STATE_CONFIG[state].color;
 }
 
@@ -856,9 +846,7 @@ export interface LifecycleStats {
  * @param hypotheses - The hypotheses to analyze
  * @returns Lifecycle statistics
  */
-export function calculateLifecycleStats(
-  hypotheses: HypothesisWithLifecycle[]
-): LifecycleStats {
+export function calculateLifecycleStats(hypotheses: HypothesisWithLifecycle[]): LifecycleStats {
   const byState: Record<HypothesisState, number> = {
     draft: 0,
     active: 0,
@@ -918,9 +906,7 @@ export function calculateLifecycleStats(
     byState,
     avgDaysInDraft: draftCount > 0 ? totalDaysInDraft / draftCount : 0,
     avgDaysToResolution: resolvedCount > 0 ? totalDaysToResolution / resolvedCount : 0,
-    falsificationRate:
-      hypotheses.length > 0 ? falsifiedCount / hypotheses.length : 0,
-    supersessionRate:
-      hypotheses.length > 0 ? supersededCount / hypotheses.length : 0,
+    falsificationRate: hypotheses.length > 0 ? falsifiedCount / hypotheses.length : 0,
+    supersessionRate: hypotheses.length > 0 ? supersededCount / hypotheses.length : 0,
   };
 }

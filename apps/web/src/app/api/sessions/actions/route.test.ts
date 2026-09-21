@@ -1,5 +1,5 @@
-import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { resolve, win32 } from "node:path";
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   AgentMailTestServer,
   createMockRequest,
@@ -106,7 +106,7 @@ describe("POST /api/sessions/actions", () => {
         createMockRequest({
           method: "POST",
           body: { action: "compile", threadId: "TEST-1" },
-        })
+        }),
       );
 
       expect(response.status).toBe(200);
@@ -144,7 +144,7 @@ describe("POST /api/sessions/actions", () => {
         createMockRequest({
           method: "POST",
           body: { action: "compile", threadId: "TEST-NO-FENCE" },
-        })
+        }),
       );
 
       expect(response.status).toBe(400);
@@ -181,7 +181,7 @@ describe("POST /api/sessions/actions", () => {
             sender: "Operator",
             recipients: ["Claude"],
           },
-        })
+        }),
       );
 
       expect(response.status).toBe(200);
@@ -222,7 +222,7 @@ describe("POST /api/sessions/actions", () => {
             subject: "Experiment T1 result",
             bodyMd: deltaBody,
           },
-        })
+        }),
       );
 
       expect(response.status).toBe(200);
@@ -253,7 +253,7 @@ describe("POST /api/sessions/actions", () => {
             subject: "DELTA[human]: no blocks",
             bodyMd: "no delta blocks here",
           },
-        })
+        }),
       );
 
       expect(response.status).toBe(400);
@@ -283,7 +283,7 @@ describe("POST /api/sessions/actions", () => {
             sender: "Operator",
             recipients: ["Codex"],
           },
-        })
+        }),
       );
 
       expect(response.status).toBe(400);
@@ -307,7 +307,7 @@ describe("POST /api/sessions/actions", () => {
             sender: "Operator",
             recipients: ["Codex", "Gemini"],
           },
-        })
+        }),
       );
 
       expect(response.status).toBe(200);
@@ -364,7 +364,7 @@ describe("POST /api/sessions/actions", () => {
             sender: "Operator",
             recipients: ["Claude"],
           },
-        })
+        }),
       );
 
       expect(response.status).toBe(200);

@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 /**
  * Dialog Component
@@ -15,10 +15,10 @@
  * @module components/ui/dialog
  */
 
-import * as React from "react"
-import * as DialogPrimitive from "@radix-ui/react-dialog"
-import { cva, type VariantProps } from "class-variance-authority"
-import { cn } from "@/lib/utils"
+import * as DialogPrimitive from "@radix-ui/react-dialog";
+import { cva, type VariantProps } from "class-variance-authority";
+import * as React from "react";
+import { cn } from "@/lib/utils";
 
 // ============================================================================
 // Icons
@@ -34,19 +34,19 @@ const CloseIcon = ({ className }: { className?: string }) => (
   >
     <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
   </svg>
-)
+);
 
 // ============================================================================
 // Root Components
 // ============================================================================
 
-const Dialog = DialogPrimitive.Root
+const Dialog = DialogPrimitive.Root;
 
-const DialogTrigger = DialogPrimitive.Trigger
+const DialogTrigger = DialogPrimitive.Trigger;
 
-const DialogPortal = DialogPrimitive.Portal
+const DialogPortal = DialogPrimitive.Portal;
 
-const DialogClose = DialogPrimitive.Close
+const DialogClose = DialogPrimitive.Close;
 
 // ============================================================================
 // Overlay
@@ -67,12 +67,12 @@ const DialogOverlay = React.forwardRef<
       "data-[state=open]:animate-in data-[state=closed]:animate-out",
       "data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
       "duration-200",
-      className
+      className,
     )}
     {...props}
   />
-))
-DialogOverlay.displayName = DialogPrimitive.Overlay.displayName
+));
+DialogOverlay.displayName = DialogPrimitive.Overlay.displayName;
 
 // ============================================================================
 // Content Variants
@@ -113,8 +113,8 @@ const dialogContentVariants = cva(
     defaultVariants: {
       size: "default",
     },
-  }
-)
+  },
+);
 
 // ============================================================================
 // Content
@@ -124,56 +124,61 @@ interface DialogContentProps
   extends React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content>,
     VariantProps<typeof dialogContentVariants> {
   /** Hide the close button */
-  hideCloseButton?: boolean
+  hideCloseButton?: boolean;
   /** Custom close button aria-label */
-  closeButtonLabel?: string
+  closeButtonLabel?: string;
 }
 
 const DialogContent = React.forwardRef<
   React.ElementRef<typeof DialogPrimitive.Content>,
   DialogContentProps
->(({ className, children, size, hideCloseButton = false, closeButtonLabel = "Close", ...props }, ref) => (
-  <DialogPortal>
-    <DialogOverlay />
-    <DialogPrimitive.Content
-      ref={ref}
-      data-slot="dialog-content"
-      data-size={size}
-      className={cn(dialogContentVariants({ size }), className)}
-      {...props}
-    >
-      {children}
-      {!hideCloseButton && (
-        <DialogPrimitive.Close
-          data-slot="dialog-close"
-          className={cn(
-            // Positioning
-            "absolute right-3 top-3",
-            // Touch-friendly size (44px minimum)
-            "size-11 sm:size-10",
-            // Styling
-            "rounded-full flex items-center justify-center",
-            "text-muted-foreground",
-            // Transitions
-            "transition-all duration-150",
-            // Hover state
-            "hover:bg-muted hover:text-foreground",
-            // Active/pressed state
-            "active:scale-95 active:bg-muted/80",
-            // Focus state
-            "focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
-            // Disabled state
-            "disabled:pointer-events-none disabled:opacity-50"
-          )}
-          aria-label={closeButtonLabel}
-        >
-          <CloseIcon />
-        </DialogPrimitive.Close>
-      )}
-    </DialogPrimitive.Content>
-  </DialogPortal>
-))
-DialogContent.displayName = DialogPrimitive.Content.displayName
+>(
+  (
+    { className, children, size, hideCloseButton = false, closeButtonLabel = "Close", ...props },
+    ref,
+  ) => (
+    <DialogPortal>
+      <DialogOverlay />
+      <DialogPrimitive.Content
+        ref={ref}
+        data-slot="dialog-content"
+        data-size={size}
+        className={cn(dialogContentVariants({ size }), className)}
+        {...props}
+      >
+        {children}
+        {!hideCloseButton && (
+          <DialogPrimitive.Close
+            data-slot="dialog-close"
+            className={cn(
+              // Positioning
+              "absolute right-3 top-3",
+              // Touch-friendly size (44px minimum)
+              "size-11 sm:size-10",
+              // Styling
+              "rounded-full flex items-center justify-center",
+              "text-muted-foreground",
+              // Transitions
+              "transition-all duration-150",
+              // Hover state
+              "hover:bg-muted hover:text-foreground",
+              // Active/pressed state
+              "active:scale-95 active:bg-muted/80",
+              // Focus state
+              "focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+              // Disabled state
+              "disabled:pointer-events-none disabled:opacity-50",
+            )}
+            aria-label={closeButtonLabel}
+          >
+            <CloseIcon />
+          </DialogPrimitive.Close>
+        )}
+      </DialogPrimitive.Content>
+    </DialogPortal>
+  ),
+);
+DialogContent.displayName = DialogPrimitive.Content.displayName;
 
 // ============================================================================
 // Header
@@ -181,7 +186,7 @@ DialogContent.displayName = DialogPrimitive.Content.displayName
 
 interface DialogHeaderProps extends React.HTMLAttributes<HTMLDivElement> {
   /** Add a subtle separator line below the header */
-  separated?: boolean
+  separated?: boolean;
 }
 
 const DialogHeader = React.forwardRef<HTMLDivElement, DialogHeaderProps>(
@@ -195,13 +200,13 @@ const DialogHeader = React.forwardRef<HTMLDivElement, DialogHeaderProps>(
         "pr-10",
         // Optional separator
         separated && "pb-4 border-b border-border",
-        className
+        className,
       )}
       {...props}
     />
-  )
-)
-DialogHeader.displayName = "DialogHeader"
+  ),
+);
+DialogHeader.displayName = "DialogHeader";
 
 // ============================================================================
 // Footer
@@ -209,7 +214,7 @@ DialogHeader.displayName = "DialogHeader"
 
 interface DialogFooterProps extends React.HTMLAttributes<HTMLDivElement> {
   /** Add a subtle separator line above the footer */
-  separated?: boolean
+  separated?: boolean;
 }
 
 const DialogFooter = React.forwardRef<HTMLDivElement, DialogFooterProps>(
@@ -222,13 +227,13 @@ const DialogFooter = React.forwardRef<HTMLDivElement, DialogFooterProps>(
         "flex flex-col-reverse gap-2 sm:flex-row sm:justify-end sm:gap-3",
         // Optional separator
         separated && "pt-4 border-t border-border",
-        className
+        className,
       )}
       {...props}
     />
-  )
-)
-DialogFooter.displayName = "DialogFooter"
+  ),
+);
+DialogFooter.displayName = "DialogFooter";
 
 // ============================================================================
 // Title
@@ -244,12 +249,12 @@ const DialogTitle = React.forwardRef<
     className={cn(
       "text-lg font-semibold leading-tight tracking-tight",
       "text-foreground",
-      className
+      className,
     )}
     {...props}
   />
-))
-DialogTitle.displayName = DialogPrimitive.Title.displayName
+));
+DialogTitle.displayName = DialogPrimitive.Title.displayName;
 
 // ============================================================================
 // Description
@@ -262,14 +267,11 @@ const DialogDescription = React.forwardRef<
   <DialogPrimitive.Description
     ref={ref}
     data-slot="dialog-description"
-    className={cn(
-      "text-sm text-muted-foreground leading-relaxed",
-      className
-    )}
+    className={cn("text-sm text-muted-foreground leading-relaxed", className)}
     {...props}
   />
-))
-DialogDescription.displayName = DialogPrimitive.Description.displayName
+));
+DialogDescription.displayName = DialogPrimitive.Description.displayName;
 
 // ============================================================================
 // Body (optional content wrapper)
@@ -277,7 +279,7 @@ DialogDescription.displayName = DialogPrimitive.Description.displayName
 
 interface DialogBodyProps extends React.HTMLAttributes<HTMLDivElement> {
   /** Enable scrolling for long content */
-  scrollable?: boolean
+  scrollable?: boolean;
 }
 
 const DialogBody = React.forwardRef<HTMLDivElement, DialogBodyProps>(
@@ -288,13 +290,13 @@ const DialogBody = React.forwardRef<HTMLDivElement, DialogBodyProps>(
       className={cn(
         "py-2",
         scrollable && "overflow-y-auto max-h-[60vh] overscroll-contain -mx-6 px-6",
-        className
+        className,
       )}
       {...props}
     />
-  )
-)
-DialogBody.displayName = "DialogBody"
+  ),
+);
+DialogBody.displayName = "DialogBody";
 
 // ============================================================================
 // Exports
@@ -302,15 +304,15 @@ DialogBody.displayName = "DialogBody"
 
 export {
   Dialog,
-  DialogPortal,
-  DialogOverlay,
-  DialogClose,
-  DialogTrigger,
-  DialogContent,
-  DialogHeader,
-  DialogFooter,
-  DialogTitle,
-  DialogDescription,
   DialogBody,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogOverlay,
+  DialogPortal,
+  DialogTitle,
+  DialogTrigger,
   dialogContentVariants,
-}
+};

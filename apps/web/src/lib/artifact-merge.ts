@@ -19,8 +19,8 @@
  * ```
  */
 
-import { type ValidDelta, type DeltaSection, generateNextId } from "./delta-parser";
-import { type InterventionSummary } from "./schemas/operator-intervention";
+import { type DeltaSection, generateNextId, type ValidDelta } from "./delta-parser";
+import type { InterventionSummary } from "./schemas/operator-intervention";
 
 // ============================================================================
 // Types
@@ -299,7 +299,14 @@ function deepClone<T>(obj: T): T {
   return JSON.parse(JSON.stringify(obj)) as T;
 }
 
-const SYSTEM_ITEM_FIELDS = new Set(["id", "killed", "killed_by", "killed_at", "kill_reason", "reason"]);
+const SYSTEM_ITEM_FIELDS = new Set([
+  "id",
+  "killed",
+  "killed_by",
+  "killed_at",
+  "kill_reason",
+  "reason",
+]);
 const FORBIDDEN_PAYLOAD_KEYS = new Set(["__proto__", "constructor", "prototype"]);
 
 /**
@@ -318,7 +325,9 @@ const FIELD_ALIASES: Record<string, string> = {
  * Only applies when the canonical field is not already present (avoids clobbering).
  * Returns [normalizedPayload, corrections] where corrections lists what was renamed.
  */
-function normalizePayloadFields(payload: Record<string, unknown>): [Record<string, unknown>, string[]] {
+function normalizePayloadFields(
+  payload: Record<string, unknown>,
+): [Record<string, unknown>, string[]] {
   const out = { ...payload };
   const corrections: string[] = [];
   for (const [alias, canonical] of Object.entries(FIELD_ALIASES)) {
@@ -409,22 +418,20 @@ function mergeArrayField(existing: unknown, incoming: unknown): string[] {
 function mergeReferenceArray(existing: unknown, incoming: unknown): Reference[] {
   const existingArr = (Array.isArray(existing) ? existing : []) as Reference[];
   const incomingArr = (Array.isArray(incoming) ? incoming : []) as Reference[];
-  
+
   const merged = [...existingArr];
-  
+
   for (const inc of incomingArr) {
     // Check if reference already exists
-    const exists = merged.some(ex => 
-      ex.session === inc.session && 
-      ex.item === inc.item && 
-      ex.relation === inc.relation
+    const exists = merged.some(
+      (ex) => ex.session === inc.session && ex.item === inc.item && ex.relation === inc.relation,
     );
-    
+
     if (!exists) {
       merged.push(inc);
     }
   }
-  
+
   return merged;
 }
 
@@ -432,10 +439,7 @@ function mergeReferenceArray(existing: unknown, incoming: unknown): Reference[] 
 function calculateTotalScore(score?: TestScore): number {
   if (!score) return 0;
   return (
-    (score.likelihood_ratio ?? 0) +
-    (score.cost ?? 0) +
-    (score.speed ?? 0) +
-    (score.ambiguity ?? 0)
+    (score.likelihood_ratio ?? 0) + (score.cost ?? 0) + (score.speed ?? 0) + (score.ambiguity ?? 0)
   );
 }
 
@@ -524,7 +528,9 @@ function applyAdd(
     return false;
   }
 
-  const [normalizedPayload, aliasCorrections] = normalizePayloadFields(payload as Record<string, unknown>);
+  const [normalizedPayload, aliasCorrections] = normalizePayloadFields(
+    payload as Record<string, unknown>,
+  );
   const sanitizedPayload: Record<string, unknown> = {};
   for (const [key, value] of Object.entries(normalizedPayload)) {
     if (SYSTEM_ITEM_FIELDS.has(key)) continue;
@@ -585,7 +591,9 @@ function applyEdit(
         return false;
       }
 
-      const [normalizedPayload, aliasCorrections1] = normalizePayloadFields(payload as Record<string, unknown>);
+      const [normalizedPayload, aliasCorrections1] = normalizePayloadFields(
+        payload as Record<string, unknown>,
+      );
       const sanitizedPayload: Record<string, unknown> = {};
       for (const [key, value] of Object.entries(normalizedPayload)) {
         if (SYSTEM_ITEM_FIELDS.has(key)) continue;
@@ -602,7 +610,11 @@ function applyEdit(
 
       const coerceCorrections1 = coerceDomainStrings(sanitizedPayload);
       for (const c of [...aliasCorrections1, ...coerceCorrections1]) {
-        warnings.push({ code: "AUTO_CORRECTED", message: `EDIT on research_thread (create): ${c}`, delta_raw: raw });
+        warnings.push({
+          code: "AUTO_CORRECTED",
+          message: `EDIT on research_thread (create): ${c}`,
+          delta_raw: raw,
+        });
       }
       artifact.sections.research_thread = {
         statement: "",
@@ -616,10 +628,16 @@ function applyEdit(
 
     // Merge fields into existing research thread
     if (isRecord(payload)) {
-      const [normalizedPayload, aliasCorrections2] = normalizePayloadFields(payload as Record<string, unknown>);
+      const [normalizedPayload, aliasCorrections2] = normalizePayloadFields(
+        payload as Record<string, unknown>,
+      );
       const coerceCorrections2 = coerceDomainStrings(normalizedPayload);
       for (const c of [...aliasCorrections2, ...coerceCorrections2]) {
-        warnings.push({ code: "AUTO_CORRECTED", message: `EDIT on research_thread: ${c}`, delta_raw: raw });
+        warnings.push({
+          code: "AUTO_CORRECTED",
+          message: `EDIT on research_thread: ${c}`,
+          delta_raw: raw,
+        });
       }
       const rt = artifact.sections.research_thread;
       const rtRecord = rt as unknown as Record<string, unknown>;
@@ -676,10 +694,16 @@ function applyEdit(
 
   // Merge payload fields
   if (isRecord(payload)) {
-    const [normalizedPayload, aliasCorrections3] = normalizePayloadFields(payload as Record<string, unknown>);
+    const [normalizedPayload, aliasCorrections3] = normalizePayloadFields(
+      payload as Record<string, unknown>,
+    );
     const coerceCorrections3 = coerceDomainStrings(normalizedPayload);
     for (const c of [...aliasCorrections3, ...coerceCorrections3]) {
-      warnings.push({ code: "AUTO_CORRECTED", message: `EDIT on ${section} (${target_id}): ${c}`, delta_raw: raw });
+      warnings.push({
+        code: "AUTO_CORRECTED",
+        message: `EDIT on ${section} (${target_id}): ${c}`,
+        delta_raw: raw,
+      });
     }
     const shouldReplace = normalizedPayload.replace === true;
     const itemRecord = item as unknown as Record<string, unknown>;
@@ -702,11 +726,7 @@ function applyEdit(
         !shouldReplace
       ) {
         itemRecord[key] = mergeArrayField(itemRecord[key], value);
-      } else if (
-        Array.isArray(value) &&
-        key === "references" &&
-        !shouldReplace
-      ) {
+      } else if (Array.isArray(value) && key === "references" && !shouldReplace) {
         itemRecord[key] = mergeReferenceArray(itemRecord[key], value);
       } else {
         itemRecord[key] = value;
@@ -1026,9 +1046,7 @@ const VALID_REFERENCE_RELATIONS: ReferenceRelation[] = [
  * Extract all references from an artifact for genealogy tracking.
  * Returns a map of item ID -> references for all items that have references.
  */
-export function extractReferences(
-  artifact: Artifact
-): Map<string, Reference[]> {
+export function extractReferences(artifact: Artifact): Map<string, Reference[]> {
   const refMap = new Map<string, Reference[]>();
 
   const sections: Array<{ id: string; references?: Reference[] }[]> = [
@@ -1051,14 +1069,11 @@ export function extractReferences(
   return refMap;
 }
 
-
 /**
  * Create intervention metadata for artifact from an intervention summary.
  * Used when compiling artifacts to include intervention audit trail info.
  */
-export function createInterventionMetadata(
-  summary: InterventionSummary
-): InterventionMetadata {
+export function createInterventionMetadata(summary: InterventionSummary): InterventionMetadata {
   return {
     count: summary.total_count,
     has_major: summary.has_major_interventions,
@@ -1168,7 +1183,8 @@ function renderHypothesisSlate(items: HypothesisItem[]): string[] {
   for (const h of sortById(items)) {
     const thirdAlt = h.third_alternative === true;
     const name = escapeInline(h.name);
-    const title = thirdAlt && !/third\s+alternative/i.test(name) ? `${name} (Third Alternative)` : name;
+    const title =
+      thirdAlt && !/third\s+alternative/i.test(name) ? `${name} (Third Alternative)` : name;
     const heading = isKilled(h) ? `### ~~${h.id}: ${title}~~` : `### ${h.id}: ${title}`;
     lines.push(heading);
     lines.push(`**Claim**: ${escapeInline(h.claim)}`);
@@ -1228,7 +1244,9 @@ function renderTests(items: TestItem[]): string[] {
       const cost = t.score.cost ?? 0;
       const speed = t.score.speed ?? 0;
       const ambiguity = t.score.ambiguity ?? 0;
-      lines.push(`**Evidence-per-week score**: LR=${lr}, Cost=${cost}, Speed=${speed}, Ambiguity=${ambiguity}`);
+      lines.push(
+        `**Evidence-per-week score**: LR=${lr}, Cost=${cost}, Speed=${speed}, Ambiguity=${ambiguity}`,
+      );
     }
     // Experiment result fields
     if (t.status) lines.push(`**Status**: ${escapeInline(t.status)}`);
@@ -1238,7 +1256,8 @@ function renderTests(items: TestItem[]): string[] {
       lines.push(`- Run at: ${escapeInline(t.last_run.run_at)}`);
       lines.push(`- Exit code: ${t.last_run.exit_code}`);
       if (t.last_run.timed_out) lines.push(`- Timed out: yes`);
-      if (typeof t.last_run.duration_ms === "number") lines.push(`- Duration: ${(t.last_run.duration_ms / 1000).toFixed(2)}s`);
+      if (typeof t.last_run.duration_ms === "number")
+        lines.push(`- Duration: ${(t.last_run.duration_ms / 1000).toFixed(2)}s`);
       if (t.last_run.summary) lines.push(`- Summary: ${escapeInline(t.last_run.summary)}`);
       lines.push(`- Result file: \`${escapeInline(t.last_run.result_path)}\``);
     }
@@ -1261,7 +1280,9 @@ function renderAssumptions(items: AssumptionItem[]): string[] {
   lines.push("");
 
   for (const a of sortById(items)) {
-    const heading = isKilled(a) ? `### ~~${a.id}: ${escapeInline(a.name)}~~` : `### ${a.id}: ${escapeInline(a.name)}`;
+    const heading = isKilled(a)
+      ? `### ~~${a.id}: ${escapeInline(a.name)}~~`
+      : `### ${a.id}: ${escapeInline(a.name)}`;
     lines.push(heading);
     lines.push(`**Statement**: ${escapeInline(a.statement)}`);
     lines.push(`**Load**: ${escapeInline(a.load)}`);
@@ -1290,7 +1311,9 @@ function renderAnomalies(items: AnomalyItem[]): string[] {
   }
 
   for (const x of sortById(items)) {
-    const heading = isKilled(x) ? `### ~~${x.id}: ${escapeInline(x.name)}~~` : `### ${x.id}: ${escapeInline(x.name)}`;
+    const heading = isKilled(x)
+      ? `### ~~${x.id}: ${escapeInline(x.name)}~~`
+      : `### ${x.id}: ${escapeInline(x.name)}`;
     lines.push(heading);
     lines.push(`**Observation**: ${escapeInline(x.observation)}`);
     lines.push(`**Conflicts with**: ${formatStringList(x.conflicts_with, "—")}`);
@@ -1309,7 +1332,9 @@ function renderCritiques(items: CritiqueItem[]): string[] {
   lines.push("");
 
   for (const c of sortById(items)) {
-    const heading = isKilled(c) ? `### ~~${c.id}: ${escapeInline(c.name)}~~` : `### ${c.id}: ${escapeInline(c.name)}`;
+    const heading = isKilled(c)
+      ? `### ~~${c.id}: ${escapeInline(c.name)}~~`
+      : `### ${c.id}: ${escapeInline(c.name)}`;
     lines.push(heading);
     lines.push(`**Attack**: ${escapeInline(c.attack)}`);
     lines.push(`**Evidence**: ${escapeInline(c.evidence)}`);
@@ -1684,7 +1709,10 @@ export function lintArtifact(artifact: Artifact): LintReport {
         fix: "Add a non-empty statement field",
       });
     }
-    if (a.scale_check === true && (!a.calculation || (typeof a.calculation === "string" && a.calculation.trim().length === 0))) {
+    if (
+      a.scale_check === true &&
+      (!a.calculation || (typeof a.calculation === "string" && a.calculation.trim().length === 0))
+    ) {
       pushViolation(violations, {
         id: "WA-003",
         severity: "warning",
@@ -2206,10 +2234,7 @@ function compareItemFields(
 /**
  * Diff hypothesis slate between two artifacts.
  */
-function diffHypotheses(
-  v1Items: HypothesisItem[],
-  v2Items: HypothesisItem[],
-): HypothesisChanges {
+function diffHypotheses(v1Items: HypothesisItem[], v2Items: HypothesisItem[]): HypothesisChanges {
   const v1Index = indexById(v1Items);
   const v2Index = indexById(v2Items);
 
@@ -2265,10 +2290,7 @@ function diffHypotheses(
 /**
  * Diff discriminative tests between two artifacts.
  */
-function diffTests(
-  v1Items: TestItem[],
-  v2Items: TestItem[],
-): TestChanges {
+function diffTests(v1Items: TestItem[], v2Items: TestItem[]): TestChanges {
   const v1Index = indexById(v1Items);
   const v2Index = indexById(v2Items);
 
@@ -2281,7 +2303,10 @@ function diffTests(
     if (!oldItem) {
       // Parse discriminates to get targets
       const targets = item.discriminates
-        ? item.discriminates.split(/[,;]/).map((s) => s.trim()).filter(Boolean)
+        ? item.discriminates
+            .split(/[,;]/)
+            .map((s) => s.trim())
+            .filter(Boolean)
         : [];
       added.push({
         id: item.id,
@@ -2327,10 +2352,7 @@ function diffTests(
 /**
  * Diff assumptions between two artifacts.
  */
-function diffAssumptions(
-  v1Items: AssumptionItem[],
-  v2Items: AssumptionItem[],
-): AssumptionChanges {
+function diffAssumptions(v1Items: AssumptionItem[], v2Items: AssumptionItem[]): AssumptionChanges {
   const v1Index = indexById(v1Items);
   const v2Index = indexById(v2Items);
 
@@ -2398,10 +2420,7 @@ function diffAssumptions(
 /**
  * Diff anomalies between two artifacts.
  */
-function diffAnomalies(
-  v1Items: AnomalyItem[],
-  v2Items: AnomalyItem[],
-): AnomalyChanges {
+function diffAnomalies(v1Items: AnomalyItem[], v2Items: AnomalyItem[]): AnomalyChanges {
   const v1Index = indexById(v1Items);
   const v2Index = indexById(v2Items);
 
@@ -2431,8 +2450,10 @@ function diffAnomalies(
       if (oldItem.status !== item.status) {
         if (item.status === "resolved" && item.resolution_plan) {
           // Check if it became a hypothesis
-          if (item.resolution_plan.toLowerCase().includes("promoted") ||
-              item.resolution_plan.match(/H\d+/)) {
+          if (
+            item.resolution_plan.toLowerCase().includes("promoted") ||
+            item.resolution_plan.match(/H\d+/)
+          ) {
             const match = item.resolution_plan.match(/H\d+/);
             promoted.push({
               id: item.id,
@@ -2472,10 +2493,7 @@ function diffAnomalies(
 /**
  * Diff critiques between two artifacts.
  */
-function diffCritiques(
-  v1Items: CritiqueItem[],
-  v2Items: CritiqueItem[],
-): CritiqueChanges {
+function diffCritiques(v1Items: CritiqueItem[], v2Items: CritiqueItem[]): CritiqueChanges {
   const v1Index = indexById(v1Items);
   const v2Index = indexById(v2Items);
 
@@ -2505,7 +2523,11 @@ function diffCritiques(
       // Check for status changes
       if (oldItem.current_status !== item.current_status) {
         const newStatus = item.current_status.toLowerCase();
-        if (newStatus.includes("resolved") || newStatus.includes("addressed") || newStatus.includes("fixed")) {
+        if (
+          newStatus.includes("resolved") ||
+          newStatus.includes("addressed") ||
+          newStatus.includes("fixed")
+        ) {
           resolved.push({
             id: item.id,
             resolution: item.current_status,
@@ -2533,10 +2555,7 @@ function diffCritiques(
 /**
  * Diff predictions between two artifacts.
  */
-function diffPredictions(
-  v1Items: PredictionItem[],
-  v2Items: PredictionItem[],
-): PredictionChanges {
+function diffPredictions(v1Items: PredictionItem[], v2Items: PredictionItem[]): PredictionChanges {
   const v1Index = indexById(v1Items);
   const v2Index = indexById(v2Items);
 
@@ -2599,11 +2618,7 @@ function diffResearchThread(
       new_value: v2.statement.substring(0, 100),
     });
   } else if (v1 && v2) {
-    const edits = compareItemFields("RT", v1, v2, [
-      "statement",
-      "context",
-      "why_it_matters",
-    ]);
+    const edits = compareItemFields("RT", v1, v2, ["statement", "context", "why_it_matters"]);
     edited.push(...edits);
   }
 
@@ -2673,20 +2688,14 @@ export function diffArtifacts(v1: Artifact, v2: Artifact): ArtifactDiff {
     v2.sections.hypothesis_slate,
   );
 
-  const testChanges = diffTests(
-    v1.sections.discriminative_tests,
-    v2.sections.discriminative_tests,
-  );
+  const testChanges = diffTests(v1.sections.discriminative_tests, v2.sections.discriminative_tests);
 
   const assumptionChanges = diffAssumptions(
     v1.sections.assumption_ledger,
     v2.sections.assumption_ledger,
   );
 
-  const anomalyChanges = diffAnomalies(
-    v1.sections.anomaly_register,
-    v2.sections.anomaly_register,
-  );
+  const anomalyChanges = diffAnomalies(v1.sections.anomaly_register, v2.sections.anomaly_register);
 
   const critiqueChanges = diffCritiques(
     v1.sections.adversarial_critique,
@@ -2879,7 +2888,9 @@ export function formatDiffHuman(diff: ArtifactDiff): string {
   const s = diff.summary;
   const parts: string[] = [];
   if (s.hypotheses_net !== 0) {
-    parts.push(`${s.hypotheses_net > 0 ? "+" : ""}${s.hypotheses_net} hypothesis${Math.abs(s.hypotheses_net) !== 1 ? "es" : ""}`);
+    parts.push(
+      `${s.hypotheses_net > 0 ? "+" : ""}${s.hypotheses_net} hypothesis${Math.abs(s.hypotheses_net) !== 1 ? "es" : ""}`,
+    );
   }
   if (s.tests_added > 0) {
     parts.push(`+${s.tests_added} test${s.tests_added !== 1 ? "s" : ""}`);
@@ -2888,7 +2899,9 @@ export function formatDiffHuman(diff: ArtifactDiff): string {
     parts.push(`${s.critiques_resolved} critique${s.critiques_resolved !== 1 ? "s" : ""} resolved`);
   }
   if (s.anomalies_resolved > 0) {
-    parts.push(`${s.anomalies_resolved} anomal${s.anomalies_resolved !== 1 ? "ies" : "y"} resolved`);
+    parts.push(
+      `${s.anomalies_resolved} anomal${s.anomalies_resolved !== 1 ? "ies" : "y"} resolved`,
+    );
   }
 
   if (parts.length > 0) {

@@ -10,16 +10,12 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
-import { TutorialTip, ProTip, Warning, Note, Important } from "./TutorialTip";
+import { Important, Note, ProTip, TutorialTip, Warning } from "./TutorialTip";
 
 describe("TutorialTip", () => {
   describe("rendering", () => {
     it("renders with children content", () => {
-      render(
-        <TutorialTip variant="note">
-          This is a note about something.
-        </TutorialTip>
-      );
+      render(<TutorialTip variant="note">This is a note about something.</TutorialTip>);
       expect(screen.getByText("This is a note about something.")).toBeInTheDocument();
     });
 
@@ -41,7 +37,7 @@ describe("TutorialTip", () => {
       render(
         <TutorialTip variant="pro" title="Custom Title">
           Content
-        </TutorialTip>
+        </TutorialTip>,
       );
       expect(screen.getByText("Custom Title")).toBeInTheDocument();
       expect(screen.queryByText("Pro Tip")).not.toBeInTheDocument();
@@ -51,7 +47,7 @@ describe("TutorialTip", () => {
       render(
         <TutorialTip variant="note" className="custom-class">
           Content
-        </TutorialTip>
+        </TutorialTip>,
       );
       const container = screen.getByRole("note");
       expect(container).toHaveClass("custom-class");
@@ -113,7 +109,7 @@ describe("TutorialTip", () => {
       render(
         <TutorialTip variant="note" collapsible>
           Collapsible content
-        </TutorialTip>
+        </TutorialTip>,
       );
       expect(screen.getByText("Collapsible content")).toBeInTheDocument();
     });
@@ -122,7 +118,7 @@ describe("TutorialTip", () => {
       render(
         <TutorialTip variant="note" collapsible defaultCollapsed>
           Hidden content
-        </TutorialTip>
+        </TutorialTip>,
       );
       expect(screen.queryByText("Hidden content")).not.toBeInTheDocument();
     });
@@ -132,7 +128,7 @@ describe("TutorialTip", () => {
       render(
         <TutorialTip variant="note" collapsible>
           Toggle content
-        </TutorialTip>
+        </TutorialTip>,
       );
 
       // Initially visible
@@ -150,7 +146,7 @@ describe("TutorialTip", () => {
       render(
         <TutorialTip variant="note" collapsible>
           Content
-        </TutorialTip>
+        </TutorialTip>,
       );
       const button = screen.getByRole("button");
       expect(button).toHaveAttribute("aria-expanded", "true");
@@ -191,11 +187,7 @@ describe("Convenience components", () => {
 
   it("Convenience components support collapsible prop", async () => {
     const user = userEvent.setup();
-    render(
-      <Note collapsible>
-        Collapsible note
-      </Note>
-    );
+    render(<Note collapsible>Collapsible note</Note>);
 
     const button = screen.getByRole("button");
     expect(button).toHaveAttribute("aria-expanded", "true");

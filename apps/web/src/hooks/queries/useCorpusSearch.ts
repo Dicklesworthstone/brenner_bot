@@ -34,12 +34,9 @@
  * ```
  */
 
-import { useQuery, type UseQueryOptions } from "@tanstack/react-query";
+import { type UseQueryOptions, useQuery } from "@tanstack/react-query";
 import { searchAction } from "@/lib/globalSearchAction";
-import type {
-  GlobalSearchResult,
-  SearchCategory,
-} from "@/lib/globalSearchTypes";
+import type { GlobalSearchResult, SearchCategory } from "@/lib/globalSearchTypes";
 
 // ============================================================================
 // Types
@@ -56,7 +53,12 @@ export interface SearchOptions {
 
 export interface UseCorpusSearchOptions
   extends Omit<
-    UseQueryOptions<GlobalSearchResult, Error, GlobalSearchResult, readonly (string | SearchOptions)[]>,
+    UseQueryOptions<
+      GlobalSearchResult,
+      Error,
+      GlobalSearchResult,
+      readonly (string | SearchOptions)[]
+    >,
     "queryKey" | "queryFn"
   > {
   /** Search query string */
@@ -70,6 +72,7 @@ export interface UseCorpusSearchOptions
 // ============================================================================
 
 import { corpusSearchKeys } from "./keys";
+
 export { corpusSearchKeys };
 
 // ============================================================================
@@ -91,7 +94,7 @@ export { corpusSearchKeys };
  */
 export function useCorpusSearch(
   query: string,
-  options?: SearchOptions & Omit<UseCorpusSearchOptions, "query" | "searchOptions">
+  options?: SearchOptions & Omit<UseCorpusSearchOptions, "query" | "searchOptions">,
 ) {
   const { limit, category, model, ...queryOptions } = options ?? {};
   // Build searchOptions without undefined values to ensure consistent cache keys
@@ -128,10 +131,7 @@ export function useCorpusSearch(
  * @param options - Search options
  * @returns Query result with isFetching for loading indicator
  */
-export function useCorpusSearchInstant(
-  query: string,
-  options?: SearchOptions
-) {
+export function useCorpusSearchInstant(query: string, options?: SearchOptions) {
   const { limit, category, model } = options ?? {};
   // Build searchOptions without undefined values to ensure consistent cache keys
   const searchOptions: SearchOptions = {
@@ -158,7 +158,7 @@ export function useCorpusSearchInstant(
 export async function prefetchCorpusSearch(
   queryClient: import("@tanstack/react-query").QueryClient,
   query: string,
-  options?: SearchOptions
+  options?: SearchOptions,
 ): Promise<void> {
   if (query.length < 2) return;
 
@@ -173,7 +173,7 @@ export async function prefetchCorpusSearch(
  * Call this when corpus content changes.
  */
 export function invalidateSearchResults(
-  queryClient: import("@tanstack/react-query").QueryClient
+  queryClient: import("@tanstack/react-query").QueryClient,
 ): Promise<void> {
   return queryClient.invalidateQueries({
     queryKey: corpusSearchKeys.all,

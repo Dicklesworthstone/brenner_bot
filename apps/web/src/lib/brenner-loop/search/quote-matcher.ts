@@ -14,7 +14,7 @@
 import type { Quote } from "@/lib/quotebank-parser";
 import type { HypothesisCard } from "../hypothesis";
 import type { OperatorType } from "../operators/framework";
-import { findSimilar, type EmbeddingEntry } from "./embeddings";
+import { type EmbeddingEntry, findSimilar } from "./embeddings";
 
 // ============================================================================
 // Parsing / conversion
@@ -33,10 +33,11 @@ function parseEmbeddedQuoteText(text: string): Pick<Quote, "quote" | "context" |
   const contextMatch = text.match(/(?:Takeaway|Why it matters):\s*([\s\S]*?)(?:\n\s*Tags:|$)/m);
   const context = contextMatch?.[1]?.trim().replace(/\s+/g, " ") ?? "";
 
-  const quote = text
-    .split(/\n(?:Takeaway|Why it matters):/i)[0]
-    ?.trim()
-    .replace(/\s+/g, " ") ?? "";
+  const quote =
+    text
+      .split(/\n(?:Takeaway|Why it matters):/i)[0]
+      ?.trim()
+      .replace(/\s+/g, " ") ?? "";
 
   return { quote, context, tags };
 }
@@ -74,18 +75,25 @@ export function buildQuoteQueryText(parts: Array<string | undefined | null>): st
     .join("\n");
 }
 
-export function filterQuoteEntriesByTags(entries: EmbeddingEntry[], tags: string[]): EmbeddingEntry[] {
+export function filterQuoteEntriesByTags(
+  entries: EmbeddingEntry[],
+  tags: string[],
+): EmbeddingEntry[] {
   const normalizedTags = tags.map((tag) => tag.trim()).filter((tag) => tag.length > 0);
   if (normalizedTags.length === 0) return entries;
 
   const tagged = entries.filter((entry) =>
-    normalizedTags.some((tag) => entry.text.includes(`\`${tag}\``))
+    normalizedTags.some((tag) => entry.text.includes(`\`${tag}\``)),
   );
 
   return tagged.length > 0 ? tagged : entries;
 }
 
-export function findSimilarQuotes(query: string, entries: EmbeddingEntry[], topK: number = 3): Quote[] {
+export function findSimilarQuotes(
+  query: string,
+  entries: EmbeddingEntry[],
+  topK: number = 3,
+): Quote[] {
   return findSimilar(query, entries, topK).map(embeddingEntryToQuote);
 }
 
@@ -113,36 +121,111 @@ export interface RankedQuote extends Quote {
  */
 export const OPERATOR_QUOTE_KEYWORDS: Record<OperatorType, string[]> = {
   level_split: [
-    "level", "levels", "conflat", "program", "interpreter",
-    "mechanism", "implementation", "substrate", "abstraction",
-    "separate", "distinguish", "hierarchy", "layer",
-    "software", "hardware", "algorithm", "computation",
-    "functional", "physical", "description", "explanation",
-    "top-down", "bottom-up", "emergence", "reduction",
+    "level",
+    "levels",
+    "conflat",
+    "program",
+    "interpreter",
+    "mechanism",
+    "implementation",
+    "substrate",
+    "abstraction",
+    "separate",
+    "distinguish",
+    "hierarchy",
+    "layer",
+    "software",
+    "hardware",
+    "algorithm",
+    "computation",
+    "functional",
+    "physical",
+    "description",
+    "explanation",
+    "top-down",
+    "bottom-up",
+    "emergence",
+    "reduction",
   ],
   exclusion_test: [
-    "test", "exclude", "exclusion", "discriminat", "falsif",
-    "rule out", "ruling out", "eliminate", "predict",
-    "observation", "experiment", "evidence", "potency",
-    "control", "benchmark", "positive control", "negative control",
-    "diagnostic", "critical experiment", "crucial experiment",
-    "hypothesis", "alternative", "differential diagnosis",
+    "test",
+    "exclude",
+    "exclusion",
+    "discriminat",
+    "falsif",
+    "rule out",
+    "ruling out",
+    "eliminate",
+    "predict",
+    "observation",
+    "experiment",
+    "evidence",
+    "potency",
+    "control",
+    "benchmark",
+    "positive control",
+    "negative control",
+    "diagnostic",
+    "critical experiment",
+    "crucial experiment",
+    "hypothesis",
+    "alternative",
+    "differential diagnosis",
   ],
   object_transpose: [
-    "object", "transpose", "system", "model", "organism",
-    "experimental system", "approach", "assay", "method",
-    "zebrafish", "drosophila", "c. elegans", "mouse", "yeast",
-    "in vitro", "in vivo", "cell culture", "organoid",
-    "invariant", "transfer", "translate", "generalize",
-    "conserve", "homolog", "analog", "parallel",
+    "object",
+    "transpose",
+    "system",
+    "model",
+    "organism",
+    "experimental system",
+    "approach",
+    "assay",
+    "method",
+    "zebrafish",
+    "drosophila",
+    "c. elegans",
+    "mouse",
+    "yeast",
+    "in vitro",
+    "in vivo",
+    "cell culture",
+    "organoid",
+    "invariant",
+    "transfer",
+    "translate",
+    "generalize",
+    "conserve",
+    "homolog",
+    "analog",
+    "parallel",
   ],
   scale_check: [
-    "scale", "order of magnitude", "dimensional", "unit",
-    "calculation", "estimate", "plausib", "feasib",
-    "energy", "time", "size", "concentration", "rate",
-    "physics", "thermodynamic", "kinetic", "diffusion",
-    "constraint", "limit", "bound", "maximum", "minimum",
-    "back of envelope", "rough calculation", "sanity check",
+    "scale",
+    "order of magnitude",
+    "dimensional",
+    "unit",
+    "calculation",
+    "estimate",
+    "plausib",
+    "feasib",
+    "energy",
+    "time",
+    "size",
+    "concentration",
+    "rate",
+    "physics",
+    "thermodynamic",
+    "kinetic",
+    "diffusion",
+    "constraint",
+    "limit",
+    "bound",
+    "maximum",
+    "minimum",
+    "back of envelope",
+    "rough calculation",
+    "sanity check",
   ],
 };
 
@@ -208,13 +291,9 @@ export function findRelevantQuotes(
     resultLimit?: number;
     /** Weight for semantic score vs operator relevance (default: 0.6) */
     semanticWeight?: number;
-  } = {}
+  } = {},
 ): RankedQuote[] {
-  const {
-    candidateLimit = 20,
-    resultLimit = 5,
-    semanticWeight = 0.6,
-  } = options;
+  const { candidateLimit = 20, resultLimit = 5, semanticWeight = 0.6 } = options;
 
   // Build query from hypothesis context
   const queryText = buildQuoteQueryText([
@@ -235,14 +314,14 @@ export function findRelevantQuotes(
     const quote = embeddingEntryToQuote(entry);
 
     // Semantic score: inversely proportional to rank (top result = 1.0)
-    const semanticScore = 1 - (index / candidateLimit);
+    const semanticScore = 1 - index / candidateLimit;
 
     // Operator relevance from keyword matching
     const operatorRelevance = computeOperatorRelevance(quote, operator);
 
     // Combined score with configurable weighting
     const operatorWeight = 1 - semanticWeight;
-    const combinedScore = (semanticScore * semanticWeight) + (operatorRelevance * operatorWeight);
+    const combinedScore = semanticScore * semanticWeight + operatorRelevance * operatorWeight;
 
     return {
       ...quote,
@@ -253,9 +332,7 @@ export function findRelevantQuotes(
   });
 
   // Sort by combined score and return top results
-  return rankedQuotes
-    .sort((a, b) => b.combinedScore - a.combinedScore)
-    .slice(0, resultLimit);
+  return rankedQuotes.sort((a, b) => b.combinedScore - a.combinedScore).slice(0, resultLimit);
 }
 
 /**
@@ -271,7 +348,7 @@ export function findRelevantQuotes(
 export function getOperatorQuotes(
   operator: OperatorType,
   entries: EmbeddingEntry[],
-  limit: number = 5
+  limit: number = 5,
 ): RankedQuote[] {
   // Score all entries by operator relevance
   const scored: RankedQuote[] = entries.map((entry) => {
@@ -292,4 +369,3 @@ export function getOperatorQuotes(
     .sort((a, b) => b.operatorRelevance - a.operatorRelevance)
     .slice(0, limit);
 }
-

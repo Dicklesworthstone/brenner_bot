@@ -1,4 +1,4 @@
-import { describe, expect, test, vi, beforeEach, afterEach } from "vitest";
+import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 
 const STORAGE_KEY = "brenner-reading-positions";
 
@@ -20,7 +20,7 @@ describe("readingStore", () => {
           good: { scrollOffset: 10, activeSection: 2, lastRead: 100 },
           bad: { scrollOffset: "nope", activeSection: 1, lastRead: 50 },
         },
-      })
+      }),
     );
 
     vi.resetModules();
@@ -54,4 +54,3 @@ describe("readingStore", () => {
     expect(Object.getPrototypeOf(mod.readingStore.state.positions)).toBe(null);
   });
 });
-

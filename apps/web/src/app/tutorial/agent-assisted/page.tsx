@@ -1,4 +1,4 @@
-import { Metadata } from "next";
+import type { Metadata } from "next";
 import Link from "next/link";
 import { HeroBackground } from "@/components/ui/animated-element";
 
@@ -12,32 +12,68 @@ export const metadata: Metadata = {
 // ============================================================================
 
 const ArrowLeftIcon = () => (
-  <svg className="size-4 transition-transform group-hover:-translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+  <svg
+    className="size-4 transition-transform group-hover:-translate-x-1"
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+    strokeWidth={2}
+  >
     <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
   </svg>
 );
 
 const ArrowRightIcon = () => (
-  <svg className="size-4 transition-transform group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+  <svg
+    className="size-4 transition-transform group-hover:translate-x-1"
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+    strokeWidth={2}
+  >
     <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
   </svg>
 );
 
 const CpuIcon = () => (
   <svg className="size-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 3v1.5M4.5 8.25H3m18 0h-1.5M4.5 12H3m18 0h-1.5m-15 3.75H3m18 0h-1.5M8.25 19.5V21M12 3v1.5m0 15V21m3.75-18v1.5m0 15V21m-9-1.5h10.5a2.25 2.25 0 002.25-2.25V6.75a2.25 2.25 0 00-2.25-2.25H6.75A2.25 2.25 0 004.5 6.75v10.5a2.25 2.25 0 002.25 2.25zm.75-12h9v9h-9v-9z" />
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M8.25 3v1.5M4.5 8.25H3m18 0h-1.5M4.5 12H3m18 0h-1.5m-15 3.75H3m18 0h-1.5M8.25 19.5V21M12 3v1.5m0 15V21m3.75-18v1.5m0 15V21m-9-1.5h10.5a2.25 2.25 0 002.25-2.25V6.75a2.25 2.25 0 00-2.25-2.25H6.75A2.25 2.25 0 004.5 6.75v10.5a2.25 2.25 0 002.25 2.25zm.75-12h9v9h-9v-9z"
+    />
   </svg>
 );
 
 const ClockIcon = () => (
-  <svg className="size-4 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+  <svg
+    className="size-4 text-muted-foreground"
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+    strokeWidth={1.5}
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"
+    />
   </svg>
 );
 
 const CheckCircleIcon = () => (
-  <svg className="size-5 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+  <svg
+    className="size-5 text-amber-500"
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+    strokeWidth={2}
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+    />
   </svg>
 );
 
@@ -51,7 +87,8 @@ const steps = [
     title: "Why Agent-Assisted?",
     duration: "~3 min",
     href: "/tutorial/agent-assisted/1",
-    description: "Understand the leverage of having AI internalize methodology, not just follow instructions.",
+    description:
+      "Understand the leverage of having AI internalize methodology, not just follow instructions.",
     whatYouLearn: [
       "Why agents that internalize methodology outperform prompt-following",
       "The human-AI collaboration model for research",
@@ -84,7 +121,8 @@ const steps = [
     title: "Agent Studies the System",
     duration: "~10 min",
     href: "/tutorial/agent-assisted/4",
-    description: "Have your agent systematically study the Brenner documentation and internalize the methodology.",
+    description:
+      "Have your agent systematically study the Brenner documentation and internalize the methodology.",
     whatYouLearn: [
       "How to have your agent build a working understanding",
       "What the agent should extract from each document",
@@ -95,7 +133,8 @@ const steps = [
     title: "Define Your Research Problem",
     duration: "~5 min",
     href: "/tutorial/agent-assisted/5",
-    description: "Formulate your research question and have the agent help refine it using Brenner criteria.",
+    description:
+      "Formulate your research question and have the agent help refine it using Brenner criteria.",
     whatYouLearn: [
       "Brenner's criteria for good research questions",
       "How to sharpen vague questions into testable ones",
@@ -106,7 +145,8 @@ const steps = [
     title: "Agent Builds the Inputs",
     duration: "~10 min",
     href: "/tutorial/agent-assisted/6",
-    description: "Generate hypothesis slate, assumption ledger, and third alternatives using Brenner operators.",
+    description:
+      "Generate hypothesis slate, assumption ledger, and third alternatives using Brenner operators.",
     whatYouLearn: [
       "What artifacts the Brenner loop requires",
       "How the agent uses operators to generate alternatives",
@@ -117,7 +157,8 @@ const steps = [
     title: "Agent Runs the Brenner Loop",
     duration: "~10 min",
     href: "/tutorial/agent-assisted/7",
-    description: "Full loop execution: generate discriminative tests, rank by potency, identify exclusions.",
+    description:
+      "Full loop execution: generate discriminative tests, rank by potency, identify exclusions.",
     whatYouLearn: [
       "How to design tests that distinguish hypotheses",
       "What makes a test 'potent' vs. weak",
@@ -128,7 +169,8 @@ const steps = [
     title: "Human Review",
     duration: "~5 min",
     href: "/tutorial/agent-assisted/8",
-    description: "Work through an interactive checklist to evaluate output quality before using results.",
+    description:
+      "Work through an interactive checklist to evaluate output quality before using results.",
     whatYouLearn: [
       "How to evaluate agent-generated research artifacts",
       "Common failure modes and how to fix them",
@@ -176,8 +218,8 @@ export default function AgentAssistedPage() {
           </h1>
 
           <p className="max-w-xl mx-auto text-base sm:text-lg text-muted-foreground leading-relaxed">
-            Let your AI coding agent internalize and apply the Brenner methodology.
-            The most powerful path for users with Claude Code or Codex.
+            Let your AI coding agent internalize and apply the Brenner methodology. The most
+            powerful path for users with Claude Code or Codex.
           </p>
 
           <div className="flex items-center justify-center gap-4 text-sm text-muted-foreground">
@@ -219,9 +261,7 @@ export default function AgentAssistedPage() {
         <div className="max-w-3xl mx-auto space-y-8">
           <div className="text-center space-y-2">
             <h2 className="text-xl sm:text-2xl font-semibold">Tutorial Steps</h2>
-            <p className="text-sm text-muted-foreground">
-              Eight steps to agent-augmented research
-            </p>
+            <p className="text-sm text-muted-foreground">Eight steps to agent-augmented research</p>
           </div>
 
           <div className="space-y-4">
@@ -281,8 +321,8 @@ export default function AgentAssistedPage() {
         <div className="max-w-xl mx-auto text-center space-y-6 p-8 rounded-2xl border border-amber-500/30 bg-gradient-to-br from-amber-500/5 via-amber-500/10 to-accent/5">
           <h3 className="text-xl font-semibold">Ready to Begin?</h3>
           <p className="text-sm text-muted-foreground">
-            Start with Step 1 to understand what makes agent-assisted research different,
-            then proceed through the tutorial at your own pace.
+            Start with Step 1 to understand what makes agent-assisted research different, then
+            proceed through the tutorial at your own pace.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
             <Link

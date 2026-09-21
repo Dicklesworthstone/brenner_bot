@@ -10,41 +10,40 @@
 
 "use client";
 
-import { useState, useCallback } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import {
-  Zap,
-  Microscope,
   BookOpen,
-  FlaskConical,
-  Swords,
-  Settings,
-  Clock,
-  Users,
-  ChevronRight,
   Check,
+  ChevronRight,
+  Clock,
+  FlaskConical,
   Info,
+  Microscope,
+  Settings,
+  Swords,
+  Users,
+  Zap,
 } from "lucide-react";
-
-import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
+import { useCallback, useState } from "react";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogDescription,
 } from "@/components/ui/dialog";
+import { getPhaseName } from "@/lib/brenner-loop/session-machine";
 
 import type { SessionTemplate } from "@/lib/brenner-loop/session-templates";
 import {
-  SESSION_TEMPLATES,
+  AGENT_ROLE_INFO,
   getFeaturedSessionTemplates,
   getPhaseOrderForTemplate,
-  AGENT_ROLE_INFO,
+  SESSION_TEMPLATES,
 } from "@/lib/brenner-loop/session-templates";
-import { getPhaseName } from "@/lib/brenner-loop/session-machine";
+import { cn } from "@/lib/utils";
 
 // ============================================================================
 // Icon Mapping
@@ -54,13 +53,7 @@ import { getPhaseName } from "@/lib/brenner-loop/session-machine";
  * Renders an icon based on template icon name.
  * Defined outside render to satisfy static component rules.
  */
-function TemplateIcon({
-  iconName,
-  className,
-}: {
-  iconName: string;
-  className?: string;
-}) {
+function TemplateIcon({ iconName, className }: { iconName: string; className?: string }) {
   const cls = className ?? "w-5 h-5";
   switch (iconName) {
     case "Zap":
@@ -119,12 +112,7 @@ interface TemplateCardProps {
   onPreview: () => void;
 }
 
-function TemplateCard({
-  template,
-  isSelected,
-  onSelect,
-  onPreview,
-}: TemplateCardProps) {
+function TemplateCard({ template, isSelected, onSelect, onPreview }: TemplateCardProps) {
   return (
     <div className="relative">
       <motion.button
@@ -135,7 +123,7 @@ function TemplateCard({
           "hover:shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500",
           isSelected
             ? "border-blue-500 bg-blue-50 dark:bg-blue-950"
-            : "border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600"
+            : "border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600",
         )}
         whileHover={{ scale: 1.01 }}
         whileTap={{ scale: 0.99 }}
@@ -156,15 +144,13 @@ function TemplateCard({
           <div
             className={cn(
               "w-10 h-10 rounded-lg flex items-center justify-center text-white",
-              template.colorClass
+              template.colorClass,
             )}
           >
             <TemplateIcon iconName={template.icon} className="w-5 h-5" />
           </div>
           <div className="flex-1 min-w-0">
-            <h3 className="font-semibold text-gray-900 dark:text-white">
-              {template.name}
-            </h3>
+            <h3 className="font-semibold text-gray-900 dark:text-white">{template.name}</h3>
             <p className="text-sm text-gray-500 dark:text-gray-400 line-clamp-2">
               {template.tagline}
             </p>
@@ -228,12 +214,7 @@ interface TemplatePreviewDialogProps {
   onSelect: (template: SessionTemplate) => void;
 }
 
-function TemplatePreviewDialog({
-  template,
-  open,
-  onClose,
-  onSelect,
-}: TemplatePreviewDialogProps) {
+function TemplatePreviewDialog({ template, open, onClose, onSelect }: TemplatePreviewDialogProps) {
   if (!template) return null;
 
   const phases = getPhaseOrderForTemplate(template);
@@ -246,7 +227,7 @@ function TemplatePreviewDialog({
             <div
               className={cn(
                 "w-12 h-12 rounded-lg flex items-center justify-center text-white",
-                template.colorClass
+                template.colorClass,
               )}
             >
               <TemplateIcon iconName={template.icon} className="w-6 h-6" />
@@ -260,9 +241,7 @@ function TemplatePreviewDialog({
 
         <div className="space-y-4 mt-4">
           {/* Description */}
-          <p className="text-sm text-gray-600 dark:text-gray-300">
-            {template.description}
-          </p>
+          <p className="text-sm text-gray-600 dark:text-gray-300">{template.description}</p>
 
           {/* Meta */}
           <div className="flex items-center gap-4 text-sm">
@@ -302,10 +281,7 @@ function TemplatePreviewDialog({
                           ? "secondary"
                           : "outline"
                     }
-                    className={cn(
-                      "text-xs",
-                      status === "skipped" && "opacity-50 line-through"
-                    )}
+                    className={cn("text-xs", status === "skipped" && "opacity-50 line-through")}
                   >
                     {getPhaseName(phase)}
                   </Badge>
@@ -335,16 +311,11 @@ function TemplatePreviewDialog({
                 {template.defaultAgents.map((role) => {
                   const info = AGENT_ROLE_INFO[role];
                   return (
-                    <div
-                      key={role}
-                      className="flex items-center gap-2 text-sm"
-                    >
+                    <div key={role} className="flex items-center gap-2 text-sm">
                       <Badge variant="outline" className="text-xs">
                         {info.name}
                       </Badge>
-                      <span className="text-gray-500 text-xs">
-                        {info.description}
-                      </span>
+                      <span className="text-gray-500 text-xs">{info.description}</span>
                     </div>
                   );
                 })}
@@ -385,19 +356,15 @@ export function SessionTemplateSelector({
   showAll = false,
   className,
 }: SessionTemplateSelectorProps) {
-  const [previewTemplate, setPreviewTemplate] = useState<SessionTemplate | null>(
-    null
-  );
+  const [previewTemplate, setPreviewTemplate] = useState<SessionTemplate | null>(null);
 
-  const templates = showAll
-    ? SESSION_TEMPLATES
-    : getFeaturedSessionTemplates();
+  const templates = showAll ? SESSION_TEMPLATES : getFeaturedSessionTemplates();
 
   const handleSelect = useCallback(
     (template: SessionTemplate) => {
       onSelectTemplate(template);
     },
-    [onSelectTemplate]
+    [onSelectTemplate],
   );
 
   return (
@@ -430,7 +397,9 @@ export function SessionTemplateSelector({
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => setPreviewTemplate(SESSION_TEMPLATES.find((t) => t.id === "custom") ?? null)}
+            onClick={() =>
+              setPreviewTemplate(SESSION_TEMPLATES.find((t) => t.id === "custom") ?? null)
+            }
           >
             <Settings className="w-4 h-4 mr-2" />
             Custom Session
@@ -478,7 +447,7 @@ export function CompactTemplateSelector({
               "text-sm font-medium",
               isSelected
                 ? "border-blue-500 bg-blue-50 dark:bg-blue-950 text-blue-700 dark:text-blue-300"
-                : "border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600"
+                : "border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600",
             )}
           >
             <TemplateIcon iconName={template.icon} className="w-4 h-4" />
@@ -523,22 +492,14 @@ export function TemplateDropdown({
         className={cn(
           "flex items-center justify-between gap-2 w-full px-3 py-2 rounded-lg border",
           "text-sm font-medium transition-all",
-          "border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600"
+          "border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600",
         )}
       >
         <span className="flex items-center gap-2">
-          <TemplateIcon
-            iconName={selectedTemplate?.icon ?? "Settings"}
-            className="w-4 h-4"
-          />
+          <TemplateIcon iconName={selectedTemplate?.icon ?? "Settings"} className="w-4 h-4" />
           {selectedTemplate?.name ?? "Select Template"}
         </span>
-        <ChevronRight
-          className={cn(
-            "w-4 h-4 transition-transform",
-            open && "rotate-90"
-          )}
-        />
+        <ChevronRight className={cn("w-4 h-4 transition-transform", open && "rotate-90")} />
       </button>
 
       <AnimatePresence>
@@ -563,13 +524,13 @@ export function TemplateDropdown({
                   className={cn(
                     "flex items-center gap-3 w-full px-3 py-2 text-left text-sm",
                     "hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors",
-                    isSelected && "bg-blue-50 dark:bg-blue-950"
+                    isSelected && "bg-blue-50 dark:bg-blue-950",
                   )}
                 >
                   <div
                     className={cn(
                       "w-8 h-8 rounded flex items-center justify-center text-white",
-                      template.colorClass
+                      template.colorClass,
                     )}
                   >
                     <TemplateIcon iconName={template.icon} className="w-4 h-4" />
@@ -580,9 +541,7 @@ export function TemplateDropdown({
                       {template.expectedDuration}
                     </div>
                   </div>
-                  {isSelected && (
-                    <Check className="w-4 h-4 text-blue-500" />
-                  )}
+                  {isSelected && <Check className="w-4 h-4 text-blue-500" />}
                 </button>
               );
             })}

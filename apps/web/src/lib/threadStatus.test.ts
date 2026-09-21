@@ -4,24 +4,26 @@
  * Tests the computeThreadStatus function and related helpers.
  */
 
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
+import type { AgentMailMessage } from "./agentMail";
 import {
   computeThreadStatus,
-  parseSubjectType,
   extractVersion,
-  inferRoleFromProgram,
   formatThreadStatusSummary,
-  threadNeedsAttention,
   getPendingRoles,
+  inferRoleFromProgram,
+  parseSubjectType,
   type ThreadStatus,
+  threadNeedsAttention,
 } from "./threadStatus";
-import type { AgentMailMessage } from "./agentMail";
 
 // ============================================================================
 // Test Fixtures
 // ============================================================================
 
-function createMessage(overrides: Partial<AgentMailMessage> & { subject: string }): AgentMailMessage {
+function createMessage(
+  overrides: Partial<AgentMailMessage> & { subject: string },
+): AgentMailMessage {
   const { subject, created_ts, from, to, importance, ack_required, ...rest } = overrides;
   return {
     id: Math.floor(Math.random() * 10000),
@@ -575,9 +577,19 @@ describe("formatThreadStatusSummary", () => {
       phase: "not_started",
       isComplete: false,
       roles: {
-        hypothesis_generator: { completed: false, contributors: [], latestDelta: null, lastUpdated: null },
+        hypothesis_generator: {
+          completed: false,
+          contributors: [],
+          latestDelta: null,
+          lastUpdated: null,
+        },
         test_designer: { completed: false, contributors: [], latestDelta: null, lastUpdated: null },
-        adversarial_critic: { completed: false, contributors: [], latestDelta: null, lastUpdated: null },
+        adversarial_critic: {
+          completed: false,
+          contributors: [],
+          latestDelta: null,
+          lastUpdated: null,
+        },
       },
       acks: { pendingAcks: [], pendingCount: 0, awaitingFrom: [] },
       latestArtifact: null,
@@ -659,9 +671,19 @@ describe("threadNeedsAttention", () => {
       phase: "awaiting_responses",
       isComplete: false,
       roles: {
-        hypothesis_generator: { completed: false, contributors: [], latestDelta: null, lastUpdated: null },
+        hypothesis_generator: {
+          completed: false,
+          contributors: [],
+          latestDelta: null,
+          lastUpdated: null,
+        },
         test_designer: { completed: false, contributors: [], latestDelta: null, lastUpdated: null },
-        adversarial_critic: { completed: false, contributors: [], latestDelta: null, lastUpdated: null },
+        adversarial_critic: {
+          completed: false,
+          contributors: [],
+          latestDelta: null,
+          lastUpdated: null,
+        },
       },
       acks: { pendingAcks: [], pendingCount: 2, awaitingFrom: ["A", "B"] },
       latestArtifact: null,
@@ -682,9 +704,24 @@ describe("threadNeedsAttention", () => {
       phase: "compiled",
       isComplete: true,
       roles: {
-        hypothesis_generator: { completed: true, contributors: ["A"], latestDelta: null, lastUpdated: null },
-        test_designer: { completed: true, contributors: ["B"], latestDelta: null, lastUpdated: null },
-        adversarial_critic: { completed: true, contributors: ["C"], latestDelta: null, lastUpdated: null },
+        hypothesis_generator: {
+          completed: true,
+          contributors: ["A"],
+          latestDelta: null,
+          lastUpdated: null,
+        },
+        test_designer: {
+          completed: true,
+          contributors: ["B"],
+          latestDelta: null,
+          lastUpdated: null,
+        },
+        adversarial_critic: {
+          completed: true,
+          contributors: ["C"],
+          latestDelta: null,
+          lastUpdated: null,
+        },
       },
       acks: { pendingAcks: [], pendingCount: 0, awaitingFrom: [] },
       latestArtifact: null,
@@ -705,9 +742,24 @@ describe("threadNeedsAttention", () => {
       phase: "closed",
       isComplete: true,
       roles: {
-        hypothesis_generator: { completed: true, contributors: ["A"], latestDelta: null, lastUpdated: null },
-        test_designer: { completed: true, contributors: ["B"], latestDelta: null, lastUpdated: null },
-        adversarial_critic: { completed: true, contributors: ["C"], latestDelta: null, lastUpdated: null },
+        hypothesis_generator: {
+          completed: true,
+          contributors: ["A"],
+          latestDelta: null,
+          lastUpdated: null,
+        },
+        test_designer: {
+          completed: true,
+          contributors: ["B"],
+          latestDelta: null,
+          lastUpdated: null,
+        },
+        adversarial_critic: {
+          completed: true,
+          contributors: ["C"],
+          latestDelta: null,
+          lastUpdated: null,
+        },
       },
       acks: { pendingAcks: [], pendingCount: 0, awaitingFrom: [] },
       latestArtifact: null,
@@ -728,9 +780,19 @@ describe("threadNeedsAttention", () => {
       phase: "not_started",
       isComplete: false,
       roles: {
-        hypothesis_generator: { completed: false, contributors: [], latestDelta: null, lastUpdated: null },
+        hypothesis_generator: {
+          completed: false,
+          contributors: [],
+          latestDelta: null,
+          lastUpdated: null,
+        },
         test_designer: { completed: false, contributors: [], latestDelta: null, lastUpdated: null },
-        adversarial_critic: { completed: false, contributors: [], latestDelta: null, lastUpdated: null },
+        adversarial_critic: {
+          completed: false,
+          contributors: [],
+          latestDelta: null,
+          lastUpdated: null,
+        },
       },
       acks: { pendingAcks: [], pendingCount: 0, awaitingFrom: [] },
       latestArtifact: null,
@@ -753,9 +815,19 @@ describe("getPendingRoles", () => {
       phase: "partially_complete",
       isComplete: false,
       roles: {
-        hypothesis_generator: { completed: true, contributors: ["A"], latestDelta: null, lastUpdated: null },
+        hypothesis_generator: {
+          completed: true,
+          contributors: ["A"],
+          latestDelta: null,
+          lastUpdated: null,
+        },
         test_designer: { completed: false, contributors: [], latestDelta: null, lastUpdated: null },
-        adversarial_critic: { completed: false, contributors: [], latestDelta: null, lastUpdated: null },
+        adversarial_critic: {
+          completed: false,
+          contributors: [],
+          latestDelta: null,
+          lastUpdated: null,
+        },
       },
       acks: { pendingAcks: [], pendingCount: 0, awaitingFrom: [] },
       latestArtifact: null,
@@ -781,9 +853,9 @@ describe("getPendingRoles", () => {
 import {
   computeThreadStatusFromThread,
   computeThreadStatusSummary,
-  isWaitingForRole,
   getAgentsWithPendingAcks,
   getPendingAgents,
+  isWaitingForRole,
 } from "./threadStatus";
 
 describe("computeThreadStatusFromThread", () => {
@@ -911,15 +983,31 @@ describe("getPendingAgents", () => {
 // Round Tracking Tests
 // ============================================================================
 
-import { getMessagesInCurrentRound, getDeltaMessagesForCurrentRound } from "./threadStatus";
+import { getDeltaMessagesForCurrentRound, getMessagesInCurrentRound } from "./threadStatus";
 
 describe("round tracking", () => {
   it("reports round 0 before any COMPILED messages", () => {
     const messages: AgentMailMessage[] = [
-      createMessage({ subject: "KICKOFF: Test", from: "Operator", created_ts: "2025-01-01T00:00:00Z" }),
-      createMessage({ subject: "DELTA[gpt]: Hypotheses", from: "CodexAgent", created_ts: "2025-01-01T01:00:00Z" }),
-      createMessage({ subject: "DELTA[opus]: Tests", from: "ClaudeAgent", created_ts: "2025-01-01T02:00:00Z" }),
-      createMessage({ subject: "CRITIQUE: Premature critique", from: "GeminiAgent", created_ts: "2025-01-01T03:00:00Z" }),
+      createMessage({
+        subject: "KICKOFF: Test",
+        from: "Operator",
+        created_ts: "2025-01-01T00:00:00Z",
+      }),
+      createMessage({
+        subject: "DELTA[gpt]: Hypotheses",
+        from: "CodexAgent",
+        created_ts: "2025-01-01T01:00:00Z",
+      }),
+      createMessage({
+        subject: "DELTA[opus]: Tests",
+        from: "ClaudeAgent",
+        created_ts: "2025-01-01T02:00:00Z",
+      }),
+      createMessage({
+        subject: "CRITIQUE: Premature critique",
+        from: "GeminiAgent",
+        created_ts: "2025-01-01T03:00:00Z",
+      }),
     ];
 
     const status = computeThreadStatus(messages);
@@ -930,9 +1018,21 @@ describe("round tracking", () => {
 
   it("reports round 1 after first COMPILED message", () => {
     const messages: AgentMailMessage[] = [
-      createMessage({ subject: "KICKOFF: Test", from: "Operator", created_ts: "2025-01-01T00:00:00Z" }),
-      createMessage({ subject: "DELTA[gpt]: Hypotheses", from: "CodexAgent", created_ts: "2025-01-01T01:00:00Z" }),
-      createMessage({ subject: "COMPILED: v1 initial artifact", from: "Operator", created_ts: "2025-01-01T02:00:00Z" }),
+      createMessage({
+        subject: "KICKOFF: Test",
+        from: "Operator",
+        created_ts: "2025-01-01T00:00:00Z",
+      }),
+      createMessage({
+        subject: "DELTA[gpt]: Hypotheses",
+        from: "CodexAgent",
+        created_ts: "2025-01-01T01:00:00Z",
+      }),
+      createMessage({
+        subject: "COMPILED: v1 initial artifact",
+        from: "Operator",
+        created_ts: "2025-01-01T02:00:00Z",
+      }),
     ];
 
     const status = computeThreadStatus(messages);
@@ -943,11 +1043,31 @@ describe("round tracking", () => {
 
   it("counts deltas and critiques in current round correctly", () => {
     const messages: AgentMailMessage[] = [
-      createMessage({ subject: "KICKOFF: Test", from: "Operator", created_ts: "2025-01-01T00:00:00Z" }),
-      createMessage({ subject: "DELTA[gpt]: Initial hypotheses", from: "CodexAgent", created_ts: "2025-01-01T01:00:00Z" }),
-      createMessage({ subject: "COMPILED: v1 initial", from: "Operator", created_ts: "2025-01-01T02:00:00Z" }),
-      createMessage({ subject: "CRITIQUE: H2 mechanism issues", from: "GeminiAgent", created_ts: "2025-01-01T03:00:00Z" }),
-      createMessage({ subject: "DELTA[opus]: Revised H2", from: "ClaudeAgent", created_ts: "2025-01-01T04:00:00Z" }),
+      createMessage({
+        subject: "KICKOFF: Test",
+        from: "Operator",
+        created_ts: "2025-01-01T00:00:00Z",
+      }),
+      createMessage({
+        subject: "DELTA[gpt]: Initial hypotheses",
+        from: "CodexAgent",
+        created_ts: "2025-01-01T01:00:00Z",
+      }),
+      createMessage({
+        subject: "COMPILED: v1 initial",
+        from: "Operator",
+        created_ts: "2025-01-01T02:00:00Z",
+      }),
+      createMessage({
+        subject: "CRITIQUE: H2 mechanism issues",
+        from: "GeminiAgent",
+        created_ts: "2025-01-01T03:00:00Z",
+      }),
+      createMessage({
+        subject: "DELTA[opus]: Revised H2",
+        from: "ClaudeAgent",
+        created_ts: "2025-01-01T04:00:00Z",
+      }),
     ];
 
     const status = computeThreadStatus(messages);
@@ -958,10 +1078,26 @@ describe("round tracking", () => {
 
   it("increments round with each COMPILED message", () => {
     const messages: AgentMailMessage[] = [
-      createMessage({ subject: "KICKOFF: Test", from: "Operator", created_ts: "2025-01-01T00:00:00Z" }),
-      createMessage({ subject: "COMPILED: v1", from: "Operator", created_ts: "2025-01-01T01:00:00Z" }),
-      createMessage({ subject: "COMPILED: v2", from: "Operator", created_ts: "2025-01-01T02:00:00Z" }),
-      createMessage({ subject: "COMPILED: v3", from: "Operator", created_ts: "2025-01-01T03:00:00Z" }),
+      createMessage({
+        subject: "KICKOFF: Test",
+        from: "Operator",
+        created_ts: "2025-01-01T00:00:00Z",
+      }),
+      createMessage({
+        subject: "COMPILED: v1",
+        from: "Operator",
+        created_ts: "2025-01-01T01:00:00Z",
+      }),
+      createMessage({
+        subject: "COMPILED: v2",
+        from: "Operator",
+        created_ts: "2025-01-01T02:00:00Z",
+      }),
+      createMessage({
+        subject: "COMPILED: v3",
+        from: "Operator",
+        created_ts: "2025-01-01T03:00:00Z",
+      }),
     ];
 
     const status = computeThreadStatus(messages);
@@ -972,10 +1108,26 @@ describe("round tracking", () => {
 describe("getMessagesInCurrentRound", () => {
   it("returns all DELTAs after KICKOFF when no COMPILED exists", () => {
     const messages: AgentMailMessage[] = [
-      createMessage({ subject: "KICKOFF: Test", from: "Operator", created_ts: "2025-01-01T00:00:00Z" }),
-      createMessage({ subject: "DELTA[gpt]: Hypotheses", from: "CodexAgent", created_ts: "2025-01-01T01:00:00Z" }),
-      createMessage({ subject: "DELTA[opus]: Tests", from: "ClaudeAgent", created_ts: "2025-01-01T02:00:00Z" }),
-      createMessage({ subject: "CRITIQUE: Premature critique", from: "GeminiAgent", created_ts: "2025-01-01T03:00:00Z" }),
+      createMessage({
+        subject: "KICKOFF: Test",
+        from: "Operator",
+        created_ts: "2025-01-01T00:00:00Z",
+      }),
+      createMessage({
+        subject: "DELTA[gpt]: Hypotheses",
+        from: "CodexAgent",
+        created_ts: "2025-01-01T01:00:00Z",
+      }),
+      createMessage({
+        subject: "DELTA[opus]: Tests",
+        from: "ClaudeAgent",
+        created_ts: "2025-01-01T02:00:00Z",
+      }),
+      createMessage({
+        subject: "CRITIQUE: Premature critique",
+        from: "GeminiAgent",
+        created_ts: "2025-01-01T03:00:00Z",
+      }),
     ];
 
     const currentRound = getMessagesInCurrentRound(messages);
@@ -986,11 +1138,31 @@ describe("getMessagesInCurrentRound", () => {
 
   it("returns only messages after latest COMPILED", () => {
     const messages: AgentMailMessage[] = [
-      createMessage({ subject: "KICKOFF: Test", from: "Operator", created_ts: "2025-01-01T00:00:00Z" }),
-      createMessage({ subject: "DELTA[gpt]: Initial", from: "CodexAgent", created_ts: "2025-01-01T01:00:00Z" }),
-      createMessage({ subject: "COMPILED: v1", from: "Operator", created_ts: "2025-01-01T02:00:00Z" }),
-      createMessage({ subject: "CRITIQUE: Issues with H2", from: "GeminiAgent", created_ts: "2025-01-01T03:00:00Z" }),
-      createMessage({ subject: "DELTA[opus]: Revised", from: "ClaudeAgent", created_ts: "2025-01-01T04:00:00Z" }),
+      createMessage({
+        subject: "KICKOFF: Test",
+        from: "Operator",
+        created_ts: "2025-01-01T00:00:00Z",
+      }),
+      createMessage({
+        subject: "DELTA[gpt]: Initial",
+        from: "CodexAgent",
+        created_ts: "2025-01-01T01:00:00Z",
+      }),
+      createMessage({
+        subject: "COMPILED: v1",
+        from: "Operator",
+        created_ts: "2025-01-01T02:00:00Z",
+      }),
+      createMessage({
+        subject: "CRITIQUE: Issues with H2",
+        from: "GeminiAgent",
+        created_ts: "2025-01-01T03:00:00Z",
+      }),
+      createMessage({
+        subject: "DELTA[opus]: Revised",
+        from: "ClaudeAgent",
+        created_ts: "2025-01-01T04:00:00Z",
+      }),
     ];
 
     const currentRound = getMessagesInCurrentRound(messages);
@@ -1001,10 +1173,26 @@ describe("getMessagesInCurrentRound", () => {
 
   it("filters out non-DELTA and non-CRITIQUE messages", () => {
     const messages: AgentMailMessage[] = [
-      createMessage({ subject: "KICKOFF: Test", from: "Operator", created_ts: "2025-01-01T00:00:00Z" }),
-      createMessage({ subject: "COMPILED: v1", from: "Operator", created_ts: "2025-01-01T01:00:00Z" }),
-      createMessage({ subject: "ACK: Received", from: "Agent", created_ts: "2025-01-01T02:00:00Z" }),
-      createMessage({ subject: "DELTA[gpt]: New delta", from: "CodexAgent", created_ts: "2025-01-01T03:00:00Z" }),
+      createMessage({
+        subject: "KICKOFF: Test",
+        from: "Operator",
+        created_ts: "2025-01-01T00:00:00Z",
+      }),
+      createMessage({
+        subject: "COMPILED: v1",
+        from: "Operator",
+        created_ts: "2025-01-01T01:00:00Z",
+      }),
+      createMessage({
+        subject: "ACK: Received",
+        from: "Agent",
+        created_ts: "2025-01-01T02:00:00Z",
+      }),
+      createMessage({
+        subject: "DELTA[gpt]: New delta",
+        from: "CodexAgent",
+        created_ts: "2025-01-01T03:00:00Z",
+      }),
     ];
 
     const currentRound = getMessagesInCurrentRound(messages);
@@ -1016,10 +1204,26 @@ describe("getMessagesInCurrentRound", () => {
 describe("getDeltaMessagesForCurrentRound", () => {
   it("returns only DELTA messages (excludes CRITIQUE)", () => {
     const messages: AgentMailMessage[] = [
-      createMessage({ subject: "KICKOFF: Test", from: "Operator", created_ts: "2025-01-01T00:00:00Z" }),
-      createMessage({ subject: "COMPILED: v1", from: "Operator", created_ts: "2025-01-01T01:00:00Z" }),
-      createMessage({ subject: "CRITIQUE: Problems", from: "GeminiAgent", created_ts: "2025-01-01T02:00:00Z" }),
-      createMessage({ subject: "DELTA[opus]: Fixes", from: "ClaudeAgent", created_ts: "2025-01-01T03:00:00Z" }),
+      createMessage({
+        subject: "KICKOFF: Test",
+        from: "Operator",
+        created_ts: "2025-01-01T00:00:00Z",
+      }),
+      createMessage({
+        subject: "COMPILED: v1",
+        from: "Operator",
+        created_ts: "2025-01-01T01:00:00Z",
+      }),
+      createMessage({
+        subject: "CRITIQUE: Problems",
+        from: "GeminiAgent",
+        created_ts: "2025-01-01T02:00:00Z",
+      }),
+      createMessage({
+        subject: "DELTA[opus]: Fixes",
+        from: "ClaudeAgent",
+        created_ts: "2025-01-01T03:00:00Z",
+      }),
     ];
 
     const deltas = getDeltaMessagesForCurrentRound(messages);

@@ -17,32 +17,28 @@
  * @see apps/web/src/lib/brenner-loop/hypothesis-arena.ts
  */
 
+import { AnimatePresence, motion } from "framer-motion";
 import * as React from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import {
-  Collapsible,
-  CollapsibleTrigger,
-  CollapsibleContent,
-} from "@/components/ui/collapsible";
+import { Button } from "@/components/ui/button";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import type {
-  HypothesisArena as HypothesisArenaType,
   ArenaHypothesis,
-  ComparisonMatrix,
-  TestResultType,
   ArenaHypothesisStatus,
+  ComparisonMatrix,
+  HypothesisArena as HypothesisArenaType,
+  TestResultType,
 } from "@/lib/brenner-loop/hypothesis-arena";
 import {
   buildComparisonMatrix,
+  calculateDiscriminativePower,
   getActiveHypotheses,
   getEliminatedHypotheses,
   getLeader,
-  calculateDiscriminativePower,
-  STATUS_CONFIG,
   SOURCE_LABELS,
+  STATUS_CONFIG,
 } from "@/lib/brenner-loop/hypothesis-arena";
+import { cn } from "@/lib/utils";
 import { HypothesisCard } from "./HypothesisCard";
 
 // ============================================================================
@@ -83,50 +79,110 @@ export interface HypothesisArenaProps {
 // ============================================================================
 
 const ChevronDownIcon = ({ className }: { className?: string }) => (
-  <svg className={cn("size-4", className)} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+  <svg
+    className={cn("size-4", className)}
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+    strokeWidth={2}
+  >
     <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
   </svg>
 );
 
 const PlusIcon = ({ className }: { className?: string }) => (
-  <svg className={cn("size-4", className)} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+  <svg
+    className={cn("size-4", className)}
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+    strokeWidth={2}
+  >
     <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
   </svg>
 );
 
 const TrophyIcon = ({ className }: { className?: string }) => (
-  <svg className={cn("size-4", className)} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 18.75h-9m9 0a3 3 0 013 3h-15a3 3 0 013-3m9 0v-3.375c0-.621-.503-1.125-1.125-1.125h-.871M7.5 18.75v-3.375c0-.621.504-1.125 1.125-1.125h.872m5.007 0H9.497m5.007 0a7.454 7.454 0 01-.982-3.172M9.497 14.25a7.454 7.454 0 00.981-3.172M5.25 4.236c-.982.143-1.954.317-2.916.52A6.003 6.003 0 007.73 9.728M5.25 4.236V4.5c0 2.108.966 3.99 2.48 5.228M5.25 4.236V2.721C7.456 2.41 9.71 2.25 12 2.25c2.291 0 4.545.16 6.75.47v1.516M7.73 9.728a6.726 6.726 0 002.748 1.35m8.272-6.842V4.5c0 2.108-.966 3.99-2.48 5.228m2.48-5.492a46.32 46.32 0 012.916.52 6.003 6.003 0 01-5.395 4.972m0 0a6.726 6.726 0 01-2.749 1.35m0 0a6.772 6.772 0 01-3.044 0" />
+  <svg
+    className={cn("size-4", className)}
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+    strokeWidth={2}
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M16.5 18.75h-9m9 0a3 3 0 013 3h-15a3 3 0 013-3m9 0v-3.375c0-.621-.503-1.125-1.125-1.125h-.871M7.5 18.75v-3.375c0-.621.504-1.125 1.125-1.125h.872m5.007 0H9.497m5.007 0a7.454 7.454 0 01-.982-3.172M9.497 14.25a7.454 7.454 0 00.981-3.172M5.25 4.236c-.982.143-1.954.317-2.916.52A6.003 6.003 0 007.73 9.728M5.25 4.236V4.5c0 2.108.966 3.99 2.48 5.228M5.25 4.236V2.721C7.456 2.41 9.71 2.25 12 2.25c2.291 0 4.545.16 6.75.47v1.516M7.73 9.728a6.726 6.726 0 002.748 1.35m8.272-6.842V4.5c0 2.108-.966 3.99-2.48 5.228m2.48-5.492a46.32 46.32 0 012.916.52 6.003 6.003 0 01-5.395 4.972m0 0a6.726 6.726 0 01-2.749 1.35m0 0a6.772 6.772 0 01-3.044 0"
+    />
   </svg>
 );
 
 const XMarkIcon = ({ className }: { className?: string }) => (
-  <svg className={cn("size-4", className)} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+  <svg
+    className={cn("size-4", className)}
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+    strokeWidth={2}
+  >
     <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
   </svg>
 );
 
 const CheckIcon = ({ className }: { className?: string }) => (
-  <svg className={cn("size-4", className)} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+  <svg
+    className={cn("size-4", className)}
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+    strokeWidth={2}
+  >
     <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
   </svg>
 );
 
 const MinusIcon = ({ className }: { className?: string }) => (
-  <svg className={cn("size-4", className)} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+  <svg
+    className={cn("size-4", className)}
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+    strokeWidth={2}
+  >
     <path strokeLinecap="round" strokeLinejoin="round" d="M5 12h14" />
   </svg>
 );
 
 const SkullIcon = ({ className }: { className?: string }) => (
-  <svg className={cn("size-4", className)} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M12 8.25v-1.5m0 1.5c-1.355 0-2.697.056-4.024.166C6.845 8.51 6 9.473 6 10.608v2.513c0 1.037.73 1.929 1.753 2.13 1.274.25 2.594.387 3.947.388m0-7.144c1.355 0 2.697.055 4.024.166C16.155 8.51 17 9.473 17 10.608v2.513c0 1.037-.73 1.929-1.753 2.13-1.274.25-2.594.387-3.947.388m0-7.144V13.5M9 13.5h1.5m2.25 0H14m-7.5 6h9" />
+  <svg
+    className={cn("size-4", className)}
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+    strokeWidth={2}
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M12 8.25v-1.5m0 1.5c-1.355 0-2.697.056-4.024.166C6.845 8.51 6 9.473 6 10.608v2.513c0 1.037.73 1.929 1.753 2.13 1.274.25 2.594.387 3.947.388m0-7.144c1.355 0 2.697.055 4.024.166C16.155 8.51 17 9.473 17 10.608v2.513c0 1.037-.73 1.929-1.753 2.13-1.274.25-2.594.387-3.947.388m0-7.144V13.5M9 13.5h1.5m2.25 0H14m-7.5 6h9"
+    />
   </svg>
 );
 
 const BeakerIcon = ({ className }: { className?: string }) => (
-  <svg className={cn("size-5", className)} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M9.75 3.104v5.714a2.25 2.25 0 01-.659 1.591L5 14.5M9.75 3.104c-.251.023-.501.05-.75.082m.75-.082a24.301 24.301 0 014.5 0m0 0v5.714c0 .597.237 1.17.659 1.591L19.8 15.3M14.25 3.104c.251.023.501.05.75.082M19.8 15.3l-1.57.393A9.065 9.065 0 0112 15a9.065 9.065 0 00-6.23.693L5 14.5m14.8.8l1.402 1.402c1.232 1.232.65 3.318-1.067 3.611A48.309 48.309 0 0112 21c-2.773 0-5.491-.235-8.135-.687-1.718-.293-2.3-2.379-1.067-3.61L5 14.5" />
+  <svg
+    className={cn("size-5", className)}
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+    strokeWidth={1.5}
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M9.75 3.104v5.714a2.25 2.25 0 01-.659 1.591L5 14.5M9.75 3.104c-.251.023-.501.05-.75.082m.75-.082a24.301 24.301 0 014.5 0m0 0v5.714c0 .597.237 1.17.659 1.591L19.8 15.3M14.25 3.104c.251.023.501.05.75.082M19.8 15.3l-1.57.393A9.065 9.065 0 0112 15a9.065 9.065 0 00-6.23.693L5 14.5m14.8.8l1.402 1.402c1.232 1.232.65 3.318-1.067 3.611A48.309 48.309 0 0112 21c-2.773 0-5.491-.235-8.135-.687-1.718-.293-2.3-2.379-1.067-3.61L5 14.5"
+    />
   </svg>
 );
 
@@ -144,13 +200,15 @@ function StatusBadge({ status, className }: StatusBadgeProps) {
 
   return (
     <Badge
-      variant={status === "champion" ? "default" : status === "eliminated" ? "destructive" : "secondary"}
+      variant={
+        status === "champion" ? "default" : status === "eliminated" ? "destructive" : "secondary"
+      }
       className={cn(
         "text-xs",
         status === "champion" && "bg-primary",
         status === "active" && "bg-green-500/10 text-green-600 border-green-500/30",
         status === "suspended" && "bg-amber-500/10 text-amber-600 border-amber-500/30",
-        className
+        className,
       )}
     >
       {status === "champion" && <TrophyIcon className="size-3 mr-1" />}
@@ -212,7 +270,7 @@ function ResultCell({ result, onClick, readonly }: ResultCellProps) {
         "flex items-center justify-center size-8 rounded-md border transition-all",
         getResultStyles(result),
         canClick && "hover:scale-110 cursor-pointer",
-        !canClick && "cursor-default"
+        !canClick && "cursor-default",
       )}
       title={result}
     >
@@ -254,7 +312,7 @@ function CompetitorCard({
         "rounded-xl border bg-card overflow-hidden",
         competitor.status === "eliminated" && "opacity-60",
         competitor.status === "champion" && "ring-2 ring-primary border-primary",
-        isLeader && competitor.status === "active" && "border-green-500/50"
+        isLeader && competitor.status === "active" && "border-green-500/50",
       )}
     >
       {/* Header */}
@@ -271,15 +329,16 @@ function CompetitorCard({
           )}
         </div>
         <div className="flex items-center gap-2">
-          <span className="text-xs text-muted-foreground">
-            {SOURCE_LABELS[competitor.source]}
-          </span>
-          <span className={cn(
-            "font-semibold text-sm",
-            competitor.score > 0 && "text-green-600",
-            competitor.score < 0 && "text-red-600"
-          )}>
-            {competitor.score > 0 ? "+" : ""}{competitor.score}
+          <span className="text-xs text-muted-foreground">{SOURCE_LABELS[competitor.source]}</span>
+          <span
+            className={cn(
+              "font-semibold text-sm",
+              competitor.score > 0 && "text-green-600",
+              competitor.score < 0 && "text-red-600",
+            )}
+          >
+            {competitor.score > 0 ? "+" : ""}
+            {competitor.score}
           </span>
         </div>
       </div>
@@ -288,7 +347,10 @@ function CompetitorCard({
       <Collapsible open={isExpanded} onOpenChange={setIsExpanded}>
         <div className="p-4">
           <p
-            className={cn("text-sm line-clamp-2", onClick && "cursor-pointer hover:text-primary transition-colors")}
+            className={cn(
+              "text-sm line-clamp-2",
+              onClick && "cursor-pointer hover:text-primary transition-colors",
+            )}
             onClick={onClick}
             onKeyDown={onClick ? (e) => e.key === "Enter" && onClick() : undefined}
             role={onClick ? "button" : undefined}
@@ -318,10 +380,7 @@ function CompetitorCard({
           className="w-full py-2 px-4 border-t border-border bg-muted/20 hover:bg-muted/40 transition-colors"
         >
           <div className="flex items-center justify-center gap-1 text-xs text-muted-foreground">
-            <motion.div
-              animate={{ rotate: isExpanded ? 180 : 0 }}
-              transition={{ duration: 0.2 }}
-            >
+            <motion.div animate={{ rotate: isExpanded ? 180 : 0 }} transition={{ duration: 0.2 }}>
               <ChevronDownIcon className="size-4" />
             </motion.div>
             {isExpanded ? "Collapse" : "Expand details"}
@@ -341,7 +400,12 @@ function CompetitorCard({
             {!readonly && competitor.status === "active" && (
               <div className="flex items-center gap-2 mt-4 pt-4 border-t border-border">
                 {onEliminate && (
-                  <Button variant="outline" size="sm" onClick={onEliminate} className="text-red-600">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={onEliminate}
+                    className="text-red-600"
+                  >
                     <SkullIcon className="size-4 mr-1" />
                     Eliminate
                   </Button>
@@ -405,7 +469,7 @@ function ComparisonMatrixTable({ matrix, onCellClick, readonly }: ComparisonMatr
               key={row.hypothesisId}
               className={cn(
                 "border-b border-border/50 hover:bg-muted/30 transition-colors",
-                row.status === "eliminated" && "opacity-50"
+                row.status === "eliminated" && "opacity-50",
               )}
             >
               <td className="py-2 px-3">
@@ -438,10 +502,11 @@ function ComparisonMatrixTable({ matrix, onCellClick, readonly }: ComparisonMatr
                   className={cn(
                     "font-semibold",
                     row.score > 0 && "text-green-600",
-                    row.score < 0 && "text-red-600"
+                    row.score < 0 && "text-red-600",
                   )}
                 >
-                  {row.score > 0 ? "+" : ""}{row.score}
+                  {row.score > 0 ? "+" : ""}
+                  {row.score}
                 </span>
               </td>
               <td className="py-2 px-3 text-center">
@@ -510,7 +575,7 @@ export function HypothesisArena({
 
       onRecordResult(testId, hypothesisId, next);
     },
-    [onRecordResult, matrix]
+    [onRecordResult, matrix],
   );
 
   return (
@@ -519,9 +584,7 @@ export function HypothesisArena({
       <div className="flex items-start justify-between">
         <div>
           <h2 className="text-xl font-semibold">Hypothesis Arena</h2>
-          <p className="text-muted-foreground text-sm mt-1 max-w-xl">
-            {arena.question}
-          </p>
+          <p className="text-muted-foreground text-sm mt-1 max-w-xl">{arena.question}</p>
         </div>
         {arena.status === "resolved" && arena.championId && (
           <Badge className="bg-primary">
@@ -602,9 +665,7 @@ export function HypothesisArena({
 
       {/* Active Competitors */}
       <div>
-        <h3 className="font-semibold mb-3">
-          Active Competitors ({activeHypotheses.length})
-        </h3>
+        <h3 className="font-semibold mb-3">Active Competitors ({activeHypotheses.length})</h3>
         <div className="grid gap-4">
           <AnimatePresence mode="popLayout">
             {activeHypotheses.map((competitor) => (
@@ -614,7 +675,9 @@ export function HypothesisArena({
                 isLeader={leader?.hypothesisId === competitor.hypothesisId}
                 onEliminate={onEliminate ? () => onEliminate(competitor.hypothesisId) : undefined}
                 onResolve={onResolve ? () => onResolve(competitor.hypothesisId) : undefined}
-                onClick={onHypothesisClick ? () => onHypothesisClick(competitor.hypothesisId) : undefined}
+                onClick={
+                  onHypothesisClick ? () => onHypothesisClick(competitor.hypothesisId) : undefined
+                }
                 readonly={readonly || arena.status === "resolved"}
               />
             ))}
@@ -654,7 +717,11 @@ export function HypothesisArena({
                     competitor={competitor}
                     isLeader={false}
                     readonly={true}
-                    onClick={onHypothesisClick ? () => onHypothesisClick(competitor.hypothesisId) : undefined}
+                    onClick={
+                      onHypothesisClick
+                        ? () => onHypothesisClick(competitor.hypothesisId)
+                        : undefined
+                    }
                   />
                 ))}
               </AnimatePresence>
@@ -669,8 +736,8 @@ export function HypothesisArena({
           <BeakerIcon className="size-10 mx-auto mb-3 text-muted-foreground/50" />
           <h3 className="font-medium mb-1">Add Competing Hypotheses</h3>
           <p className="text-sm text-muted-foreground max-w-md mx-auto">
-            The Brenner method requires comparing alternatives. Add at least one
-            more hypothesis to start discriminative testing.
+            The Brenner method requires comparing alternatives. Add at least one more hypothesis to
+            start discriminative testing.
           </p>
           {onAddCompetitor && !readonly && (
             <Button variant="outline" className="mt-4" onClick={onAddCompetitor}>

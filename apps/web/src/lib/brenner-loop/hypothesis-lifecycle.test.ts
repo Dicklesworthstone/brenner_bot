@@ -8,39 +8,37 @@
  * @see brenner-loop/hypothesis-lifecycle.ts
  */
 
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
+import type { HypothesisCard } from "./hypothesis";
 import {
-  transitionHypothesis,
-  getAvailableTransitions,
+  calculateLifecycleStats,
   canTransition,
   canTransitionWithEvent,
-  isTerminalState,
-  isResolvable,
-  shouldBeDormant,
   createHypothesisWithLifecycle,
-  upgradeToLifecycle,
-  isHypothesisState,
-  isHypothesisWithLifecycle,
-  getStateLabel,
+  getAvailableTransitions,
+  getStateColors,
   getStateDescription,
   getStateIcon,
-  getStateColors,
-  isStateEditable,
-  isStateDeletable,
-  calculateLifecycleStats,
+  getStateLabel,
   HYPOTHESIS_STATE_CONFIG,
-  type HypothesisWithLifecycle,
   type HypothesisState,
+  type HypothesisWithLifecycle,
+  isHypothesisState,
+  isHypothesisWithLifecycle,
+  isResolvable,
+  isStateDeletable,
+  isStateEditable,
+  isTerminalState,
+  shouldBeDormant,
+  transitionHypothesis,
+  upgradeToLifecycle,
 } from "./hypothesis-lifecycle";
-import type { HypothesisCard } from "./hypothesis";
 
 // ============================================================================
 // Test Fixtures
 // ============================================================================
 
-function createTestHypothesisCard(
-  overrides: Partial<HypothesisCard> = {}
-): HypothesisCard {
+function createTestHypothesisCard(overrides: Partial<HypothesisCard> = {}): HypothesisCard {
   return {
     id: "HC-TEST-001-v1",
     version: 1,
@@ -60,7 +58,7 @@ function createTestHypothesisCard(
 }
 
 function createTestHypothesisWithLifecycle(
-  overrides: Partial<HypothesisWithLifecycle> = {}
+  overrides: Partial<HypothesisWithLifecycle> = {},
 ): HypothesisWithLifecycle {
   const card = createTestHypothesisCard();
   return {
@@ -321,9 +319,7 @@ describe("transitionHypothesis", () => {
 
       expect(result.success).toBe(true);
       expect(result.newState).toBe("falsified");
-      expect(result.hypothesis.falsificationReason).toBe(
-        "Evidence contradicted prediction"
-      );
+      expect(result.hypothesis.falsificationReason).toBe("Evidence contradicted prediction");
     });
 
     it("generates archive side effect", () => {
@@ -382,9 +378,7 @@ describe("transitionHypothesis", () => {
       });
 
       expect(result.success).toBe(true);
-      const linkEffect = result.sideEffects?.find(
-        (e) => e.type === "create_successor_link"
-      );
+      const linkEffect = result.sideEffects?.find((e) => e.type === "create_successor_link");
       expect(linkEffect).toBeDefined();
       expect(linkEffect?.payload.toId).toBe("HC-TEST-002-v1");
     });
@@ -425,9 +419,7 @@ describe("transitionHypothesis", () => {
       const result = transitionHypothesis(hypothesis, { type: "RESUME" });
 
       expect(result.success).toBe(true);
-      expect(result.hypothesis.lastActivityAt.getTime()).toBeGreaterThan(
-        oldDate.getTime()
-      );
+      expect(result.hypothesis.lastActivityAt.getTime()).toBeGreaterThan(oldDate.getTime());
     });
   });
 
@@ -468,9 +460,7 @@ describe("transitionHypothesis", () => {
 
       expect(result.success).toBe(true);
       expect(result.newState).toBe("falsified");
-      expect(result.hypothesis.falsificationReason).toBe(
-        "User decided not to pursue"
-      );
+      expect(result.hypothesis.falsificationReason).toBe("User decided not to pursue");
     });
 
     it("transitions from dormant to falsified", () => {
@@ -534,9 +524,7 @@ describe("transitionHypothesis", () => {
       });
 
       expect(result.success).toBe(true);
-      expect(result.hypothesis.stateEnteredAt.getTime()).toBeGreaterThan(
-        oldDate.getTime()
-      );
+      expect(result.hypothesis.stateEnteredAt.getTime()).toBeGreaterThan(oldDate.getTime());
     });
 
     it("updates lastActivityAt on transition", () => {
@@ -550,9 +538,7 @@ describe("transitionHypothesis", () => {
       });
 
       expect(result.success).toBe(true);
-      expect(result.hypothesis.lastActivityAt.getTime()).toBeGreaterThan(
-        oldDate.getTime()
-      );
+      expect(result.hypothesis.lastActivityAt.getTime()).toBeGreaterThan(oldDate.getTime());
     });
 
     it("updates updatedAt on transition", () => {
@@ -566,9 +552,7 @@ describe("transitionHypothesis", () => {
       });
 
       expect(result.success).toBe(true);
-      expect(result.hypothesis.updatedAt.getTime()).toBeGreaterThan(
-        oldDate.getTime()
-      );
+      expect(result.hypothesis.updatedAt.getTime()).toBeGreaterThan(oldDate.getTime());
     });
   });
 });
@@ -637,14 +621,14 @@ describe("canTransitionWithEvent", () => {
       canTransitionWithEvent(hypothesis, {
         type: "LOCK_PREDICTION",
         predictionIndex: 0,
-      })
+      }),
     ).toBe(true);
 
     expect(
       canTransitionWithEvent(hypothesis, {
         type: "LOCK_PREDICTION",
         predictionIndex: 99,
-      })
+      }),
     ).toBe(false);
   });
 
@@ -656,9 +640,7 @@ describe("canTransitionWithEvent", () => {
     });
 
     // Missing locked predictions should fail
-    expect(
-      canTransitionWithEvent(hypothesis, { type: "START_TESTING" })
-    ).toBe(false);
+    expect(canTransitionWithEvent(hypothesis, { type: "START_TESTING" })).toBe(false);
   });
 });
 

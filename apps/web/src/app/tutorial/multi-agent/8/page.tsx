@@ -8,12 +8,11 @@
  * @see brenner_bot-nm89 (Tutorial Path: Multi-Agent Cockpit)
  */
 
-import * as React from "react";
 import { useRouter } from "next/navigation";
-import { TutorialStep } from "@/components/tutorial";
-import { TutorialCodeBlock, ProTip } from "@/components/tutorial";
+import * as React from "react";
+import { ProTip, TutorialCodeBlock, TutorialStep } from "@/components/tutorial";
 import { useTutorial } from "@/lib/tutorial-context";
-import type { TutorialStep as TutorialStepType, TroubleshootingItem } from "@/lib/tutorial-types";
+import type { TroubleshootingItem, TutorialStep as TutorialStepType } from "@/lib/tutorial-types";
 
 // ============================================================================
 // Step Data
@@ -22,11 +21,13 @@ import type { TutorialStep as TutorialStepType, TroubleshootingItem } from "@/li
 const troubleshooting: TroubleshootingItem[] = [
   {
     problem: "All scores are low",
-    solution: "This might indicate a need for another iteration. Focus on the lowest-scoring dimension first.",
+    solution:
+      "This might indicate a need for another iteration. Focus on the lowest-scoring dimension first.",
   },
   {
     problem: "Unsure how to rate a dimension",
-    solution: "Use the rubric descriptors. If you're between two scores, err on the lower side — it's better to underestimate.",
+    solution:
+      "Use the rubric descriptors. If you're between two scores, err on the lower side — it's better to underestimate.",
   },
 ];
 
@@ -41,11 +42,7 @@ const stepData: TutorialStepType = {
     "How to identify session quality issues",
     "Using scores to guide iteration",
   ],
-  whatYouDo: [
-    "Apply the scoring rubric",
-    "Identify weak dimensions",
-    "Decide whether to iterate",
-  ],
+  whatYouDo: ["Apply the scoring rubric", "Identify weak dimensions", "Decide whether to iterate"],
   troubleshooting,
 };
 
@@ -212,7 +209,9 @@ cat sessions/$SESSION_ID/score.json`}
 
           <div className="grid gap-3">
             <div className="p-4 rounded-xl border border-[oklch(0.72_0.19_145/0.3)] bg-[oklch(0.72_0.19_145/0.05)]">
-              <p className="font-medium text-[oklch(0.72_0.19_145)] mb-2">Average 4.0+: Excellent</p>
+              <p className="font-medium text-[oklch(0.72_0.19_145)] mb-2">
+                Average 4.0+: Excellent
+              </p>
               <p className="text-xs text-muted-foreground">
                 Ready to publish or execute. Consider archiving to your research program.
               </p>
@@ -224,7 +223,9 @@ cat sessions/$SESSION_ID/score.json`}
               </p>
             </div>
             <div className="p-4 rounded-xl border border-amber-500/30 bg-amber-500/5">
-              <p className="font-medium text-amber-600 dark:text-amber-400 mb-2">Average 2.0-2.9: Needs Work</p>
+              <p className="font-medium text-amber-600 dark:text-amber-400 mb-2">
+                Average 2.0-2.9: Needs Work
+              </p>
               <p className="text-xs text-muted-foreground">
                 Significant gaps. Focus on lowest-scoring dimensions in next round.
               </p>
@@ -240,8 +241,8 @@ cat sessions/$SESSION_ID/score.json`}
 
         <ProTip>
           Low scores aren&apos;t failures — they&apos;re diagnostic. A session that scores 2.5 on
-          &quot;Third Alternative&quot; tells you exactly what to focus on next: ask the agents
-          to challenge the framing more aggressively.
+          &quot;Third Alternative&quot; tells you exactly what to focus on next: ask the agents to
+          challenge the framing more aggressively.
         </ProTip>
 
         {/* Ready Checkpoint */}
@@ -249,8 +250,8 @@ cat sessions/$SESSION_ID/score.json`}
           <p className="text-sm">
             <strong className="text-[oklch(0.72_0.19_145)]">Scored?</strong>{" "}
             <span className="text-muted-foreground">
-              Based on your scores, decide whether to iterate (another round) or publish the artifact
-              in the next step.
+              Based on your scores, decide whether to iterate (another round) or publish the
+              artifact in the next step.
             </span>
           </p>
         </div>

@@ -4,7 +4,7 @@ const toolsCallMock = vi.hoisted(() =>
   vi.fn(async (tool: string) => {
     if (tool === "ensure_project") return { structuredContent: { slug: "test-project" } };
     return { structuredContent: {} };
-  })
+  }),
 );
 
 const resourcesReadMock = vi.hoisted(() =>
@@ -12,7 +12,7 @@ const resourcesReadMock = vi.hoisted(() =>
     return {
       contents: [{ text: JSON.stringify({ agents: [{ name: "TestAgent", unread_count: 0 }] }) }],
     };
-  })
+  }),
 );
 
 vi.mock("@/lib/agentMail", () => ({
@@ -38,7 +38,10 @@ vi.mock("@/components/sessions", () => ({
 
 import NewSessionPage from "./page";
 
-async function withEnv(overrides: Record<string, string | undefined>, fn: () => Promise<void> | void) {
+async function withEnv(
+  overrides: Record<string, string | undefined>,
+  fn: () => Promise<void> | void,
+) {
   const saved: Record<string, string | undefined> = {};
   for (const key of Object.keys(overrides)) {
     saved[key] = process.env[key];
@@ -70,7 +73,7 @@ describe("NewSessionPage", () => {
       });
 
       expect(toolsCallMock).toHaveBeenCalledWith("ensure_project", { human_key: projectKey });
-    }
+    },
   );
 
   it("does not call ensure_project when BRENNER_PROJECT_KEY is a relative slug", async () => {

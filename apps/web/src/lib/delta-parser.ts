@@ -231,7 +231,7 @@ function validateDelta(raw: unknown, rawJson: string): ParsedDelta {
 
   // Validate target_id based on operation
   // Note: We intentionally allow target_id in ADD (and ignore it) to be lenient with agents.
-  
+
   // KILL always requires target_id
   if (operation === "KILL" && typeof target_id !== "string") {
     return {
@@ -290,14 +290,14 @@ function validateDelta(raw: unknown, rawJson: string): ParsedDelta {
     if (target_id !== null && target_id !== undefined && typeof target_id !== "string") {
       return {
         valid: false,
-        error: "research_thread target_id must be a string (\"RT\") or null",
+        error: 'research_thread target_id must be a string ("RT") or null',
         raw: rawJson,
       };
     }
     if (typeof target_id === "string" && target_id !== "RT") {
       return {
         valid: false,
-        error: `research_thread target_id must be \"RT\" (got \"${target_id}\")`,
+        error: `research_thread target_id must be "RT" (got "${target_id}")`,
         raw: rawJson,
       };
     }
@@ -308,7 +308,7 @@ function validateDelta(raw: unknown, rawJson: string): ParsedDelta {
     operation,
     section,
     // Force null target_id for ADD (ignore agent hallucinations), otherwise preserve string or null
-    target_id: operation === "ADD" ? null : (typeof target_id === "string" ? target_id : null),
+    target_id: operation === "ADD" ? null : typeof target_id === "string" ? target_id : null,
     payload: (payload ?? {}) as DeltaPayload,
     rationale: typeof rationale === "string" ? rationale : "",
     raw: rawJson,
@@ -373,7 +373,7 @@ function sanitizeJson(str: string): string {
   // 1. Remove comments while preserving strings
   // Matches: "string" OR // comment OR /* comment */
   const commentRegex = /("(?:[^"\\]|\\.)*")|(\/\/.*)|(\/\*[\s\S]*?\*\/)/g;
-  
+
   let cleaned = str.replace(commentRegex, (match, strGroup) => {
     if (strGroup) return match; // Preserved string
     return ""; // Removed comment

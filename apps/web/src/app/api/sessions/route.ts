@@ -1,11 +1,11 @@
 import { isAbsolute, resolve, win32 } from "node:path";
-import { headers, cookies } from "next/headers";
-import { NextResponse, type NextRequest } from "next/server";
+import { cookies, headers } from "next/headers";
+import { type NextRequest, NextResponse } from "next/server";
 import { AgentMailClient } from "@/lib/agentMail";
 import { checkOrchestrationAuth } from "@/lib/auth";
 import { composePrompt } from "@/lib/prompts";
-import { composeKickoffMessages, type AgentRole as SessionAgentRole } from "@/lib/session-kickoff";
 import type { OperatorSelection } from "@/lib/schemas/session";
+import { composeKickoffMessages, type AgentRole as SessionAgentRole } from "@/lib/session-kickoff";
 
 export const runtime = "nodejs";
 
@@ -58,7 +58,11 @@ function repoRootFromWebCwd(): string {
   return resolve(process.cwd(), "../..");
 }
 
-function resolveProjectKey(rawProjectKey?: string): { ok: true; projectKey: string } | { ok: false; error: string; code: "VALIDATION_ERROR" | "SERVER_ERROR" } {
+function resolveProjectKey(
+  rawProjectKey?: string,
+):
+  | { ok: true; projectKey: string }
+  | { ok: false; error: string; code: "VALIDATION_ERROR" | "SERVER_ERROR" } {
   const fallback = process.env.BRENNER_PROJECT_KEY || repoRootFromWebCwd();
   const trimmed = rawProjectKey?.trim();
   const candidate = trimmed && trimmed.length > 0 ? trimmed : fallback;
@@ -66,7 +70,9 @@ function resolveProjectKey(rawProjectKey?: string): { ok: true; projectKey: stri
   if (!isAbs) {
     return {
       ok: false,
-      error: trimmed ? "Invalid projectKey: must be an absolute path" : "Server misconfigured: BRENNER_PROJECT_KEY must be absolute",
+      error: trimmed
+        ? "Invalid projectKey: must be an absolute path"
+        : "Server misconfigured: BRENNER_PROJECT_KEY must be absolute",
       code: trimmed ? "VALIDATION_ERROR" : "SERVER_ERROR",
     };
   }
@@ -89,7 +95,9 @@ function normalizeKickoffSubject(threadId: string, rawSubject?: string): string 
 // POST Handler
 // ============================================================================
 
-export async function POST(request: NextRequest): Promise<NextResponse<SessionKickoffResponse | ErrorResponse>> {
+export async function POST(
+  request: NextRequest,
+): Promise<NextResponse<SessionKickoffResponse | ErrorResponse>> {
   // Auth check
   const reqHeaders = await headers();
   const reqCookies = await cookies();
@@ -98,7 +106,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<SessionKi
   if (!authResult.authorized) {
     return NextResponse.json(
       { success: false, error: "Not found", code: "AUTH_ERROR" },
-      { status: 404 }
+      { status: 404 },
     );
   }
 
@@ -109,7 +117,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<SessionKi
   } catch {
     return NextResponse.json(
       { success: false, error: "Invalid JSON body", code: "VALIDATION_ERROR" },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
@@ -119,7 +127,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<SessionKi
   if (!sender?.trim()) {
     return NextResponse.json(
       { success: false, error: "Missing sender", code: "VALIDATION_ERROR" },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
@@ -128,7 +136,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<SessionKi
   if (!threadId?.trim()) {
     return NextResponse.json(
       { success: false, error: "Missing thread ID", code: "VALIDATION_ERROR" },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
@@ -137,29 +145,27 @@ export async function POST(request: NextRequest): Promise<NextResponse<SessionKi
   if (!Array.isArray(recipients) || recipients.length === 0) {
     return NextResponse.json(
       { success: false, error: "Missing recipients", code: "VALIDATION_ERROR" },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
   const normalizedRecipients = Array.from(
     new Set(
-      recipients
-        .map((r) => (typeof r === "string" ? r.trim() : ""))
-        .filter((r) => r.length > 0)
-    )
+      recipients.map((r) => (typeof r === "string" ? r.trim() : "")).filter((r) => r.length > 0),
+    ),
   );
 
   if (normalizedRecipients.length === 0) {
     return NextResponse.json(
       { success: false, error: "Missing recipients", code: "VALIDATION_ERROR" },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
   if (!excerpt?.trim()) {
     return NextResponse.json(
       { success: false, error: "Missing transcript excerpt", code: "VALIDATION_ERROR" },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
@@ -169,7 +175,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<SessionKi
     if (!projectKeyResult.ok) {
       return NextResponse.json(
         { success: false, error: projectKeyResult.error, code: projectKeyResult.code },
-        { status: projectKeyResult.code === "VALIDATION_ERROR" ? 400 : 500 }
+        { status: projectKeyResult.code === "VALIDATION_ERROR" ? 400 : 500 },
       );
     }
     const projectKey = projectKeyResult.projectKey;
@@ -177,14 +183,19 @@ export async function POST(request: NextRequest): Promise<NextResponse<SessionKi
     const subject = normalizeKickoffSubject(cleanThreadId, body.subject);
 
     // Check if using role-separated mode with explicit roster
-    const useRoleSeparated = body.rosterMode === "role_separated" && body.roster && body.roster.length > 0;
+    const useRoleSeparated =
+      body.rosterMode === "role_separated" && body.roster && body.roster.length > 0;
 
     // Ensure project exists
     const ensured = await client.ensureProject({ humanKey: projectKey });
     if (!ensured.slug) {
       return NextResponse.json(
-        { success: false, error: "Agent Mail: could not resolve project slug", code: "NETWORK_ERROR" },
-        { status: 502 }
+        {
+          success: false,
+          error: "Agent Mail: could not resolve project slug",
+          code: "NETWORK_ERROR",
+        },
+        { status: 502 },
       );
     }
 
@@ -229,7 +240,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<SessionKi
           threadId: cleanThreadId,
           ackRequired: Boolean(body.ackRequired),
         });
-        
+
         // Capture first message ID
         if (messageId === undefined && result.deliveries.length > 0) {
           messageId = result.deliveries[0]?.payload.id;
@@ -255,7 +266,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<SessionKi
         threadId: cleanThreadId,
         ackRequired: Boolean(body.ackRequired),
       });
-      
+
       if (result.deliveries.length > 0) {
         messageId = result.deliveries[0]?.payload.id;
       }
@@ -273,13 +284,13 @@ export async function POST(request: NextRequest): Promise<NextResponse<SessionKi
     if (message.includes("ECONNREFUSED") || message.includes("fetch failed")) {
       return NextResponse.json(
         { success: false, error: `Agent Mail unreachable: ${message}`, code: "NETWORK_ERROR" },
-        { status: 502 }
+        { status: 502 },
       );
     }
 
     return NextResponse.json(
       { success: false, error: message, code: "SERVER_ERROR" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

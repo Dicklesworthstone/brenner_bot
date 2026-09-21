@@ -1,33 +1,31 @@
-import { describe, it, expect, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
+import type { Hypothesis } from "./hypothesis";
 import {
-  VALID_TRANSITIONS,
-  TransitionTriggerSchema,
-  StateTransitionSchema,
-  TransitionErrorCode,
-  isValidTransition,
+  activateHypothesis,
+  confirmHypothesis,
+  deferHypothesis,
   getTargetState,
   getValidTriggers,
   isTerminalState,
-  validateTransitionRequirements,
-  transitionHypothesis,
-  activateHypothesis,
-  refuteHypothesis,
-  confirmHypothesis,
-  supersedeHypothesis,
-  deferHypothesis,
+  isValidTransition,
   reactivateHypothesis,
-  TransitionHistoryStore,
+  refuteHypothesis,
   type StateTransition,
+  StateTransitionSchema,
+  supersedeHypothesis,
+  TransitionErrorCode,
+  TransitionHistoryStore,
+  TransitionTriggerSchema,
+  transitionHypothesis,
+  VALID_TRANSITIONS,
+  validateTransitionRequirements,
 } from "./hypothesis-lifecycle";
-import { type Hypothesis } from "./hypothesis";
 
 // ============================================================================
 // Test Fixtures
 // ============================================================================
 
-const createTestHypothesis = (
-  overrides: Partial<Hypothesis> = {}
-): Hypothesis => ({
+const createTestHypothesis = (overrides: Partial<Hypothesis> = {}): Hypothesis => ({
   id: "H-TEST-001",
   statement: "Test hypothesis for lifecycle validation.",
   origin: "proposed",
@@ -542,9 +540,7 @@ describe("TransitionHistoryStore", () => {
     store = new TransitionHistoryStore();
   });
 
-  const createTransition = (
-    overrides: Partial<StateTransition> = {}
-  ): StateTransition => ({
+  const createTransition = (overrides: Partial<StateTransition> = {}): StateTransition => ({
     id: crypto.randomUUID(),
     hypothesisId: "H-TEST-001",
     fromState: "proposed",
@@ -604,7 +600,7 @@ describe("TransitionHistoryStore", () => {
           toState: "confirmed",
           trigger: "confirm",
           timestamp: "2025-12-30T02:00:00Z",
-        })
+        }),
       );
 
       const latest = store.getLatestTransition("H-TEST-001");
@@ -627,7 +623,7 @@ describe("TransitionHistoryStore", () => {
           toState: "refuted",
           trigger: "refute",
           testResultId: "T-RESULT-001",
-        })
+        }),
       );
 
       const transitions = store.getTransitionsByTestResult("T-RESULT-001");
@@ -645,7 +641,7 @@ describe("TransitionHistoryStore", () => {
           fromState: "active",
           toState: "refuted",
           trigger: "refute",
-        })
+        }),
       );
       store.add(createTransition({ hypothesisId: "H-TEST-002" }));
 
@@ -661,13 +657,13 @@ describe("TransitionHistoryStore", () => {
         createTransition({
           hypothesisId: "H-TEST-002",
           timestamp: "2025-12-30T02:00:00Z",
-        })
+        }),
       );
       store.add(
         createTransition({
           hypothesisId: "H-TEST-001",
           timestamp: "2025-12-30T01:00:00Z",
-        })
+        }),
       );
 
       const all = store.getAllTransitions();

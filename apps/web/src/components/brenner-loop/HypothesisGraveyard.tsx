@@ -13,22 +13,22 @@
  * @see brenner_bot-an1n.7 (bead)
  */
 
+import { AnimatePresence, motion } from "framer-motion";
 import * as React from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { cn } from "@/lib/utils";
 import { Card, CardContent } from "@/components/ui/card";
 import {
-  type FalsifiedHypothesis,
-  type DeathType,
-  type GraveyardStats,
-  type FailurePattern,
-  DEATH_TYPE_LABELS,
-  DEATH_TYPE_ICONS,
-  calculateGraveyardStats,
   analyzeFailurePatterns,
+  calculateGraveyardStats,
+  DEATH_TYPE_ICONS,
+  DEATH_TYPE_LABELS,
+  type DeathType,
+  type FailurePattern,
+  type FalsifiedHypothesis,
   formatFalsificationDate,
+  type GraveyardStats,
   getDeathTypeDisplay,
 } from "@/lib/brenner-loop/graveyard";
+import { cn } from "@/lib/utils";
 
 // ============================================================================
 // Types
@@ -51,15 +51,31 @@ export interface HypothesisGraveyardProps {
 
 function SearchIcon({ className }: { className?: string }) {
   return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+    <svg
+      className={className}
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+      strokeWidth={1.5}
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"
+      />
     </svg>
   );
 }
 
 function ChevronDownIcon({ className }: { className?: string }) {
   return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+    <svg
+      className={className}
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+      strokeWidth={2}
+    >
       <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
     </svg>
   );
@@ -67,8 +83,18 @@ function ChevronDownIcon({ className }: { className?: string }) {
 
 function LinkIcon({ className }: { className?: string }) {
   return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" />
+    <svg
+      className={className}
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+      strokeWidth={1.5}
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244"
+      />
     </svg>
   );
 }
@@ -132,10 +158,7 @@ function FailurePatterns({ patterns }: FailurePatternsProps) {
         <h3 className="font-semibold text-foreground mb-4">Failure Patterns</h3>
         <div className="space-y-3">
           {patterns.map((pattern, index) => (
-            <div
-              key={index}
-              className="flex items-start gap-3 p-3 rounded-lg bg-muted/50"
-            >
+            <div key={index} className="flex items-start gap-3 p-3 rounded-lg bg-muted/50">
               <div className="shrink-0 size-10 rounded-full bg-primary/10 flex items-center justify-center">
                 <span className="text-sm font-bold text-primary">
                   {pattern.frequency.toFixed(0)}%
@@ -185,10 +208,12 @@ function GraveyardEntryCard({
                 "px-2 py-0.5 rounded-full text-xs font-medium",
                 display.color === "red" && "bg-destructive/10 text-destructive",
                 display.color === "orange" && "bg-warning/10 text-warning",
-                display.color === "yellow" && "bg-yellow-500/10 text-yellow-600 dark:text-yellow-400",
-                display.color === "purple" && "bg-purple-500/10 text-purple-600 dark:text-purple-400",
+                display.color === "yellow" &&
+                  "bg-yellow-500/10 text-yellow-600 dark:text-yellow-400",
+                display.color === "purple" &&
+                  "bg-purple-500/10 text-purple-600 dark:text-purple-400",
                 display.color === "gray" && "bg-muted text-muted-foreground",
-                display.color === "blue" && "bg-info/10 text-info"
+                display.color === "blue" && "bg-info/10 text-info",
               )}
             >
               {display.label}
@@ -202,9 +227,7 @@ function GraveyardEntryCard({
             {entry.hypothesis.statement}
           </p>
 
-          <p className="text-sm text-muted-foreground mt-1 line-clamp-1">
-            {entry.deathSummary}
-          </p>
+          <p className="text-sm text-muted-foreground mt-1 line-clamp-1">{entry.deathSummary}</p>
         </div>
 
         <motion.div
@@ -228,9 +251,7 @@ function GraveyardEntryCard({
             <div className="px-4 pb-4 border-t border-border pt-4 space-y-4">
               {/* Brenner Quote */}
               <div className="p-3 rounded-lg bg-primary/5 border border-primary/10">
-                <p className="text-sm italic text-foreground">
-                  &ldquo;{entry.brennerQuote}&rdquo;
-                </p>
+                <p className="text-sm italic text-foreground">&ldquo;{entry.brennerQuote}&rdquo;</p>
                 <p className="text-xs text-muted-foreground mt-1">— Brenner</p>
               </div>
 
@@ -245,9 +266,7 @@ function GraveyardEntryCard({
               {/* Lessons Learned */}
               {entry.learning.lessonsLearned.length > 0 && (
                 <div>
-                  <p className="text-xs font-medium text-muted-foreground mb-2">
-                    Lessons Learned
-                  </p>
+                  <p className="text-xs font-medium text-muted-foreground mb-2">Lessons Learned</p>
                   <ul className="space-y-1">
                     {entry.learning.lessonsLearned.map((lesson, i) => (
                       <li key={i} className="flex items-start gap-2 text-sm text-foreground">
@@ -364,7 +383,7 @@ function GraveyardFilters({
             "px-3 py-1 rounded-full text-sm transition-colors",
             selectedDeathType === null
               ? "bg-primary text-primary-foreground"
-              : "bg-muted text-muted-foreground hover:bg-muted/80"
+              : "bg-muted text-muted-foreground hover:bg-muted/80",
           )}
         >
           All
@@ -378,7 +397,7 @@ function GraveyardFilters({
               "px-3 py-1 rounded-full text-sm transition-colors inline-flex items-center gap-1",
               selectedDeathType === type
                 ? "bg-primary text-primary-foreground"
-                : "bg-muted text-muted-foreground hover:bg-muted/80"
+                : "bg-muted text-muted-foreground hover:bg-muted/80",
             )}
           >
             <span>{DEATH_TYPE_ICONS[type]}</span>
@@ -425,7 +444,7 @@ export function HypothesisGraveyard({
           e.hypothesis.statement.toLowerCase().includes(query) ||
           e.deathSummary.toLowerCase().includes(query) ||
           e.epitaph.toLowerCase().includes(query) ||
-          e.learning.lessonsLearned.some((l) => l.toLowerCase().includes(query))
+          e.learning.lessonsLearned.some((l) => l.toLowerCase().includes(query)),
       );
     }
 

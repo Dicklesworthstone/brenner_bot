@@ -8,12 +8,11 @@
  * @see brenner_bot-nm89 (Tutorial Path: Multi-Agent Cockpit)
  */
 
-import * as React from "react";
 import { useRouter } from "next/navigation";
-import { TutorialStep } from "@/components/tutorial";
-import { TutorialCodeBlock, ProTip, Warning } from "@/components/tutorial";
+import * as React from "react";
+import { ProTip, TutorialCodeBlock, TutorialStep, Warning } from "@/components/tutorial";
 import { useTutorial } from "@/lib/tutorial-context";
-import type { TutorialStep as TutorialStepType, TroubleshootingItem } from "@/lib/tutorial-types";
+import type { TroubleshootingItem, TutorialStep as TutorialStepType } from "@/lib/tutorial-types";
 
 // ============================================================================
 // Step Data
@@ -22,11 +21,13 @@ import type { TutorialStep as TutorialStepType, TroubleshootingItem } from "@/li
 const troubleshooting: TroubleshootingItem[] = [
   {
     problem: "Not sure whether to iterate or publish",
-    solution: "If any dimension scored below 3, iterate. If all are 3+, consider publishing unless you have specific concerns.",
+    solution:
+      "If any dimension scored below 3, iterate. If all are 3+, consider publishing unless you have specific concerns.",
   },
   {
     problem: "Iteration keeps producing similar results",
-    solution: "Try changing the framing in your intervention. Add new constraints or ask agents to consider entirely different mechanisms.",
+    solution:
+      "Try changing the framing in your intervention. Add new constraints or ask agents to consider entirely different mechanisms.",
   },
 ];
 
@@ -87,9 +88,7 @@ export default function MultiAgentStep9() {
         {/* Decision Framework */}
         <div className="space-y-4">
           <h2 className="text-xl font-semibold">The Decision Framework</h2>
-          <p className="text-sm text-muted-foreground">
-            Use your scores to guide the decision:
-          </p>
+          <p className="text-sm text-muted-foreground">Use your scores to guide the decision:</p>
 
           <div className="grid gap-4 md:grid-cols-2">
             <div className="p-5 rounded-xl border border-[oklch(0.72_0.19_145/0.3)] bg-[oklch(0.72_0.19_145/0.05)] space-y-3">
@@ -160,8 +159,8 @@ brenner session status --thread-id "$SESSION_ID" --watch`}
           <div className="p-4 rounded-xl border border-border bg-card/50">
             <p className="text-sm text-muted-foreground">
               <strong className="text-foreground">Iteration tip:</strong> Target your intervention
-              to the specific weakness. A broad &quot;try again&quot; produces worse results than a focused
-              &quot;challenge assumption X.&quot;
+              to the specific weakness. A broad &quot;try again&quot; produces worse results than a
+              focused &quot;challenge assumption X.&quot;
             </p>
           </div>
         </div>
@@ -215,28 +214,34 @@ brenner program show cell-fate-research --latest`}
           <div className="grid gap-3">
             <div className="p-3 rounded-lg border border-border bg-card/50 text-sm">
               <span className="font-medium">Score plateau:</span>
-              <span className="text-muted-foreground ml-2">Scores aren&apos;t improving between rounds</span>
+              <span className="text-muted-foreground ml-2">
+                Scores aren&apos;t improving between rounds
+              </span>
             </div>
             <div className="p-3 rounded-lg border border-border bg-card/50 text-sm">
               <span className="font-medium">Circular debate:</span>
-              <span className="text-muted-foreground ml-2">Agents are repeating the same arguments</span>
+              <span className="text-muted-foreground ml-2">
+                Agents are repeating the same arguments
+              </span>
             </div>
             <div className="p-3 rounded-lg border border-border bg-card/50 text-sm">
               <span className="font-medium">Good enough:</span>
-              <span className="text-muted-foreground ml-2">The artifact is actionable even if imperfect</span>
+              <span className="text-muted-foreground ml-2">
+                The artifact is actionable even if imperfect
+              </span>
             </div>
           </div>
         </div>
 
         <Warning>
-          <strong>Don&apos;t over-iterate:</strong> A perfect artifact that takes 10 rounds is
-          often worse than a &quot;good enough&quot; artifact that you can execute on now.
-          Brenner&apos;s philosophy: the best experiment is the one you actually run.
+          <strong>Don&apos;t over-iterate:</strong> A perfect artifact that takes 10 rounds is often
+          worse than a &quot;good enough&quot; artifact that you can execute on now. Brenner&apos;s
+          philosophy: the best experiment is the one you actually run.
         </Warning>
 
         <ProTip>
-          Keep iteration history. When you finally publish, the evolution of hypotheses
-          across rounds often reveals insights that the final artifact alone doesn&apos;t capture.
+          Keep iteration history. When you finally publish, the evolution of hypotheses across
+          rounds often reveals insights that the final artifact alone doesn&apos;t capture.
         </ProTip>
 
         {/* Ready Checkpoint */}
@@ -244,8 +249,8 @@ brenner program show cell-fate-research --latest`}
           <p className="text-sm">
             <strong className="text-[oklch(0.72_0.19_145)]">Decision Made?</strong>{" "}
             <span className="text-muted-foreground">
-              Whether you iterated or published, you&apos;re ready for the final step:
-              teardown and review.
+              Whether you iterated or published, you&apos;re ready for the final step: teardown and
+              review.
             </span>
           </p>
         </div>

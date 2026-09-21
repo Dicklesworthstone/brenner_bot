@@ -1,22 +1,22 @@
-import {
-  type ResearchProgram,
-  type ProgramDashboard,
-  type HypothesisFunnel,
-  type RegistryHealth,
-  type TestExecutionSummary,
-  type TimelineEvent,
-  type HealthWarning,
-} from "../schemas/research-program";
-import { HypothesisStorage } from "./hypothesis-storage";
-import { AssumptionStorage } from "./assumption-storage";
-import { AnomalyStorage } from "./anomaly-storage";
-import { CritiqueStorage } from "./critique-storage";
-import { TestStorage } from "./test-storage";
-import type { Hypothesis } from "../schemas/hypothesis";
-import type { Assumption } from "../schemas/assumption";
 import type { Anomaly } from "../schemas/anomaly";
+import type { Assumption } from "../schemas/assumption";
 import type { Critique } from "../schemas/critique";
-import { calculateTotalScore, validatePotencyCheck, type TestRecord } from "../schemas/test-record";
+import type { Hypothesis } from "../schemas/hypothesis";
+import type {
+  HealthWarning,
+  HypothesisFunnel,
+  ProgramDashboard,
+  RegistryHealth,
+  ResearchProgram,
+  TestExecutionSummary,
+  TimelineEvent,
+} from "../schemas/research-program";
+import { calculateTotalScore, type TestRecord, validatePotencyCheck } from "../schemas/test-record";
+import { AnomalyStorage } from "./anomaly-storage";
+import { AssumptionStorage } from "./assumption-storage";
+import { CritiqueStorage } from "./critique-storage";
+import { HypothesisStorage } from "./hypothesis-storage";
+import { TestStorage } from "./test-storage";
 
 /**
  * Program Dashboard Aggregation
@@ -96,14 +96,20 @@ export class DashboardAggregator {
     const hypothesisFunnel = this.buildHypothesisFunnel(hypotheses, assumptions);
     const registryHealth = this.buildRegistryHealth(hypotheses, assumptions, anomalies, critiques);
     const testExecution = this.buildTestExecutionSummary(tests);
-    const recentEvents = this.buildTimelineEvents(hypotheses, assumptions, anomalies, critiques, tests);
+    const recentEvents = this.buildTimelineEvents(
+      hypotheses,
+      assumptions,
+      anomalies,
+      critiques,
+      tests,
+    );
     const warnings = this.generateHealthWarnings(
       program,
       hypotheses,
       assumptions,
       anomalies,
       critiques,
-      tests
+      tests,
     );
 
     return {
@@ -169,7 +175,10 @@ export class DashboardAggregator {
   // Hypothesis Funnel
   // ============================================================================
 
-  private buildHypothesisFunnel(hypotheses: Hypothesis[], assumptions: Assumption[]): HypothesisFunnel {
+  private buildHypothesisFunnel(
+    hypotheses: Hypothesis[],
+    assumptions: Assumption[],
+  ): HypothesisFunnel {
     // Build set of hypothesis IDs affected by falsified assumptions
     const underminedByAssumption = new Set<string>();
     for (const a of assumptions) {
@@ -261,7 +270,7 @@ export class DashboardAggregator {
     hypotheses: Hypothesis[],
     assumptions: Assumption[],
     anomalies: Anomaly[],
-    critiques: Critique[]
+    critiques: Critique[],
   ): {
     hypotheses: RegistryHealth;
     assumptions: RegistryHealth;
@@ -284,9 +293,10 @@ export class DashboardAggregator {
 
     // Additional metrics
     const withMechanism = hypotheses.filter((h) => !!h.mechanism).length;
-    const avgCritiques = hypotheses.length > 0
-      ? hypotheses.reduce((sum, h) => sum + h.unresolvedCritiqueCount, 0) / hypotheses.length
-      : 0;
+    const avgCritiques =
+      hypotheses.length > 0
+        ? hypotheses.reduce((sum, h) => sum + h.unresolvedCritiqueCount, 0) / hypotheses.length
+        : 0;
 
     return {
       total: hypotheses.length,
@@ -324,8 +334,12 @@ export class DashboardAggregator {
       byStatus[a.quarantineStatus] = (byStatus[a.quarantineStatus] || 0) + 1;
     }
 
-    const withSpawnedHypotheses = anomalies.filter((a) => a.spawnedHypotheses && a.spawnedHypotheses.length > 0).length;
-    const paradigmShifting = anomalies.filter((a) => a.quarantineStatus === "paradigm_shifting").length;
+    const withSpawnedHypotheses = anomalies.filter(
+      (a) => a.spawnedHypotheses && a.spawnedHypotheses.length > 0,
+    ).length;
+    const paradigmShifting = anomalies.filter(
+      (a) => a.quarantineStatus === "paradigm_shifting",
+    ).length;
 
     return {
       total: anomalies.length,
@@ -413,7 +427,8 @@ export class DashboardAggregator {
       completed,
       blocked,
       potencyCoverage: Math.round(potencyCoverage * 100) / 100,
-      avgEvidenceScore: avgEvidenceScore !== undefined ? Math.round(avgEvidenceScore * 10) / 10 : undefined,
+      avgEvidenceScore:
+        avgEvidenceScore !== undefined ? Math.round(avgEvidenceScore * 10) / 10 : undefined,
     };
   }
 
@@ -426,7 +441,7 @@ export class DashboardAggregator {
     assumptions: Assumption[],
     anomalies: Anomaly[],
     critiques: Critique[],
-    tests: TestRecord[]
+    tests: TestRecord[],
   ): TimelineEvent[] {
     const events: TimelineEvent[] = [];
 
@@ -556,7 +571,7 @@ export class DashboardAggregator {
     assumptions: Assumption[],
     anomalies: Anomaly[],
     critiques: Critique[],
-    tests: TestRecord[]
+    tests: TestRecord[],
   ): HealthWarning[] {
     const warnings: HealthWarning[] = [];
 
@@ -566,13 +581,16 @@ export class DashboardAggregator {
       warnings.push({
         code: "NO_SCALE_PHYSICS",
         severity: "critical",
-        message: "No scale_physics assumption found. Every research program MUST have at least one.",
+        message:
+          "No scale_physics assumption found. Every research program MUST have at least one.",
         suggestion: "Create a scale_physics assumption with back-of-envelope calculations.",
       });
     }
 
     // Check for active hypotheses with unresolved critiques
-    const underAttack = hypotheses.filter((h) => h.state === "active" && h.unresolvedCritiqueCount > 0);
+    const underAttack = hypotheses.filter(
+      (h) => h.state === "active" && h.unresolvedCritiqueCount > 0,
+    );
     if (underAttack.length > 0) {
       warnings.push({
         code: "HYPOTHESES_UNDER_ATTACK",
@@ -585,7 +603,9 @@ export class DashboardAggregator {
 
     // Check for active anomalies that haven't spawned hypotheses
     const activeAnomalies = anomalies.filter(
-      (a) => a.quarantineStatus === "active" && (!a.spawnedHypotheses || a.spawnedHypotheses.length === 0)
+      (a) =>
+        a.quarantineStatus === "active" &&
+        (!a.spawnedHypotheses || a.spawnedHypotheses.length === 0),
     );
     if (activeAnomalies.length > 3) {
       warnings.push({
@@ -599,7 +619,7 @@ export class DashboardAggregator {
 
     // Check for unaddressed critical critiques
     const criticalCritiques = critiques.filter(
-      (c) => c.severity === "critical" && c.status === "active"
+      (c) => c.severity === "critical" && c.status === "active",
     );
     if (criticalCritiques.length > 0) {
       warnings.push({
@@ -624,14 +644,13 @@ export class DashboardAggregator {
     }
 
     // Check for no active hypotheses
-    const active = hypotheses.filter(
-      (h) => h.state === "active" || h.state === "proposed"
-    );
+    const active = hypotheses.filter((h) => h.state === "active" || h.state === "proposed");
     if (active.length === 0 && hypotheses.length > 0) {
       warnings.push({
         code: "NO_ACTIVE_HYPOTHESES",
         severity: "info",
-        message: "No active hypotheses. All hypotheses are confirmed, refuted, deferred, or superseded.",
+        message:
+          "No active hypotheses. All hypotheses are confirmed, refuted, deferred, or superseded.",
         suggestion: "Consider proposing new hypotheses or revisiting deferred ones.",
       });
     }
@@ -661,7 +680,8 @@ export class DashboardAggregator {
           severity: "warning",
           message: `${falsified.length} falsified assumption(s) may affect ${affectedHypotheses.size} hypothesis(es).`,
           relatedIds: Array.from(affectedHypotheses),
-          suggestion: "Review affected hypotheses - they may need to be re-evaluated due to falsified dependencies.",
+          suggestion:
+            "Review affected hypotheses - they may need to be re-evaluated due to falsified dependencies.",
         });
       }
     }

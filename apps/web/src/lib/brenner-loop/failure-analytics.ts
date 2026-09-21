@@ -280,7 +280,7 @@ export const STRUCTURAL_PATTERNS: Array<{
 function isHypothesisFailed(
   hypothesis: HypothesisCard,
   session: Session,
-  hypothesisId: string
+  hypothesisId: string,
 ): boolean {
   // Archived = explicitly abandoned
   if (session.archivedHypothesisIds?.includes(hypothesisId)) {
@@ -329,9 +329,7 @@ function getAppliedOperators(session: Session): Set<OperatorType> {
 /**
  * Compute failure analytics by domain.
  */
-function computeDomainFailures(
-  sessions: Session[]
-): DomainFailureDistribution[] {
+function computeDomainFailures(sessions: Session[]): DomainFailureDistribution[] {
   const domainStats = new Map<
     string,
     {
@@ -468,9 +466,7 @@ function computeOperatorFailures(sessions: Session[]): OperatorFailurePattern[] 
 /**
  * Compute structural pattern failures.
  */
-function computeStructuralFailures(
-  sessions: Session[]
-): StructuralPatternFailure[] {
+function computeStructuralFailures(sessions: Session[]): StructuralPatternFailure[] {
   return STRUCTURAL_PATTERNS.map((pattern) => {
     let matchCount = 0;
     let failureCount = 0;
@@ -626,8 +622,7 @@ export function computeFailureAnalytics(params: {
     }
   }
 
-  const overallFailureRate =
-    hypothesesAnalyzed > 0 ? hypothesesFailed / hypothesesAnalyzed : 0;
+  const overallFailureRate = hypothesesAnalyzed > 0 ? hypothesesFailed / hypothesesAnalyzed : 0;
 
   // Compute breakdowns
   const byDomain = computeDomainFailures(sessions);
@@ -661,14 +656,18 @@ export function computeFailureAnalytics(params: {
 export function summarizeFailureAnalytics(analytics: FailureAnalytics): string {
   const lines: string[] = [];
 
-  lines.push(`Failure Analytics Summary (${analytics.sessionsAnalyzed} sessions, ${analytics.hypothesesAnalyzed} hypotheses)`);
+  lines.push(
+    `Failure Analytics Summary (${analytics.sessionsAnalyzed} sessions, ${analytics.hypothesesAnalyzed} hypotheses)`,
+  );
   lines.push(`Overall failure rate: ${(analytics.overallFailureRate * 100).toFixed(1)}%`);
   lines.push("");
 
   if (analytics.byDomain.length > 0) {
     lines.push("Top Failure Domains:");
     for (const domain of analytics.byDomain.slice(0, 3)) {
-      lines.push(`  - ${domain.domain}: ${(domain.failureRate * 100).toFixed(0)}% failure rate (n=${domain.totalHypotheses})`);
+      lines.push(
+        `  - ${domain.domain}: ${(domain.failureRate * 100).toFixed(0)}% failure rate (n=${domain.totalHypotheses})`,
+      );
     }
     lines.push("");
   }
@@ -676,7 +675,8 @@ export function summarizeFailureAnalytics(analytics: FailureAnalytics): string {
   if (analytics.insights.length > 0) {
     lines.push("Key Insights:");
     for (const insight of analytics.insights.slice(0, 5)) {
-      const icon = insight.severity === "critical" ? "🚨" : insight.severity === "warning" ? "⚠️" : "ℹ️";
+      const icon =
+        insight.severity === "critical" ? "🚨" : insight.severity === "warning" ? "⚠️" : "ℹ️";
       lines.push(`  ${icon} ${insight.message}`);
     }
   }

@@ -179,9 +179,7 @@ function normalizeDeltaTag(rawTag: string): string {
 /**
  * Extract the message type from a subject line.
  */
-export function parseSubjectType(
-  subject: string
-): {
+export function parseSubjectType(subject: string): {
   type:
     | "kickoff"
     | "delta"
@@ -212,7 +210,19 @@ export function parseSubjectType(
   for (const [type, pattern] of Object.entries(SUBJECT_PATTERNS)) {
     if (type === "delta") continue; // Already handled
     if (pattern.test(trimmed)) {
-      return { type: type as "kickoff" | "tribunal" | "compiled" | "critique" | "ack" | "claim" | "handoff" | "blocked" | "question" | "info" };
+      return {
+        type: type as
+          | "kickoff"
+          | "tribunal"
+          | "compiled"
+          | "critique"
+          | "ack"
+          | "claim"
+          | "handoff"
+          | "blocked"
+          | "question"
+          | "info",
+      };
     }
   }
 
@@ -259,7 +269,7 @@ export function computeThreadStatus(
   options?: {
     /** Expected roles that should respond (defaults to all three) */
     expectedRoles?: BrennerRole[];
-  }
+  },
 ): ThreadStatus {
   const expectedRoles = options?.expectedRoles ?? [
     "hypothesis_generator",
@@ -269,9 +279,19 @@ export function computeThreadStatus(
 
   // Initialize role status
   const roles: Record<BrennerRole, RoleStatus> = {
-    hypothesis_generator: { completed: false, contributors: [], latestDelta: null, lastUpdated: null },
+    hypothesis_generator: {
+      completed: false,
+      contributors: [],
+      latestDelta: null,
+      lastUpdated: null,
+    },
     test_designer: { completed: false, contributors: [], latestDelta: null, lastUpdated: null },
-    adversarial_critic: { completed: false, contributors: [], latestDelta: null, lastUpdated: null },
+    adversarial_critic: {
+      completed: false,
+      contributors: [],
+      latestDelta: null,
+      lastUpdated: null,
+    },
   };
 
   // Track various message types
@@ -290,7 +310,7 @@ export function computeThreadStatus(
 
   // Sort messages by timestamp for proper sequencing
   const sortedMessages = [...messages].sort(
-    (a, b) => new Date(a.created_ts).getTime() - new Date(b.created_ts).getTime()
+    (a, b) => new Date(a.created_ts).getTime() - new Date(b.created_ts).getTime(),
   );
 
   // Process each message
@@ -334,10 +354,7 @@ export function computeThreadStatus(
         // Track all compiled messages for round counting
         compiledMessages.push(msg);
         // Track latest compiled (in case of multiple compilations)
-        if (
-          !latestCompiled ||
-          new Date(msg.created_ts) > new Date(latestCompiled.created_ts)
-        ) {
+        if (!latestCompiled || new Date(msg.created_ts) > new Date(latestCompiled.created_ts)) {
           latestCompiled = msg;
         }
         break;
@@ -399,7 +416,7 @@ export function computeThreadStatus(
     const hasCritiqueAfter = sortedMessages.some(
       (m) =>
         parseSubjectType(m.subject).type === "critique" &&
-        new Date(m.created_ts).getTime() > compiledTime
+        new Date(m.created_ts).getTime() > compiledTime,
     );
     phase = hasCritiqueAfter ? "in_critique" : "compiled";
   } else {
@@ -427,7 +444,7 @@ export function computeThreadStatus(
         (m): m is typeof m & { from: string } =>
           parseSubjectType(m.subject).type === "delta" &&
           new Date(m.created_ts).getTime() < compiledTime &&
-          !!m.from
+          !!m.from,
       )
       .map((m) => m.from)
       .filter((v, i, a) => a.indexOf(v) === i); // unique
@@ -477,10 +494,7 @@ export function computeThreadStatus(
     isComplete,
     roles,
     acks: {
-      pendingAcks:
-        awaitingFrom.length > 0
-          ? kickoffMessages.filter((msg) => msg.ack_required)
-          : [],
+      pendingAcks: awaitingFrom.length > 0 ? kickoffMessages.filter((msg) => msg.ack_required) : [],
       pendingCount: awaitingFrom.length,
       awaitingFrom,
     },
@@ -526,7 +540,9 @@ export function formatThreadStatusSummary(status: ThreadStatus): string {
 
   // Round info
   if (status.round > 0) {
-    lines.push(`🔄 Round ${status.round} (${status.deltasInCurrentRound} new deltas, ${status.critiquesInCurrentRound} critiques)`);
+    lines.push(
+      `🔄 Round ${status.round} (${status.deltasInCurrentRound} new deltas, ${status.critiquesInCurrentRound} critiques)`,
+    );
     lines.push("");
   }
 
@@ -534,9 +550,8 @@ export function formatThreadStatusSummary(status: ThreadStatus): string {
   lines.push("Roles:");
   for (const [role, roleStatus] of Object.entries(status.roles)) {
     const icon = roleStatus.completed ? "✅" : "⏳";
-    const contributors = roleStatus.contributors.length > 0
-      ? ` (${roleStatus.contributors.join(", ")})`
-      : "";
+    const contributors =
+      roleStatus.contributors.length > 0 ? ` (${roleStatus.contributors.join(", ")})` : "";
     lines.push(`  ${icon} ${role}${contributors}`);
   }
   lines.push("");
@@ -551,9 +566,7 @@ export function formatThreadStatusSummary(status: ThreadStatus): string {
 
   // Artifact info
   if (status.latestArtifact) {
-    const version = status.latestArtifact.version
-      ? `v${status.latestArtifact.version}`
-      : "latest";
+    const version = status.latestArtifact.version ? `v${status.latestArtifact.version}` : "latest";
     const contributors = status.latestArtifact.contributors ?? [];
     const compiledAt = status.latestArtifact.compiledAt || "unknown";
     lines.push(`📄 Compiled artifact: ${version}`);
@@ -563,8 +576,15 @@ export function formatThreadStatusSummary(status: ThreadStatus): string {
   }
 
   // Stats
-  const stats = status.stats ?? { totalDeltas: 0, totalCritiques: 0, totalAcks: 0, participants: [] };
-  lines.push(`📊 Stats: ${stats.totalDeltas} deltas, ${stats.totalCritiques} critiques, ${status.messageCount} total messages`);
+  const stats = status.stats ?? {
+    totalDeltas: 0,
+    totalCritiques: 0,
+    totalAcks: 0,
+    participants: [],
+  };
+  lines.push(
+    `📊 Stats: ${stats.totalDeltas} deltas, ${stats.totalCritiques} critiques, ${status.messageCount} total messages`,
+  );
   lines.push(`👥 Participants: ${stats.participants.join(", ")}`);
 
   return lines.join("\n");
@@ -599,7 +619,7 @@ export function getPendingRoles(status: ThreadStatus): BrennerRole[] {
  */
 export function computeThreadStatusFromThread(
   thread: AgentMailThread,
-  options?: { expectedRoles?: BrennerRole[] }
+  options?: { expectedRoles?: BrennerRole[] },
 ): ThreadStatus {
   return computeThreadStatus(thread.messages, options);
 }
@@ -610,7 +630,7 @@ export function computeThreadStatusFromThread(
  */
 export function computeThreadStatusSummary(
   messages: AgentMailMessage[],
-  options?: { expectedRoles?: BrennerRole[] }
+  options?: { expectedRoles?: BrennerRole[] },
 ): {
   threadId: string | null;
   phase: SessionPhase;
@@ -654,7 +674,7 @@ export function computeThreadStatusSummary(
 export function isWaitingForRole(
   messages: AgentMailMessage[],
   role: BrennerRole,
-  options?: { expectedRoles?: BrennerRole[] }
+  options?: { expectedRoles?: BrennerRole[] },
 ): boolean {
   const status = computeThreadStatus(messages, options);
   return !status.roles[role].completed;
@@ -698,7 +718,7 @@ export function getPendingAgents(messages: AgentMailMessage[]): string[] {
 export function getMessagesInCurrentRound(messages: AgentMailMessage[]): AgentMailMessage[] {
   // Sort by timestamp
   const sortedMessages = [...messages].sort(
-    (a, b) => new Date(a.created_ts).getTime() - new Date(b.created_ts).getTime()
+    (a, b) => new Date(a.created_ts).getTime() - new Date(b.created_ts).getTime(),
   );
 
   // Find the boundary: latest COMPILED or KICKOFF (or epoch)
@@ -740,6 +760,6 @@ export function getMessagesInCurrentRound(messages: AgentMailMessage[]): AgentMa
  */
 export function getDeltaMessagesForCurrentRound(messages: AgentMailMessage[]): AgentMailMessage[] {
   return getMessagesInCurrentRound(messages).filter(
-    (msg) => parseSubjectType(msg.subject).type === "delta"
+    (msg) => parseSubjectType(msg.subject).type === "delta",
   );
 }

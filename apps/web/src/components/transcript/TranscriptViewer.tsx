@@ -1,13 +1,17 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useVirtualizer } from "@tanstack/react-virtual";
-import type { ParsedTranscript, TranscriptSection as TSection, TranscriptContent } from "@/lib/transcript-parser";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { JargonText } from "@/components/jargon-text";
+import { useSearch as useGlobalSearch } from "@/components/search";
 import { CopyButton } from "@/components/ui/copy-button";
 import { useReadingPosition } from "@/hooks/useReadingPosition";
 import { useSearch as useLocalSearch } from "@/lib/search";
-import { useSearch as useGlobalSearch } from "@/components/search";
-import { JargonText } from "@/components/jargon-text";
+import type {
+  ParsedTranscript,
+  TranscriptContent,
+  TranscriptSection as TSection,
+} from "@/lib/transcript-parser";
 
 const CANONICAL_SITE_BASE_URL = "https://brennerbot.org";
 
@@ -89,7 +93,9 @@ function Stat({ icon, label, value }: { icon: React.ReactNode; label: string; va
     <div className="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg sm:rounded-xl bg-background/50 backdrop-blur-sm border border-border/50">
       <div className="text-primary [&>svg]:size-4 sm:[&>svg]:size-5">{icon}</div>
       <div>
-        <div className="text-[10px] sm:text-xs text-muted-foreground uppercase tracking-wider">{label}</div>
+        <div className="text-[10px] sm:text-xs text-muted-foreground uppercase tracking-wider">
+          {label}
+        </div>
         <div className="text-sm sm:text-lg font-semibold text-foreground">{value}</div>
       </div>
     </div>
@@ -171,8 +177,14 @@ interface TranscriptSearchProps {
   onSearchChange: (query: string) => void;
 }
 
-export function TranscriptSearch({ sections, onResultClick, onSearchChange }: TranscriptSearchProps) {
-  const { query, results, isSearching, search, clearSearch, setScope } = useLocalSearch({ limit: 20 });
+export function TranscriptSearch({
+  sections,
+  onResultClick,
+  onSearchChange,
+}: TranscriptSearchProps) {
+  const { query, results, isSearching, search, clearSearch, setScope } = useLocalSearch({
+    limit: 20,
+  });
   const inputRef = useRef<HTMLInputElement>(null);
   const [isOpen, setIsOpen] = useState(false);
 
@@ -191,16 +203,16 @@ export function TranscriptSearch({ sections, onResultClick, onSearchChange }: Tr
     if (!results.length) return [];
 
     return results
-      .filter(r => r.category === "transcript" && r.sectionNumber !== undefined)
-      .map(r => {
-        const sectionIndex = sections.findIndex(s => s.number === r.sectionNumber);
+      .filter((r) => r.category === "transcript" && r.sectionNumber !== undefined)
+      .map((r) => {
+        const sectionIndex = sections.findIndex((s) => s.number === r.sectionNumber);
         return {
           result: r,
           sectionIndex,
           section: sectionIndex >= 0 ? sections[sectionIndex] : null,
         };
       })
-      .filter(m => m.section !== null);
+      .filter((m) => m.section !== null);
   }, [results, sections]);
 
   const handleResultClick = (sectionIndex: number) => {
@@ -282,12 +294,7 @@ export function TranscriptSearch({ sections, onResultClick, onSearchChange }: Tr
       )}
 
       {/* Click outside to close */}
-      {isOpen && (
-        <div
-          className="fixed inset-0 z-40"
-          onClick={() => setIsOpen(false)}
-        />
-      )}
+      {isOpen && <div className="fixed inset-0 z-40" onClick={() => setIsOpen(false)} />}
     </div>
   );
 }
@@ -302,7 +309,11 @@ interface StickySectionIndicatorProps {
   onTocClick: () => void;
 }
 
-function StickySectionIndicator({ currentSection, totalSections, onTocClick }: StickySectionIndicatorProps) {
+function StickySectionIndicator({
+  currentSection,
+  totalSections,
+  onTocClick,
+}: StickySectionIndicatorProps) {
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
@@ -343,7 +354,9 @@ function StickySectionIndicator({ currentSection, totalSections, onTocClick }: S
             showPreview={false}
             className="text-muted-foreground hover:text-foreground"
           />
-          <span>{currentSection.number}/{totalSections}</span>
+          <span>
+            {currentSection.number}/{totalSections}
+          </span>
           <ChevronIcon className="size-4" />
         </div>
       </button>
@@ -394,7 +407,7 @@ export function ReadingProgress({ progress: externalProgress }: ReadingProgressP
 // ============================================================================
 
 function truncateToWords(text: string, maxWords: number): string {
-  const normalized = text.replace(/\s+/g, " ").trim().replaceAll("\"", "'");
+  const normalized = text.replace(/\s+/g, " ").trim().replaceAll('"', "'");
   const words = normalized.split(/\s+/);
   if (words.length <= maxWords) {
     return normalized;
@@ -431,7 +444,12 @@ interface TranscriptSectionProps {
   searchHighlights?: string[];
 }
 
-export function TranscriptSection({ section, isActive, isHighlighted, searchHighlights }: TranscriptSectionProps) {
+export function TranscriptSection({
+  section,
+  isActive,
+  isHighlighted,
+  searchHighlights,
+}: TranscriptSectionProps) {
   const anchor = `§${section.number}`;
   const citation = buildTranscriptSectionCitation(section);
   const excerptBlock = useMemo(() => buildSectionExcerptBlock(section), [section]);
@@ -507,7 +525,13 @@ export function TranscriptSection({ section, isActive, isHighlighted, searchHigh
 // CONTENT BLOCKS
 // ============================================================================
 
-function ContentBlock({ content, searchHighlights }: { content: TranscriptContent; searchHighlights?: string[] }) {
+function ContentBlock({
+  content,
+  searchHighlights,
+}: {
+  content: TranscriptContent;
+  searchHighlights?: string[];
+}) {
   // Merge content highlights with search highlights
   const mergedHighlights = useMemo(() => {
     const baseHighlights = content.highlights ?? [];
@@ -660,7 +684,12 @@ export function TranscriptViewer({ data, estimatedReadTime, wordCount }: Transcr
   const { open: openGlobalSearch } = useGlobalSearch();
 
   // Reading position persistence
-  const { position, save: savePosition, canRestore, markRestored } = useReadingPosition("transcript", {
+  const {
+    position,
+    save: savePosition,
+    canRestore,
+    markRestored,
+  } = useReadingPosition("transcript", {
     maxSection: data.sections.length - 1,
   });
 
@@ -673,7 +702,10 @@ export function TranscriptViewer({ data, estimatedReadTime, wordCount }: Transcr
   const searchHighlights = useMemo(() => {
     if (!searchQuery.trim()) return undefined;
     // Split query into words for highlighting
-    return searchQuery.trim().split(/\s+/).filter(word => word.length > 2);
+    return searchQuery
+      .trim()
+      .split(/\s+/)
+      .filter((word) => word.length > 2);
   }, [searchQuery]);
 
   // Virtualizer for efficient rendering of large section lists
@@ -836,7 +868,7 @@ export function TranscriptViewer({ data, estimatedReadTime, wordCount }: Transcr
           setMobileSectionsLoaded((n) => Math.min(n + MOBILE_LOAD_INCREMENT, data.sections.length));
         }
       },
-      { rootMargin: "300px" }
+      { rootMargin: "300px" },
     );
 
     observer.observe(sentinel);
@@ -874,7 +906,7 @@ export function TranscriptViewer({ data, estimatedReadTime, wordCount }: Transcr
             // Mobile: ensure the target section is loaded before scrolling (progressive loading)
             if (sectionIndex >= mobileSectionsLoaded) {
               setMobileSectionsLoaded(
-                Math.min(sectionIndex + MOBILE_LOAD_INCREMENT, data.sections.length)
+                Math.min(sectionIndex + MOBILE_LOAD_INCREMENT, data.sections.length),
               );
             }
 
@@ -908,7 +940,7 @@ export function TranscriptViewer({ data, estimatedReadTime, wordCount }: Transcr
           // Mobile: ensure the saved section is loaded before scrolling (progressive loading)
           if (position.activeSection >= mobileSectionsLoaded) {
             setMobileSectionsLoaded(
-              Math.min(position.activeSection + MOBILE_LOAD_INCREMENT, data.sections.length)
+              Math.min(position.activeSection + MOBILE_LOAD_INCREMENT, data.sections.length),
             );
 
             requestAnimationFrame(() => {
@@ -962,7 +994,9 @@ export function TranscriptViewer({ data, estimatedReadTime, wordCount }: Transcr
 
       if (isMobile) {
         if (sectionIndex >= mobileSectionsLoaded) {
-          setMobileSectionsLoaded(Math.min(sectionIndex + MOBILE_LOAD_INCREMENT, data.sections.length));
+          setMobileSectionsLoaded(
+            Math.min(sectionIndex + MOBILE_LOAD_INCREMENT, data.sections.length),
+          );
         }
 
         requestAnimationFrame(() => {
@@ -1021,7 +1055,7 @@ export function TranscriptViewer({ data, estimatedReadTime, wordCount }: Transcr
         virtualizer.scrollToIndex(index, { align: "start", behavior: "smooth" });
       }
     },
-    [virtualizer, data.sections, mobileSectionsLoaded]
+    [virtualizer, data.sections, mobileSectionsLoaded],
   );
 
   // Memoize virtual items to avoid recalculation
@@ -1191,7 +1225,11 @@ export function TranscriptViewer({ data, estimatedReadTime, wordCount }: Transcr
 function BackToSearchIcon() {
   return (
     <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"
+      />
     </svg>
   );
 }
@@ -1199,7 +1237,11 @@ function BackToSearchIcon() {
 function SectionIcon() {
   return (
     <svg className="size-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25H12" />
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25H12"
+      />
     </svg>
   );
 }
@@ -1207,7 +1249,11 @@ function SectionIcon() {
 function ClockIcon() {
   return (
     <svg className="size-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"
+      />
     </svg>
   );
 }
@@ -1215,14 +1261,24 @@ function ClockIcon() {
 function WordIcon() {
   return (
     <svg className="size-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"
+      />
     </svg>
   );
 }
 
 function ChevronIcon({ className = "" }: { className?: string }) {
   return (
-    <svg className={`size-5 ${className}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+    <svg
+      className={`size-5 ${className}`}
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+      strokeWidth={2}
+    >
       <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
     </svg>
   );
@@ -1230,15 +1286,31 @@ function ChevronIcon({ className = "" }: { className?: string }) {
 
 function SearchIcon({ className = "" }: { className?: string }) {
   return (
-    <svg className={`size-4 ${className}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+    <svg
+      className={`size-4 ${className}`}
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+      strokeWidth={2}
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"
+      />
     </svg>
   );
 }
 
 function CloseIcon({ className = "" }: { className?: string }) {
   return (
-    <svg className={`size-4 ${className}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+    <svg
+      className={`size-4 ${className}`}
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+      strokeWidth={2}
+    >
       <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
     </svg>
   );

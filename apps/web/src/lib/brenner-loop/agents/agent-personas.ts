@@ -64,9 +64,7 @@ const PERSONA_PHASE_GROUP_BY_DETAILED_PHASE: Record<string, PersonaPhaseGroup> =
  * Map a detailed SessionPhase (from types.ts) to a PersonaPhaseGroup.
  * This allows querying which personas are active for a given detailed phase.
  */
-export function mapSessionPhaseToPersonaGroup(
-  detailedPhase: string
-): PersonaPhaseGroup | null {
+export function mapSessionPhaseToPersonaGroup(detailedPhase: string): PersonaPhaseGroup | null {
   return PERSONA_PHASE_GROUP_BY_DETAILED_PHASE[detailedPhase] ?? null;
 }
 
@@ -74,19 +72,19 @@ export function mapSessionPhaseToPersonaGroup(
  * Events that can trigger agent invocation
  */
 export type InvocationTrigger =
-  | "hypothesis_submitted"      // User submits initial hypothesis
-  | "hypothesis_refined"        // Hypothesis is modified
-  | "prediction_added"          // New prediction locked
-  | "prediction_locked"         // Prediction committed (pre-registration)
-  | "evidence_submitted"        // New evidence entered
-  | "evidence_supports"         // Evidence supports hypothesis
-  | "evidence_challenges"       // Evidence challenges hypothesis
-  | "test_designed"             // New test proposed
-  | "operator_applied"          // Brenner operator used
-  | "phase_transition"          // Moving between phases
-  | "user_requests_review"      // Explicit user request
-  | "confidence_changed"        // Confidence level updated
-  | "tribunal_requested";       // Full tribunal session requested
+  | "hypothesis_submitted" // User submits initial hypothesis
+  | "hypothesis_refined" // Hypothesis is modified
+  | "prediction_added" // New prediction locked
+  | "prediction_locked" // Prediction committed (pre-registration)
+  | "evidence_submitted" // New evidence entered
+  | "evidence_supports" // Evidence supports hypothesis
+  | "evidence_challenges" // Evidence challenges hypothesis
+  | "test_designed" // New test proposed
+  | "operator_applied" // Brenner operator used
+  | "phase_transition" // Moving between phases
+  | "user_requests_review" // Explicit user request
+  | "confidence_changed" // Confidence level updated
+  | "tribunal_requested"; // Full tribunal session requested
 
 // ============================================================================
 // Behavior Types
@@ -665,8 +663,7 @@ export const BRENNER_CHANNELER_PERSONA: AgentPersona = {
       name: "Demand the Experiment",
       description: "Push every question toward 'how would you find out?'",
       example:
-        "That's all very well, but what's the experiment? How would you " +
-        "actually test this?",
+        "That's all very well, but what's the experiment? How would you " + "actually test this?",
       priority: 1,
     },
     {
@@ -709,9 +706,7 @@ export const BRENNER_CHANNELER_PERSONA: AgentPersona = {
       id: "both-could-be-wrong",
       name: "Both Could Be Wrong",
       description: "Challenge false binary framings",
-      example:
-        "You've forgotten there's a third alternative. Both could be wrong, " +
-        "you know.",
+      example: "You've forgotten there's a third alternative. Both could be wrong, " + "you know.",
       priority: 3,
     },
   ],
@@ -941,9 +936,7 @@ export function getActivePersonasForPhase(phase: PersonaPhaseGroup | string): Ag
   // Try to map detailed phase to group
   const group = mapSessionPhaseToPersonaGroup(phase) ?? (phase as PersonaPhaseGroup);
 
-  return Object.values(AGENT_PERSONAS).filter((persona) =>
-    persona.activePhases.includes(group)
-  );
+  return Object.values(AGENT_PERSONAS).filter((persona) => persona.activePhases.includes(group));
 }
 
 /**
@@ -951,17 +944,14 @@ export function getActivePersonasForPhase(phase: PersonaPhaseGroup | string): Ag
  */
 export function getPersonasForTrigger(trigger: InvocationTrigger): AgentPersona[] {
   return Object.values(AGENT_PERSONAS).filter((persona) =>
-    persona.invocationTriggers.includes(trigger)
+    persona.invocationTriggers.includes(trigger),
   );
 }
 
 /**
  * Check if a specific persona should be invoked for a trigger
  */
-export function shouldInvokePersona(
-  role: TribunalAgentRole,
-  trigger: InvocationTrigger
-): boolean {
+export function shouldInvokePersona(role: TribunalAgentRole, trigger: InvocationTrigger): boolean {
   const persona = AGENT_PERSONAS[role];
   return persona.invocationTriggers.includes(trigger);
 }
@@ -985,9 +975,7 @@ export function buildSystemPromptContext(role: TribunalAgentRole): string {
     `**Core Purpose:** ${persona.corePurpose}`,
     "",
     "## Key Behaviors",
-    ...persona.behaviors.map(
-      (b, i) => `${i + 1}. **${b.name}**: ${b.description}`
-    ),
+    ...persona.behaviors.map((b, i) => `${i + 1}. **${b.name}**: ${b.description}`),
     "",
     "## Tone Guidelines",
     ...persona.tone.notes.map((note) => `- ${note}`),
@@ -1001,9 +989,7 @@ export function buildSystemPromptContext(role: TribunalAgentRole): string {
 /**
  * Get interaction pattern examples for a role
  */
-export function getInteractionExamples(
-  role: TribunalAgentRole
-): InteractionPattern[] {
+export function getInteractionExamples(role: TribunalAgentRole): InteractionPattern[] {
   return AGENT_PERSONAS[role].interactionPatterns;
 }
 

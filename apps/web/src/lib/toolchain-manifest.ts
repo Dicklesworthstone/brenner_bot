@@ -63,7 +63,7 @@ const ToolSpecSchema = z
     {
       message:
         "release_binary requires release_url_template and checksum_url_template; upstream_installer requires install_url",
-    }
+    },
   );
 
 export type ToolSpec = z.infer<typeof ToolSpecSchema>;
@@ -184,7 +184,7 @@ function substituteUrl(
   version: string,
   os: string,
   arch: string,
-  isChecksum: boolean
+  isChecksum: boolean,
 ): string {
   let url = template
     .replace(/\$\{VERSION\}/g, version)
@@ -221,7 +221,7 @@ function getArtifactName(toolName: string, os: string, arch: string): string {
  */
 export function generateInstallPlan(
   manifest: ToolchainManifest,
-  platform: PlatformString
+  platform: PlatformString,
 ): InstallPlan {
   const { os, arch } = platformToOsArch(platform);
   const targets: InstallTarget[] = [];
@@ -249,7 +249,7 @@ export function generateInstallPlan(
       const checksumUrlTemplate = spec.checksum_url_template;
       if (!releaseUrlTemplate || !checksumUrlTemplate) {
         throw new Error(
-          `Toolchain manifest: ${toolName} uses release_binary but missing release_url_template/checksum_url_template`
+          `Toolchain manifest: ${toolName} uses release_binary but missing release_url_template/checksum_url_template`,
         );
       }
 
@@ -265,7 +265,9 @@ export function generateInstallPlan(
     } else {
       const installerUrl = spec.install_url;
       if (!installerUrl) {
-        throw new Error(`Toolchain manifest: ${toolName} uses upstream_installer but missing install_url`);
+        throw new Error(
+          `Toolchain manifest: ${toolName} uses upstream_installer but missing install_url`,
+        );
       }
       targets.push({
         ...base,

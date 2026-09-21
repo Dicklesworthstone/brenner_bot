@@ -17,42 +17,42 @@
  * @module components/brenner-loop/operators/ExclusionTestSession
  */
 
-import * as React from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import {
-  Check,
-  Plus,
-  Target,
   AlertTriangle,
   Beaker,
-  Star,
+  Check,
   ChevronDown,
   ChevronUp,
+  Plus,
+  Star,
+  Target,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import * as React from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import type { HypothesisCard } from "@/lib/brenner-loop/hypothesis";
-import type { Quote } from "@/lib/quotebank-parser";
 import { useOperatorSession } from "@/hooks/useOperatorSession";
+import type { HypothesisCard } from "@/lib/brenner-loop/hypothesis";
 import type {
   ExclusionTest,
-  TestProtocol,
   ExclusionTestResult,
+  TestProtocol,
 } from "@/lib/brenner-loop/operators/exclusion-test";
 import {
-  EXCLUSION_TEST_STEPS,
-  EXCLUSION_TEST_STEP_IDS,
+  createCustomTest,
   EXCLUSION_TEST_CATEGORY_LABELS,
   EXCLUSION_TEST_FALLBACK_QUOTES,
+  EXCLUSION_TEST_STEP_IDS,
+  EXCLUSION_TEST_STEPS,
   generateExclusionTests,
-  createCustomTest,
-  getDiscriminativePowerStars,
-  getDiscriminativePowerLabel,
-  getFeasibilityColor,
   getCategoryColor,
+  getDiscriminativePowerLabel,
+  getDiscriminativePowerStars,
+  getFeasibilityColor,
 } from "@/lib/brenner-loop/operators/exclusion-test";
+import type { Quote } from "@/lib/quotebank-parser";
+import { cn } from "@/lib/utils";
 import { OperatorShell } from "./OperatorShell";
 
 // ============================================================================
@@ -181,7 +181,7 @@ function TestCard({ test, onToggle, showDetails = false }: TestCardProps) {
         "p-4 rounded-lg border transition-all",
         test.selected
           ? "border-primary bg-primary/5 ring-2 ring-primary/20"
-          : "border-border bg-card hover:border-primary/30"
+          : "border-border bg-card hover:border-primary/30",
       )}
       whileTap={{ scale: 0.99 }}
     >
@@ -194,7 +194,7 @@ function TestCard({ test, onToggle, showDetails = false }: TestCardProps) {
             "flex items-center justify-center size-6 rounded border flex-shrink-0 mt-0.5 transition-colors",
             test.selected
               ? "bg-primary border-primary text-primary-foreground"
-              : "border-muted-foreground/30 hover:border-primary/50"
+              : "border-muted-foreground/30 hover:border-primary/50",
           )}
         >
           {test.selected && <Check className="size-4" strokeWidth={3} />}
@@ -209,7 +209,7 @@ function TestCard({ test, onToggle, showDetails = false }: TestCardProps) {
                 <span
                   className={cn(
                     "inline-flex items-center px-2 py-0.5 rounded text-xs font-medium",
-                    getCategoryColor(test.category)
+                    getCategoryColor(test.category),
                   )}
                 >
                   {EXCLUSION_TEST_CATEGORY_LABELS[test.category]}
@@ -234,11 +234,7 @@ function TestCard({ test, onToggle, showDetails = false }: TestCardProps) {
                 onClick={() => setExpanded(!expanded)}
                 className="flex-shrink-0"
               >
-                {expanded ? (
-                  <ChevronUp className="size-4" />
-                ) : (
-                  <ChevronDown className="size-4" />
-                )}
+                {expanded ? <ChevronUp className="size-4" /> : <ChevronDown className="size-4" />}
               </Button>
             )}
           </div>
@@ -331,7 +327,7 @@ function TestList({ tests, onToggle, showDetails = false }: TestListProps) {
                     ? "text-amber-500"
                     : key === "3-4"
                       ? "text-amber-400"
-                      : "text-gray-400"
+                      : "text-gray-400",
                 )}
                 fill={key === "5" ? "currentColor" : "none"}
               />
@@ -376,7 +372,13 @@ function CustomTestForm({ onAdd }: CustomTestFormProps) {
     e.preventDefault();
     if (!name || !description || !falsificationCondition || !supportCondition) return;
 
-    const test = createCustomTest(name, description, falsificationCondition, supportCondition, power);
+    const test = createCustomTest(
+      name,
+      description,
+      falsificationCondition,
+      supportCondition,
+      power,
+    );
     test.selected = true;
     onAdd(test);
 
@@ -399,7 +401,10 @@ function CustomTestForm({ onAdd }: CustomTestFormProps) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="p-4 rounded-lg border border-dashed border-primary/50 bg-primary/5 space-y-4">
+    <form
+      onSubmit={handleSubmit}
+      className="p-4 rounded-lg border border-dashed border-primary/50 bg-primary/5 space-y-4"
+    >
       <div>
         <label className="text-sm font-medium">Test Name</label>
         <Input
@@ -453,7 +458,7 @@ function CustomTestForm({ onAdd }: CustomTestFormProps) {
                 "size-8 rounded border text-sm font-medium transition-colors",
                 power === p
                   ? "bg-primary border-primary text-primary-foreground"
-                  : "border-border hover:border-primary/50"
+                  : "border-border hover:border-primary/50",
               )}
             >
               {p}
@@ -465,7 +470,10 @@ function CustomTestForm({ onAdd }: CustomTestFormProps) {
         </div>
       </div>
       <div className="flex items-center gap-2">
-        <Button type="submit" disabled={!name || !description || !falsificationCondition || !supportCondition}>
+        <Button
+          type="submit"
+          disabled={!name || !description || !falsificationCondition || !supportCondition}
+        >
           Add Test
         </Button>
         <Button type="button" variant="ghost" onClick={() => setIsOpen(false)}>
@@ -615,7 +623,8 @@ function TestSummary({ tests, protocols }: TestSummaryProps) {
           <div>
             <p className="text-sm font-medium">Ready to Record</p>
             <p className="text-sm text-muted-foreground mt-1">
-              {tests.length} test{tests.length !== 1 ? "s" : ""} will be added to your session&apos;s test plan.
+              {tests.length} test{tests.length !== 1 ? "s" : ""} will be added to your
+              session&apos;s test plan.
             </p>
           </div>
         </div>
@@ -647,7 +656,9 @@ function TestSummary({ tests, protocols }: TestSummaryProps) {
                       {test.feasibility} feasibility
                     </span>
                   </div>
-                  <p className="text-sm text-muted-foreground mt-2">{test.falsificationCondition}</p>
+                  <p className="text-sm text-muted-foreground mt-2">
+                    {test.falsificationCondition}
+                  </p>
                   {protocol?.dataRequired && (
                     <p className="text-xs text-muted-foreground mt-1">
                       Data needed: {protocol.dataRequired.slice(0, 100)}
@@ -723,7 +734,8 @@ export function ExclusionTestSession({
     if (currentStepConfig?.id === EXCLUSION_TEST_STEP_IDS.SELECT_TESTS) {
       const existingSelection = getSelection<ExclusionTest[]>(EXCLUSION_TEST_STEP_IDS.SELECT_TESTS);
       if (!existingSelection) {
-        const generatedTests = getContent<ExclusionTest[]>(EXCLUSION_TEST_STEP_IDS.GENERATE_TESTS) ?? [];
+        const generatedTests =
+          getContent<ExclusionTest[]>(EXCLUSION_TEST_STEP_IDS.GENERATE_TESTS) ?? [];
         setSelection(EXCLUSION_TEST_STEP_IDS.SELECT_TESTS, generatedTests);
       }
     }
@@ -733,8 +745,10 @@ export function ExclusionTestSession({
   // Must regenerate if selected tests changed (e.g., user went back and selected more)
   React.useEffect(() => {
     if (currentStepConfig?.id === EXCLUSION_TEST_STEP_IDS.GENERATE_PROTOCOLS) {
-      const selectedTests = getSelection<ExclusionTest[]>(EXCLUSION_TEST_STEP_IDS.SELECT_TESTS) ?? [];
-      const existingProtocols = getContent<TestProtocol[]>(EXCLUSION_TEST_STEP_IDS.GENERATE_PROTOCOLS) ?? [];
+      const selectedTests =
+        getSelection<ExclusionTest[]>(EXCLUSION_TEST_STEP_IDS.SELECT_TESTS) ?? [];
+      const existingProtocols =
+        getContent<TestProtocol[]>(EXCLUSION_TEST_STEP_IDS.GENERATE_PROTOCOLS) ?? [];
       const testsNeedingProtocols = selectedTests.filter((t) => t.selected);
 
       // Check if we need to regenerate: count mismatch (tests added/removed), or new test without protocol
@@ -757,7 +771,12 @@ export function ExclusionTestSession({
             passingCriteria: test.supportCondition,
             failingCriteria: test.falsificationCondition,
             limitations: [],
-            estimatedEffort: test.feasibility === "high" ? "days" : test.feasibility === "medium" ? "weeks" : "months",
+            estimatedEffort:
+              test.feasibility === "high"
+                ? "days"
+                : test.feasibility === "medium"
+                  ? "weeks"
+                  : "months",
             notes: "",
           } as TestProtocol;
         });
@@ -782,11 +801,11 @@ export function ExclusionTestSession({
   const toggleTest = React.useCallback(
     (testId: string) => {
       const updated = selectedTests.map((t) =>
-        t.id === testId ? { ...t, selected: !t.selected } : t
+        t.id === testId ? { ...t, selected: !t.selected } : t,
       );
       setSelection(EXCLUSION_TEST_STEP_IDS.SELECT_TESTS, updated);
     },
-    [selectedTests, setSelection]
+    [selectedTests, setSelection],
   );
 
   // Add custom test
@@ -794,7 +813,7 @@ export function ExclusionTestSession({
     (test: ExclusionTest) => {
       setSelection(EXCLUSION_TEST_STEP_IDS.SELECT_TESTS, [...selectedTests, test]);
     },
-    [selectedTests, setSelection]
+    [selectedTests, setSelection],
   );
 
   // Update protocol
@@ -803,7 +822,7 @@ export function ExclusionTestSession({
       const newProtocols = protocols.map((p) => (p.testId === updated.testId ? updated : p));
       setContent(EXCLUSION_TEST_STEP_IDS.GENERATE_PROTOCOLS, newProtocols);
     },
-    [protocols, setContent]
+    [protocols, setContent],
   );
 
   // Toggle confirmation
@@ -838,8 +857,8 @@ export function ExclusionTestSession({
                 <div>
                   <p className="text-sm font-medium">Tests Generated</p>
                   <p className="text-sm text-muted-foreground mt-1">
-                    {generatedTests.length} potential falsification tests have been generated based on your
-                    hypothesis.
+                    {generatedTests.length} potential falsification tests have been generated based
+                    on your hypothesis.
                   </p>
                 </div>
               </div>
@@ -864,14 +883,14 @@ export function ExclusionTestSession({
           </div>
         );
 
-      case EXCLUSION_TEST_STEP_IDS.GENERATE_PROTOCOLS:
+      case EXCLUSION_TEST_STEP_IDS.GENERATE_PROTOCOLS: {
         const testsWithProtocols = selectedTests.filter((t) => t.selected);
         return (
           <div className="space-y-4">
             <div className="p-4 rounded-lg bg-muted/50 border border-border">
               <p className="text-sm text-muted-foreground">
-                Define how you&apos;ll run each selected test. Be specific about data needs and success
-                criteria.
+                Define how you&apos;ll run each selected test. Be specific about data needs and
+                success criteria.
               </p>
             </div>
             <div className="space-y-4">
@@ -890,8 +909,9 @@ export function ExclusionTestSession({
             </div>
           </div>
         );
+      }
 
-      case EXCLUSION_TEST_STEP_IDS.RECORD_TESTS:
+      case EXCLUSION_TEST_STEP_IDS.RECORD_TESTS: {
         const testsToRecord = selectedTests.filter((t) => t.selected);
         return (
           <div className="space-y-6">
@@ -904,7 +924,7 @@ export function ExclusionTestSession({
                   "w-full flex items-center gap-3 p-4 rounded-lg border transition-all",
                   confirmed
                     ? "border-primary bg-primary/5 ring-2 ring-primary/20"
-                    : "border-border bg-card hover:border-primary/30"
+                    : "border-border bg-card hover:border-primary/30",
                 )}
                 whileTap={{ scale: 0.99 }}
               >
@@ -913,7 +933,7 @@ export function ExclusionTestSession({
                     "flex items-center justify-center size-6 rounded border flex-shrink-0 transition-colors",
                     confirmed
                       ? "bg-primary border-primary text-primary-foreground"
-                      : "border-muted-foreground/30"
+                      : "border-muted-foreground/30",
                   )}
                 >
                   {confirmed && <Check className="size-4" strokeWidth={3} />}
@@ -925,6 +945,7 @@ export function ExclusionTestSession({
             </div>
           </div>
         );
+      }
 
       default:
         return <div className="p-8 text-center text-muted-foreground">Unknown step</div>;

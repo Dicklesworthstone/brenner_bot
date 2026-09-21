@@ -160,7 +160,9 @@ export async function generateHash(input: string): Promise<string> {
     return hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
   }
 
-  throw new Error("Cryptographic capability missing: crypto.subtle is required for prediction locking.");
+  throw new Error(
+    "Cryptographic capability missing: crypto.subtle is required for prediction locking.",
+  );
 }
 
 /**
@@ -194,7 +196,7 @@ function createSealString(text: string, timestamp: string): string {
 export function generatePredictionLockId(
   hypothesisId: string,
   predictionType: PredictionType,
-  index: number
+  index: number,
 ): string {
   const typeCode = predictionType === "if_true" ? "T" : predictionType === "if_false" ? "F" : "I";
 
@@ -239,7 +241,7 @@ export async function lockPrediction(
   hypothesisId: string,
   predictionType: PredictionType,
   originalIndex: number,
-  predictionText: string
+  predictionText: string,
 ): Promise<LockResult> {
   // Validate input
   if (!predictionText || predictionText.trim().length === 0) {
@@ -258,7 +260,8 @@ export async function lockPrediction(
   try {
     lockHash = await generateHash(sealString);
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Unable to compute prediction lock hash";
+    const message =
+      error instanceof Error ? error.message : "Unable to compute prediction lock hash";
     return { success: false, error: `Unable to lock prediction: ${message}` };
   }
 
@@ -290,9 +293,7 @@ export async function lockPrediction(
  * @param prediction - The locked prediction to verify
  * @returns Promise resolving to VerificationResult
  */
-export async function verifyPrediction(
-  prediction: LockedPrediction
-): Promise<VerificationResult> {
+export async function verifyPrediction(prediction: LockedPrediction): Promise<VerificationResult> {
   if (prediction.state === "draft") {
     return {
       valid: true,
@@ -306,7 +307,8 @@ export async function verifyPrediction(
   try {
     computedHash = await generateHash(sealString);
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Unable to verify prediction integrity";
+    const message =
+      error instanceof Error ? error.message : "Unable to verify prediction integrity";
     return { valid: false, prediction, error: message };
   }
 
@@ -333,7 +335,7 @@ export async function verifyPrediction(
 export function revealPrediction(
   prediction: LockedPrediction,
   observedOutcome: string,
-  outcomeMatch: "confirmed" | "refuted" | "inconclusive"
+  outcomeMatch: "confirmed" | "refuted" | "inconclusive",
 ): RevealResult {
   if (prediction.state === "draft") {
     return {
@@ -379,7 +381,7 @@ export function amendPrediction(
   prediction: LockedPrediction,
   amendmentType: PredictionAmendment["type"],
   text: string,
-  reason?: string
+  reason?: string,
 ): LockedPrediction {
   if (prediction.state === "draft" || prediction.state === "locked") {
     throw new Error("Cannot amend a prediction that has not been revealed");
@@ -409,9 +411,7 @@ export function amendPrediction(
  * @param predictions - Array of locked predictions
  * @returns PredictionLockStats
  */
-export function calculatePredictionLockStats(
-  predictions: LockedPrediction[]
-): PredictionLockStats {
+export function calculatePredictionLockStats(predictions: LockedPrediction[]): PredictionLockStats {
   const stats: PredictionLockStats = {
     totalPredictions: predictions.length,
     locked: 0,
@@ -488,20 +488,14 @@ export function calculateRobustnessMultiplier(stats: PredictionLockStats): numbe
  * Check if a value is a valid PredictionLockState.
  */
 export function isPredictionLockState(value: unknown): value is PredictionLockState {
-  return (
-    typeof value === "string" &&
-    ["draft", "locked", "revealed", "amended"].includes(value)
-  );
+  return typeof value === "string" && ["draft", "locked", "revealed", "amended"].includes(value);
 }
 
 /**
  * Check if a value is a valid PredictionType.
  */
 export function isPredictionType(value: unknown): value is PredictionType {
-  return (
-    typeof value === "string" &&
-    ["if_true", "if_false", "impossible_if_true"].includes(value)
-  );
+  return typeof value === "string" && ["if_true", "if_false", "impossible_if_true"].includes(value);
 }
 
 /**

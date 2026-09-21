@@ -1,12 +1,12 @@
 import { promises as fs } from "fs";
 import { join } from "path";
 import {
-  type OperatorIntervention,
-  type InterventionType,
+  aggregateInterventions,
   type InterventionSeverity,
   type InterventionSummary,
+  type InterventionType,
+  type OperatorIntervention,
   OperatorInterventionSchema,
-  aggregateInterventions,
 } from "../schemas/operator-intervention";
 
 /**
@@ -132,10 +132,7 @@ async function ensureStorageStructure(baseDir: string): Promise<void> {
 
 const INTERVENTION_STORAGE_LOCKS = new Map<string, Promise<void>>();
 
-async function withInterventionStorageLock<T>(
-  key: string,
-  fn: () => Promise<T>
-): Promise<T> {
+async function withInterventionStorageLock<T>(key: string, fn: () => Promise<T>): Promise<T> {
   const prev = INTERVENTION_STORAGE_LOCKS.get(key) ?? Promise.resolve();
   const safePrev = prev.catch(() => {});
 
@@ -204,12 +201,16 @@ export class InterventionStorage {
       try {
         data = JSON.parse(content) as SessionInterventionFile;
       } catch {
-        console.warn(`[InterventionStorage] Corrupted JSON in ${filePath}; returning empty interventions.`);
+        console.warn(
+          `[InterventionStorage] Corrupted JSON in ${filePath}; returning empty interventions.`,
+        );
         return [];
       }
 
       if (!Array.isArray(data.interventions)) {
-        console.warn(`[InterventionStorage] Malformed session file ${filePath}; returning empty interventions.`);
+        console.warn(
+          `[InterventionStorage] Malformed session file ${filePath}; returning empty interventions.`,
+        );
         return [];
       }
 
@@ -236,7 +237,7 @@ export class InterventionStorage {
    */
   async saveSessionInterventions(
     sessionId: string,
-    interventions: OperatorIntervention[]
+    interventions: OperatorIntervention[],
   ): Promise<void> {
     await withInterventionStorageLock(this.lockKey(), async () => {
       await this.saveSessionInterventionsUnlocked(sessionId, interventions);
@@ -245,7 +246,7 @@ export class InterventionStorage {
 
   private async saveSessionInterventionsUnlocked(
     sessionId: string,
-    interventions: OperatorIntervention[]
+    interventions: OperatorIntervention[],
   ): Promise<void> {
     await ensureStorageStructure(this.baseDir);
 
@@ -276,7 +277,10 @@ export class InterventionStorage {
     }
   }
 
-  private async updateIndexForSessionUnlocked(sessionId: string, interventions: OperatorIntervention[]): Promise<void> {
+  private async updateIndexForSessionUnlocked(
+    sessionId: string,
+    interventions: OperatorIntervention[],
+  ): Promise<void> {
     const indexPath = getIndexPath(this.baseDir);
     let index: InterventionIndex;
 
@@ -434,7 +438,10 @@ export class InterventionStorage {
         }
 
         if (!Array.isArray(data.interventions)) {
-          warnings.push({ file: filePath, message: "Skipping malformed session file (missing interventions[])." });
+          warnings.push({
+            file: filePath,
+            message: "Skipping malformed session file (missing interventions[]).",
+          });
           continue;
         }
 
@@ -458,7 +465,10 @@ export class InterventionStorage {
         }
 
         if (invalidCount > 0) {
-          warnings.push({ file: filePath, message: `Skipped ${invalidCount} invalid interventions.` });
+          warnings.push({
+            file: filePath,
+            message: `Skipped ${invalidCount} invalid interventions.`,
+          });
         }
       }
     } catch (error) {
@@ -506,7 +516,7 @@ export class InterventionStorage {
    * Get all interventions by severity.
    */
   async getInterventionsBySeverity(
-    severity: InterventionSeverity
+    severity: InterventionSeverity,
   ): Promise<OperatorIntervention[]> {
     const index = await this.loadIndex();
     const matching = index.entries.filter((e) => e.severity === severity);
@@ -564,7 +574,7 @@ export class InterventionStorage {
   async getMajorInterventions(): Promise<OperatorIntervention[]> {
     const index = await this.loadIndex();
     const matching = index.entries.filter(
-      (e) => e.severity === "major" || e.severity === "critical"
+      (e) => e.severity === "major" || e.severity === "critical",
     );
 
     const results: OperatorIntervention[] = [];
@@ -573,9 +583,7 @@ export class InterventionStorage {
     for (const sessionId of sessionIds) {
       const interventions = await this.loadSessionInterventions(sessionId);
       results.push(
-        ...interventions.filter(
-          (i) => i.severity === "major" || i.severity === "critical"
-        )
+        ...interventions.filter((i) => i.severity === "major" || i.severity === "critical"),
       );
     }
 
@@ -673,8 +681,7 @@ export class InterventionStorage {
       operators.add(entry.operatorId);
     }
 
-    const sessionsWithInterventions = new Set(index.entries.map((e) => e.sessionId))
-      .size;
+    const sessionsWithInterventions = new Set(index.entries.map((e) => e.sessionId)).size;
 
     return {
       total: index.entries.length,
@@ -739,11 +746,11 @@ export class InterventionStorage {
    */
   async getInterventionsInRange(
     startTime: string,
-    endTime: string
+    endTime: string,
   ): Promise<OperatorIntervention[]> {
     const index = await this.loadIndex();
     const matching = index.entries.filter(
-      (e) => e.timestamp >= startTime && e.timestamp <= endTime
+      (e) => e.timestamp >= startTime && e.timestamp <= endTime,
     );
 
     const results: OperatorIntervention[] = [];
@@ -752,9 +759,7 @@ export class InterventionStorage {
     for (const sessionId of sessionIds) {
       const interventions = await this.loadSessionInterventions(sessionId);
       results.push(
-        ...interventions.filter(
-          (i) => i.timestamp >= startTime && i.timestamp <= endTime
-        )
+        ...interventions.filter((i) => i.timestamp >= startTime && i.timestamp <= endTime),
       );
     }
 

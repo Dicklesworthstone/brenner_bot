@@ -8,19 +8,12 @@
  */
 
 import { render, screen } from "@testing-library/react";
-import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 import type { ReactNode } from "react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 // Mock next/link
 vi.mock("next/link", () => ({
-  default: ({
-    children,
-    href,
-    ...props
-  }: {
-    children: ReactNode;
-    href: string;
-  }) => (
+  default: ({ children, href, ...props }: { children: ReactNode; href: string }) => (
     <a href={href} {...props}>
       {children}
     </a>
@@ -63,9 +56,7 @@ describe("Home Page", () => {
     it("displays the main title", () => {
       render(<Home />);
 
-      expect(
-        screen.getByRole("heading", { name: /brennerbot/i, level: 1 })
-      ).toBeInTheDocument();
+      expect(screen.getByRole("heading", { name: /brennerbot/i, level: 1 })).toBeInTheDocument();
     });
 
     it("shows the lab mode badge", () => {
@@ -77,9 +68,7 @@ describe("Home Page", () => {
     it("displays the subtitle/description", () => {
       render(<Home />);
 
-      expect(
-        screen.getByText(/coordinate claude.*gpt.*gemini/i)
-      ).toBeInTheDocument();
+      expect(screen.getByText(/coordinate claude.*gpt.*gemini/i)).toBeInTheDocument();
     });
 
     it("includes primary CTA links", () => {
@@ -87,16 +76,20 @@ describe("Home Page", () => {
 
       // There may be multiple "Get started" links (hero + onboarding), so check the one in hero
       const tutorialLinks = screen.getAllByRole("link", { name: /get started/i });
-      const heroTutorialLink = tutorialLinks.find(link => link.getAttribute("href") === "/tutorial");
+      const heroTutorialLink = tutorialLinks.find(
+        (link) => link.getAttribute("href") === "/tutorial",
+      );
       expect(heroTutorialLink).toBeDefined();
 
-      expect(
-        screen.getByRole("link", { name: /read the method/i })
-      ).toHaveAttribute("href", "/method");
+      expect(screen.getByRole("link", { name: /read the method/i })).toHaveAttribute(
+        "href",
+        "/method",
+      );
 
-      expect(
-        screen.getByRole("link", { name: /view distillations/i })
-      ).toHaveAttribute("href", "/distillations");
+      expect(screen.getByRole("link", { name: /view distillations/i })).toHaveAttribute(
+        "href",
+        "/distillations",
+      );
     });
   });
 
@@ -104,9 +97,7 @@ describe("Home Page", () => {
     it("displays the What's Inside heading", () => {
       render(<Home />);
 
-      expect(
-        screen.getByRole("heading", { name: /what's inside/i })
-      ).toBeInTheDocument();
+      expect(screen.getByRole("heading", { name: /what's inside/i })).toBeInTheDocument();
     });
 
     it("displays all three feature cards", () => {
@@ -137,16 +128,14 @@ describe("Home Page", () => {
     it("shows feature descriptions", () => {
       render(<Home />);
 
-      expect(
-        screen.getByText(/complete brenner transcript collection/i)
-      ).toBeInTheDocument();
+      expect(screen.getByText(/complete brenner transcript collection/i)).toBeInTheDocument();
       // Distillations description - text may be split across Jargon components
       // Find paragraph elements specifically to avoid matching parent containers
       expect(
         screen.getByText((_, element) => {
           if (element?.tagName.toLowerCase() !== "p") return false;
           return element?.textContent?.toLowerCase().includes("three frontier model") ?? false;
-        })
+        }),
       ).toBeInTheDocument();
       // Operators/loop structure - text may be split across Jargon components
       expect(
@@ -154,7 +143,7 @@ describe("Home Page", () => {
           if (element?.tagName.toLowerCase() !== "p") return false;
           const text = element?.textContent?.toLowerCase() ?? "";
           return text.includes("operators") && text.includes("loop structure");
-        })
+        }),
       ).toBeInTheDocument();
     });
 
@@ -200,9 +189,7 @@ describe("Home Page", () => {
       expect(brennerMentions.length).toBeGreaterThan(0);
 
       // Verify the Nobel attribution is present
-      expect(
-        screen.getByText(/nobel laureate.*physiology.*medicine.*2002/i)
-      ).toBeInTheDocument();
+      expect(screen.getByText(/nobel laureate.*physiology.*medicine.*2002/i)).toBeInTheDocument();
     });
   });
 
@@ -210,9 +197,7 @@ describe("Home Page", () => {
     it("does not show lab mode card when BRENNER_LAB_MODE is not set", () => {
       render(<Home />);
 
-      expect(
-        screen.queryByText(/start a research session/i)
-      ).not.toBeInTheDocument();
+      expect(screen.queryByText(/start a research session/i)).not.toBeInTheDocument();
       expect(screen.queryByText(/lab mode active/i)).not.toBeInTheDocument();
     });
 
@@ -221,9 +206,7 @@ describe("Home Page", () => {
         render(<Home />);
       });
 
-      expect(
-        screen.queryByText(/start a research session/i)
-      ).not.toBeInTheDocument();
+      expect(screen.queryByText(/start a research session/i)).not.toBeInTheDocument();
     });
 
     it("does not show lab mode card when BRENNER_LAB_MODE is 0", () => {
@@ -231,9 +214,7 @@ describe("Home Page", () => {
         render(<Home />);
       });
 
-      expect(
-        screen.queryByText(/start a research session/i)
-      ).not.toBeInTheDocument();
+      expect(screen.queryByText(/start a research session/i)).not.toBeInTheDocument();
     });
 
     it("shows lab mode card when BRENNER_LAB_MODE is true", () => {
@@ -241,9 +222,7 @@ describe("Home Page", () => {
         render(<Home />);
 
         expect(screen.getByText(/lab mode active/i)).toBeInTheDocument();
-        expect(
-          screen.getByText(/start a research session/i)
-        ).toBeInTheDocument();
+        expect(screen.getByText(/start a research session/i)).toBeInTheDocument();
       });
     });
 
@@ -259,9 +238,7 @@ describe("Home Page", () => {
       withEnv({ BRENNER_LAB_MODE: "true" }, () => {
         render(<Home />);
 
-        const labModeCard = screen
-          .getByText(/start a research session/i)
-          .closest("a");
+        const labModeCard = screen.getByText(/start a research session/i).closest("a");
         expect(labModeCard).toHaveAttribute("href", "/sessions/new");
       });
     });

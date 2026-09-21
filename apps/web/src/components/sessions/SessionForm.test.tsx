@@ -8,11 +8,11 @@
  * @see @/components/sessions/SessionForm.tsx
  */
 
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, it, vi, beforeEach } from "vitest";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type { ReactNode } from "react";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { SessionForm } from "./SessionForm";
 
 // ============================================================================
@@ -47,7 +47,8 @@ vi.mock("@/hooks/mutations/useSessionMutation", () => ({
     mutate: mockMutate,
     ...mockMutationState,
   }),
-  getSessionErrorMessage: (error: unknown) => (error instanceof Error ? error.message : "Unknown error"),
+  getSessionErrorMessage: (error: unknown) =>
+    error instanceof Error ? error.message : "Unknown error",
 }));
 
 // Mock Jargon component to simplify testing
@@ -81,7 +82,7 @@ function renderSessionForm(props: { defaultSender?: string; defaultProjectKey?: 
     ...render(
       <QueryClientProvider client={queryClient}>
         <SessionForm {...props} />
-      </QueryClientProvider>
+      </QueryClientProvider>,
     ),
     queryClient,
   };
@@ -146,7 +147,9 @@ describe("SessionForm", () => {
 
       expect(screen.getByPlaceholderText("decision experiments")).toBeInTheDocument();
       expect(screen.getByPlaceholderText("biology")).toBeInTheDocument();
-      expect(screen.getByPlaceholderText(/most discriminative next experiment/i)).toBeInTheDocument();
+      expect(
+        screen.getByPlaceholderText(/most discriminative next experiment/i),
+      ).toBeInTheDocument();
     });
 
     it("renders acknowledgment checkbox", () => {
@@ -317,7 +320,9 @@ describe("SessionForm", () => {
     it("shows hint text for excerpt", () => {
       renderSessionForm();
 
-      expect(screen.getByText("The raw Brenner transcript material to analyze")).toBeInTheDocument();
+      expect(
+        screen.getByText("The raw Brenner transcript material to analyze"),
+      ).toBeInTheDocument();
     });
 
     it("shows hint for optional fields", () => {
@@ -375,7 +380,7 @@ describe("SessionForm", () => {
       await user.type(screen.getByPlaceholderText("BlueMountain, RedForest"), "Agent1");
       await user.type(
         screen.getByPlaceholderText(/paste transcript chunks/i),
-        "This is a sufficiently long excerpt that meets the 20 character minimum requirement."
+        "This is a sufficiently long excerpt that meets the 20 character minimum requirement.",
       );
 
       // Submit
@@ -394,7 +399,7 @@ describe("SessionForm", () => {
       await user.type(screen.getByPlaceholderText("BlueMountain, RedForest"), "Recipient1");
       await user.type(
         screen.getByPlaceholderText(/paste transcript chunks/i),
-        "Sufficiently long excerpt for testing the form submission."
+        "Sufficiently long excerpt for testing the form submission.",
       );
 
       await user.click(screen.getByRole("button", { name: /send kickoff/i }));
@@ -405,7 +410,7 @@ describe("SessionForm", () => {
             threadId: "FEAT-999",
             sender: "TestAgent",
           }),
-          expect.any(Object)
+          expect.any(Object),
         );
       });
     });
@@ -419,7 +424,7 @@ describe("SessionForm", () => {
       await user.type(screen.getByPlaceholderText("BlueMountain, RedForest"), "Agent");
       await user.type(
         screen.getByPlaceholderText(/paste transcript chunks/i),
-        "Long enough excerpt for testing purposes here."
+        "Long enough excerpt for testing purposes here.",
       );
 
       // Fill optional
@@ -436,7 +441,7 @@ describe("SessionForm", () => {
             domain: "developmental",
             question: "What next?",
           }),
-          expect.any(Object)
+          expect.any(Object),
         );
       });
     });
@@ -450,7 +455,7 @@ describe("SessionForm", () => {
       await user.type(screen.getByPlaceholderText("BlueMountain, RedForest"), "Agent");
       await user.type(
         screen.getByPlaceholderText(/paste transcript chunks/i),
-        "Long enough excerpt for testing purposes here."
+        "Long enough excerpt for testing purposes here.",
       );
 
       // Check ack
@@ -463,7 +468,7 @@ describe("SessionForm", () => {
           expect.objectContaining({
             ackRequired: true,
           }),
-          expect.any(Object)
+          expect.any(Object),
         );
       });
     });
@@ -483,7 +488,7 @@ describe("SessionForm", () => {
       await user.type(screen.getByPlaceholderText("BlueMountain, RedForest"), "Agent");
       await user.type(
         screen.getByPlaceholderText(/paste transcript chunks/i),
-        "Long enough excerpt for testing purposes."
+        "Long enough excerpt for testing purposes.",
       );
 
       await user.click(screen.getByRole("button", { name: /send kickoff/i }));
@@ -512,7 +517,7 @@ describe("SessionForm", () => {
       await user.type(screen.getByPlaceholderText("BlueMountain, RedForest"), "Agent");
       await user.type(
         screen.getByPlaceholderText(/paste transcript chunks/i),
-        "Long enough excerpt for testing purposes."
+        "Long enough excerpt for testing purposes.",
       );
 
       await user.click(screen.getByRole("button", { name: /send kickoff/i }));

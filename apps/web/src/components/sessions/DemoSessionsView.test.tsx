@@ -2,20 +2,16 @@
  * Tests for DemoSessionsView component
  */
 
-import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
-import { DemoSessionsView } from "./DemoSessionsView";
+import { describe, expect, it, vi } from "vitest";
 import { DEMO_SESSIONS, getDemoThreadSummaries } from "@/lib/fixtures/demo-sessions";
+import { DemoSessionsView } from "./DemoSessionsView";
 
 // Mock next/link to render as anchor tags
 vi.mock("next/link", () => ({
-  default: ({
-    children,
-    href,
-  }: {
-    children: React.ReactNode;
-    href: string;
-  }) => <a href={href}>{children}</a>,
+  default: ({ children, href }: { children: React.ReactNode; href: string }) => (
+    <a href={href}>{children}</a>
+  ),
 }));
 
 describe("DemoSessionsView", () => {
@@ -28,7 +24,7 @@ describe("DemoSessionsView", () => {
     it("renders demo explanation text", () => {
       render(<DemoSessionsView />);
       expect(
-        screen.getByText(/example sessions demonstrating the BrennerBot/i)
+        screen.getByText(/example sessions demonstrating the BrennerBot/i),
       ).toBeInTheDocument();
     });
 
@@ -36,10 +32,7 @@ describe("DemoSessionsView", () => {
       render(<DemoSessionsView />);
       const tutorialLink = screen.getByText("Try the tutorial");
       expect(tutorialLink).toBeInTheDocument();
-      expect(tutorialLink.closest("a")).toHaveAttribute(
-        "href",
-        "/tutorial/quick-start"
-      );
+      expect(tutorialLink.closest("a")).toHaveAttribute("href", "/tutorial/quick-start");
     });
 
     it("renders corpus link", () => {
@@ -85,9 +78,7 @@ describe("DemoSessionsView", () => {
       const summaries = getDemoThreadSummaries();
 
       for (const summary of summaries) {
-        expect(
-          screen.getByText(`${summary.messageCount} messages`)
-        ).toBeInTheDocument();
+        expect(screen.getByText(`${summary.messageCount} messages`)).toBeInTheDocument();
       }
     });
 
@@ -115,9 +106,7 @@ describe("DemoSessionsView", () => {
       const firstSession = summaries[0];
       if (firstSession.participants.length > 0) {
         // Use getAllByText since participant names may appear in multiple sessions
-        const participantElements = screen.getAllByText(
-          new RegExp(firstSession.participants[0])
-        );
+        const participantElements = screen.getAllByText(new RegExp(firstSession.participants[0]));
         expect(participantElements.length).toBeGreaterThan(0);
       }
     });

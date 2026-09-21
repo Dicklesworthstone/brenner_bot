@@ -10,11 +10,19 @@
  * @module components/sessions/FirstRunOnboarding
  */
 
-import * as React from "react";
-import Link from "next/link";
 import { ArrowRight, BookOpen, Sparkles } from "lucide-react";
+import Link from "next/link";
+import * as React from "react";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogBody, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogBody,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 
 const STORAGE_KEY = "brennerbot:onboarding:sessions:v1";
@@ -88,7 +96,8 @@ export function FirstRunOnboarding({ className }: FirstRunOnboardingProps) {
             <div className="space-y-1">
               <DialogTitle>Welcome to Sessions</DialogTitle>
               <DialogDescription>
-                This is where you run a Brenner Loop: hypotheses → discriminative tests → evidence → synthesis.
+                This is where you run a Brenner Loop: hypotheses → discriminative tests → evidence →
+                synthesis.
               </DialogDescription>
             </div>
           </div>
@@ -164,7 +173,9 @@ export function FirstRunOnboarding({ className }: FirstRunOnboardingProps) {
                   onClick={() => markSeenFlag()}
                 >
                   <div className="font-medium text-foreground">Multi-Agent Cockpit</div>
-                  <div className="text-xs text-muted-foreground mt-1">~2 hrs • Agent Mail + roles</div>
+                  <div className="text-xs text-muted-foreground mt-1">
+                    ~2 hrs • Agent Mail + roles
+                  </div>
                 </Link>
               </div>
             </div>
@@ -178,7 +189,8 @@ export function FirstRunOnboarding({ className }: FirstRunOnboardingProps) {
                   Tip: don’t “argue” your hypothesis — stress-test it.
                 </div>
                 <div className="text-xs text-muted-foreground mt-1">
-                  The system is strongest when you force crisp predictions and demand discriminative tests.
+                  The system is strongest when you force crisp predictions and demand discriminative
+                  tests.
                 </div>
               </div>
 
@@ -231,4 +243,3 @@ export function FirstRunOnboarding({ className }: FirstRunOnboardingProps) {
 }
 
 export default FirstRunOnboarding;
-

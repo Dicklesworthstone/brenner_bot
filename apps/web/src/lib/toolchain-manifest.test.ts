@@ -5,17 +5,17 @@
  * @see specs/release_artifact_matrix_v0.1.md
  */
 
-import { describe, test, expect } from "vitest";
 import { readFile } from "node:fs/promises";
+import { describe, expect, test } from "vitest";
 import {
-  parseManifest,
   detectPlatform,
   detectPlatformFrom,
-  generateInstallPlan,
   formatPlanHuman,
   formatPlanJson,
-  platformToOsArch,
+  generateInstallPlan,
   type PlatformString,
+  parseManifest,
+  platformToOsArch,
   type ToolchainManifest,
 } from "./toolchain-manifest";
 
@@ -159,7 +159,7 @@ describe("platformToOsArch", () => {
     "converts %s to %j",
     (platform, expected) => {
       expect(platformToOsArch(platform)).toEqual(expected);
-    }
+    },
   );
 });
 
@@ -169,7 +169,7 @@ describe("detectPlatform", () => {
     // Should work on any supported dev machine
     if (platform !== null) {
       expect(["linux-x64", "linux-arm64", "darwin-arm64", "darwin-x64", "win-x64"]).toContain(
-        platform
+        platform,
       );
     }
   });
@@ -182,9 +182,12 @@ describe("detectPlatform", () => {
     ["win32", "x64", "win-x64"],
     ["win32", "arm64", null],
     ["freebsd", "x64", null],
-  ] as [string, string, PlatformString | null][])("detectPlatformFrom(%s,%s) -> %s", (os, arch, expected) => {
-    expect(detectPlatformFrom(os, arch)).toBe(expected);
-  });
+  ] as [string, string, PlatformString | null][])(
+    "detectPlatformFrom(%s,%s) -> %s",
+    (os, arch, expected) => {
+      expect(detectPlatformFrom(os, arch)).toBe(expected);
+    },
+  );
 });
 
 describe("generateInstallPlan", () => {
@@ -210,7 +213,9 @@ describe("generateInstallPlan", () => {
     expect(testTool?.strategy).toBe("release_binary");
     if (testTool?.strategy === "release_binary") {
       expect(testTool.binaryUrl).toBe("https://example.com/download/v1.0.0/test-linux-x64");
-      expect(testTool.checksumUrl).toBe("https://example.com/download/v1.0.0/test-linux-x64.sha256");
+      expect(testTool.checksumUrl).toBe(
+        "https://example.com/download/v1.0.0/test-linux-x64.sha256",
+      );
       expect(testTool.artifactName).toBe("test-tool-linux-x64");
     }
 
@@ -253,7 +258,7 @@ describe("generateInstallPlan", () => {
     if (testTool?.strategy === "release_binary") {
       expect(testTool.binaryUrl).toBe("https://example.com/download/v1.0.0/test-win-x64.exe");
       expect(testTool.checksumUrl).toBe(
-        "https://example.com/download/v1.0.0/test-win-x64.exe.sha256"
+        "https://example.com/download/v1.0.0/test-win-x64.exe.sha256",
       );
       expect(testTool.artifactName).toBe("test-tool-win-x64.exe");
     }

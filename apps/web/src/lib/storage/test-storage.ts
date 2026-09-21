@@ -1,10 +1,6 @@
 import { promises as fs } from "fs";
 import { join } from "path";
-import {
-  type TestRecord,
-  type TestStatus,
-  TestRecordSchema,
-} from "../schemas/test-record";
+import { type TestRecord, TestRecordSchema, type TestStatus } from "../schemas/test-record";
 import { withFileLock } from "./file-lock";
 
 /**
@@ -225,7 +221,10 @@ export class TestStorage {
     }
   }
 
-  private async updateIndexForSessionUnlocked(sessionId: string, tests: TestRecord[]): Promise<void> {
+  private async updateIndexForSessionUnlocked(
+    sessionId: string,
+    tests: TestRecord[],
+  ): Promise<void> {
     const indexPath = getIndexPath(this.baseDir);
     let index: TestIndex;
 
@@ -385,7 +384,10 @@ export class TestStorage {
         }
 
         if (!Array.isArray(data.tests)) {
-          warnings.push({ file: filePath, message: "Skipping malformed session file (missing tests[])." });
+          warnings.push({
+            file: filePath,
+            message: "Skipping malformed session file (missing tests[]).",
+          });
           continue;
         }
 
@@ -528,7 +530,7 @@ export class TestStorage {
   async getDesignedButNotExecutedTests(): Promise<TestRecord[]> {
     const index = await this.loadIndex();
     const matching = index.entries.filter(
-      (e) => !e.isExecuted && e.status !== "completed" && e.status !== "abandoned"
+      (e) => !e.isExecuted && e.status !== "completed" && e.status !== "abandoned",
     );
 
     const results: TestRecord[] = [];
@@ -538,8 +540,8 @@ export class TestStorage {
       const tests = await this.loadSessionTests(sessionId);
       results.push(
         ...tests.filter(
-          (t) => !t.execution && t.status !== "completed" && t.status !== "abandoned"
-        )
+          (t) => !t.execution && t.status !== "completed" && t.status !== "abandoned",
+        ),
       );
     }
 
@@ -555,18 +557,14 @@ export class TestStorage {
    */
   async getTestsForHypothesis(hypothesisId: string): Promise<TestRecord[]> {
     const index = await this.loadIndex();
-    const matching = index.entries.filter((e) =>
-      e.discriminates.includes(hypothesisId)
-    );
+    const matching = index.entries.filter((e) => e.discriminates.includes(hypothesisId));
 
     const results: TestRecord[] = [];
     const sessionIds = [...new Set(matching.map((e) => e.sessionId))];
 
     for (const sessionId of sessionIds) {
       const tests = await this.loadSessionTests(sessionId);
-      results.push(
-        ...tests.filter((t) => t.discriminates.includes(hypothesisId))
-      );
+      results.push(...tests.filter((t) => t.discriminates.includes(hypothesisId)));
     }
 
     return results;
@@ -577,20 +575,14 @@ export class TestStorage {
    */
   async getTestsForPrediction(predictionId: string): Promise<TestRecord[]> {
     const index = await this.loadIndex();
-    const matching = index.entries.filter((e) =>
-      e.addressesPredictions.includes(predictionId)
-    );
+    const matching = index.entries.filter((e) => e.addressesPredictions.includes(predictionId));
 
     const results: TestRecord[] = [];
     const sessionIds = [...new Set(matching.map((e) => e.sessionId))];
 
     for (const sessionId of sessionIds) {
       const tests = await this.loadSessionTests(sessionId);
-      results.push(
-        ...tests.filter((t) =>
-          t.addressesPredictions?.includes(predictionId)
-        )
-      );
+      results.push(...tests.filter((t) => t.addressesPredictions?.includes(predictionId)));
     }
 
     return results;
@@ -613,9 +605,7 @@ export class TestStorage {
     for (const sessionId of sessionIds) {
       const tests = await this.loadSessionTests(sessionId);
       results.push(
-        ...tests.filter(
-          (t) => (t.potencyCheck?.positiveControl ?? "").trim().length < 10
-        )
+        ...tests.filter((t) => (t.potencyCheck?.positiveControl ?? "").trim().length < 10),
       );
     }
 
@@ -642,7 +632,7 @@ export class TestStorage {
             t.evidencePerWeekScore.speed +
             t.evidencePerWeekScore.ambiguity;
           return total >= 9;
-        })
+        }),
       );
     }
 
@@ -669,7 +659,7 @@ export class TestStorage {
             t.evidencePerWeekScore.speed +
             t.evidencePerWeekScore.ambiguity;
           return total <= 4;
-        })
+        }),
       );
     }
 

@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 /**
  * AnalyticsProvider - GA4 Client-Side Integration for BrennerBot
@@ -15,20 +15,20 @@
  *   <AnalyticsProvider>{children}</AnalyticsProvider>
  */
 
-import { useEffect, useRef, useCallback, Suspense, type ReactNode } from 'react';
-import Script from 'next/script';
-import { usePathname, useSearchParams } from 'next/navigation';
+import { usePathname, useSearchParams } from "next/navigation";
+import Script from "next/script";
+import { type ReactNode, Suspense, useCallback, useEffect, useRef } from "react";
 import {
-  GA_MEASUREMENT_ID,
-  trackScrollDepth,
-  trackTimeOnDocument,
-  trackDocumentExit,
-  trackSessionStart,
-  trackPagePerformance,
-  getOrCreateUserId,
-  trackSystemEvent,
   type DocumentType,
-} from '@/lib/analytics';
+  GA_MEASUREMENT_ID,
+  getOrCreateUserId,
+  trackDocumentExit,
+  trackPagePerformance,
+  trackScrollDepth,
+  trackSessionStart,
+  trackSystemEvent,
+  trackTimeOnDocument,
+} from "@/lib/analytics";
 
 // =============================================================================
 // Analytics Tracker Component (handles route changes)
@@ -60,25 +60,25 @@ function AnalyticsTracker() {
     if (!window.gtag) {
       window.gtag = ((...args: unknown[]) => {
         window.dataLayer.push(args);
-      }) as unknown as Window['gtag'];
+      }) as unknown as Window["gtag"];
     }
 
     // Initialize GA once
     if (!hasInitializedGa.current) {
-      window.gtag('js', new Date());
+      window.gtag("js", new Date());
 
       // Configure with custom dimensions mapping
-      window.gtag('config', gaId, {
-        cookie_flags: 'SameSite=None;Secure',
+      window.gtag("config", gaId, {
+        cookie_flags: "SameSite=None;Secure",
         send_page_view: false, // We'll send manually on route changes
         allow_google_signals: true,
         allow_ad_personalization_signals: false,
         custom_map: {
-          dimension1: 'document_type',
-          dimension2: 'document_id',
-          dimension3: 'tutorial_step',
-          dimension4: 'jargon_term',
-          dimension5: 'operator_id',
+          dimension1: "document_type",
+          dimension2: "document_id",
+          dimension3: "tutorial_step",
+          dimension4: "jargon_term",
+          dimension5: "operator_id",
         },
       });
 
@@ -89,8 +89,8 @@ function AnalyticsTracker() {
       getOrCreateUserId();
 
       // Track performance after page load
-      if (typeof window !== 'undefined') {
-        if (document.readyState === 'complete') {
+      if (typeof window !== "undefined") {
+        if (document.readyState === "complete") {
           // Page already loaded, track immediately
           setTimeout(trackPagePerformance, 100);
         } else {
@@ -98,18 +98,21 @@ function AnalyticsTracker() {
           loadHandler = () => {
             setTimeout(trackPagePerformance, 100);
           };
-          window.addEventListener('load', loadHandler, { once: true });
+          window.addEventListener("load", loadHandler, { once: true });
         }
       }
 
       if (!hasSentSystemSnapshot.current) {
-        const connection = (navigator as Navigator & {
-          connection?: { effectiveType?: string; downlink?: number; rtt?: number };
-        }).connection;
+        const connection = (
+          navigator as Navigator & {
+            connection?: { effectiveType?: string; downlink?: number; rtt?: number };
+          }
+        ).connection;
 
-        trackSystemEvent('client_capabilities', {
+        trackSystemEvent("client_capabilities", {
           hardware_threads: navigator.hardwareConcurrency ?? undefined,
-          device_memory_gb: (navigator as Navigator & { deviceMemory?: number }).deviceMemory ?? undefined,
+          device_memory_gb:
+            (navigator as Navigator & { deviceMemory?: number }).deviceMemory ?? undefined,
           connection_type: connection?.effectiveType,
           connection_downlink_mbps: connection?.downlink,
           connection_rtt_ms: connection?.rtt,
@@ -120,7 +123,7 @@ function AnalyticsTracker() {
 
     return () => {
       if (loadHandler) {
-        window.removeEventListener('load', loadHandler);
+        window.removeEventListener("load", loadHandler);
       }
     };
   }, [gaId]);
@@ -138,7 +141,7 @@ function AnalyticsTracker() {
     lastTimeCheckpoint.current = 0;
 
     // Send page view
-    window.gtag?.('event', 'page_view', {
+    window.gtag?.("event", "page_view", {
       page_path: pathname,
       page_location: window.location.href,
       page_title: document.title,
@@ -174,8 +177,8 @@ function AnalyticsTracker() {
   useEffect(() => {
     if (!gaId) return;
 
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
   }, [handleScroll, gaId]);
 
   // ==========================================================================
@@ -219,12 +222,12 @@ function AnalyticsTracker() {
       const timeSpent = Math.floor((Date.now() - pageStartTime.current) / 1000);
 
       if (document.hidden) {
-        window.gtag?.('event', 'page_hidden', {
+        window.gtag?.("event", "page_hidden", {
           page_path: pathname,
           time_spent_seconds: timeSpent,
         });
       } else {
-        window.gtag?.('event', 'page_visible', {
+        window.gtag?.("event", "page_visible", {
           page_path: pathname,
         });
       }
@@ -240,12 +243,12 @@ function AnalyticsTracker() {
       trackDocumentExit(docType, docId, timeSpent, maxScroll);
     };
 
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    window.addEventListener('beforeunload', handleBeforeUnload);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    window.addEventListener("beforeunload", handleBeforeUnload);
 
     return () => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-      window.removeEventListener('beforeunload', handleBeforeUnload);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      window.removeEventListener("beforeunload", handleBeforeUnload);
     };
   }, [pathname, gaId]);
 
@@ -260,16 +263,16 @@ function AnalyticsTracker() {
  * Determine document type from URL pathname
  */
 function getDocumentTypeFromPath(pathname: string): DocumentType {
-  if (pathname === '/') return 'landing';
-  if (pathname.startsWith('/corpus/transcript')) return 'transcript';
-  if (pathname.startsWith('/corpus/quotebank')) return 'quote_bank';
-  if (pathname.startsWith('/corpus')) return 'transcript';
-  if (pathname.startsWith('/distillations')) return 'distillation';
-  if (pathname.startsWith('/method')) return 'method';
-  if (pathname.startsWith('/operators')) return 'operators';
-  if (pathname.startsWith('/glossary')) return 'glossary';
-  if (pathname.startsWith('/sessions')) return 'session';
-  return 'landing';
+  if (pathname === "/") return "landing";
+  if (pathname.startsWith("/corpus/transcript")) return "transcript";
+  if (pathname.startsWith("/corpus/quotebank")) return "quote_bank";
+  if (pathname.startsWith("/corpus")) return "transcript";
+  if (pathname.startsWith("/distillations")) return "distillation";
+  if (pathname.startsWith("/method")) return "method";
+  if (pathname.startsWith("/operators")) return "operators";
+  if (pathname.startsWith("/glossary")) return "glossary";
+  if (pathname.startsWith("/sessions")) return "session";
+  return "landing";
 }
 
 /**
@@ -277,7 +280,7 @@ function getDocumentTypeFromPath(pathname: string): DocumentType {
  */
 function getDocumentIdFromPath(pathname: string): string {
   // Extract meaningful ID from path
-  const segments = pathname.split('/').filter(Boolean);
+  const segments = pathname.split("/").filter(Boolean);
 
   if (segments.length >= 2) {
     // e.g., /corpus/transcript -> 'transcript'
@@ -285,7 +288,7 @@ function getDocumentIdFromPath(pathname: string): string {
     return segments[segments.length - 1];
   }
 
-  return segments[0] || 'home';
+  return segments[0] || "home";
 }
 
 // =============================================================================

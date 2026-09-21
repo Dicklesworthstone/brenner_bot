@@ -4,21 +4,21 @@
  * @see brenner_bot-ukd1.4 - FEATURE: Domain Templates
  */
 
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
 import {
-  DOMAIN_TEMPLATES,
-  getDomainTemplate,
-  listDomainOptions,
-  getDomainConfounds,
-  getDomainQuoteTags,
-  psychologyTemplate,
-  epidemiologyTemplate,
-  economicsTemplate,
   biologyMedicineTemplate,
   computerScienceTemplate,
+  DOMAIN_TEMPLATES,
+  economicsTemplate,
+  epidemiologyTemplate,
+  getDomainConfounds,
+  getDomainQuoteTags,
+  getDomainTemplate,
+  listDomainOptions,
   neuroscienceTemplate,
+  psychologyTemplate,
 } from "./index";
-import type { DomainId, DomainConfound } from "./types";
+import type { DomainConfound, DomainId } from "./types";
 
 // ============================================================================
 // Template Registry Tests
@@ -250,8 +250,9 @@ describe("neuroscienceTemplate", () => {
 // ============================================================================
 
 describe("DomainConfound structure", () => {
-  const allConfounds: DomainConfound[] = Object.values(DOMAIN_TEMPLATES)
-    .flatMap((t) => t.confoundLibrary);
+  const allConfounds: DomainConfound[] = Object.values(DOMAIN_TEMPLATES).flatMap(
+    (t) => t.confoundLibrary,
+  );
 
   it("all confounds have valid structure", () => {
     for (const confound of allConfounds) {
@@ -283,8 +284,7 @@ describe("DomainConfound structure", () => {
 // ============================================================================
 
 describe("ResearchDesign structure", () => {
-  const allDesigns = Object.values(DOMAIN_TEMPLATES)
-    .flatMap((t) => t.researchDesigns);
+  const allDesigns = Object.values(DOMAIN_TEMPLATES).flatMap((t) => t.researchDesigns);
 
   it("all designs have valid structure", () => {
     for (const design of allDesigns) {

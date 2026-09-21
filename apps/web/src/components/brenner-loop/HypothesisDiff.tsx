@@ -9,13 +9,10 @@
  */
 
 import * as React from "react";
-import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
+import { buildComparisonResults, type ComparisonField } from "@/lib/brenner-loop/comparison";
 import type { HypothesisCard } from "@/lib/brenner-loop/hypothesis";
-import {
-  buildComparisonResults,
-  type ComparisonField,
-} from "@/lib/brenner-loop/comparison";
+import { cn } from "@/lib/utils";
 
 export interface HypothesisDiffProps {
   hypothesisA: HypothesisCard;
@@ -57,10 +54,15 @@ function renderValue(value: string) {
   );
 }
 
-export function HypothesisDiff({ hypothesisA, hypothesisB, fields, className }: HypothesisDiffProps) {
+export function HypothesisDiff({
+  hypothesisA,
+  hypothesisB,
+  fields,
+  className,
+}: HypothesisDiffProps) {
   const results = React.useMemo(
     () => buildComparisonResults(hypothesisA, hypothesisB, fields),
-    [hypothesisA, hypothesisB, fields]
+    [hypothesisA, hypothesisB, fields],
   );
 
   return (
@@ -70,7 +72,7 @@ export function HypothesisDiff({ hypothesisA, hypothesisB, fields, className }: 
           key={result.field}
           className={cn(
             "rounded-xl border bg-card shadow-sm",
-            result.isConflicting && "border-orange-500/40"
+            result.isConflicting && "border-orange-500/40",
           )}
         >
           <div className="flex items-center justify-between border-b px-4 py-3">

@@ -9,8 +9,8 @@
 
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, it, vi } from "vitest";
 import type { ReactNode } from "react";
+import { describe, expect, it, vi } from "vitest";
 import { CrosswalkTable } from "./CrosswalkTable";
 
 vi.mock("next/link", () => ({
@@ -22,8 +22,10 @@ vi.mock("next/link", () => ({
 }));
 
 function getConceptColumn(container: HTMLElement): string[] {
-  const cells = container.querySelectorAll("tbody tr td[role=\"gridcell\"]:first-child");
-  return Array.from(cells).map((cell) => (cell.textContent ?? "").trim()).filter(Boolean);
+  const cells = container.querySelectorAll('tbody tr td[role="gridcell"]:first-child');
+  return Array.from(cells)
+    .map((cell) => (cell.textContent ?? "").trim())
+    .filter(Boolean);
 }
 
 describe("CrosswalkTable", () => {
@@ -58,4 +60,3 @@ describe("CrosswalkTable", () => {
     expect(getConceptColumn(container)[0]).toBe("Social");
   });
 });
-

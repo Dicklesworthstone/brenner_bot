@@ -8,31 +8,31 @@
 
 import { describe, expect, test } from "vitest";
 import {
+  type AnomalyItem,
+  type ArtifactMetadata,
+  type AssumptionItem,
+  type CritiqueItem,
   createEmptyArtifact,
   createInterventionMetadata,
   extractReferences,
   formatLintReportHuman,
   formatLintReportJson,
+  type HypothesisItem,
   lintArtifact,
   mergeArtifact,
   mergeArtifactWithTimestamps,
-  renderArtifactMarkdown,
+  type PredictionItem,
   type Reference,
   type ReferenceRelation,
   type ResearchThreadItem,
-  type HypothesisItem,
-  type PredictionItem,
+  renderArtifactMarkdown,
   type TestItem,
-  type AssumptionItem,
-  type AnomalyItem,
-  type CritiqueItem,
-  type ArtifactMetadata,
 } from "./artifact-merge";
+import type { DeltaSection, ValidDelta } from "./delta-parser";
 import {
   createEmptyInterventionSummary,
   type InterventionSummary,
 } from "./schemas/operator-intervention";
-import { type ValidDelta, type DeltaSection } from "./delta-parser";
 
 // ============================================================================
 // Test Helpers
@@ -347,7 +347,10 @@ describe("EDIT operations", () => {
     expect(afterAdd.ok).toBe(true);
     if (!afterAdd.ok) return;
 
-    const payload = JSON.parse('{"__proto__":{"polluted":true},"claim":"Updated claim"}') as Record<string, unknown>;
+    const payload = JSON.parse('{"__proto__":{"polluted":true},"claim":"Updated claim"}') as Record<
+      string,
+      unknown
+    >;
     const editDelta = makeValidDelta("EDIT", "hypothesis_slate", "H1", payload);
 
     const result = mergeArtifact(afterAdd.artifact, [editDelta], "Agent2", "2025-01-01T00:01:00Z");
@@ -384,7 +387,9 @@ describe("EDIT operations", () => {
 
   test("ignores forbidden payload keys on research_thread (prototype pollution)", () => {
     const artifact = createEmptyArtifact("TEST-001");
-    const payload = JSON.parse('{"__proto__":{"polluted":true},"statement":"What is X?","context":"Background","why_it_matters":"Important"}') as Record<string, unknown>;
+    const payload = JSON.parse(
+      '{"__proto__":{"polluted":true},"statement":"What is X?","context":"Background","why_it_matters":"Important"}',
+    ) as Record<string, unknown>;
     const delta = makeValidDelta("EDIT", "research_thread", null, payload);
 
     const result = mergeArtifact(artifact, [delta], "TestAgent", "2025-01-01T00:00:00Z");
@@ -394,7 +399,10 @@ describe("EDIT operations", () => {
 
     expect(result.warnings.some((w) => w.code === "FORBIDDEN_PAYLOAD_KEY")).toBe(true);
 
-    const rt = result.artifact.sections.research_thread as unknown as Record<string, unknown> | null;
+    const rt = result.artifact.sections.research_thread as unknown as Record<
+      string,
+      unknown
+    > | null;
     expect(rt).not.toBeNull();
     if (!rt) return;
 
@@ -443,7 +451,12 @@ describe("EDIT operations", () => {
       anchors: ["§2", "§3"],
     });
 
-    const afterMerge = mergeArtifact(afterCreate.artifact, [mergeAnchors], "Agent2", "2025-01-01T00:01:00Z");
+    const afterMerge = mergeArtifact(
+      afterCreate.artifact,
+      [mergeAnchors],
+      "Agent2",
+      "2025-01-01T00:01:00Z",
+    );
     expect(afterMerge.ok).toBe(true);
     if (!afterMerge.ok) return;
 
@@ -454,7 +467,12 @@ describe("EDIT operations", () => {
       replace: true,
     });
 
-    const afterReplace = mergeArtifact(afterMerge.artifact, [replaceAnchors], "Agent3", "2025-01-01T00:02:00Z");
+    const afterReplace = mergeArtifact(
+      afterMerge.artifact,
+      [replaceAnchors],
+      "Agent3",
+      "2025-01-01T00:02:00Z",
+    );
     expect(afterReplace.ok).toBe(true);
     if (!afterReplace.ok) return;
 
@@ -475,7 +493,12 @@ describe("EDIT operations", () => {
       }),
     };
 
-    const afterBad = mergeArtifact(afterReplace.artifact, [badAnchors], "Agent4", "2025-01-01T00:03:00Z");
+    const afterBad = mergeArtifact(
+      afterReplace.artifact,
+      [badAnchors],
+      "Agent4",
+      "2025-01-01T00:03:00Z",
+    );
     expect(afterBad.ok).toBe(true);
     if (!afterBad.ok) return;
 
@@ -599,7 +622,12 @@ describe("KILL operations", () => {
     const killDelta1 = makeValidDelta("KILL", "hypothesis_slate", "H1", { reason: "First" });
     const killDelta2 = makeValidDelta("KILL", "hypothesis_slate", "H1", { reason: "Second" });
 
-    const result = mergeArtifact(afterAdd.artifact, [killDelta1, killDelta2], "Agent2", "2025-01-01T00:01:00Z");
+    const result = mergeArtifact(
+      afterAdd.artifact,
+      [killDelta1, killDelta2],
+      "Agent2",
+      "2025-01-01T00:01:00Z",
+    );
 
     expect(result.ok).toBe(true);
     if (!result.ok) return;
@@ -623,7 +651,12 @@ describe("KILL operations", () => {
     const killDelta = makeValidDelta("KILL", "hypothesis_slate", "H1", { reason: "Done" });
     const editDelta = makeValidDelta("EDIT", "hypothesis_slate", "H1", { claim: "Updated" });
 
-    const result = mergeArtifact(afterAdd.artifact, [killDelta, editDelta], "Agent2", "2025-01-01T00:01:00Z");
+    const result = mergeArtifact(
+      afterAdd.artifact,
+      [killDelta, editDelta],
+      "Agent2",
+      "2025-01-01T00:01:00Z",
+    );
 
     expect(result.ok).toBe(true);
     if (!result.ok) return;
@@ -669,8 +702,18 @@ describe("KILL operations", () => {
         test: "T1",
         scale_check: true,
       }),
-      makeValidDelta("ADD", "assumption_ledger", null, { name: "A2", statement: "S2", load: "L2", test: "T2" }),
-      makeValidDelta("ADD", "assumption_ledger", null, { name: "A3", statement: "S3", load: "L3", test: "T3" }),
+      makeValidDelta("ADD", "assumption_ledger", null, {
+        name: "A2",
+        statement: "S2",
+        load: "L2",
+        test: "T2",
+      }),
+      makeValidDelta("ADD", "assumption_ledger", null, {
+        name: "A3",
+        statement: "S3",
+        load: "L3",
+        test: "T3",
+      }),
     ];
 
     const afterAdd = mergeArtifact(artifact, deltas, "Agent1", "2025-01-01T00:00:00Z");
@@ -695,7 +738,12 @@ describe("KILL operations", () => {
       target_id: "RT",
       payload: { reason: "Nope" },
       rationale: "test",
-      raw: JSON.stringify({ operation: "KILL", section: "research_thread", target_id: "RT", payload: { reason: "Nope" } }),
+      raw: JSON.stringify({
+        operation: "KILL",
+        section: "research_thread",
+        target_id: "RT",
+        payload: { reason: "Nope" },
+      }),
     };
 
     const result = mergeArtifact(artifact, [delta], "Agent1", "2025-01-01T00:00:00Z");
@@ -714,7 +762,12 @@ describe("KILL operations", () => {
       target_id: null,
       payload: { reason: "No target" },
       rationale: "test",
-      raw: JSON.stringify({ operation: "KILL", section: "hypothesis_slate", target_id: null, payload: { reason: "No target" } }),
+      raw: JSON.stringify({
+        operation: "KILL",
+        section: "hypothesis_slate",
+        target_id: null,
+        payload: { reason: "No target" },
+      }),
     };
 
     const result = mergeArtifact(artifact, [delta], "Agent1", "2025-01-01T00:00:00Z");
@@ -752,7 +805,9 @@ describe("KILL operations", () => {
     expect(afterAdd.ok).toBe(true);
     if (!afterAdd.ok) return;
 
-    const killH1 = makeValidDelta("KILL", "hypothesis_slate", "H1", { reason: 123 as unknown as string });
+    const killH1 = makeValidDelta("KILL", "hypothesis_slate", "H1", {
+      reason: 123 as unknown as string,
+    });
     const result = mergeArtifact(afterAdd.artifact, [killH1], "Agent2", "2025-01-01T00:01:00Z");
 
     expect(result.ok).toBe(true);
@@ -772,8 +827,18 @@ describe("KILL operations", () => {
         test: "T1",
         scale_check: true,
       }),
-      makeValidDelta("ADD", "assumption_ledger", null, { name: "A2", statement: "S2", load: "L2", test: "T2" }),
-      makeValidDelta("ADD", "assumption_ledger", null, { name: "A3", statement: "S3", load: "L3", test: "T3" }),
+      makeValidDelta("ADD", "assumption_ledger", null, {
+        name: "A2",
+        statement: "S2",
+        load: "L2",
+        test: "T2",
+      }),
+      makeValidDelta("ADD", "assumption_ledger", null, {
+        name: "A3",
+        statement: "S3",
+        load: "L3",
+        test: "T3",
+      }),
     ];
 
     const afterAdd = mergeArtifact(artifact, deltas, "Agent1", "2025-01-01T00:00:00Z");
@@ -834,8 +899,12 @@ describe("Deterministic merging", () => {
     expect(result2.artifact.sections.hypothesis_slate[1].name).toBe("From Agent2");
 
     // IDs should be identical
-    expect(result1.artifact.sections.hypothesis_slate[0].id).toBe(result2.artifact.sections.hypothesis_slate[0].id);
-    expect(result1.artifact.sections.hypothesis_slate[1].id).toBe(result2.artifact.sections.hypothesis_slate[1].id);
+    expect(result1.artifact.sections.hypothesis_slate[0].id).toBe(
+      result2.artifact.sections.hypothesis_slate[0].id,
+    );
+    expect(result1.artifact.sections.hypothesis_slate[1].id).toBe(
+      result2.artifact.sections.hypothesis_slate[1].id,
+    );
   });
 
   test("concurrent edits resolved by timestamp (last-write-wins)", () => {
@@ -974,7 +1043,12 @@ describe("Test ranking by score", () => {
     });
 
     // Add low score first, then high score
-    const result = mergeArtifact(artifact, [lowScore, highScore], "TestAgent", "2025-01-01T00:00:00Z");
+    const result = mergeArtifact(
+      artifact,
+      [lowScore, highScore],
+      "TestAgent",
+      "2025-01-01T00:00:00Z",
+    );
 
     expect(result.ok).toBe(true);
     if (!result.ok) return;
@@ -1301,7 +1375,14 @@ describe("lintArtifact (legacy checks)", () => {
     ];
 
     artifact.sections.adversarial_critique = [
-      { id: "C1", name: "C1", attack: "A", evidence: "E", current_status: "active", real_third_alternative: true },
+      {
+        id: "C1",
+        name: "C1",
+        attack: "A",
+        evidence: "E",
+        current_status: "active",
+        real_third_alternative: true,
+      },
       { id: "C2", name: "C2", attack: "A", evidence: "E", current_status: "active" },
     ];
 
@@ -1326,7 +1407,13 @@ describe("lintArtifact (legacy checks)", () => {
     artifact.sections.hypothesis_slate = [
       { id: "H1", name: "H1", claim: "A", mechanism: "M", anchors: ["§1"] },
       { id: "H2", name: "H2", claim: "B", mechanism: "M", anchors: ["§1"] },
-      { id: "H3", name: "Third alternative", claim: "Both could be wrong", mechanism: "Misspecification", anchors: ["§1"] },
+      {
+        id: "H3",
+        name: "Third alternative",
+        claim: "Both could be wrong",
+        mechanism: "Misspecification",
+        anchors: ["§1"],
+      },
     ];
 
     artifact.sections.predictions_table = [
@@ -1357,13 +1444,28 @@ describe("lintArtifact (legacy checks)", () => {
     ];
 
     artifact.sections.assumption_ledger = [
-      { id: "A1", name: "A1", statement: "S1", load: "L1", test: "T1", scale_check: true, calculation: "1e2" },
+      {
+        id: "A1",
+        name: "A1",
+        statement: "S1",
+        load: "L1",
+        test: "T1",
+        scale_check: true,
+        calculation: "1e2",
+      },
       { id: "A2", name: "A2", statement: "S2", load: "L2", test: "T2" },
       { id: "A3", name: "A3", statement: "S3", load: "L3", test: "T3" },
     ];
 
     artifact.sections.adversarial_critique = [
-      { id: "C1", name: "C1", attack: "A", evidence: "E", current_status: "active", real_third_alternative: true },
+      {
+        id: "C1",
+        name: "C1",
+        attack: "A",
+        evidence: "E",
+        current_status: "active",
+        real_third_alternative: true,
+      },
       { id: "C2", name: "C2", attack: "A", evidence: "E", current_status: "active" },
     ];
 
@@ -1449,8 +1551,25 @@ describe("artifact-merge additional coverage", () => {
     };
 
     artifact.sections.hypothesis_slate = [
-      { id: "H1", name: "H1", claim: "C", mechanism: "M", anchors: ["§2"], killed: true, killed_by: "Agent", killed_at: "t", kill_reason: "r" },
-      { id: "HXYZ", name: "Third Alternative", claim: "Both wrong", mechanism: "?", anchors: ["inference"], third_alternative: true },
+      {
+        id: "H1",
+        name: "H1",
+        claim: "C",
+        mechanism: "M",
+        anchors: ["§2"],
+        killed: true,
+        killed_by: "Agent",
+        killed_at: "t",
+        kill_reason: "r",
+      },
+      {
+        id: "HXYZ",
+        name: "Third Alternative",
+        claim: "Both wrong",
+        mechanism: "?",
+        anchors: ["inference"],
+        third_alternative: true,
+      },
     ] as unknown as HypothesisItem[];
 
     artifact.sections.predictions_table = [
@@ -1481,15 +1600,37 @@ describe("artifact-merge additional coverage", () => {
     ] as unknown as TestItem[];
 
     artifact.sections.anomaly_register = [
-      { id: "X1", name: "Anomaly", observation: "Obs", conflicts_with: ["H1"], status: "active", resolution_plan: "Plan" },
+      {
+        id: "X1",
+        name: "Anomaly",
+        observation: "Obs",
+        conflicts_with: ["H1"],
+        status: "active",
+        resolution_plan: "Plan",
+      },
     ] as unknown as AnomalyItem[];
 
     artifact.sections.assumption_ledger = [
-      { id: "A1", name: "A1", statement: "S", load: "L", test: "T", scale_check: true, calculation: "1e3" },
+      {
+        id: "A1",
+        name: "A1",
+        statement: "S",
+        load: "L",
+        test: "T",
+        scale_check: true,
+        calculation: "1e3",
+      },
     ] as unknown as AssumptionItem[];
 
     artifact.sections.adversarial_critique = [
-      { id: "C1", name: "C1", attack: "Attack", evidence: "Evidence", current_status: "active", real_third_alternative: true },
+      {
+        id: "C1",
+        name: "C1",
+        attack: "Attack",
+        evidence: "Evidence",
+        current_status: "active",
+        real_third_alternative: true,
+      },
     ] as unknown as CritiqueItem[];
 
     const md = renderArtifactMarkdown(artifact);
@@ -1520,13 +1661,55 @@ describe("artifact-merge additional coverage", () => {
     };
 
     artifact.sections.hypothesis_slate = [
-      { id: "H1", name: "H1", claim: "", mechanism: "M", anchors: ["§999"], unresolvedCritiqueCount: 0 },
-      { id: "H2", name: "H2", claim: "C", mechanism: "M", anchors: ["[inference]"], unresolvedCritiqueCount: 0 },
+      {
+        id: "H1",
+        name: "H1",
+        claim: "",
+        mechanism: "M",
+        anchors: ["§999"],
+        unresolvedCritiqueCount: 0,
+      },
+      {
+        id: "H2",
+        name: "H2",
+        claim: "C",
+        mechanism: "M",
+        anchors: ["[inference]"],
+        unresolvedCritiqueCount: 0,
+      },
       { id: "H3", name: "H3", claim: "C", mechanism: "M", anchors: [], unresolvedCritiqueCount: 0 },
-      { id: "H4", name: "H4", claim: "C", mechanism: "M", anchors: ["§1"], unresolvedCritiqueCount: 0 },
-      { id: "H5", name: "H5", claim: "C", mechanism: "M", anchors: ["§1"], unresolvedCritiqueCount: 0 },
-      { id: "H6", name: "H6", claim: "C", mechanism: "M", anchors: ["§1"], unresolvedCritiqueCount: 0 },
-      { id: "H7", name: "H7", claim: "C", mechanism: "M", anchors: ["§1"], unresolvedCritiqueCount: 0 },
+      {
+        id: "H4",
+        name: "H4",
+        claim: "C",
+        mechanism: "M",
+        anchors: ["§1"],
+        unresolvedCritiqueCount: 0,
+      },
+      {
+        id: "H5",
+        name: "H5",
+        claim: "C",
+        mechanism: "M",
+        anchors: ["§1"],
+        unresolvedCritiqueCount: 0,
+      },
+      {
+        id: "H6",
+        name: "H6",
+        claim: "C",
+        mechanism: "M",
+        anchors: ["§1"],
+        unresolvedCritiqueCount: 0,
+      },
+      {
+        id: "H7",
+        name: "H7",
+        claim: "C",
+        mechanism: "M",
+        anchors: ["§1"],
+        unresolvedCritiqueCount: 0,
+      },
     ] as unknown as HypothesisItem[];
 
     artifact.sections.predictions_table = [
@@ -1534,13 +1717,45 @@ describe("artifact-merge additional coverage", () => {
     ] as unknown as PredictionItem[];
 
     artifact.sections.discriminative_tests = [
-      { id: "T1", name: "T1", procedure: "", discriminates: "", expected_outcomes: {}, potency_check: "", score: undefined },
-      { id: "T2", name: "T2", procedure: "P", discriminates: "H1 vs H2", expected_outcomes: { H1: "X" }, potency_check: "Has potency but no §50", score: { likelihood_ratio: 3, cost: 3, speed: 3, ambiguity: 3 } },
-      { id: "T3", name: "T3", procedure: "P", discriminates: "H1 vs H2", expected_outcomes: { H1: "X" }, potency_check: "Has potency but no §50", score: { likelihood_ratio: 1, cost: 1, speed: 1, ambiguity: 1 } },
+      {
+        id: "T1",
+        name: "T1",
+        procedure: "",
+        discriminates: "",
+        expected_outcomes: {},
+        potency_check: "",
+        score: undefined,
+      },
+      {
+        id: "T2",
+        name: "T2",
+        procedure: "P",
+        discriminates: "H1 vs H2",
+        expected_outcomes: { H1: "X" },
+        potency_check: "Has potency but no §50",
+        score: { likelihood_ratio: 3, cost: 3, speed: 3, ambiguity: 3 },
+      },
+      {
+        id: "T3",
+        name: "T3",
+        procedure: "P",
+        discriminates: "H1 vs H2",
+        expected_outcomes: { H1: "X" },
+        potency_check: "Has potency but no §50",
+        score: { likelihood_ratio: 1, cost: 1, speed: 1, ambiguity: 1 },
+      },
     ] as unknown as TestItem[];
 
     artifact.sections.assumption_ledger = [
-      { id: "A1", name: "A1", statement: "", load: "L", test: "T", scale_check: true, calculation: "" },
+      {
+        id: "A1",
+        name: "A1",
+        statement: "",
+        load: "L",
+        test: "T",
+        scale_check: true,
+        calculation: "",
+      },
       { id: "A2", name: "A2", statement: "S", load: "L", test: "T" },
       { id: "A3", name: "A3", statement: "S", load: "L", test: "T" },
     ] as unknown as AssumptionItem[];
@@ -1679,33 +1894,61 @@ describe("diffArtifacts", () => {
     const v1 = createEmptyArtifact("TEST-DIFF");
     v1.metadata.version = 1;
     v1.sections.adversarial_critique = [
-      { id: "C1", name: "Missing potency check", attack: "No control", evidence: "T1 lacks control", current_status: "active" },
+      {
+        id: "C1",
+        name: "Missing potency check",
+        attack: "No control",
+        evidence: "T1 lacks control",
+        current_status: "active",
+      },
     ];
 
     const v2 = createEmptyArtifact("TEST-DIFF");
     v2.metadata.version = 2;
     v2.sections.adversarial_critique = [
-      { id: "C1", name: "Missing potency check", attack: "No control", evidence: "T1 lacks control", current_status: "resolved - addressed by T1 edit" },
+      {
+        id: "C1",
+        name: "Missing potency check",
+        attack: "No control",
+        evidence: "T1 lacks control",
+        current_status: "resolved - addressed by T1 edit",
+      },
     ];
 
     const diff = diffArtifacts(v1, v2);
 
     expect(diff.changes.adversarial_critique.resolved).toHaveLength(1);
     expect(diff.changes.adversarial_critique.resolved[0].id).toBe("C1");
-    expect(diff.changes.adversarial_critique.resolved[0].resolution).toBe("resolved - addressed by T1 edit");
+    expect(diff.changes.adversarial_critique.resolved[0].resolution).toBe(
+      "resolved - addressed by T1 edit",
+    );
   });
 
   test("detects assumption status changes (challenged)", () => {
     const v1 = createEmptyArtifact("TEST-DIFF");
     v1.metadata.version = 1;
     v1.sections.assumption_ledger = [
-      { id: "A1", name: "Stable chromatin", statement: "Cells have stable chromatin", load: "If false, mechanism breaks", test: "Check inheritance", status: "unchecked" },
+      {
+        id: "A1",
+        name: "Stable chromatin",
+        statement: "Cells have stable chromatin",
+        load: "If false, mechanism breaks",
+        test: "Check inheritance",
+        status: "unchecked",
+      },
     ];
 
     const v2 = createEmptyArtifact("TEST-DIFF");
     v2.metadata.version = 2;
     v2.sections.assumption_ledger = [
-      { id: "A1", name: "Stable chromatin", statement: "Cells have stable chromatin", load: "If false, mechanism breaks", test: "Check inheritance", status: "falsified" },
+      {
+        id: "A1",
+        name: "Stable chromatin",
+        statement: "Cells have stable chromatin",
+        load: "If false, mechanism breaks",
+        test: "Check inheritance",
+        status: "falsified",
+      },
     ];
 
     const diff = diffArtifacts(v1, v2);
@@ -1749,7 +1992,14 @@ describe("diffArtifacts", () => {
     const v2 = createEmptyArtifact("TEST-DIFF");
     v2.metadata.version = 2;
     v2.sections.anomaly_register = [
-      { id: "X1", name: "Anomaly", observation: "Obs", conflicts_with: [], status: "resolved", resolution_plan: "Promoted to new hypothesis" },
+      {
+        id: "X1",
+        name: "Anomaly",
+        observation: "Obs",
+        conflicts_with: [],
+        status: "resolved",
+        resolution_plan: "Promoted to new hypothesis",
+      },
     ];
 
     const diff = diffArtifacts(v1, v2);
@@ -1784,8 +2034,22 @@ describe("diffArtifacts", () => {
     ];
     // Add multiple tests
     v2.sections.discriminative_tests = [
-      { id: "T1", name: "T1", procedure: "P", discriminates: "H1", expected_outcomes: {}, potency_check: "PC" },
-      { id: "T2", name: "T2", procedure: "P", discriminates: "H1", expected_outcomes: {}, potency_check: "PC" },
+      {
+        id: "T1",
+        name: "T1",
+        procedure: "P",
+        discriminates: "H1",
+        expected_outcomes: {},
+        potency_check: "PC",
+      },
+      {
+        id: "T2",
+        name: "T2",
+        procedure: "P",
+        discriminates: "H1",
+        expected_outcomes: {},
+        potency_check: "PC",
+      },
     ];
     // Resolve multiple critiques
     v2.sections.adversarial_critique = [
@@ -1794,7 +2058,14 @@ describe("diffArtifacts", () => {
     ];
     // Resolve anomaly
     v2.sections.anomaly_register = [
-      { id: "X1", name: "Anomaly", observation: "Obs", conflicts_with: [], status: "resolved", resolution_plan: "Explained" },
+      {
+        id: "X1",
+        name: "Anomaly",
+        observation: "Obs",
+        conflicts_with: [],
+        status: "resolved",
+        resolution_plan: "Explained",
+      },
     ];
 
     const diff = diffArtifacts(v1, v2);
@@ -1814,9 +2085,7 @@ describe("diffArtifacts", () => {
     const v2 = createEmptyArtifact("TEST-DIFF");
     v2.metadata.version = 2;
     // H2 is completely gone (not killed, just removed)
-    v2.sections.hypothesis_slate = [
-      { id: "H1", name: "H1", claim: "C1", mechanism: "M1" },
-    ];
+    v2.sections.hypothesis_slate = [{ id: "H1", name: "H1", claim: "C1", mechanism: "M1" }];
 
     const diff = diffArtifacts(v1, v2);
 
@@ -1854,8 +2123,22 @@ describe("formatDiffHuman", () => {
     ];
     // Add multiple tests
     v2.sections.discriminative_tests = [
-      { id: "T1", name: "T1", procedure: "P", discriminates: "H1", expected_outcomes: {}, potency_check: "PC" },
-      { id: "T2", name: "T2", procedure: "P", discriminates: "H1", expected_outcomes: {}, potency_check: "PC" },
+      {
+        id: "T1",
+        name: "T1",
+        procedure: "P",
+        discriminates: "H1",
+        expected_outcomes: {},
+        potency_check: "PC",
+      },
+      {
+        id: "T2",
+        name: "T2",
+        procedure: "P",
+        discriminates: "H1",
+        expected_outcomes: {},
+        potency_check: "PC",
+      },
     ];
     // Resolve multiple critiques
     v2.sections.adversarial_critique = [
@@ -1864,7 +2147,14 @@ describe("formatDiffHuman", () => {
     ];
     // Resolve anomaly
     v2.sections.anomaly_register = [
-      { id: "X1", name: "Anomaly", observation: "Obs", conflicts_with: [], status: "resolved", resolution_plan: "Explained by H3" },
+      {
+        id: "X1",
+        name: "Anomaly",
+        observation: "Obs",
+        conflicts_with: [],
+        status: "resolved",
+        resolution_plan: "Explained by H3",
+      },
       { id: "X2", name: "Anomaly2", observation: "Obs2", conflicts_with: [], status: "deferred" },
     ];
 
@@ -1892,12 +2182,24 @@ describe("formatDiffHuman", () => {
 
     const v2 = createEmptyArtifact("TEST-PLURAL");
     v2.metadata.version = 2;
-    v2.sections.hypothesis_slate = [
-      { id: "H1", name: "H1", claim: "C", mechanism: "M" },
-    ];
+    v2.sections.hypothesis_slate = [{ id: "H1", name: "H1", claim: "C", mechanism: "M" }];
     v2.sections.discriminative_tests = [
-      { id: "T1", name: "T1", procedure: "P", discriminates: "H1", expected_outcomes: {}, potency_check: "PC" },
-      { id: "T2", name: "T2", procedure: "P", discriminates: "H1", expected_outcomes: {}, potency_check: "PC" },
+      {
+        id: "T1",
+        name: "T1",
+        procedure: "P",
+        discriminates: "H1",
+        expected_outcomes: {},
+        potency_check: "PC",
+      },
+      {
+        id: "T2",
+        name: "T2",
+        procedure: "P",
+        discriminates: "H1",
+        expected_outcomes: {},
+        potency_check: "PC",
+      },
     ];
 
     const diff = diffArtifacts(v1, v2);
@@ -1961,7 +2263,14 @@ describe("formatDiffHuman", () => {
     const v2 = createEmptyArtifact("TEST-ANOMALY-SUMMARY");
     v2.metadata.version = 2;
     v2.sections.anomaly_register = [
-      { id: "X1", name: "Anomaly1", observation: "Obs", conflicts_with: [], status: "resolved", resolution_plan: "Explained" },
+      {
+        id: "X1",
+        name: "Anomaly1",
+        observation: "Obs",
+        conflicts_with: [],
+        status: "resolved",
+        resolution_plan: "Explained",
+      },
       { id: "X2", name: "Anomaly2", observation: "Obs", conflicts_with: [], status: "deferred" },
     ];
 
@@ -1981,7 +2290,14 @@ describe("formatDiffHuman", () => {
     const v2 = createEmptyArtifact("TEST-ANOMALY-SINGLE");
     v2.metadata.version = 2;
     v2.sections.anomaly_register = [
-      { id: "X1", name: "Anomaly1", observation: "Obs", conflicts_with: [], status: "resolved", resolution_plan: "Explained" },
+      {
+        id: "X1",
+        name: "Anomaly1",
+        observation: "Obs",
+        conflicts_with: [],
+        status: "resolved",
+        resolution_plan: "Explained",
+      },
     ];
 
     const diff = diffArtifacts(v1, v2);
@@ -1998,9 +2314,7 @@ describe("formatDiffJson", () => {
 
     const v2 = createEmptyArtifact("TEST-JSON");
     v2.metadata.version = 2;
-    v2.sections.hypothesis_slate = [
-      { id: "H1", name: "H1", claim: "C", mechanism: "M" },
-    ];
+    v2.sections.hypothesis_slate = [{ id: "H1", name: "H1", claim: "C", mechanism: "M" }];
 
     const diff = diffArtifacts(v1, v2);
     const json = formatDiffJson(diff);
@@ -2065,7 +2379,14 @@ describe("diffArtifacts edge cases", () => {
     const v2 = createEmptyArtifact("TEST-ANOMALY-RESOLVED");
     v2.metadata.version = 2;
     v2.sections.anomaly_register = [
-      { id: "X1", name: "Anomaly", observation: "Obs", conflicts_with: [], status: "resolved", resolution_plan: "Measurement error - dismissed" },
+      {
+        id: "X1",
+        name: "Anomaly",
+        observation: "Obs",
+        conflicts_with: [],
+        status: "resolved",
+        resolution_plan: "Measurement error - dismissed",
+      },
     ];
 
     const diff = diffArtifacts(v1, v2);
@@ -2077,13 +2398,29 @@ describe("diffArtifacts edge cases", () => {
     const v1 = createEmptyArtifact("TEST-KILLED-TEST");
     v1.metadata.version = 1;
     v1.sections.discriminative_tests = [
-      { id: "T1", name: "Test 1", procedure: "P", discriminates: "H1", expected_outcomes: {}, potency_check: "PC" },
+      {
+        id: "T1",
+        name: "Test 1",
+        procedure: "P",
+        discriminates: "H1",
+        expected_outcomes: {},
+        potency_check: "PC",
+      },
     ];
 
     const v2 = createEmptyArtifact("TEST-KILLED-TEST");
     v2.metadata.version = 2;
     v2.sections.discriminative_tests = [
-      { id: "T1", name: "Test 1", procedure: "P", discriminates: "H1", expected_outcomes: {}, potency_check: "PC", killed: true, kill_reason: "Obsolete" },
+      {
+        id: "T1",
+        name: "Test 1",
+        procedure: "P",
+        discriminates: "H1",
+        expected_outcomes: {},
+        potency_check: "PC",
+        killed: true,
+        kill_reason: "Obsolete",
+      },
     ];
 
     const diff = diffArtifacts(v1, v2);
@@ -2101,7 +2438,15 @@ describe("diffArtifacts edge cases", () => {
     const v2 = createEmptyArtifact("TEST-KILLED-ASSUMPTION");
     v2.metadata.version = 2;
     v2.sections.assumption_ledger = [
-      { id: "A1", name: "Assumption", statement: "S", load: "L", test: "T", killed: true, kill_reason: "Invalid" },
+      {
+        id: "A1",
+        name: "Assumption",
+        statement: "S",
+        load: "L",
+        test: "T",
+        killed: true,
+        kill_reason: "Invalid",
+      },
     ];
 
     const diff = diffArtifacts(v1, v2);
@@ -2119,7 +2464,15 @@ describe("diffArtifacts edge cases", () => {
     const v2 = createEmptyArtifact("TEST-KILLED-CRITIQUE");
     v2.metadata.version = 2;
     v2.sections.adversarial_critique = [
-      { id: "C1", name: "Critique", attack: "A", evidence: "E", current_status: "active", killed: true, kill_reason: "Withdrawn" },
+      {
+        id: "C1",
+        name: "Critique",
+        attack: "A",
+        evidence: "E",
+        current_status: "active",
+        killed: true,
+        kill_reason: "Withdrawn",
+      },
     ];
 
     const diff = diffArtifacts(v1, v2);
@@ -2129,14 +2482,18 @@ describe("diffArtifacts edge cases", () => {
   test("handles killed predictions", () => {
     const v1 = createEmptyArtifact("TEST-KILLED-PRED");
     v1.metadata.version = 1;
-    v1.sections.predictions_table = [
-      { id: "P1", condition: "Cond 1", predictions: { H1: "X" } },
-    ];
+    v1.sections.predictions_table = [{ id: "P1", condition: "Cond 1", predictions: { H1: "X" } }];
 
     const v2 = createEmptyArtifact("TEST-KILLED-PRED");
     v2.metadata.version = 2;
     v2.sections.predictions_table = [
-      { id: "P1", condition: "Cond 1", predictions: { H1: "X" }, killed: true, kill_reason: "Replaced" },
+      {
+        id: "P1",
+        condition: "Cond 1",
+        predictions: { H1: "X" },
+        killed: true,
+        kill_reason: "Replaced",
+      },
     ];
 
     const diff = diffArtifacts(v1, v2);
@@ -2153,7 +2510,15 @@ describe("diffArtifacts edge cases", () => {
     const v2 = createEmptyArtifact("TEST-KILLED-ANOMALY");
     v2.metadata.version = 2;
     v2.sections.anomaly_register = [
-      { id: "X1", name: "Anomaly", observation: "Obs", conflicts_with: [], status: "active", killed: true, kill_reason: "Artifact" },
+      {
+        id: "X1",
+        name: "Anomaly",
+        observation: "Obs",
+        conflicts_with: [],
+        status: "active",
+        killed: true,
+        kill_reason: "Artifact",
+      },
     ];
 
     const diff = diffArtifacts(v1, v2);
@@ -2200,7 +2565,14 @@ describe("diffArtifacts edge cases", () => {
     const v2 = createEmptyArtifact("TEST-EMPTY-DISC");
     v2.metadata.version = 2;
     v2.sections.discriminative_tests = [
-      { id: "T1", name: "Test", procedure: "P", discriminates: "", expected_outcomes: {}, potency_check: "PC" },
+      {
+        id: "T1",
+        name: "Test",
+        procedure: "P",
+        discriminates: "",
+        expected_outcomes: {},
+        potency_check: "PC",
+      },
     ];
 
     const diff = diffArtifacts(v1, v2);
@@ -2211,7 +2583,14 @@ describe("diffArtifacts edge cases", () => {
     const v1 = createEmptyArtifact("TEST-REMOVED-TEST");
     v1.metadata.version = 1;
     v1.sections.discriminative_tests = [
-      { id: "T1", name: "Test 1", procedure: "P", discriminates: "H1", expected_outcomes: {}, potency_check: "PC" },
+      {
+        id: "T1",
+        name: "Test 1",
+        procedure: "P",
+        discriminates: "H1",
+        expected_outcomes: {},
+        potency_check: "PC",
+      },
     ];
 
     const v2 = createEmptyArtifact("TEST-REMOVED-TEST");
@@ -2274,9 +2653,7 @@ describe("diffArtifacts edge cases", () => {
   test("handles prediction removed from artifact", () => {
     const v1 = createEmptyArtifact("TEST-REMOVED-PRED");
     v1.metadata.version = 1;
-    v1.sections.predictions_table = [
-      { id: "P1", condition: "Cond", predictions: {} },
-    ];
+    v1.sections.predictions_table = [{ id: "P1", condition: "Cond", predictions: {} }];
 
     const v2 = createEmptyArtifact("TEST-REMOVED-PRED");
     v2.metadata.version = 2;
@@ -2293,9 +2670,7 @@ describe("diffArtifacts edge cases", () => {
 
     const v2 = createEmptyArtifact("TEST-MINIMAL");
     v2.metadata.version = 2;
-    v2.sections.hypothesis_slate = [
-      { id: "H1", name: "H1", claim: "C", mechanism: "M" },
-    ];
+    v2.sections.hypothesis_slate = [{ id: "H1", name: "H1", claim: "C", mechanism: "M" }];
 
     const diff = diffArtifacts(v1, v2);
     expect(diff.summary.progress_score).toBe("MINIMAL");
@@ -2308,7 +2683,13 @@ describe("diffArtifacts edge cases", () => {
     const v2 = createEmptyArtifact("TEST-FORMAT-ANOMALY");
     v2.metadata.version = 2;
     v2.sections.anomaly_register = [
-      { id: "X1", name: "New Anomaly", observation: "Very long observation that exceeds sixty characters when displayed in output", conflicts_with: [], status: "active" },
+      {
+        id: "X1",
+        name: "New Anomaly",
+        observation: "Very long observation that exceeds sixty characters when displayed in output",
+        conflicts_with: [],
+        status: "active",
+      },
     ];
 
     const diff = diffArtifacts(v1, v2);
@@ -2400,7 +2781,14 @@ describe("diffArtifacts edge cases", () => {
     const v2 = createEmptyArtifact("TEST-H-MATCH");
     v2.metadata.version = 2;
     v2.sections.anomaly_register = [
-      { id: "X1", name: "Anomaly", observation: "Obs", conflicts_with: [], status: "resolved", resolution_plan: "Spawned H5 to explain this" },
+      {
+        id: "X1",
+        name: "Anomaly",
+        observation: "Obs",
+        conflicts_with: [],
+        status: "resolved",
+        resolution_plan: "Spawned H5 to explain this",
+      },
     ];
 
     const diff = diffArtifacts(v1, v2);
@@ -2419,7 +2807,14 @@ describe("diffArtifacts edge cases", () => {
     const v2 = createEmptyArtifact("TEST-PROMOTED-KW");
     v2.metadata.version = 2;
     v2.sections.anomaly_register = [
-      { id: "X1", name: "Anomaly", observation: "Obs", conflicts_with: [], status: "resolved", resolution_plan: "Promoted to new hypothesis" },
+      {
+        id: "X1",
+        name: "Anomaly",
+        observation: "Obs",
+        conflicts_with: [],
+        status: "resolved",
+        resolution_plan: "Promoted to new hypothesis",
+      },
     ];
 
     const diff = diffArtifacts(v1, v2);
@@ -2453,8 +2848,22 @@ describe("diffArtifacts edge cases", () => {
     ];
     // Add multiple tests
     v2.sections.discriminative_tests = [
-      { id: "T1", name: "T1", procedure: "P", discriminates: "H1", expected_outcomes: {}, potency_check: "PC" },
-      { id: "T2", name: "T2", procedure: "P", discriminates: "H1", expected_outcomes: {}, potency_check: "PC" },
+      {
+        id: "T1",
+        name: "T1",
+        procedure: "P",
+        discriminates: "H1",
+        expected_outcomes: {},
+        potency_check: "PC",
+      },
+      {
+        id: "T2",
+        name: "T2",
+        procedure: "P",
+        discriminates: "H1",
+        expected_outcomes: {},
+        potency_check: "PC",
+      },
     ];
     // Resolve multiple critiques
     v2.sections.adversarial_critique = [
@@ -2463,7 +2872,14 @@ describe("diffArtifacts edge cases", () => {
     ];
     // Resolve anomaly
     v2.sections.anomaly_register = [
-      { id: "X1", name: "Anomaly", observation: "Obs", conflicts_with: [], status: "resolved", resolution_plan: "Explained" },
+      {
+        id: "X1",
+        name: "Anomaly",
+        observation: "Obs",
+        conflicts_with: [],
+        status: "resolved",
+        resolution_plan: "Explained",
+      },
     ];
 
     const diff = diffArtifacts(v1, v2);
@@ -2474,26 +2890,38 @@ describe("diffArtifacts edge cases", () => {
     const v1 = createEmptyArtifact("TEST-NULL-FIELD");
     v1.metadata.version = 1;
     v1.sections.hypothesis_slate = [
-      { id: "H1", name: "H1", claim: "C", mechanism: "M", third_alternative: null } as unknown as HypothesisItem,
+      {
+        id: "H1",
+        name: "H1",
+        claim: "C",
+        mechanism: "M",
+        third_alternative: null,
+      } as unknown as HypothesisItem,
     ];
 
     const v2 = createEmptyArtifact("TEST-NULL-FIELD");
     v2.metadata.version = 2;
     v2.sections.hypothesis_slate = [
-      { id: "H1", name: "H1", claim: "C", mechanism: "M", third_alternative: null } as unknown as HypothesisItem,
+      {
+        id: "H1",
+        name: "H1",
+        claim: "C",
+        mechanism: "M",
+        third_alternative: null,
+      } as unknown as HypothesisItem,
     ];
 
     const diff = diffArtifacts(v1, v2);
     // No edits expected for null -> null
-    expect(diff.changes.hypothesis_slate.edited.filter(e => e.field === "third_alternative")).toHaveLength(0);
+    expect(
+      diff.changes.hypothesis_slate.edited.filter((e) => e.field === "third_alternative"),
+    ).toHaveLength(0);
   });
 
   test("handles undefined to defined field transition", () => {
     const v1 = createEmptyArtifact("TEST-UNDEF-FIELD");
     v1.metadata.version = 1;
-    v1.sections.hypothesis_slate = [
-      { id: "H1", name: "H1", claim: "C", mechanism: "M" },
-    ];
+    v1.sections.hypothesis_slate = [{ id: "H1", name: "H1", claim: "C", mechanism: "M" }];
 
     const v2 = createEmptyArtifact("TEST-UNDEF-FIELD");
     v2.metadata.version = 2;
@@ -2502,22 +2930,20 @@ describe("diffArtifacts edge cases", () => {
     ];
 
     const diff = diffArtifacts(v1, v2);
-    expect(diff.changes.hypothesis_slate.edited.some(e => e.field === "third_alternative")).toBe(true);
+    expect(diff.changes.hypothesis_slate.edited.some((e) => e.field === "third_alternative")).toBe(
+      true,
+    );
   });
 
   test("truncates long field values in edit changes", () => {
     const longValue = "A".repeat(200);
     const v1 = createEmptyArtifact("TEST-LONG");
     v1.metadata.version = 1;
-    v1.sections.hypothesis_slate = [
-      { id: "H1", name: "H1", claim: longValue, mechanism: "M" },
-    ];
+    v1.sections.hypothesis_slate = [{ id: "H1", name: "H1", claim: longValue, mechanism: "M" }];
 
     const v2 = createEmptyArtifact("TEST-LONG");
     v2.metadata.version = 2;
-    v2.sections.hypothesis_slate = [
-      { id: "H1", name: "H1", claim: "Short", mechanism: "M" },
-    ];
+    v2.sections.hypothesis_slate = [{ id: "H1", name: "H1", claim: "Short", mechanism: "M" }];
 
     const diff = diffArtifacts(v1, v2);
     expect(diff.changes.hypothesis_slate.edited[0].old_value.length).toBeLessThanOrEqual(100);
@@ -2538,9 +2964,7 @@ describe("Cross-Session References", () => {
           name: "H1",
           claim: "C",
           mechanism: "M",
-          references: [
-            { session: "RS-20251230-prior", item: "H2", relation: "extends" },
-          ],
+          references: [{ session: "RS-20251230-prior", item: "H2", relation: "extends" }],
         },
       ];
 
@@ -2582,9 +3006,7 @@ describe("Cross-Session References", () => {
 
     test("returns empty map for artifact with no references", () => {
       const artifact = createEmptyArtifact("TEST-NO-REF");
-      artifact.sections.hypothesis_slate = [
-        { id: "H1", name: "H1", claim: "C", mechanism: "M" },
-      ];
+      artifact.sections.hypothesis_slate = [{ id: "H1", name: "H1", claim: "C", mechanism: "M" }];
 
       const refs = extractReferences(artifact);
       expect(refs.size).toBe(0);
@@ -2606,12 +3028,23 @@ describe("Cross-Session References", () => {
       const artifact = createEmptyArtifact("TEST-VALID-REF");
       // Add Research Thread for completeness
       artifact.sections.research_thread = {
-          id: "RT", statement: "S", context: "C", why_it_matters: "W", anchors: ["§1"]
+        id: "RT",
+        statement: "S",
+        context: "C",
+        why_it_matters: "W",
+        anchors: ["§1"],
       };
 
       // Add minimum items to avoid other warnings
       artifact.sections.hypothesis_slate = [
-        { id: "H1", name: "H1", claim: "C", mechanism: "M", third_alternative: true, anchors: ["§1"] },
+        {
+          id: "H1",
+          name: "H1",
+          claim: "C",
+          mechanism: "M",
+          third_alternative: true,
+          anchors: ["§1"],
+        },
         { id: "H2", name: "H2", claim: "C", mechanism: "M", anchors: ["§1"] },
         {
           id: "H3",
@@ -2631,16 +3064,47 @@ describe("Cross-Session References", () => {
         { id: "P3", condition: "C", predictions: { H1: "O1" } },
       ];
       artifact.sections.discriminative_tests = [
-        { id: "T1", name: "T1", procedure: "P", discriminates: "H1 vs H2", expected_outcomes: {}, potency_check: "Control", score: { likelihood_ratio: 1, cost: 1, speed: 1, ambiguity: 1 } },
-        { id: "T2", name: "T2", procedure: "P", discriminates: "H1 vs H2", expected_outcomes: {}, potency_check: "Control", score: { likelihood_ratio: 1, cost: 1, speed: 1, ambiguity: 1 } },
+        {
+          id: "T1",
+          name: "T1",
+          procedure: "P",
+          discriminates: "H1 vs H2",
+          expected_outcomes: {},
+          potency_check: "Control",
+          score: { likelihood_ratio: 1, cost: 1, speed: 1, ambiguity: 1 },
+        },
+        {
+          id: "T2",
+          name: "T2",
+          procedure: "P",
+          discriminates: "H1 vs H2",
+          expected_outcomes: {},
+          potency_check: "Control",
+          score: { likelihood_ratio: 1, cost: 1, speed: 1, ambiguity: 1 },
+        },
       ];
       artifact.sections.assumption_ledger = [
-        { id: "A1", name: "A1", statement: "S1", load: "L1", test: "T1", scale_check: true, calculation: "C" },
+        {
+          id: "A1",
+          name: "A1",
+          statement: "S1",
+          load: "L1",
+          test: "T1",
+          scale_check: true,
+          calculation: "C",
+        },
         { id: "A2", name: "A2", statement: "S2", load: "L2", test: "T2" },
         { id: "A3", name: "A3", statement: "S3", load: "L3", test: "T3", killed: true },
       ];
       artifact.sections.adversarial_critique = [
-        { id: "C1", name: "C1", attack: "A", evidence: "E", current_status: "active", real_third_alternative: true },
+        {
+          id: "C1",
+          name: "C1",
+          attack: "A",
+          evidence: "E",
+          current_status: "active",
+          real_third_alternative: true,
+        },
         { id: "C2", name: "C2", attack: "A", evidence: "E", current_status: "active" },
       ];
 
@@ -2652,7 +3116,13 @@ describe("Cross-Session References", () => {
     test("warns on invalid reference relation type", () => {
       const artifact = createEmptyArtifact("TEST-BAD-REL");
       // Add RT
-      artifact.sections.research_thread = { id: "RT", statement: "S", context: "C", why_it_matters: "W", anchors: ["§1"] };
+      artifact.sections.research_thread = {
+        id: "RT",
+        statement: "S",
+        context: "C",
+        why_it_matters: "W",
+        anchors: ["§1"],
+      };
 
       artifact.sections.hypothesis_slate = [
         {
@@ -2662,7 +3132,11 @@ describe("Cross-Session References", () => {
           mechanism: "M",
           anchors: ["§1"],
           references: [
-            { session: "PREV", item: "H1", relation: "invalid_relation" as unknown as ReferenceRelation },
+            {
+              session: "PREV",
+              item: "H1",
+              relation: "invalid_relation" as unknown as ReferenceRelation,
+            },
           ],
         },
       ];
@@ -2676,7 +3150,13 @@ describe("Cross-Session References", () => {
     test("warns on missing session field", () => {
       const artifact = createEmptyArtifact("TEST-NO-SESSION");
       // Add RT
-      artifact.sections.research_thread = { id: "RT", statement: "S", context: "C", why_it_matters: "W", anchors: ["§1"] };
+      artifact.sections.research_thread = {
+        id: "RT",
+        statement: "S",
+        context: "C",
+        why_it_matters: "W",
+        anchors: ["§1"],
+      };
 
       artifact.sections.hypothesis_slate = [
         {
@@ -2698,7 +3178,13 @@ describe("Cross-Session References", () => {
     test("warns on missing item field", () => {
       const artifact = createEmptyArtifact("TEST-NO-ITEM");
       // Add RT
-      artifact.sections.research_thread = { id: "RT", statement: "S", context: "C", why_it_matters: "W", anchors: ["§1"] };
+      artifact.sections.research_thread = {
+        id: "RT",
+        statement: "S",
+        context: "C",
+        why_it_matters: "W",
+        anchors: ["§1"],
+      };
 
       artifact.sections.hypothesis_slate = [
         {
@@ -2720,7 +3206,13 @@ describe("Cross-Session References", () => {
     test("warns on non-array references field", () => {
       const artifact = createEmptyArtifact("TEST-REF-OBJ");
       // Add RT
-      artifact.sections.research_thread = { id: "RT", statement: "S", context: "C", why_it_matters: "W", anchors: ["§1"] };
+      artifact.sections.research_thread = {
+        id: "RT",
+        statement: "S",
+        context: "C",
+        why_it_matters: "W",
+        anchors: ["§1"],
+      };
 
       artifact.sections.hypothesis_slate = [
         {
@@ -2729,7 +3221,11 @@ describe("Cross-Session References", () => {
           claim: "C",
           mechanism: "M",
           anchors: ["§1"],
-          references: { session: "PREV", item: "H1", relation: "extends" } as unknown as Reference[],
+          references: {
+            session: "PREV",
+            item: "H1",
+            relation: "extends",
+          } as unknown as Reference[],
         },
       ];
 
@@ -2742,7 +3238,13 @@ describe("Cross-Session References", () => {
     test("warns on non-object reference in array", () => {
       const artifact = createEmptyArtifact("TEST-REF-STR");
       // Add RT
-      artifact.sections.research_thread = { id: "RT", statement: "S", context: "C", why_it_matters: "W", anchors: ["§1"] };
+      artifact.sections.research_thread = {
+        id: "RT",
+        statement: "S",
+        context: "C",
+        why_it_matters: "W",
+        anchors: ["§1"],
+      };
 
       artifact.sections.hypothesis_slate = [
         {
@@ -2774,7 +3276,13 @@ describe("Cross-Session References", () => {
       for (const relation of validRelations) {
         const artifact = createEmptyArtifact(`TEST-REL-${relation}`);
         // Add RT
-        artifact.sections.research_thread = { id: "RT", statement: "S", context: "C", why_it_matters: "W", anchors: ["§1"] };
+        artifact.sections.research_thread = {
+          id: "RT",
+          statement: "S",
+          context: "C",
+          why_it_matters: "W",
+          anchors: ["§1"],
+        };
 
         artifact.sections.hypothesis_slate = [
           {
@@ -2796,7 +3304,13 @@ describe("Cross-Session References", () => {
     test("validates references in all section types", () => {
       const artifact = createEmptyArtifact("TEST-ALL-SECTIONS");
       // Add RT
-      artifact.sections.research_thread = { id: "RT", statement: "S", context: "C", why_it_matters: "W", anchors: ["§1"] };
+      artifact.sections.research_thread = {
+        id: "RT",
+        statement: "S",
+        context: "C",
+        why_it_matters: "W",
+        anchors: ["§1"],
+      };
       const ref: Reference = { session: "PREV", item: "X1", relation: "informed_by" };
 
       artifact.sections.hypothesis_slate = [
@@ -2806,16 +3320,41 @@ describe("Cross-Session References", () => {
         { id: "P1", condition: "C", predictions: {}, references: [ref] },
       ];
       artifact.sections.discriminative_tests = [
-        { id: "T1", name: "T", procedure: "P", discriminates: "H1", expected_outcomes: {}, potency_check: "PC", score: { likelihood_ratio: 1, cost: 1, speed: 1, ambiguity: 1 }, references: [ref] },
+        {
+          id: "T1",
+          name: "T",
+          procedure: "P",
+          discriminates: "H1",
+          expected_outcomes: {},
+          potency_check: "PC",
+          score: { likelihood_ratio: 1, cost: 1, speed: 1, ambiguity: 1 },
+          references: [ref],
+        },
       ];
       artifact.sections.assumption_ledger = [
-        { id: "A1", name: "A", statement: "S", load: "L", test: "T", scale_check: true, calculation: "1e3", references: [ref] },
+        {
+          id: "A1",
+          name: "A",
+          statement: "S",
+          load: "L",
+          test: "T",
+          scale_check: true,
+          calculation: "1e3",
+          references: [ref],
+        },
       ];
       artifact.sections.anomaly_register = [
         { id: "X1", name: "X", observation: "O", conflicts_with: [], references: [ref] },
       ];
       artifact.sections.adversarial_critique = [
-        { id: "C1", name: "C1", attack: "A", evidence: "E", current_status: "active", references: [ref] },
+        {
+          id: "C1",
+          name: "C1",
+          attack: "A",
+          evidence: "E",
+          current_status: "active",
+          references: [ref],
+        },
       ];
 
       const report = lintArtifact(artifact);

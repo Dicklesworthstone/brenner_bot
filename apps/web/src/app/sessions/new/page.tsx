@@ -1,10 +1,10 @@
 import { isAbsolute, resolve, win32 } from "node:path";
-import { cookies, headers } from "next/headers";
-import { AgentMailClient } from "@/lib/agentMail";
-import { isLabModeEnabled, checkOrchestrationAuth } from "@/lib/auth";
-import { SessionForm } from "@/components/sessions";
-import { Jargon } from "@/components/jargon";
 import type { Metadata } from "next";
+import { cookies, headers } from "next/headers";
+import { Jargon } from "@/components/jargon";
+import { SessionForm } from "@/components/sessions";
+import { AgentMailClient } from "@/lib/agentMail";
+import { checkOrchestrationAuth, isLabModeEnabled } from "@/lib/auth";
 
 export const metadata: Metadata = {
   title: "New Session",
@@ -17,37 +17,61 @@ export const dynamic = "force-dynamic";
 // Icons
 const PlayIcon = () => (
   <svg className="size-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.348a1.125 1.125 0 010 1.971l-11.54 6.347a1.125 1.125 0 01-1.667-.985V5.653z" />
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.348a1.125 1.125 0 010 1.971l-11.54 6.347a1.125 1.125 0 01-1.667-.985V5.653z"
+    />
   </svg>
 );
 
 const CheckCircleIcon = () => (
   <svg className="size-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+    />
   </svg>
 );
 
 const ServerIcon = () => (
   <svg className="size-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M5.25 14.25h13.5m-13.5 0a3 3 0 01-3-3m3 3a3 3 0 100 6h13.5a3 3 0 100-6m-16.5-3a3 3 0 013-3h13.5a3 3 0 013 3m-19.5 0a4.5 4.5 0 01.9-2.7L5.737 5.1a3.375 3.375 0 012.7-1.35h7.126c1.062 0 2.062.5 2.7 1.35l2.587 3.45a4.5 4.5 0 01.9 2.7m0 0a3 3 0 01-3 3m0 3h.008v.008h-.008v-.008zm0-6h.008v.008h-.008v-.008zm-3 6h.008v.008h-.008v-.008zm0-6h.008v.008h-.008v-.008z" />
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M5.25 14.25h13.5m-13.5 0a3 3 0 01-3-3m3 3a3 3 0 100 6h13.5a3 3 0 100-6m-16.5-3a3 3 0 013-3h13.5a3 3 0 013 3m-19.5 0a4.5 4.5 0 01.9-2.7L5.737 5.1a3.375 3.375 0 012.7-1.35h7.126c1.062 0 2.062.5 2.7 1.35l2.587 3.45a4.5 4.5 0 01.9 2.7m0 0a3 3 0 01-3 3m0 3h.008v.008h-.008v-.008zm0-6h.008v.008h-.008v-.008zm-3 6h.008v.008h-.008v-.008zm0-6h.008v.008h-.008v-.008z"
+    />
   </svg>
 );
 
 const UsersIcon = () => (
   <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" />
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z"
+    />
   </svg>
 );
 
 const LockClosedIcon = () => (
   <svg className="size-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z"
+    />
   </svg>
 );
 
 const ShieldExclamationIcon = () => (
   <svg className="size-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m0-10.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.75c0 5.592 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.57-.598-3.75h-.152c-3.196 0-6.1-1.249-8.25-3.286zm0 13.036h.008v.008H12v-.008z" />
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M12 9v3.75m0-10.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.75c0 5.592 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.57-.598-3.75h-.152c-3.196 0-6.1-1.249-8.25-3.286zm0 13.036h.008v.008H12v-.008z"
+    />
   </svg>
 );
 
@@ -69,9 +93,7 @@ function LockedState({ reason }: { reason: string }) {
           <LockClosedIcon />
         </div>
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-foreground">
-            Lab Mode Locked
-          </h1>
+          <h1 className="text-2xl font-bold tracking-tight text-foreground">Lab Mode Locked</h1>
           <p className="mt-2 text-muted-foreground">
             Orchestration features are protected to prevent unauthorized access.
           </p>
@@ -110,7 +132,11 @@ function LockedState({ reason }: { reason: string }) {
               <h3 className="font-medium text-foreground">Enable Lab Mode Environment Variable</h3>
             </div>
             <p className="text-sm text-muted-foreground pl-8">
-              Set <code className="px-1.5 py-0.5 rounded bg-muted font-mono text-xs">BRENNER_LAB_MODE=1</code> in your environment.
+              Set{" "}
+              <code className="px-1.5 py-0.5 rounded bg-muted font-mono text-xs">
+                BRENNER_LAB_MODE=1
+              </code>{" "}
+              in your environment.
             </p>
             {isLabModeDisabled && (
               <div className="ml-8 p-3 rounded-lg bg-warning/5 border border-warning/20">
@@ -129,9 +155,13 @@ function LockedState({ reason }: { reason: string }) {
             </div>
             <p className="text-sm text-muted-foreground pl-8">
               Deploy behind Cloudflare Access and set{" "}
-              <code className="px-1.5 py-0.5 mx-1 rounded bg-muted font-mono text-xs">BRENNER_TRUST_CF_ACCESS_HEADERS=1</code>.
-              The app will then accept requests that include
-              <code className="px-1.5 py-0.5 mx-1 rounded bg-muted font-mono text-xs">cf-access-jwt-assertion</code>
+              <code className="px-1.5 py-0.5 mx-1 rounded bg-muted font-mono text-xs">
+                BRENNER_TRUST_CF_ACCESS_HEADERS=1
+              </code>
+              . The app will then accept requests that include
+              <code className="px-1.5 py-0.5 mx-1 rounded bg-muted font-mono text-xs">
+                cf-access-jwt-assertion
+              </code>
               headers.
             </p>
           </div>
@@ -145,15 +175,31 @@ function LockedState({ reason }: { reason: string }) {
               <h3 className="font-medium text-foreground">Shared Secret (Local Development)</h3>
             </div>
             <p className="text-sm text-muted-foreground pl-8">
-              Set <code className="px-1.5 py-0.5 rounded bg-muted font-mono text-xs">BRENNER_LAB_SECRET=your-secret</code> and include it via:
+              Set{" "}
+              <code className="px-1.5 py-0.5 rounded bg-muted font-mono text-xs">
+                BRENNER_LAB_SECRET=your-secret
+              </code>{" "}
+              and include it via:
             </p>
             <ul className="ml-8 space-y-1 text-sm text-muted-foreground list-disc list-inside">
-              <li>Header: <code className="px-1 py-0.5 rounded bg-muted font-mono text-xs">x-brenner-lab-secret: your-secret</code></li>
-              <li>Cookie: <code className="px-1 py-0.5 rounded bg-muted font-mono text-xs">brenner_lab_secret=your-secret</code></li>
+              <li>
+                Header:{" "}
+                <code className="px-1 py-0.5 rounded bg-muted font-mono text-xs">
+                  x-brenner-lab-secret: your-secret
+                </code>
+              </li>
+              <li>
+                Cookie:{" "}
+                <code className="px-1 py-0.5 rounded bg-muted font-mono text-xs">
+                  brenner_lab_secret=your-secret
+                </code>
+              </li>
             </ul>
             {isAuthRequired && (
               <div className="ml-8 p-3 rounded-lg bg-primary/5 border border-primary/20">
-                <p className="text-sm text-primary font-medium">Lab mode is enabled but authentication is required</p>
+                <p className="text-sm text-primary font-medium">
+                  Lab mode is enabled but authentication is required
+                </p>
               </div>
             )}
           </div>
@@ -195,7 +241,8 @@ function parseEnsureProjectSlug(result: unknown): string | null {
   if (!isRecord(result)) return null;
 
   const structuredContent = result.structuredContent;
-  if (isRecord(structuredContent) && typeof structuredContent.slug === "string") return structuredContent.slug;
+  if (isRecord(structuredContent) && typeof structuredContent.slug === "string")
+    return structuredContent.slug;
 
   const maybeContent = result.content;
   if (Array.isArray(maybeContent) && maybeContent.length > 0) {
@@ -240,7 +287,9 @@ export default async function NewSessionPage({
 }) {
   // Check lab mode first
   if (!isLabModeEnabled()) {
-    return <LockedState reason="Lab mode is disabled. Set BRENNER_LAB_MODE=1 to enable orchestration." />;
+    return (
+      <LockedState reason="Lab mode is disabled. Set BRENNER_LAB_MODE=1 to enable orchestration." />
+    );
   }
 
   // Defense-in-depth: even with BRENNER_LAB_MODE enabled, require trusted Cloudflare Access headers
@@ -265,9 +314,12 @@ export default async function NewSessionPage({
   try {
     const client = new AgentMailClient();
     // Treat Windows absolute paths as absolute even on non-Windows runtimes.
-    const isAbsoluteProjectKey = isAbsolute(projectKeyDefault) || win32.isAbsolute(projectKeyDefault);
+    const isAbsoluteProjectKey =
+      isAbsolute(projectKeyDefault) || win32.isAbsolute(projectKeyDefault);
     const projectSlug = isAbsoluteProjectKey
-      ? parseEnsureProjectSlug(await client.toolsCall("ensure_project", { human_key: projectKeyDefault }))
+      ? parseEnsureProjectSlug(
+          await client.toolsCall("ensure_project", { human_key: projectKeyDefault }),
+        )
       : projectKeyDefault;
     if (!projectSlug) throw new Error("Agent Mail: could not resolve project slug.");
 
@@ -293,7 +345,8 @@ export default async function NewSessionPage({
           <div>
             <h1 className="text-2xl font-bold tracking-tight">New Session</h1>
             <p className="text-muted-foreground">
-              Start a <Jargon term="brenner-loop">Brenner Loop</Jargon> research session via <Jargon term="agent-mail">Agent Mail</Jargon>
+              Start a <Jargon term="brenner-loop">Brenner Loop</Jargon> research session via{" "}
+              <Jargon term="agent-mail">Agent Mail</Jargon>
             </p>
           </div>
         </div>
@@ -308,7 +361,11 @@ export default async function NewSessionPage({
           <div>
             <div className="font-semibold text-success">Kickoff sent successfully!</div>
             <p className="text-sm text-muted-foreground mt-1">
-              Thread <span className="font-mono bg-muted px-1.5 py-0.5 rounded text-foreground">{thread}</span> has been initiated.
+              Thread{" "}
+              <span className="font-mono bg-muted px-1.5 py-0.5 rounded text-foreground">
+                {thread}
+              </span>{" "}
+              has been initiated.
             </p>
           </div>
         </div>
@@ -374,10 +431,7 @@ export default async function NewSessionPage({
 
       {/* Form - Uses TanStack Form for field-level validation */}
       <div className="animate-fade-in-up stagger-2">
-        <SessionForm
-          defaultSender={senderDefault}
-          defaultProjectKey={projectKeyDefault}
-        />
+        <SessionForm defaultSender={senderDefault} defaultProjectKey={projectKeyDefault} />
       </div>
     </div>
   );

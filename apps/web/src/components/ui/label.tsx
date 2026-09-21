@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 /**
  * Label Component
@@ -14,10 +14,10 @@
  * @module components/ui/label
  */
 
-import * as React from "react"
-import * as LabelPrimitive from "@radix-ui/react-label"
-import { cva, type VariantProps } from "class-variance-authority"
-import { cn } from "@/lib/utils"
+import * as LabelPrimitive from "@radix-ui/react-label";
+import { cva, type VariantProps } from "class-variance-authority";
+import * as React from "react";
+import { cn } from "@/lib/utils";
 
 // ============================================================================
 // Variants
@@ -45,8 +45,8 @@ const labelVariants = cva(
       size: "default",
       error: false,
     },
-  }
-)
+  },
+);
 
 // ============================================================================
 // Types
@@ -56,68 +56,63 @@ interface LabelProps
   extends React.ComponentPropsWithoutRef<typeof LabelPrimitive.Root>,
     VariantProps<typeof labelVariants> {
   /** Show required indicator (*) */
-  required?: boolean
+  required?: boolean;
   /** Show optional indicator text */
-  optional?: boolean
+  optional?: boolean;
   /** Inline description/help text */
-  description?: string
+  description?: string;
   /** Error state - changes color to destructive */
-  error?: boolean
+  error?: boolean;
 }
 
 // ============================================================================
 // Label Component
 // ============================================================================
 
-const Label = React.forwardRef<
-  React.ElementRef<typeof LabelPrimitive.Root>,
-  LabelProps
->(({ className, size, error, required, optional, description, children, ...props }, ref) => (
-  <div data-slot="label-wrapper" className="flex flex-col gap-1">
-    <LabelPrimitive.Root
-      ref={ref}
-      data-slot="label"
-      data-error={error || undefined}
-      className={cn(
-        labelVariants({ size, error }),
-        "inline-flex items-center gap-1",
-        className
-      )}
-      {...props}
-    >
-      {children}
-      {required && (
-        <span
-          data-slot="label-required"
-          className="text-destructive font-semibold"
-          aria-hidden="true"
-        >
-          *
-        </span>
-      )}
-      {optional && !required && (
-        <span
-          data-slot="label-optional"
-          className="text-muted-foreground font-normal text-xs ml-1"
-        >
-          (optional)
-        </span>
-      )}
-    </LabelPrimitive.Root>
-    {description && (
-      <span
-        data-slot="label-description"
-        className={cn(
-          "text-xs leading-relaxed",
-          error ? "text-destructive/80" : "text-muted-foreground"
-        )}
+const Label = React.forwardRef<React.ElementRef<typeof LabelPrimitive.Root>, LabelProps>(
+  ({ className, size, error, required, optional, description, children, ...props }, ref) => (
+    <div data-slot="label-wrapper" className="flex flex-col gap-1">
+      <LabelPrimitive.Root
+        ref={ref}
+        data-slot="label"
+        data-error={error || undefined}
+        className={cn(labelVariants({ size, error }), "inline-flex items-center gap-1", className)}
+        {...props}
       >
-        {description}
-      </span>
-    )}
-  </div>
-))
-Label.displayName = LabelPrimitive.Root.displayName
+        {children}
+        {required && (
+          <span
+            data-slot="label-required"
+            className="text-destructive font-semibold"
+            aria-hidden="true"
+          >
+            *
+          </span>
+        )}
+        {optional && !required && (
+          <span
+            data-slot="label-optional"
+            className="text-muted-foreground font-normal text-xs ml-1"
+          >
+            (optional)
+          </span>
+        )}
+      </LabelPrimitive.Root>
+      {description && (
+        <span
+          data-slot="label-description"
+          className={cn(
+            "text-xs leading-relaxed",
+            error ? "text-destructive/80" : "text-muted-foreground",
+          )}
+        >
+          {description}
+        </span>
+      )}
+    </div>
+  ),
+);
+Label.displayName = LabelPrimitive.Root.displayName;
 
 // ============================================================================
 // Simple Label (no wrapper, for inline use)
@@ -131,11 +126,7 @@ const LabelSimple = React.forwardRef<
     ref={ref}
     data-slot="label"
     data-error={error || undefined}
-    className={cn(
-      labelVariants({ size, error }),
-      "inline-flex items-center gap-1",
-      className
-    )}
+    className={cn(labelVariants({ size, error }), "inline-flex items-center gap-1", className)}
     {...props}
   >
     {children}
@@ -149,16 +140,13 @@ const LabelSimple = React.forwardRef<
       </span>
     )}
     {optional && !required && (
-      <span
-        data-slot="label-optional"
-        className="text-muted-foreground font-normal text-xs ml-1"
-      >
+      <span data-slot="label-optional" className="text-muted-foreground font-normal text-xs ml-1">
         (optional)
       </span>
     )}
   </LabelPrimitive.Root>
-))
-LabelSimple.displayName = "LabelSimple"
+));
+LabelSimple.displayName = "LabelSimple";
 
 // ============================================================================
 // Form Field Wrapper (combines label + input + error message)
@@ -166,23 +154,37 @@ LabelSimple.displayName = "LabelSimple"
 
 interface FormFieldProps extends React.HTMLAttributes<HTMLDivElement> {
   /** Field label text */
-  label: string
+  label: string;
   /** HTML for attribute to connect label to input */
-  htmlFor?: string
+  htmlFor?: string;
   /** Show required indicator */
-  required?: boolean
+  required?: boolean;
   /** Show optional indicator */
-  optional?: boolean
+  optional?: boolean;
   /** Description/help text */
-  description?: string
+  description?: string;
   /** Error message to display */
-  error?: string
+  error?: string;
   /** Size variant */
-  size?: "sm" | "default" | "lg"
+  size?: "sm" | "default" | "lg";
 }
 
 const FormField = React.forwardRef<HTMLDivElement, FormFieldProps>(
-  ({ className, label, htmlFor, required, optional, description, error, size = "default", children, ...props }, ref) => (
+  (
+    {
+      className,
+      label,
+      htmlFor,
+      required,
+      optional,
+      description,
+      error,
+      size = "default",
+      children,
+      ...props
+    },
+    ref,
+  ) => (
     <div
       ref={ref}
       data-slot="form-field"
@@ -224,12 +226,12 @@ const FormField = React.forwardRef<HTMLDivElement, FormFieldProps>(
         </span>
       )}
     </div>
-  )
-)
-FormField.displayName = "FormField"
+  ),
+);
+FormField.displayName = "FormField";
 
 // ============================================================================
 // Exports
 // ============================================================================
 
-export { Label, LabelSimple, FormField, labelVariants }
+export { FormField, Label, LabelSimple, labelVariants };

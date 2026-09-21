@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 
-import { SECTION_REF_REGEX, hasSectionReferences, parseSectionReferences } from "./section-reference";
+import {
+  hasSectionReferences,
+  parseSectionReferences,
+  SECTION_REF_REGEX,
+} from "./section-reference";
 
 describe("section-reference utilities", () => {
   it("hasSectionReferences() is stable across repeated calls", () => {
@@ -26,4 +30,3 @@ describe("section-reference utilities", () => {
     expect(SECTION_REF_REGEX.lastIndex).toBe(0);
   });
 });
-

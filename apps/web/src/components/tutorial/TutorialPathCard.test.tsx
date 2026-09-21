@@ -11,8 +11,8 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
-import { TutorialPathCard, TutorialPathGrid } from "./TutorialPathCard";
 import type { TutorialPath } from "@/lib/tutorial-types";
+import { TutorialPathCard, TutorialPathGrid } from "./TutorialPathCard";
 
 const mockPath: TutorialPath = {
   id: "quick-start",
@@ -59,11 +59,7 @@ describe("TutorialPathCard", () => {
 
     it("applies custom className", () => {
       const { container } = render(
-        <TutorialPathCard
-          path={mockPath}
-          status="available"
-          className="custom-class"
-        />
+        <TutorialPathCard path={mockPath} status="available" className="custom-class" />,
       );
       // The className is applied to the inner card div
       const card = container.querySelector(".custom-class");
@@ -91,26 +87,20 @@ describe("TutorialPathCard", () => {
 
   describe("status variants", () => {
     it("renders available status with primary styling", () => {
-      const { container } = render(
-        <TutorialPathCard path={mockPath} status="available" />
-      );
+      const { container } = render(<TutorialPathCard path={mockPath} status="available" />);
       const card = container.querySelector(".border-primary\\/30");
       expect(card).toBeInTheDocument();
     });
 
     it("renders completed status with success styling", () => {
-      const { container } = render(
-        <TutorialPathCard path={mockPath} status="completed" />
-      );
+      const { container } = render(<TutorialPathCard path={mockPath} status="completed" />);
       // Using OKLCH color for completed status
       const card = container.querySelector('[class*="border-[oklch(0.72_0.19_145"]');
       expect(card).toBeInTheDocument();
     });
 
     it("renders locked status with muted styling", () => {
-      const { container } = render(
-        <TutorialPathCard path={mockAdvancedPath} status="locked" />
-      );
+      const { container } = render(<TutorialPathCard path={mockAdvancedPath} status="locked" />);
       const card = container.querySelector(".opacity-60");
       expect(card).toBeInTheDocument();
     });
@@ -129,16 +119,12 @@ describe("TutorialPathCard", () => {
 
   describe("recommended badge", () => {
     it("shows recommended badge when recommended prop is true", () => {
-      render(
-        <TutorialPathCard path={mockPath} status="available" recommended />
-      );
+      render(<TutorialPathCard path={mockPath} status="available" recommended />);
       expect(screen.getByText("Recommended")).toBeInTheDocument();
     });
 
     it("does not show recommended badge when locked", () => {
-      render(
-        <TutorialPathCard path={mockPath} status="locked" recommended />
-      );
+      render(<TutorialPathCard path={mockPath} status="locked" recommended />);
       expect(screen.queryByText("Recommended")).not.toBeInTheDocument();
     });
 
@@ -165,13 +151,7 @@ describe("TutorialPathCard", () => {
       const handleClick = vi.fn();
       const pathWithoutHref = { ...mockPath, href: undefined };
 
-      render(
-        <TutorialPathCard
-          path={pathWithoutHref}
-          status="available"
-          onClick={handleClick}
-        />
-      );
+      render(<TutorialPathCard path={pathWithoutHref} status="available" onClick={handleClick} />);
 
       const button = screen.getByRole("button");
       await user.click(button);
@@ -182,13 +162,7 @@ describe("TutorialPathCard", () => {
       const user = userEvent.setup();
       const handleClick = vi.fn();
 
-      render(
-        <TutorialPathCard
-          path={mockPath}
-          status="locked"
-          onClick={handleClick}
-        />
-      );
+      render(<TutorialPathCard path={mockPath} status="locked" onClick={handleClick} />);
 
       // Card is not interactive when locked
       const card = screen.getByText("Quick Start").closest("div");
@@ -201,17 +175,13 @@ describe("TutorialPathCard", () => {
 
   describe("accessibility", () => {
     it("has cursor-pointer when accessible", () => {
-      const { container } = render(
-        <TutorialPathCard path={mockPath} status="available" />
-      );
+      const { container } = render(<TutorialPathCard path={mockPath} status="available" />);
       const card = container.querySelector(".cursor-pointer");
       expect(card).toBeInTheDocument();
     });
 
     it("has cursor-not-allowed when locked", () => {
-      const { container } = render(
-        <TutorialPathCard path={mockPath} status="locked" />
-      );
+      const { container } = render(<TutorialPathCard path={mockPath} status="locked" />);
       const card = container.querySelector(".cursor-not-allowed");
       expect(card).toBeInTheDocument();
     });
@@ -240,9 +210,7 @@ describe("TutorialPathGrid", () => {
   };
 
   it("renders all paths", () => {
-    render(
-      <TutorialPathGrid paths={paths} pathStatus={pathStatus} />
-    );
+    render(<TutorialPathGrid paths={paths} pathStatus={pathStatus} />);
 
     expect(screen.getByText("Quick Start")).toBeInTheDocument();
     expect(screen.getByText("Agent Assisted")).toBeInTheDocument();
@@ -250,9 +218,7 @@ describe("TutorialPathGrid", () => {
   });
 
   it("applies correct status to each path", () => {
-    const { container } = render(
-      <TutorialPathGrid paths={paths} pathStatus={pathStatus} />
-    );
+    const { container } = render(<TutorialPathGrid paths={paths} pathStatus={pathStatus} />);
 
     // Quick Start should be available (has link)
     expect(screen.getByRole("link")).toHaveAttribute("href", "/tutorial/quick-start");
@@ -264,11 +230,7 @@ describe("TutorialPathGrid", () => {
 
   it("marks recommended path", () => {
     render(
-      <TutorialPathGrid
-        paths={paths}
-        pathStatus={pathStatus}
-        recommendedPathId="quick-start"
-      />
+      <TutorialPathGrid paths={paths} pathStatus={pathStatus} recommendedPathId="quick-start" />,
     );
 
     expect(screen.getByText("Recommended")).toBeInTheDocument();
@@ -276,11 +238,7 @@ describe("TutorialPathGrid", () => {
 
   it("applies custom className", () => {
     const { container } = render(
-      <TutorialPathGrid
-        paths={paths}
-        pathStatus={pathStatus}
-        className="custom-grid-class"
-      />
+      <TutorialPathGrid paths={paths} pathStatus={pathStatus} className="custom-grid-class" />,
     );
 
     expect(container.firstChild).toHaveClass("custom-grid-class");
@@ -288,18 +246,14 @@ describe("TutorialPathGrid", () => {
 
   it("uses 2-column grid for 2 or fewer paths", () => {
     const twoPaths = paths.slice(0, 2);
-    const { container } = render(
-      <TutorialPathGrid paths={twoPaths} pathStatus={pathStatus} />
-    );
+    const { container } = render(<TutorialPathGrid paths={twoPaths} pathStatus={pathStatus} />);
 
     expect(container.firstChild).toHaveClass("sm:grid-cols-2");
     expect(container.firstChild).not.toHaveClass("lg:grid-cols-3");
   });
 
   it("uses 3-column grid for 3 or more paths", () => {
-    const { container } = render(
-      <TutorialPathGrid paths={paths} pathStatus={pathStatus} />
-    );
+    const { container } = render(<TutorialPathGrid paths={paths} pathStatus={pathStatus} />);
 
     expect(container.firstChild).toHaveClass("lg:grid-cols-3");
   });

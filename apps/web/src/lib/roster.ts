@@ -26,10 +26,7 @@
 // ============================================================================
 
 /** The three canonical roles in the Brenner Protocol */
-export type AgentRole =
-  | "hypothesis_generator"
-  | "test_designer"
-  | "adversarial_critic";
+export type AgentRole = "hypothesis_generator" | "test_designer" | "adversarial_critic";
 
 /** All valid agent roles */
 export const VALID_AGENT_ROLES: AgentRole[] = [
@@ -61,9 +58,9 @@ export interface RosterEntry {
 
 /** Roster mode determines how roles are applied */
 export type RosterMode =
-  | "role_separated"  // Each agent gets role-specific prompt (default)
-  | "unified"         // All agents get the same prompt
-  | "heuristic";      // DEPRECATED: Fall back to substring matching
+  | "role_separated" // Each agent gets role-specific prompt (default)
+  | "unified" // All agents get the same prompt
+  | "heuristic"; // DEPRECATED: Fall back to substring matching
 
 /** A complete roster for a session */
 export interface Roster {
@@ -164,10 +161,7 @@ export function validateRoster(roster: Roster): ValidationResult {
  * Every recipient must have a roster entry.
  * Extra roster entries (for agents not in recipients) are allowed.
  */
-export function validateRosterCoverage(
-  roster: Roster,
-  recipients: string[]
-): ValidationResult {
+export function validateRosterCoverage(roster: Roster, recipients: string[]): ValidationResult {
   const errors: string[] = [];
   const rosterAgents = new Set(roster.entries.map((e) => e.agentName));
 
@@ -184,10 +178,7 @@ export function validateRosterCoverage(
  * Get the roster entry for a specific agent.
  * Returns undefined if not found.
  */
-export function getRosterEntry(
-  roster: Roster,
-  agentName: string
-): RosterEntry | undefined {
+export function getRosterEntry(roster: Roster, agentName: string): RosterEntry | undefined {
   return roster.entries.find((e) => e.agentName === agentName);
 }
 
@@ -195,9 +186,7 @@ export function getRosterEntry(
  * Get all agents assigned to a specific role.
  */
 export function getAgentsByRole(roster: Roster, role: AgentRole): string[] {
-  return roster.entries
-    .filter((e) => e.role === role)
-    .map((e) => e.agentName);
+  return roster.entries.filter((e) => e.role === role).map((e) => e.agentName);
 }
 
 // ============================================================================
@@ -291,10 +280,7 @@ export const BUILT_IN_PRESETS: RosterPreset[] = [
  * The preset entries are matched to agent names in order.
  * If there are more agents than preset entries, remaining agents get the first role.
  */
-export function applyPreset(
-  preset: RosterPreset,
-  agentNames: string[]
-): Roster {
+export function applyPreset(preset: RosterPreset, agentNames: string[]): Roster {
   const entries: RosterEntry[] = [];
 
   for (let i = 0; i < agentNames.length; i++) {
@@ -318,7 +304,7 @@ export function applyPreset(
  */
 export function findPreset(
   presetId: string,
-  customPresets: RosterPreset[] = []
+  customPresets: RosterPreset[] = [],
 ): RosterPreset | undefined {
   const allPresets = [...BUILT_IN_PRESETS, ...customPresets];
   return allPresets.find((p) => p.id === presetId);

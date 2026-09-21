@@ -16,8 +16,8 @@
  * @module brenner-loop/graveyard
  */
 
-import type { HypothesisCard } from "./hypothesis";
 import type { EvidenceEntry } from "./evidence";
+import type { HypothesisCard } from "./hypothesis";
 
 // ============================================================================
 // Death Types
@@ -35,12 +35,12 @@ import type { EvidenceEntry } from "./evidence";
  * - scope_reduction: Valid only in narrow conditions (partial death)
  */
 export type DeathType =
-  | "direct_falsification"    // Impossible observation occurred
-  | "mechanism_failure"       // Proposed pathway doesn't work
-  | "effect_size_collapse"    // Effect is too small to matter
-  | "superseded"              // Better hypothesis emerged
-  | "unmeasurable"            // Can't be tested with current methods
-  | "scope_reduction";        // Valid only in narrow conditions
+  | "direct_falsification" // Impossible observation occurred
+  | "mechanism_failure" // Proposed pathway doesn't work
+  | "effect_size_collapse" // Effect is too small to matter
+  | "superseded" // Better hypothesis emerged
+  | "unmeasurable" // Can't be tested with current methods
+  | "scope_reduction"; // Valid only in narrow conditions
 
 /**
  * All valid death types for type guard
@@ -88,12 +88,12 @@ export const DEATH_TYPE_DESCRIPTIONS: Record<DeathType, string> = {
  * Emoji/icon for each death type
  */
 export const DEATH_TYPE_ICONS: Record<DeathType, string> = {
-  direct_falsification: "💀",  // Definitive death
-  mechanism_failure: "⚙️",     // Broken mechanism
-  effect_size_collapse: "📉",  // Shrinking effect
-  superseded: "👑",            // Crowned successor
-  unmeasurable: "❓",          // Unknown/uncertain
-  scope_reduction: "🔬",       // Narrowed scope
+  direct_falsification: "💀", // Definitive death
+  mechanism_failure: "⚙️", // Broken mechanism
+  effect_size_collapse: "📉", // Shrinking effect
+  superseded: "👑", // Crowned successor
+  unmeasurable: "❓", // Unknown/uncertain
+  scope_reduction: "🔬", // Narrowed scope
 };
 
 /**
@@ -325,9 +325,7 @@ function isValidDateOrString(value: unknown): boolean {
  * @param entry - The FalsifiedHypothesis to validate
  * @returns GraveyardValidationResult with errors and warnings
  */
-export function validateFalsifiedHypothesis(
-  entry: FalsifiedHypothesis
-): GraveyardValidationResult {
+export function validateFalsifiedHypothesis(entry: FalsifiedHypothesis): GraveyardValidationResult {
   const errors: GraveyardValidationError[] = [];
   const warnings: GraveyardValidationWarning[] = [];
 
@@ -511,7 +509,7 @@ export const GRAVEYARD_ID_PATTERN = /^GY-[A-Za-z0-9][A-Za-z0-9-]*-\d{3}$/;
 export function generateGraveyardId(sessionId: string, sequence: number): string {
   if (!sessionId || !/^[A-Za-z0-9][A-Za-z0-9-]*$/.test(sessionId)) {
     throw new Error(
-      `Invalid sessionId: must be alphanumeric with optional hyphens (got "${sessionId}")`
+      `Invalid sessionId: must be alphanumeric with optional hyphens (got "${sessionId}")`,
     );
   }
 
@@ -585,10 +583,7 @@ export function createFalsifiedHypothesis(input: {
 /**
  * Add a successor hypothesis link.
  */
-export function addSuccessor(
-  entry: FalsifiedHypothesis,
-  successorId: string
-): FalsifiedHypothesis {
+export function addSuccessor(entry: FalsifiedHypothesis, successorId: string): FalsifiedHypothesis {
   if (entry.successorHypothesisIds.includes(successorId)) {
     return entry;
   }
@@ -604,7 +599,7 @@ export function addSuccessor(
  */
 export function addContributedTo(
   entry: FalsifiedHypothesis,
-  hypothesisId: string
+  hypothesisId: string,
 ): FalsifiedHypothesis {
   if (entry.contributedToIds.includes(hypothesisId)) {
     return entry;
@@ -619,10 +614,7 @@ export function addContributedTo(
 /**
  * Update the epitaph.
  */
-export function updateEpitaph(
-  entry: FalsifiedHypothesis,
-  epitaph: string
-): FalsifiedHypothesis {
+export function updateEpitaph(entry: FalsifiedHypothesis, epitaph: string): FalsifiedHypothesis {
   return {
     ...entry,
     epitaph,
@@ -634,7 +626,7 @@ export function updateEpitaph(
  */
 export function updateLearning(
   entry: FalsifiedHypothesis,
-  learning: Partial<FalsificationLearning>
+  learning: Partial<FalsificationLearning>,
 ): FalsifiedHypothesis {
   return {
     ...entry,
@@ -726,8 +718,7 @@ export function calculateGraveyardStats(entries: FalsifiedHypothesis[]): Graveya
   return {
     totalFalsified: entries.length,
     byDeathType,
-    avgLessonsPerFalsification:
-      entries.length > 0 ? totalLessons / entries.length : 0,
+    avgLessonsPerFalsification: entries.length > 0 ? totalLessons / entries.length : 0,
     withSuccessors,
     withEpitaphs,
     topDomains,
@@ -795,9 +786,7 @@ export function analyzeFailurePatterns(entries: FalsifiedHypothesis[]): FailureP
   }
 
   // Pattern: Hypotheses that led to successors
-  const withSuccessors = entries.filter(
-    (e) => e.successorHypothesisIds.length > 0
-  );
+  const withSuccessors = entries.filter((e) => e.successorHypothesisIds.length > 0);
   if (withSuccessors.length > 0) {
     const successorRate = (withSuccessors.length / entries.length) * 100;
     patterns.push({
@@ -809,9 +798,7 @@ export function analyzeFailurePatterns(entries: FalsifiedHypothesis[]): FailureP
   }
 
   // Pattern: Missing epitaphs (not learning enough)
-  const withoutEpitaphs = entries.filter(
-    (e) => !e.epitaph || e.epitaph.trim().length === 0
-  );
+  const withoutEpitaphs = entries.filter((e) => !e.epitaph || e.epitaph.trim().length === 0);
   if (withoutEpitaphs.length > entries.length * 0.5) {
     patterns.push({
       name: "Unprocessed Failures",

@@ -17,46 +17,46 @@
  * @module components/brenner-loop/operators/ScaleCheckSession
  */
 
-import * as React from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import {
-  Check,
   AlertTriangle,
-  Lightbulb,
-  TrendingUp,
-  TrendingDown,
-  Minus,
   Calculator,
-  Users,
-  Target,
+  Check,
+  Lightbulb,
+  Minus,
   Scale,
+  Target,
+  TrendingDown,
+  TrendingUp,
+  Users,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import * as React from "react";
 import { Badge } from "@/components/ui/badge";
-import type { HypothesisCard } from "@/lib/brenner-loop/hypothesis";
-import type { Quote } from "@/lib/quotebank-parser";
 import { useOperatorSession } from "@/hooks/useOperatorSession";
+import type { HypothesisCard } from "@/lib/brenner-loop/hypothesis";
 import type {
+  ContextComparison,
+  EffectDirection,
+  EffectMagnitude,
   EffectSizeSpec,
   EffectSizeType,
-  EffectMagnitude,
-  EffectDirection,
-  ContextComparison,
   MeasurementAssessment,
-  PracticalSignificance,
   PopulationConsideration,
+  PracticalSignificance,
   ScaleCheckResult,
 } from "@/lib/brenner-loop/operators/scale-check";
 import {
-  SCALE_CHECK_STEPS,
-  SCALE_CHECK_STEP_IDS,
+  approximateSampleSize,
   EFFECT_SIZE_CONVENTIONS,
-  getDomainContext,
   generateContextComparison,
   generatePopulationConsiderations,
-  approximateSampleSize,
+  getDomainContext,
   SCALE_CHECK_FALLBACK_QUOTES,
+  SCALE_CHECK_STEP_IDS,
+  SCALE_CHECK_STEPS,
 } from "@/lib/brenner-loop/operators/scale-check";
+import type { Quote } from "@/lib/quotebank-parser";
+import { cn } from "@/lib/utils";
 import { OperatorShell } from "./OperatorShell";
 
 // ============================================================================
@@ -159,8 +159,8 @@ function QuantifyEffect({ effectSize, onChange }: QuantifyEffectProps) {
               Quantify Your Claim
             </h3>
             <p className="text-sm text-orange-700 dark:text-orange-300 mt-1">
-              Most hypotheses are vague about effect magnitude. Even a rough estimate helps
-              assess plausibility and guides experimental design.
+              Most hypotheses are vague about effect magnitude. Even a rough estimate helps assess
+              plausibility and guides experimental design.
             </p>
           </div>
         </div>
@@ -175,7 +175,7 @@ function QuantifyEffect({ effectSize, onChange }: QuantifyEffectProps) {
             "px-4 py-2 text-sm font-medium rounded-md transition-all",
             useEstimate
               ? "bg-background shadow text-foreground"
-              : "text-muted-foreground hover:text-foreground"
+              : "text-muted-foreground hover:text-foreground",
           )}
         >
           Estimate
@@ -187,7 +187,7 @@ function QuantifyEffect({ effectSize, onChange }: QuantifyEffectProps) {
             "px-4 py-2 text-sm font-medium rounded-md transition-all",
             !useEstimate
               ? "bg-background shadow text-foreground"
-              : "text-muted-foreground hover:text-foreground"
+              : "text-muted-foreground hover:text-foreground",
           )}
         >
           Precise Value
@@ -210,7 +210,7 @@ function QuantifyEffect({ effectSize, onChange }: QuantifyEffectProps) {
                 "hover:border-primary/50",
                 currentType === type.value
                   ? "border-primary bg-primary/5 ring-2 ring-primary/20"
-                  : "border-border bg-card"
+                  : "border-border bg-card",
               )}
               whileTap={{ scale: 0.98 }}
             >
@@ -238,7 +238,7 @@ function QuantifyEffect({ effectSize, onChange }: QuantifyEffectProps) {
                   "hover:border-primary/50",
                   currentEstimate === mag.value
                     ? "border-primary bg-primary text-primary-foreground"
-                    : "border-border bg-card"
+                    : "border-border bg-card",
                 )}
                 whileTap={{ scale: 0.95 }}
               >
@@ -255,7 +255,8 @@ function QuantifyEffect({ effectSize, onChange }: QuantifyEffectProps) {
               className="mt-3 p-3 rounded-lg bg-muted/50 border border-border"
             >
               <p className="text-sm text-muted-foreground">
-                For <span className="font-medium">{currentType}</span>, &quot;{currentEstimate}&quot; means approximately{" "}
+                For <span className="font-medium">{currentType}</span>, &quot;{currentEstimate}
+                &quot; means approximately{" "}
                 <span className="font-mono font-medium">
                   {EFFECT_SIZE_CONVENTIONS[currentType][currentEstimate]}
                 </span>
@@ -277,7 +278,7 @@ function QuantifyEffect({ effectSize, onChange }: QuantifyEffectProps) {
             className={cn(
               "w-full px-4 py-3 rounded-lg border bg-card text-foreground",
               "placeholder:text-muted-foreground",
-              "focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+              "focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary",
             )}
           />
         </div>
@@ -299,7 +300,7 @@ function QuantifyEffect({ effectSize, onChange }: QuantifyEffectProps) {
                 "hover:border-primary/50",
                 currentDirection === dir.value
                   ? "border-primary bg-primary/5"
-                  : "border-border bg-card"
+                  : "border-border bg-card",
               )}
               whileTap={{ scale: 0.95 }}
             >
@@ -330,18 +331,29 @@ function ContextComparisonDisplay({
 }: ContextComparisonDisplayProps) {
   if (!comparison) {
     return (
-      <div className="p-8 text-center text-muted-foreground">
-        Generating context comparison...
-      </div>
+      <div className="p-8 text-center text-muted-foreground">Generating context comparison...</div>
     );
   }
 
-  const normLabels: Record<ContextComparison["relativeToNorm"], { label: string; color: string }> = {
-    below_typical: { label: "Below Typical", color: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200" },
-    typical: { label: "Typical", color: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200" },
-    above_typical: { label: "Above Typical", color: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200" },
-    exceptional: { label: "Exceptional", color: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200" },
-  };
+  const normLabels: Record<ContextComparison["relativeToNorm"], { label: string; color: string }> =
+    {
+      below_typical: {
+        label: "Below Typical",
+        color: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
+      },
+      typical: {
+        label: "Typical",
+        color: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
+      },
+      above_typical: {
+        label: "Above Typical",
+        color: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200",
+      },
+      exceptional: {
+        label: "Exceptional",
+        color: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200",
+      },
+    };
 
   const norm = normLabels[comparison.relativeToNorm];
 
@@ -350,9 +362,7 @@ function ContextComparisonDisplay({
       {/* Overall rating */}
       <div className="flex items-center gap-4">
         <span className="text-sm text-muted-foreground">Your effect is:</span>
-        <Badge className={cn("text-sm px-3 py-1", norm.color)}>
-          {norm.label}
-        </Badge>
+        <Badge className={cn("text-sm px-3 py-1", norm.color)}>{norm.label}</Badge>
         <span className="text-sm text-muted-foreground">for {domainName}</span>
       </div>
 
@@ -373,7 +383,9 @@ function ContextComparisonDisplay({
                   {comparison.varianceExplained.toFixed(1)}%
                 </span>{" "}
                 of the variance. The remaining{" "}
-                <span className="font-mono">{(100 - comparison.varianceExplained).toFixed(1)}%</span>{" "}
+                <span className="font-mono">
+                  {(100 - comparison.varianceExplained).toFixed(1)}%
+                </span>{" "}
                 is due to other factors.
               </p>
             </div>
@@ -398,9 +410,7 @@ function ContextComparisonDisplay({
               >
                 <span className="text-sm">{b.label}</span>
                 <div className="flex items-center gap-2">
-                  <span className="font-mono text-sm text-muted-foreground">
-                    {b.value}
-                  </span>
+                  <span className="font-mono text-sm text-muted-foreground">{b.value}</span>
                   {b.comparison && (
                     <Badge
                       variant="outline"
@@ -408,7 +418,7 @@ function ContextComparisonDisplay({
                         "text-xs",
                         b.comparison === "smaller" && "border-blue-500 text-blue-600",
                         b.comparison === "similar" && "border-green-500 text-green-600",
-                        b.comparison === "larger" && "border-orange-500 text-orange-600"
+                        b.comparison === "larger" && "border-orange-500 text-orange-600",
                       )}
                     >
                       Your effect is {b.comparison}
@@ -480,17 +490,12 @@ interface MeasurementPrecisionProps {
   onChange: (assessment: MeasurementAssessment) => void;
 }
 
-function MeasurementPrecision({
-  effectSize,
-  assessment,
-  onChange,
-}: MeasurementPrecisionProps) {
+function MeasurementPrecision({ effectSize, assessment, onChange }: MeasurementPrecisionProps) {
   // Calculate suggested sample size
   const suggestedN = React.useMemo(() => {
-    const value = effectSize.value ??
-      (effectSize.estimate
-        ? EFFECT_SIZE_CONVENTIONS[effectSize.type][effectSize.estimate]
-        : 0.5);
+    const value =
+      effectSize.value ??
+      (effectSize.estimate ? EFFECT_SIZE_CONVENTIONS[effectSize.type][effectSize.estimate] : 0.5);
 
     // Convert to d-like metric for sample size calculation
     let dEquivalent = value;
@@ -559,7 +564,7 @@ function MeasurementPrecision({
               "hover:border-primary/50",
               assessment?.isDetectable === true
                 ? "border-green-500 bg-green-50 dark:bg-green-950 text-green-700 dark:text-green-300"
-                : "border-border bg-card"
+                : "border-border bg-card",
             )}
             whileTap={{ scale: 0.95 }}
           >
@@ -574,7 +579,7 @@ function MeasurementPrecision({
               "hover:border-primary/50",
               assessment?.isDetectable === false
                 ? "border-red-500 bg-red-50 dark:bg-red-950 text-red-700 dark:text-red-300"
-                : "border-border bg-card"
+                : "border-border bg-card",
             )}
             whileTap={{ scale: 0.95 }}
           >
@@ -589,7 +594,7 @@ function MeasurementPrecision({
               "hover:border-primary/50",
               assessment?.isDetectable === null
                 ? "border-yellow-500 bg-yellow-50 dark:bg-yellow-950 text-yellow-700 dark:text-yellow-300"
-                : "border-border bg-card"
+                : "border-border bg-card",
             )}
             whileTap={{ scale: 0.95 }}
           >
@@ -611,7 +616,7 @@ function MeasurementPrecision({
           className={cn(
             "w-full px-4 py-3 rounded-lg border bg-card text-foreground resize-none",
             "placeholder:text-muted-foreground",
-            "focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+            "focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary",
           )}
         />
       </div>
@@ -628,10 +633,7 @@ interface PracticalSignificanceInputProps {
   onChange: (significance: PracticalSignificance) => void;
 }
 
-function PracticalSignificanceInput({
-  significance,
-  onChange,
-}: PracticalSignificanceInputProps) {
+function PracticalSignificanceInput({ significance, onChange }: PracticalSignificanceInputProps) {
   const handleMeaningfulChange = (isPracticallyMeaningful: boolean | null) => {
     onChange({
       isPracticallyMeaningful,
@@ -651,7 +653,7 @@ function PracticalSignificanceInput({
   const handleStakeholderToggle = (stakeholder: string) => {
     const current = significance?.stakeholders ?? [];
     const updated = current.includes(stakeholder)
-      ? current.filter(s => s !== stakeholder)
+      ? current.filter((s) => s !== stakeholder)
       : [...current, stakeholder];
     onChange({
       isPracticallyMeaningful: significance?.isPracticallyMeaningful ?? null,
@@ -699,7 +701,7 @@ function PracticalSignificanceInput({
               "hover:border-primary/50",
               significance?.isPracticallyMeaningful === true
                 ? "border-green-500 bg-green-50 dark:bg-green-950 text-green-700 dark:text-green-300"
-                : "border-border bg-card"
+                : "border-border bg-card",
             )}
             whileTap={{ scale: 0.95 }}
           >
@@ -713,7 +715,7 @@ function PracticalSignificanceInput({
               "hover:border-primary/50",
               significance?.isPracticallyMeaningful === false
                 ? "border-red-500 bg-red-50 dark:bg-red-950 text-red-700 dark:text-red-300"
-                : "border-border bg-card"
+                : "border-border bg-card",
             )}
             whileTap={{ scale: 0.95 }}
           >
@@ -727,7 +729,7 @@ function PracticalSignificanceInput({
               "hover:border-primary/50",
               significance?.isPracticallyMeaningful === null
                 ? "border-yellow-500 bg-yellow-50 dark:bg-yellow-950 text-yellow-700 dark:text-yellow-300"
-                : "border-border bg-card"
+                : "border-border bg-card",
             )}
             whileTap={{ scale: 0.95 }}
           >
@@ -754,7 +756,7 @@ function PracticalSignificanceInput({
                   "hover:border-primary/50",
                   isSelected
                     ? "border-primary bg-primary text-primary-foreground"
-                    : "border-border bg-card"
+                    : "border-border bg-card",
                 )}
                 whileTap={{ scale: 0.95 }}
               >
@@ -778,7 +780,7 @@ function PracticalSignificanceInput({
           className={cn(
             "w-full px-4 py-3 rounded-lg border bg-card text-foreground resize-none",
             "placeholder:text-muted-foreground",
-            "focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+            "focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary",
           )}
         />
       </div>
@@ -801,15 +803,13 @@ function PopulationConsiderationsInput({
 }: PopulationConsiderationsProps) {
   const handleToggle = (index: number) => {
     const updated = considerations.map((c, i) =>
-      i === index ? { ...c, addressed: !c.addressed } : c
+      i === index ? { ...c, addressed: !c.addressed } : c,
     );
     onChange(updated);
   };
 
   const handleNotesChange = (index: number, notes: string) => {
-    const updated = considerations.map((c, i) =>
-      i === index ? { ...c, notes } : c
-    );
+    const updated = considerations.map((c, i) => (i === index ? { ...c, notes } : c));
     onChange(updated);
   };
 
@@ -829,9 +829,8 @@ function PopulationConsiderationsInput({
           <div>
             <p className="text-sm font-medium">Beyond the Average</p>
             <p className="text-sm text-muted-foreground mt-1">
-              An average effect of zero could mean everyone has zero effect,
-              or half the people are harmed and half are helped equally.
-              These are very different realities.
+              An average effect of zero could mean everyone has zero effect, or half the people are
+              harmed and half are helped equally. These are very different realities.
             </p>
           </div>
         </div>
@@ -847,9 +846,7 @@ function PopulationConsiderationsInput({
             transition={{ delay: index * 0.1 }}
             className={cn(
               "p-4 rounded-lg border transition-all",
-              consideration.addressed
-                ? "border-primary bg-primary/5"
-                : "border-border bg-card"
+              consideration.addressed ? "border-primary bg-primary/5" : "border-border bg-card",
             )}
           >
             <div className="flex items-start gap-3">
@@ -860,7 +857,7 @@ function PopulationConsiderationsInput({
                   "flex items-center justify-center size-6 rounded border flex-shrink-0 mt-0.5 transition-colors",
                   consideration.addressed
                     ? "bg-primary border-primary text-primary-foreground"
-                    : "border-muted-foreground/30 hover:border-primary/50"
+                    : "border-muted-foreground/30 hover:border-primary/50",
                 )}
                 whileTap={{ scale: 0.9 }}
               >
@@ -869,9 +866,7 @@ function PopulationConsiderationsInput({
 
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-2">
-                  <span className="text-muted-foreground">
-                    {typeIcons[consideration.type]}
-                  </span>
+                  <span className="text-muted-foreground">{typeIcons[consideration.type]}</span>
                   <p className="text-sm font-medium">{consideration.description}</p>
                 </div>
 
@@ -890,7 +885,7 @@ function PopulationConsiderationsInput({
                         className={cn(
                           "w-full px-3 py-2 mt-2 rounded-lg border bg-background text-foreground text-sm resize-none",
                           "placeholder:text-muted-foreground",
-                          "focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                          "focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary",
                         )}
                       />
                     </motion.div>
@@ -949,10 +944,7 @@ export function ScaleCheckSession({
   });
 
   // Get domain context
-  const domainContext = React.useMemo(
-    () => getDomainContext(hypothesis),
-    [hypothesis]
-  );
+  const domainContext = React.useMemo(() => getDomainContext(hypothesis), [hypothesis]);
 
   // Initialize effect size on first render
   React.useEffect(() => {
@@ -1020,21 +1012,33 @@ export function ScaleCheckSession({
   }, [currentStepConfig?.id, effectSize, domainContext, getContent, setContent]);
 
   // Handlers
-  const handleEffectSizeChange = React.useCallback((spec: EffectSizeSpec) => {
-    setSelection(SCALE_CHECK_STEP_IDS.QUANTIFY, spec);
-  }, [setSelection]);
+  const handleEffectSizeChange = React.useCallback(
+    (spec: EffectSizeSpec) => {
+      setSelection(SCALE_CHECK_STEP_IDS.QUANTIFY, spec);
+    },
+    [setSelection],
+  );
 
-  const handleMeasurementChange = React.useCallback((assessment: MeasurementAssessment) => {
-    setSelection(SCALE_CHECK_STEP_IDS.PRECISION, assessment);
-  }, [setSelection]);
+  const handleMeasurementChange = React.useCallback(
+    (assessment: MeasurementAssessment) => {
+      setSelection(SCALE_CHECK_STEP_IDS.PRECISION, assessment);
+    },
+    [setSelection],
+  );
 
-  const handlePracticalChange = React.useCallback((significance: PracticalSignificance) => {
-    setSelection(SCALE_CHECK_STEP_IDS.PRACTICAL, significance);
-  }, [setSelection]);
+  const handlePracticalChange = React.useCallback(
+    (significance: PracticalSignificance) => {
+      setSelection(SCALE_CHECK_STEP_IDS.PRACTICAL, significance);
+    },
+    [setSelection],
+  );
 
-  const handlePopulationChange = React.useCallback((considerations: PopulationConsideration[]) => {
-    setSelection(SCALE_CHECK_STEP_IDS.POPULATION, considerations);
-  }, [setSelection]);
+  const handlePopulationChange = React.useCallback(
+    (considerations: PopulationConsideration[]) => {
+      setSelection(SCALE_CHECK_STEP_IDS.POPULATION, considerations);
+    },
+    [setSelection],
+  );
 
   // Handle completion
   const handleComplete = React.useCallback(() => {
@@ -1095,12 +1099,7 @@ export function ScaleCheckSession({
   const renderStepContent = () => {
     switch (currentStepConfig?.id) {
       case SCALE_CHECK_STEP_IDS.QUANTIFY:
-        return (
-          <QuantifyEffect
-            effectSize={effectSize ?? null}
-            onChange={handleEffectSizeChange}
-          />
-        );
+        return <QuantifyEffect effectSize={effectSize ?? null} onChange={handleEffectSizeChange} />;
 
       case SCALE_CHECK_STEP_IDS.CONTEXTUALIZE:
         return effectSize ? (
@@ -1145,18 +1144,12 @@ export function ScaleCheckSession({
         );
 
       default:
-        return (
-          <div className="p-8 text-center text-muted-foreground">
-            Unknown step
-          </div>
-        );
+        return <div className="p-8 text-center text-muted-foreground">Unknown step</div>;
     }
   };
 
   // Use quotes or fallback
-  const displayQuotes = quotes && quotes.length > 0
-    ? quotes
-    : SCALE_CHECK_FALLBACK_QUOTES;
+  const displayQuotes = quotes && quotes.length > 0 ? quotes : SCALE_CHECK_FALLBACK_QUOTES;
 
   return (
     <OperatorShell

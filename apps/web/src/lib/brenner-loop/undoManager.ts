@@ -8,13 +8,13 @@
  */
 
 import type {
-  Session,
-  SessionPhase,
   EvidenceEntry,
-  LevelSplitResult,
   ExclusionTestResult,
+  LevelSplitResult,
   ObjectTransposeResult,
   ScaleCheckResult,
+  Session,
+  SessionPhase,
 } from "./types";
 
 // ============================================================================
@@ -145,13 +145,13 @@ export interface TagData {
 // ============================================================================
 
 export function isConfidenceCommand(
-  cmd: SessionCommand
+  cmd: SessionCommand,
 ): cmd is SessionCommand<ConfidenceUpdateData> {
   return cmd.type === "update_confidence";
 }
 
 export function isHypothesisStateCommand(
-  cmd: SessionCommand
+  cmd: SessionCommand,
 ): cmd is SessionCommand<HypothesisStateData> {
   return (
     cmd.type === "set_primary_hypothesis" ||
@@ -161,26 +161,20 @@ export function isHypothesisStateCommand(
   );
 }
 
-export function isEvidenceCommand(
-  cmd: SessionCommand
-): cmd is SessionCommand<EvidenceRecordData> {
+export function isEvidenceCommand(cmd: SessionCommand): cmd is SessionCommand<EvidenceRecordData> {
   return cmd.type === "record_evidence";
 }
 
-export function isPhaseCommand(
-  cmd: SessionCommand
-): cmd is SessionCommand<PhaseTransitionData> {
+export function isPhaseCommand(cmd: SessionCommand): cmd is SessionCommand<PhaseTransitionData> {
   return cmd.type === "phase_transition";
 }
 
-export function isOperatorCommand(
-  cmd: SessionCommand
-): cmd is SessionCommand<ApplyOperatorData> {
+export function isOperatorCommand(cmd: SessionCommand): cmd is SessionCommand<ApplyOperatorData> {
   return cmd.type === "apply_operator";
 }
 
 function normalizeOperatorApplicationKey(
-  value: ApplyOperatorData["operatorType"]
+  value: ApplyOperatorData["operatorType"],
 ): OperatorApplicationKey | null {
   switch (value) {
     case "levelSplit":
@@ -260,7 +254,7 @@ export function createConfidenceCommand(
   previousConfidence: number,
   newConfidence: number,
   reason: string,
-  evidenceId?: string
+  evidenceId?: string,
 ): SessionCommand<ConfidenceUpdateData> {
   return {
     id: generateCommandId(),
@@ -287,7 +281,7 @@ export function createConfidenceCommand(
  */
 export function createSetPrimaryCommand(
   newPrimaryId: string,
-  previousPrimaryId: string
+  previousPrimaryId: string,
 ): SessionCommand<HypothesisStateData> {
   return {
     id: generateCommandId(),
@@ -310,7 +304,7 @@ export function createSetPrimaryCommand(
  */
 export function createArchiveCommand(
   hypothesisId: string,
-  reason: string
+  reason: string,
 ): SessionCommand<HypothesisStateData> {
   return {
     id: generateCommandId(),
@@ -330,9 +324,7 @@ export function createArchiveCommand(
 /**
  * Create a restore hypothesis command
  */
-export function createRestoreCommand(
-  hypothesisId: string
-): SessionCommand<HypothesisStateData> {
+export function createRestoreCommand(hypothesisId: string): SessionCommand<HypothesisStateData> {
   return {
     id: generateCommandId(),
     type: "restore_hypothesis",
@@ -350,9 +342,7 @@ export function createRestoreCommand(
 /**
  * Create a record evidence command
  */
-export function createEvidenceCommand(
-  evidence: EvidenceEntry
-): SessionCommand<EvidenceRecordData> {
+export function createEvidenceCommand(evidence: EvidenceEntry): SessionCommand<EvidenceRecordData> {
   const obs = evidence.observation ?? "";
   const truncatedObs = obs.length > 40 ? `${obs.slice(0, 40)}...` : obs;
   return {
@@ -370,7 +360,7 @@ export function createEvidenceCommand(
  */
 export function createPhaseCommand(
   previousPhase: SessionPhase,
-  newPhase: SessionPhase
+  newPhase: SessionPhase,
 ): SessionCommand<PhaseTransitionData> {
   return {
     id: generateCommandId(),
@@ -389,7 +379,7 @@ export function createApplyOperatorCommand(
   operatorType: ApplyOperatorData["operatorType"],
   result: unknown,
   previousPhase?: SessionPhase,
-  newPhase?: SessionPhase
+  newPhase?: SessionPhase,
 ): SessionCommand<ApplyOperatorData> {
   return {
     id: generateCommandId(),
@@ -406,7 +396,7 @@ export function createApplyOperatorCommand(
  */
 export function createNotesCommand(
   previousNotes: string,
-  newNotes: string
+  newNotes: string,
 ): SessionCommand<NotesUpdateData> {
   return {
     id: generateCommandId(),
@@ -453,10 +443,7 @@ export function createRemoveTagCommand(tag: string): SessionCommand<TagData> {
 /**
  * Apply a command to a session (execute direction)
  */
-export function applyCommand(
-  session: Session,
-  command: SessionCommand
-): Session {
+export function applyCommand(session: Session, command: SessionCommand): Session {
   const updatedAt = new Date().toISOString();
   const updatedAtDate = new Date(updatedAt);
 
@@ -487,7 +474,7 @@ export function applyCommand(
       // Move previous primary to alternatives, set new primary
       // Only add previous primary to alternatives if it exists
       const filteredAlternatives = session.alternativeHypothesisIds.filter(
-        (id) => id !== data.hypothesisId
+        (id) => id !== data.hypothesisId,
       );
       return {
         ...session,
@@ -506,12 +493,9 @@ export function applyCommand(
         ...session,
         updatedAt,
         alternativeHypothesisIds: session.alternativeHypothesisIds.filter(
-          (id) => id !== data.hypothesisId
+          (id) => id !== data.hypothesisId,
         ),
-        archivedHypothesisIds: [
-          ...session.archivedHypothesisIds,
-          data.hypothesisId,
-        ],
+        archivedHypothesisIds: [...session.archivedHypothesisIds, data.hypothesisId],
       };
     }
 
@@ -522,12 +506,9 @@ export function applyCommand(
         ...session,
         updatedAt,
         archivedHypothesisIds: session.archivedHypothesisIds.filter(
-          (id) => id !== data.hypothesisId
+          (id) => id !== data.hypothesisId,
         ),
-        alternativeHypothesisIds: [
-          ...session.alternativeHypothesisIds,
-          data.hypothesisId,
-        ],
+        alternativeHypothesisIds: [...session.alternativeHypothesisIds, data.hypothesisId],
       };
     }
 
@@ -627,10 +608,7 @@ export function applyCommand(
 /**
  * Reverse a command (undo direction)
  */
-export function reverseCommand(
-  session: Session,
-  command: SessionCommand
-): Session {
+export function reverseCommand(session: Session, command: SessionCommand): Session {
   const updatedAt = new Date().toISOString();
   const updatedAtDate = new Date(updatedAt);
 
@@ -661,7 +639,7 @@ export function reverseCommand(
       // Swap back
       // Only add demoted primary to alternatives if it exists
       const filteredAlternatives = session.alternativeHypothesisIds.filter(
-        (id) => id !== data.hypothesisId && id !== demotedPrimary
+        (id) => id !== data.hypothesisId && id !== demotedPrimary,
       );
       return {
         ...session,
@@ -681,12 +659,9 @@ export function reverseCommand(
         ...session,
         updatedAt,
         archivedHypothesisIds: session.archivedHypothesisIds.filter(
-          (id) => id !== data.hypothesisId
+          (id) => id !== data.hypothesisId,
         ),
-        alternativeHypothesisIds: [
-          ...session.alternativeHypothesisIds,
-          data.hypothesisId,
-        ],
+        alternativeHypothesisIds: [...session.alternativeHypothesisIds, data.hypothesisId],
       };
     }
 
@@ -698,12 +673,9 @@ export function reverseCommand(
         ...session,
         updatedAt,
         alternativeHypothesisIds: session.alternativeHypothesisIds.filter(
-          (id) => id !== data.hypothesisId
+          (id) => id !== data.hypothesisId,
         ),
-        archivedHypothesisIds: [
-          ...session.archivedHypothesisIds,
-          data.hypothesisId,
-        ],
+        archivedHypothesisIds: [...session.archivedHypothesisIds, data.hypothesisId],
       };
     }
 
@@ -713,9 +685,7 @@ export function reverseCommand(
       return {
         ...session,
         updatedAt,
-        evidenceLedger: session.evidenceLedger.filter(
-          (e) => e.id !== data.evidence.id
-        ),
+        evidenceLedger: session.evidenceLedger.filter((e) => e.id !== data.evidence.id),
       };
     }
 
@@ -814,7 +784,7 @@ export function reverseCommand(
 export function executeCommand(
   session: Session,
   stack: UndoStack,
-  command: SessionCommand
+  command: SessionCommand,
 ): { session: Session; stack: UndoStack } {
   const newSession = applyCommand(session, command);
 
@@ -842,7 +812,7 @@ export function executeCommand(
  */
 export function undo(
   session: Session,
-  stack: UndoStack
+  stack: UndoStack,
 ): { session: Session; stack: UndoStack } | null {
   if (stack.history.length === 0) {
     return null;
@@ -866,7 +836,7 @@ export function undo(
  */
 export function redo(
   session: Session,
-  stack: UndoStack
+  stack: UndoStack,
 ): { session: Session; stack: UndoStack } | null {
   if (stack.redoStack.length === 0) {
     return null;
@@ -918,10 +888,7 @@ export function getNextRedoDescription(stack: UndoStack): string | null {
 /**
  * Get recent history for display
  */
-export function getRecentHistory(
-  stack: UndoStack,
-  limit = 10
-): SessionCommand[] {
+export function getRecentHistory(stack: UndoStack, limit = 10): SessionCommand[] {
   return stack.history.slice(-limit).reverse();
 }
 

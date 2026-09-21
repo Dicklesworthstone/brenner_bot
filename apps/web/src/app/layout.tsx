@@ -2,11 +2,18 @@ import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import Link from "next/link";
 import "./globals.css";
-import { HeaderNav, BottomNav, ReadingProgress, BackToTop, ThemeToggle, NetworkStatusBadge } from "@/components/ui/nav";
-import { Button } from "@/components/ui/button";
-import { SearchProvider, SearchTrigger } from "@/components/search";
 import { ExcerptBasketTrigger } from "@/components/excerpt";
 import { Providers } from "@/components/providers";
+import { SearchProvider, SearchTrigger } from "@/components/search";
+import { Button } from "@/components/ui/button";
+import {
+  BackToTop,
+  BottomNav,
+  HeaderNav,
+  NetworkStatusBadge,
+  ReadingProgress,
+  ThemeToggle,
+} from "@/components/ui/nav";
 import { Toaster } from "@/components/ui/toast";
 
 const geistSans = Geist({
@@ -117,9 +124,7 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <Providers>
           <SearchProvider>
             <div className="min-h-dvh flex flex-col bg-background text-foreground">
@@ -164,9 +169,7 @@ export default function RootLayout({
 
               {/* Main Content */}
               <main className="flex-1 pb-mobile-nav">
-                <div className="container-default py-8 lg:py-12">
-                  {children}
-                </div>
+                <div className="container-default py-8 lg:py-12">{children}</div>
               </main>
 
               {/* Footer - Desktop only, hidden when bottom nav is visible */}
@@ -181,8 +184,8 @@ export default function RootLayout({
                         <span className="font-semibold">BrennerBot</span>
                       </div>
                       <p className="text-sm text-muted-foreground max-w-md">
-                        Research lab for operationalizing Sydney Brenner&apos;s scientific methodology
-                        via multi-agent collaboration.
+                        Research lab for operationalizing Sydney Brenner&apos;s scientific
+                        methodology via multi-agent collaboration.
                       </p>
                     </div>
 

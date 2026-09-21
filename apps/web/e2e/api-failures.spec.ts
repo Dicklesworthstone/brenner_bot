@@ -9,7 +9,7 @@
  * - Skips individual tests when /sessions/new is hidden (404) or locked (auth not configured).
  */
 
-import { test, expect, waitForNetworkIdle } from "./utils";
+import { expect, test, waitForNetworkIdle } from "./utils";
 import { withStep } from "./utils/e2e-logging";
 
 type E2ELogger = ReturnType<typeof import("./utils/e2e-logging").createE2ELogger>;
@@ -34,7 +34,12 @@ async function tryOpenAuthenticatedSessionForm(params: {
   logger: E2ELogger;
 }): Promise<
   | { ok: true }
-  | { ok: false; reason: "lab_disabled" | "locked" | "unexpected"; status: number; pageText: string }
+  | {
+      ok: false;
+      reason: "lab_disabled" | "locked" | "unexpected";
+      status: number;
+      pageText: string;
+    }
 > {
   const labSecret = (process.env.BRENNER_LAB_SECRET || "test-secret-for-e2e").trim();
 
@@ -56,10 +61,13 @@ async function tryOpenAuthenticatedSessionForm(params: {
   const pageText = (await params.page.locator("body").textContent()) ?? "";
 
   if (status === 404) return { ok: false, reason: "lab_disabled", status, pageText };
-  if (pageText.includes("Lab Mode Locked")) return { ok: false, reason: "locked", status, pageText };
+  if (pageText.includes("Lab Mode Locked"))
+    return { ok: false, reason: "locked", status, pageText };
 
   // Heuristic: the form should contain the standard submit label.
-  const hasForm = pageText.includes("Send Kickoff") || (await params.page.locator('button[type="submit"]').count()) > 0;
+  const hasForm =
+    pageText.includes("Send Kickoff") ||
+    (await params.page.locator('button[type="submit"]').count()) > 0;
   if (!hasForm) return { ok: false, reason: "unexpected", status, pageText };
 
   return { ok: true };
@@ -74,17 +82,29 @@ async function fillMinimalKickoffForm(params: {
     await params.page.locator('input[name="threadId"]').fill(params.threadId);
     await params.page.locator('input[name="sender"]').fill("BlueLake");
     await params.page.locator('input[name="recipients"]').fill("PurpleMountain");
-    await params.page.locator('textarea[name="excerpt"]').fill("This is a test excerpt used for API failure E2E coverage.");
+    await params.page
+      .locator('textarea[name="excerpt"]')
+      .fill("This is a test excerpt used for API failure E2E coverage.");
   });
 }
 
 test.describe("API Failure Handling (local-only)", () => {
-  test.skip(!isLocalE2EEnvironment(), "Runs only against local dev server (set BASE_URL=http://localhost:3000).");
+  test.skip(
+    !isLocalE2EEnvironment(),
+    "Runs only against local dev server (set BASE_URL=http://localhost:3000).",
+  );
 
-  test("shows NETWORK_ERROR message when Agent Mail is unreachable (502)", async ({ page, logger, context }) => {
+  test("shows NETWORK_ERROR message when Agent Mail is unreachable (502)", async ({
+    page,
+    logger,
+    context,
+  }) => {
     const gate = await tryOpenAuthenticatedSessionForm({ page, logger, context });
     if (!gate.ok) {
-      test.skip(true, `Skipping (sessions/new not available): ${gate.reason} (HTTP ${gate.status})`);
+      test.skip(
+        true,
+        `Skipping (sessions/new not available): ${gate.reason} (HTTP ${gate.status})`,
+      );
     }
 
     await page.route("**/api/sessions", async (route) => {
@@ -111,7 +131,10 @@ test.describe("API Failure Handling (local-only)", () => {
   test("retries once on transient failure, then succeeds", async ({ page, logger, context }) => {
     const gate = await tryOpenAuthenticatedSessionForm({ page, logger, context });
     if (!gate.ok) {
-      test.skip(true, `Skipping (sessions/new not available): ${gate.reason} (HTTP ${gate.status})`);
+      test.skip(
+        true,
+        `Skipping (sessions/new not available): ${gate.reason} (HTTP ${gate.status})`,
+      );
     }
 
     const threadId = `E2E-API-RETRY-${Date.now()}`;
@@ -149,17 +172,24 @@ test.describe("API Failure Handling (local-only)", () => {
     expect(callCount).toBeGreaterThanOrEqual(2);
   });
 
-  test("surfaces a readable error when API returns invalid/truncated JSON", async ({ page, logger, context }) => {
+  test("surfaces a readable error when API returns invalid/truncated JSON", async ({
+    page,
+    logger,
+    context,
+  }) => {
     const gate = await tryOpenAuthenticatedSessionForm({ page, logger, context });
     if (!gate.ok) {
-      test.skip(true, `Skipping (sessions/new not available): ${gate.reason} (HTTP ${gate.status})`);
+      test.skip(
+        true,
+        `Skipping (sessions/new not available): ${gate.reason} (HTTP ${gate.status})`,
+      );
     }
 
     await page.route("**/api/sessions", async (route) => {
       await route.fulfill({
         status: 200,
         headers: { "content-type": "application/json" },
-        body: "{\"success\": false, \"code\": \"SERVER_ERROR\", \"error\": \"truncated\"",
+        body: '{"success": false, "code": "SERVER_ERROR", "error": "truncated"',
       });
     });
 
@@ -174,10 +204,17 @@ test.describe("API Failure Handling (local-only)", () => {
     });
   });
 
-  test("shows AUTH_ERROR message for unauthorized responses (401)", async ({ page, logger, context }) => {
+  test("shows AUTH_ERROR message for unauthorized responses (401)", async ({
+    page,
+    logger,
+    context,
+  }) => {
     const gate = await tryOpenAuthenticatedSessionForm({ page, logger, context });
     if (!gate.ok) {
-      test.skip(true, `Skipping (sessions/new not available): ${gate.reason} (HTTP ${gate.status})`);
+      test.skip(
+        true,
+        `Skipping (sessions/new not available): ${gate.reason} (HTTP ${gate.status})`,
+      );
     }
 
     await page.route("**/api/sessions", async (route) => {
@@ -197,14 +234,23 @@ test.describe("API Failure Handling (local-only)", () => {
     await withStep(logger, page, "Submit kickoff and verify auth error message", async () => {
       await page.locator('button[type="submit"]').click();
       await expect(page.getByText("Failed to send kickoff")).toBeVisible();
-      await expect(page.getByText(/Not authorized\. Please check your lab mode settings\./i)).toBeVisible();
+      await expect(
+        page.getByText(/Not authorized\. Please check your lab mode settings\./i),
+      ).toBeVisible();
     });
   });
 
-  test("shows SERVER_ERROR message for internal server errors (500)", async ({ page, logger, context }) => {
+  test("shows SERVER_ERROR message for internal server errors (500)", async ({
+    page,
+    logger,
+    context,
+  }) => {
     const gate = await tryOpenAuthenticatedSessionForm({ page, logger, context });
     if (!gate.ok) {
-      test.skip(true, `Skipping (sessions/new not available): ${gate.reason} (HTTP ${gate.status})`);
+      test.skip(
+        true,
+        `Skipping (sessions/new not available): ${gate.reason} (HTTP ${gate.status})`,
+      );
     }
 
     await page.route("**/api/sessions", async (route) => {

@@ -1,13 +1,14 @@
-import { Metadata } from "next";
+import type { Metadata } from "next";
 import Link from "next/link";
-import { TutorialPathGrid, type PathStatus } from "@/components/tutorial/TutorialPathCard";
-import { CollapsibleCard } from "@/components/ui/collapsible";
+import { type PathStatus, TutorialPathGrid } from "@/components/tutorial/TutorialPathCard";
 import { HeroBackground } from "@/components/ui/animated-element";
+import { CollapsibleCard } from "@/components/ui/collapsible";
 import type { TutorialPath } from "@/lib/tutorial-types";
 
 export const metadata: Metadata = {
   title: "Tutorial",
-  description: "Learn to apply the Brenner Method to your research with guided learning paths from quick start to multi-agent orchestration.",
+  description:
+    "Learn to apply the Brenner Method to your research with guided learning paths from quick start to multi-agent orchestration.",
 };
 
 // ============================================================================
@@ -18,7 +19,8 @@ const tutorialPaths: TutorialPath[] = [
   {
     id: "quick-start",
     title: "Quick Start",
-    description: "Apply the Brenner method to your research question in 30 minutes. No special setup required — just your browser and curiosity.",
+    description:
+      "Apply the Brenner method to your research question in 30 minutes. No special setup required — just your browser and curiosity.",
     estimatedDuration: "~30 min",
     difficulty: "beginner",
     audience: "Curious researchers, first-timers",
@@ -30,7 +32,8 @@ const tutorialPaths: TutorialPath[] = [
   {
     id: "agent-assisted",
     title: "Agent-Assisted Research",
-    description: "Let your AI coding agent learn and apply the methodology alongside you. The highest-leverage path for power users.",
+    description:
+      "Let your AI coding agent learn and apply the methodology alongside you. The highest-leverage path for power users.",
     estimatedDuration: "~45 min",
     difficulty: "intermediate",
     audience: "Power users with Claude Code or Codex",
@@ -42,7 +45,8 @@ const tutorialPaths: TutorialPath[] = [
   {
     id: "multi-agent-cockpit",
     title: "Multi-Agent Cockpit",
-    description: "Orchestrate a research group with Claude, GPT, and Gemini working in parallel via Agent Mail. Full infrastructure setup.",
+    description:
+      "Orchestrate a research group with Claude, GPT, and Gemini working in parallel via Agent Mail. Full infrastructure setup.",
     estimatedDuration: "~2 hours",
     difficulty: "advanced",
     audience: "Advanced practitioners",
@@ -72,19 +76,23 @@ interface FAQItem {
 const faqItems: FAQItem[] = [
   {
     question: "Which path is right for me?",
-    answer: "Start with Quick Start if you're new. It requires no special setup and gives you a taste of the methodology. Move to Agent-Assisted if you already use Claude Code or Codex — it's the highest-leverage path. Only choose Multi-Agent if you're ready to run persistent infrastructure.",
+    answer:
+      "Start with Quick Start if you're new. It requires no special setup and gives you a taste of the methodology. Move to Agent-Assisted if you already use Claude Code or Codex — it's the highest-leverage path. Only choose Multi-Agent if you're ready to run persistent infrastructure.",
   },
   {
     question: "What if I get stuck?",
-    answer: "Every step has a \"Troubleshooting\" section. If that doesn't help, check our GitHub Issues or file a new one describing your problem.",
+    answer:
+      'Every step has a "Troubleshooting" section. If that doesn\'t help, check our GitHub Issues or file a new one describing your problem.',
   },
   {
     question: "Can I switch paths?",
-    answer: "Yes! The paths share some concepts. If Quick Start feels too basic, jump to Agent-Assisted. If Agent-Assisted is missing orchestration, move to Multi-Agent.",
+    answer:
+      "Yes! The paths share some concepts. If Quick Start feels too basic, jump to Agent-Assisted. If Agent-Assisted is missing orchestration, move to Multi-Agent.",
   },
   {
     question: "Do I need to pay for AI subscriptions?",
-    answer: "Quick Start works with any AI chat interface (even free tiers). Agent-Assisted requires Claude Max or GPT Pro. Multi-Agent requires all three subscriptions (Claude Max, GPT Pro, Gemini Ultra).",
+    answer:
+      "Quick Start works with any AI chat interface (even free tiers). Agent-Assisted requires Claude Max or GPT Pro. Multi-Agent requires all three subscriptions (Claude Max, GPT Pro, Gemini Ultra).",
   },
 ];
 
@@ -93,7 +101,13 @@ const faqItems: FAQItem[] = [
 // ============================================================================
 
 const ArrowRightIcon = () => (
-  <svg className="size-4 transition-transform group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+  <svg
+    className="size-4 transition-transform group-hover:translate-x-1"
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+    strokeWidth={2}
+  >
     <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
   </svg>
 );
@@ -129,8 +143,8 @@ export default function TutorialPage() {
           </h1>
 
           <p className="max-w-2xl mx-auto text-base sm:text-lg lg:text-xl text-muted-foreground leading-relaxed animate-fade-in-up stagger-2">
-            Three learning paths from quick start to multi-agent orchestration.
-            Choose your level and start applying Brenner&apos;s scientific methodology today.
+            Three learning paths from quick start to multi-agent orchestration. Choose your level
+            and start applying Brenner&apos;s scientific methodology today.
           </p>
 
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3 sm:gap-4 pt-4 px-4 sm:px-0 animate-fade-in-up stagger-3">
@@ -159,8 +173,8 @@ export default function TutorialPage() {
             Choose Your Learning Path
           </h2>
           <p className="text-sm sm:text-base text-muted-foreground max-w-lg mx-auto">
-            Each path is designed for different skill levels and time commitments.
-            Start where you are — you can always switch later.
+            Each path is designed for different skill levels and time commitments. Start where you
+            are — you can always switch later.
           </p>
         </div>
 
@@ -184,14 +198,8 @@ export default function TutorialPage() {
 
         <div className="max-w-2xl mx-auto space-y-3">
           {faqItems.map((item, index) => (
-            <CollapsibleCard
-              key={index}
-              title={item.question}
-              defaultOpen={index === 0}
-            >
-              <p className="text-sm text-muted-foreground leading-relaxed">
-                {item.answer}
-              </p>
+            <CollapsibleCard key={index} title={item.question} defaultOpen={index === 0}>
+              <p className="text-sm text-muted-foreground leading-relaxed">{item.answer}</p>
             </CollapsibleCard>
           ))}
         </div>
@@ -200,9 +208,7 @@ export default function TutorialPage() {
       {/* Bottom CTA */}
       <section className="py-8 px-4 sm:px-0">
         <div className="text-center space-y-4">
-          <p className="text-muted-foreground">
-            Not sure where to start?
-          </p>
+          <p className="text-muted-foreground">Not sure where to start?</p>
           <Link
             href="/tutorial/quick-start"
             className="group inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl bg-primary text-primary-foreground font-semibold text-lg shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 hover:-translate-y-0.5 transition-all active:scale-[0.98] touch-manipulation"

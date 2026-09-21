@@ -6,23 +6,23 @@
  * @see brenner_bot-1v26.2 (bead)
  */
 
-import { describe, test, expect, beforeEach, afterEach, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import {
-  LocalStorageSessionStorage,
-  StorageError,
-  recoverSessions,
-  estimateRemainingStorage,
+  buildSessionPath,
   cleanupOldSessions,
+  estimateRemainingStorage,
+  getSessionResumeEntry,
+  LocalStorageSessionStorage,
+  listSessionResumeEntries,
   loadAssumptionLedger,
+  onStorageChange,
+  recordSessionResumeEntry,
+  recoverSessions,
+  removeSessionResumeEntry,
+  rollbackSessionMigration,
+  StorageError,
   saveAssumptionLedger,
   upsertAssumptionLedger,
-  rollbackSessionMigration,
-  recordSessionResumeEntry,
-  getSessionResumeEntry,
-  listSessionResumeEntries,
-  removeSessionResumeEntry,
-  buildSessionPath,
-  onStorageChange,
 } from "./storage";
 import type { Session, SessionPhase } from "./types";
 
@@ -524,10 +524,7 @@ describe("Recovery utilities", () => {
     test("should recover sessions from storage", async () => {
       // Manually add session data without index
       const session = createTestSession();
-      localStorageMock.setItem(
-        `brenner-session-${session.id}`,
-        JSON.stringify(session)
-      );
+      localStorageMock.setItem(`brenner-session-${session.id}`, JSON.stringify(session));
 
       const count = await recoverSessions();
       expect(count).toBe(1);
@@ -581,7 +578,7 @@ describe("Recovery utilities", () => {
               createdAt: oldDate.toISOString(),
             },
           ],
-        })
+        }),
       );
 
       const removed = await cleanupOldSessions(30);
@@ -648,9 +645,11 @@ describe("storage change events", () => {
     const unsubscribe = onStorageChange(cb);
 
     expect(window.addEventListener).toHaveBeenCalledWith("storage", expect.any(Function));
-    const handler = (window.addEventListener as unknown as { mock: { calls: unknown[][] } }).mock.calls.find(
-      (call) => call[0] === "storage"
-    )?.[1] as ((event: StorageEvent) => void) | undefined;
+    const handler = (
+      window.addEventListener as unknown as { mock: { calls: unknown[][] } }
+    ).mock.calls.find((call) => call[0] === "storage")?.[1] as
+      | ((event: StorageEvent) => void)
+      | undefined;
 
     if (!handler) {
       throw new Error("Expected storage handler to be registered");
@@ -674,7 +673,11 @@ describe("storage change events", () => {
       ],
     });
 
-    handler({ key: "brenner-sessions-index", oldValue: oldIndex, newValue: newIndex } as StorageEvent);
+    handler({
+      key: "brenner-sessions-index",
+      oldValue: oldIndex,
+      newValue: newIndex,
+    } as StorageEvent);
     expect(cb).toHaveBeenCalledWith("delete", "B");
     expect(cb).toHaveBeenCalledWith("save", "A");
     expect(cb).toHaveBeenCalledWith("save", "C");

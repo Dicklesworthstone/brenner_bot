@@ -1,7 +1,7 @@
 "use client";
 
-import * as React from "react";
 import { useRouter } from "next/navigation";
+import * as React from "react";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/toast";
 
@@ -14,7 +14,13 @@ type RefreshControlsProps = {
 
 function RefreshIcon({ className }: { className?: string }) {
   return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+    <svg
+      className={className}
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+      strokeWidth={1.5}
+    >
       <path
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -26,7 +32,13 @@ function RefreshIcon({ className }: { className?: string }) {
 
 function ClockIcon({ className }: { className?: string }) {
   return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+    <svg
+      className={className}
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+      strokeWidth={1.5}
+    >
       <path
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -77,7 +89,10 @@ export function RefreshControls({
       // Note: EventSource cannot attach custom headers, so lab auth must use cookies or CF Access.
       const url = new URL("/api/realtime", window.location.origin);
       if (threadId) url.searchParams.set("threadId", threadId);
-      url.searchParams.set("pollIntervalMs", String(Math.min(5000, Math.max(1000, Math.round(autoIntervalMs / 3)))));
+      url.searchParams.set(
+        "pollIntervalMs",
+        String(Math.min(5000, Math.max(1000, Math.round(autoIntervalMs / 3)))),
+      );
 
       if (threadId) {
         eventSource = new EventSource(url.toString());
@@ -111,9 +126,15 @@ export function RefreshControls({
             };
 
             const first = payload.newMessages?.[0];
-            const label = first?.subjectType && first.subjectType !== "unknown" ? first.subjectType.toUpperCase() : "UPDATE";
+            const label =
+              first?.subjectType && first.subjectType !== "unknown"
+                ? first.subjectType.toUpperCase()
+                : "UPDATE";
             const from = first?.from ? ` from ${first.from}` : "";
-            const count = typeof payload.newCount === "number" && payload.newCount > 1 ? ` (+${payload.newCount})` : "";
+            const count =
+              typeof payload.newCount === "number" && payload.newCount > 1
+                ? ` (+${payload.newCount})`
+                : "";
             maybeToast(`New ${label}${from}${count}`);
           } catch {}
 
@@ -148,7 +169,13 @@ export function RefreshControls({
   return (
     <div className={className}>
       <div className="flex items-center gap-2">
-        <Button type="button" variant="outline" size="sm" onClick={() => router.refresh()} aria-label="Refresh">
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={() => router.refresh()}
+          aria-label="Refresh"
+        >
           <RefreshIcon className="size-4" />
           <span className="hidden sm:inline">Refresh</span>
         </Button>
@@ -159,7 +186,11 @@ export function RefreshControls({
           size="sm"
           aria-pressed={auto}
           onClick={() => setAuto((v) => !v)}
-          aria-label={auto ? `Auto refresh on (${intervalSeconds}s)` : `Auto refresh off (${intervalSeconds}s)`}
+          aria-label={
+            auto
+              ? `Auto refresh on (${intervalSeconds}s)`
+              : `Auto refresh off (${intervalSeconds}s)`
+          }
         >
           <ClockIcon className="size-4" />
           <span className="hidden sm:inline">Auto</span>

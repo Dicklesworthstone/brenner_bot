@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState, type RefObject } from "react";
+import { type RefObject, useEffect, useMemo, useRef, useState } from "react";
 
 interface UseInViewOptions {
   threshold?: number;
@@ -24,7 +24,7 @@ interface UseInViewReturn<T extends HTMLElement> {
  * @param options.triggerOnce - If true, only triggers once (default: true)
  */
 export function useInView<T extends HTMLElement = HTMLDivElement>(
-  options: UseInViewOptions = {}
+  options: UseInViewOptions = {},
 ): UseInViewReturn<T> {
   const { threshold = 0.1, rootMargin = "0px 0px -50px 0px", triggerOnce = true } = options;
 
@@ -51,7 +51,7 @@ export function useInView<T extends HTMLElement = HTMLDivElement>(
           }
         }
       },
-      { threshold, rootMargin }
+      { threshold, rootMargin },
     );
 
     observer.observe(element);
@@ -73,7 +73,7 @@ export function useInView<T extends HTMLElement = HTMLDivElement>(
  */
 export function useInViewStagger(
   count: number,
-  options: UseInViewOptions = {}
+  options: UseInViewOptions = {},
 ): { refs: RefObject<HTMLDivElement | null>[]; inViewStates: boolean[] } {
   const { threshold = 0.1, rootMargin = "0px 0px -50px 0px", triggerOnce = true } = options;
 
@@ -81,7 +81,7 @@ export function useInViewStagger(
 
   const refs = useMemo<RefObject<HTMLDivElement | null>[]>(
     () => Array.from({ length: count }, () => ({ current: null })),
-    [count]
+    [count],
   );
 
   const normalizedStates = useMemo(() => {
@@ -120,7 +120,7 @@ export function useInViewStagger(
             });
           }
         },
-        { threshold, rootMargin }
+        { threshold, rootMargin },
       );
 
       observer.observe(element);

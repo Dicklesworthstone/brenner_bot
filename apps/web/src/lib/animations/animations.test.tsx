@@ -4,40 +4,39 @@
  * @see brenner_bot-f8vs.9 (Animation & Scroll Effects System)
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { render, screen } from "@testing-library/react";
-import { renderHook, act } from "@testing-library/react";
+import { act, render, renderHook, screen } from "@testing-library/react";
 import * as React from "react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
-  // Variants
-  TIMING,
-  EASING,
-  fadeUp,
-  fadeIn,
-  scaleIn,
-  popIn,
-  slideInRight,
-  slideInLeft,
-  blurIn,
-  staggerContainer,
-  cardHover,
-  buttonHover,
-  buttonTap,
-  withDelay,
-  viewport,
-  // Hooks
-  useReducedMotion,
-  useAnimationPreference,
-  useStaggerDelays,
-  useHoverState,
   // Components
   AnimateOnScroll,
-  StaggerChildren,
-  InteractiveCard,
+  blurIn,
+  buttonHover,
+  buttonTap,
+  cardHover,
+  EASING,
+  fadeIn,
+  fadeUp,
   InteractiveButton,
+  InteractiveCard,
   InteractiveIcon,
   PresenceAnimation,
+  popIn,
+  StaggerChildren,
+  scaleIn,
+  slideInLeft,
+  slideInRight,
+  staggerContainer,
+  // Variants
+  TIMING,
+  useAnimationPreference,
+  useHoverState,
+  // Hooks
+  useReducedMotion,
+  useStaggerDelays,
+  viewport,
+  withDelay,
 } from "./index";
 
 // ============================================================================
@@ -73,7 +72,7 @@ class MockIntersectionObserver implements IntersectionObserver {
     // Trigger as if element is in view
     this.callback(
       [{ isIntersecting: true, intersectionRatio: 1 } as IntersectionObserverEntry],
-      this
+      this,
     );
   }
 
@@ -313,7 +312,7 @@ describe("Animation Components", () => {
       render(
         <AnimateOnScroll>
           <div data-testid="child">Test content</div>
-        </AnimateOnScroll>
+        </AnimateOnScroll>,
       );
 
       expect(screen.getByTestId("child")).toBeInTheDocument();
@@ -323,7 +322,7 @@ describe("Animation Components", () => {
       render(
         <AnimateOnScroll className="custom-class">
           <div>Content</div>
-        </AnimateOnScroll>
+        </AnimateOnScroll>,
       );
 
       expect(document.querySelector(".custom-class")).toBeInTheDocument();
@@ -333,7 +332,7 @@ describe("Animation Components", () => {
       render(
         <AnimateOnScroll disabled>
           <div data-testid="content">Content</div>
-        </AnimateOnScroll>
+        </AnimateOnScroll>,
       );
 
       expect(screen.getByTestId("content")).toBeInTheDocument();
@@ -343,7 +342,7 @@ describe("Animation Components", () => {
       render(
         <AnimateOnScroll as="section" disabled>
           <div>Content</div>
-        </AnimateOnScroll>
+        </AnimateOnScroll>,
       );
 
       expect(document.querySelector("section")).toBeInTheDocument();
@@ -357,7 +356,7 @@ describe("Animation Components", () => {
           <div data-testid="child-1">First</div>
           <div data-testid="child-2">Second</div>
           <div data-testid="child-3">Third</div>
-        </StaggerChildren>
+        </StaggerChildren>,
       );
 
       expect(screen.getByTestId("child-1")).toBeInTheDocument();
@@ -369,7 +368,7 @@ describe("Animation Components", () => {
       render(
         <StaggerChildren className="stagger-container">
           <div>Item</div>
-        </StaggerChildren>
+        </StaggerChildren>,
       );
 
       expect(document.querySelector(".stagger-container")).toBeInTheDocument();
@@ -381,7 +380,7 @@ describe("Animation Components", () => {
       render(
         <InteractiveCard>
           <div data-testid="card-content">Card content</div>
-        </InteractiveCard>
+        </InteractiveCard>,
       );
 
       expect(screen.getByTestId("card-content")).toBeInTheDocument();
@@ -391,7 +390,7 @@ describe("Animation Components", () => {
       render(
         <InteractiveCard disabled>
           <div>Content</div>
-        </InteractiveCard>
+        </InteractiveCard>,
       );
 
       expect(document.querySelector("div")).toBeInTheDocument();
@@ -417,7 +416,7 @@ describe("Animation Components", () => {
       render(
         <InteractiveIcon>
           <span data-testid="icon">Icon</span>
-        </InteractiveIcon>
+        </InteractiveIcon>,
       );
 
       expect(screen.getByTestId("icon")).toBeInTheDocument();
@@ -429,7 +428,7 @@ describe("Animation Components", () => {
       render(
         <PresenceAnimation isVisible={true}>
           <div data-testid="modal">Modal content</div>
-        </PresenceAnimation>
+        </PresenceAnimation>,
       );
 
       expect(screen.getByTestId("modal")).toBeInTheDocument();
@@ -439,7 +438,7 @@ describe("Animation Components", () => {
       render(
         <PresenceAnimation isVisible={false}>
           <div data-testid="modal">Modal content</div>
-        </PresenceAnimation>
+        </PresenceAnimation>,
       );
 
       expect(screen.queryByTestId("modal")).not.toBeInTheDocument();
@@ -462,7 +461,7 @@ describe("Reduced Motion Support", () => {
     render(
       <AnimateOnScroll>
         <div data-testid="content">Static content</div>
-      </AnimateOnScroll>
+      </AnimateOnScroll>,
     );
 
     expect(screen.getByTestId("content")).toBeInTheDocument();
@@ -475,7 +474,7 @@ describe("Reduced Motion Support", () => {
       <StaggerChildren>
         <div data-testid="item-1">First</div>
         <div data-testid="item-2">Second</div>
-      </StaggerChildren>
+      </StaggerChildren>,
     );
 
     expect(screen.getByTestId("item-1")).toBeInTheDocument();
@@ -488,7 +487,7 @@ describe("Reduced Motion Support", () => {
     render(
       <InteractiveCard>
         <div data-testid="card">Card</div>
-      </InteractiveCard>
+      </InteractiveCard>,
     );
 
     expect(screen.getByTestId("card")).toBeInTheDocument();
@@ -500,7 +499,7 @@ describe("Reduced Motion Support", () => {
     render(
       <PresenceAnimation isVisible={true}>
         <div data-testid="presence">Content</div>
-      </PresenceAnimation>
+      </PresenceAnimation>,
     );
 
     expect(screen.getByTestId("presence")).toBeInTheDocument();

@@ -17,61 +17,118 @@
  * @see apps/web/src/lib/brenner-loop/hypothesis.ts
  */
 
+import { AnimatePresence, motion } from "framer-motion";
 import * as React from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import {
-  Collapsible,
-  CollapsibleTrigger,
-  CollapsibleContent,
-} from "@/components/ui/collapsible";
-import type { HypothesisCard as HypothesisCardType, IdentifiedConfound } from "@/lib/brenner-loop/hypothesis";
-import { interpretConfidence, calculateFalsifiabilityScore } from "@/lib/brenner-loop/hypothesis";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import type {
+  HypothesisCard as HypothesisCardType,
+  IdentifiedConfound,
+} from "@/lib/brenner-loop/hypothesis";
+import { calculateFalsifiabilityScore, interpretConfidence } from "@/lib/brenner-loop/hypothesis";
+import { cn } from "@/lib/utils";
 
 // ============================================================================
 // Icons
 // ============================================================================
 
 const ChevronDownIcon = ({ className }: { className?: string }) => (
-  <svg className={cn("size-4", className)} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+  <svg
+    className={cn("size-4", className)}
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+    strokeWidth={2}
+  >
     <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
   </svg>
 );
 
 const CheckIcon = ({ className }: { className?: string }) => (
-  <svg className={cn("size-4", className)} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+  <svg
+    className={cn("size-4", className)}
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+    strokeWidth={2}
+  >
     <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
   </svg>
 );
 
 const XMarkIcon = ({ className }: { className?: string }) => (
-  <svg className={cn("size-4", className)} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+  <svg
+    className={cn("size-4", className)}
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+    strokeWidth={2}
+  >
     <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
   </svg>
 );
 
 const ExclamationIcon = ({ className }: { className?: string }) => (
-  <svg className={cn("size-4", className)} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+  <svg
+    className={cn("size-4", className)}
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+    strokeWidth={2}
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z"
+    />
   </svg>
 );
 
 const PencilIcon = ({ className }: { className?: string }) => (
-  <svg className={cn("size-4", className)} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
+  <svg
+    className={cn("size-4", className)}
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+    strokeWidth={2}
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10"
+    />
   </svg>
 );
 
 const ArrowPathIcon = ({ className }: { className?: string }) => (
-  <svg className={cn("size-4", className)} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" />
+  <svg
+    className={cn("size-4", className)}
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+    strokeWidth={2}
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99"
+    />
   </svg>
 );
 
 const ClockIcon = ({ className }: { className?: string }) => (
-  <svg className={cn("size-4", className)} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+  <svg
+    className={cn("size-4", className)}
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+    strokeWidth={2}
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"
+    />
   </svg>
 );
 
@@ -124,12 +181,7 @@ interface ConfidenceBarProps {
   className?: string;
 }
 
-function ConfidenceBar({
-  value,
-  size = "md",
-  showLabel = true,
-  className,
-}: ConfidenceBarProps) {
+function ConfidenceBar({ value, size = "md", showLabel = true, className }: ConfidenceBarProps) {
   // Determine color based on confidence level
   const getColorClass = (confidence: number) => {
     if (confidence < 20) return "bg-red-500";
@@ -191,10 +243,7 @@ function DiscriminativeStructure({
       >
         <div className="flex items-center justify-between text-sm">
           <span className="font-medium">Discriminative Structure</span>
-          <motion.div
-            animate={{ rotate: isOpen ? 180 : 0 }}
-            transition={{ duration: 0.2 }}
-          >
+          <motion.div animate={{ rotate: isOpen ? 180 : 0 }} transition={{ duration: 0.2 }}>
             <ChevronDownIcon className="text-muted-foreground" />
           </motion.div>
         </div>
@@ -267,11 +316,7 @@ function ConfoundsSection({ confounds, defaultOpen = false }: ConfoundsSectionPr
   const [isOpen, setIsOpen] = React.useState(defaultOpen);
 
   if (confounds.length === 0) {
-    return (
-      <div className="text-xs text-muted-foreground italic py-2">
-        No confounds identified
-      </div>
-    );
+    return <div className="text-xs text-muted-foreground italic py-2">No confounds identified</div>;
   }
 
   const unaddressedCount = confounds.filter((c) => !c.addressed).length;
@@ -294,10 +339,7 @@ function ConfoundsSection({ confounds, defaultOpen = false }: ConfoundsSectionPr
               </span>
             )}
           </div>
-          <motion.div
-            animate={{ rotate: isOpen ? 180 : 0 }}
-            transition={{ duration: 0.2 }}
-          >
+          <motion.div animate={{ rotate: isOpen ? 180 : 0 }} transition={{ duration: 0.2 }}>
             <ChevronDownIcon className="text-muted-foreground" />
           </motion.div>
         </div>
@@ -312,7 +354,7 @@ function ConfoundsSection({ confounds, defaultOpen = false }: ConfoundsSectionPr
                 "p-2.5 rounded-lg border text-sm",
                 confound.addressed
                   ? "border-[oklch(0.72_0.19_145/0.3)] bg-[oklch(0.72_0.19_145/0.05)]"
-                  : "border-amber-500/30 bg-amber-500/5"
+                  : "border-amber-500/30 bg-amber-500/5",
               )}
             >
               <div className="flex items-start justify-between gap-2">
@@ -374,24 +416,20 @@ export function HypothesisCard({
           isSelected
             ? "border-primary ring-2 ring-primary/20"
             : "border-border hover:border-primary/30 hover:shadow-sm",
-          className
+          className,
         )}
       >
         <div className="flex items-start justify-between gap-3">
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-1">
-              <span className="text-xs font-mono text-muted-foreground">
-                H v{versionNum}
-              </span>
+              <span className="text-xs font-mono text-muted-foreground">H v{versionNum}</span>
               <ConfidenceBar
                 value={hypothesis.confidence}
                 size="sm"
                 showLabel={false}
                 className="flex-1 max-w-[60px]"
               />
-              <span className="text-xs text-muted-foreground">
-                {hypothesis.confidence}%
-              </span>
+              <span className="text-xs text-muted-foreground">{hypothesis.confidence}%</span>
             </div>
             <p className="text-sm font-medium line-clamp-2">{hypothesis.statement}</p>
           </div>
@@ -408,7 +446,7 @@ export function HypothesisCard({
         isSelected
           ? "border-primary ring-2 ring-primary/20 shadow-lg"
           : "border-border hover:border-primary/30",
-        className
+        className,
       )}
     >
       {/* Header */}
@@ -418,22 +456,18 @@ export function HypothesisCard({
             <span className="text-sm font-mono font-semibold text-primary">
               H<sub>{versionNum}</sub>
             </span>
-            <span className="text-xs text-muted-foreground">
-              (v{versionNum})
-            </span>
+            <span className="text-xs text-muted-foreground">(v{versionNum})</span>
             {hypothesis.parentVersion && (
               <span className="text-xs text-muted-foreground">
-                from {hypothesis.parentVersion.split("-v")[1] && `v${hypothesis.parentVersion.split("-v")[1]}`}
+                from{" "}
+                {hypothesis.parentVersion.split("-v")[1] &&
+                  `v${hypothesis.parentVersion.split("-v")[1]}`}
               </span>
             )}
           </div>
           <div className="flex items-center gap-3">
-            <span className="text-xs text-muted-foreground">
-              {confidenceInterpretation}
-            </span>
-            <span className="font-semibold text-sm">
-              {hypothesis.confidence}%
-            </span>
+            <span className="text-xs text-muted-foreground">{confidenceInterpretation}</span>
+            <span className="font-semibold text-sm">{hypothesis.confidence}%</span>
           </div>
         </div>
         <ConfidenceBar value={hypothesis.confidence} size="md" showLabel={false} className="mt-2" />
@@ -451,19 +485,14 @@ export function HypothesisCard({
           <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">
             Mechanism
           </div>
-          <p className="text-sm text-muted-foreground leading-relaxed">
-            {hypothesis.mechanism}
-          </p>
+          <p className="text-sm text-muted-foreground leading-relaxed">{hypothesis.mechanism}</p>
         </div>
 
         {/* Domain tags */}
         {hypothesis.domain.length > 0 && (
           <div className="flex flex-wrap gap-1.5">
             {hypothesis.domain.map((d, i) => (
-              <span
-                key={i}
-                className="px-2 py-0.5 text-xs rounded-full bg-primary/10 text-primary"
-              >
+              <span key={i} className="px-2 py-0.5 text-xs rounded-full bg-primary/10 text-primary">
                 {d}
               </span>
             ))}
@@ -528,34 +557,19 @@ export function HypothesisCard({
         </div>
         <div className="flex items-center gap-2">
           {onViewHistory && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onViewHistory}
-              className="text-xs"
-            >
+            <Button variant="ghost" size="sm" onClick={onViewHistory} className="text-xs">
               <ClockIcon className="size-3.5" />
               History
             </Button>
           )}
           {mode === "view" && onEdit && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => onEdit({})}
-              className="text-xs"
-            >
+            <Button variant="ghost" size="sm" onClick={() => onEdit({})} className="text-xs">
               <PencilIcon className="size-3.5" />
               Edit
             </Button>
           )}
           {onEvolve && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={onEvolve}
-              className="text-xs"
-            >
+            <Button variant="outline" size="sm" onClick={onEvolve} className="text-xs">
               <ArrowPathIcon className="size-3.5" />
               Evolve
             </Button>
@@ -616,9 +630,7 @@ export function HypothesisCardList({
         ))}
       </AnimatePresence>
       {hypotheses.length === 0 && (
-        <div className="text-center py-8 text-muted-foreground">
-          No hypotheses yet
-        </div>
+        <div className="text-center py-8 text-muted-foreground">No hypotheses yet</div>
       )}
     </div>
   );

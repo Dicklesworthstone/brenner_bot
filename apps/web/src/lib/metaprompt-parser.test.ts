@@ -5,7 +5,7 @@
  * Uses real data fixtures - no mocks.
  */
 
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
 import { parseMetaprompt } from "./metaprompt-parser";
 
 // ============================================================================

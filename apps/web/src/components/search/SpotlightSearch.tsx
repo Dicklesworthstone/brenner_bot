@@ -1,38 +1,38 @@
 "use client";
 
-import * as React from "react";
-import { usePathname, useRouter } from "next/navigation";
-import { cn } from "@/lib/utils";
-import { useDebounce } from "@/hooks/useDebounce";
-import { searchAction } from "@/lib/globalSearchAction";
-import { createBasketItem, useExcerptBasket } from "@/components/excerpt";
-import { toggleThemePreference } from "@/lib/theme";
 import {
-  type GlobalSearchResult,
-  type GlobalSearchHit,
-  type SearchCategory,
-  getCategoryInfo,
-} from "@/lib/globalSearchTypes";
-import {
-  Search,
-  X,
-  Loader2,
-  FileText,
-  Quote,
-  Sparkles,
-  Terminal,
-  ScrollText,
   ArrowRight,
+  Beaker,
+  BookOpen,
   Command,
   CornerDownLeft,
-  Plus,
+  FileText,
   Home,
-  BookOpen,
-  Beaker,
   Keyboard,
-  Moon,
   Layers,
+  Loader2,
+  Moon,
+  Plus,
+  Quote,
+  ScrollText,
+  Search,
+  Sparkles,
+  Terminal,
+  X,
 } from "lucide-react";
+import { usePathname, useRouter } from "next/navigation";
+import * as React from "react";
+import { createBasketItem, useExcerptBasket } from "@/components/excerpt";
+import { useDebounce } from "@/hooks/useDebounce";
+import { searchAction } from "@/lib/globalSearchAction";
+import {
+  type GlobalSearchHit,
+  type GlobalSearchResult,
+  getCategoryInfo,
+  type SearchCategory,
+} from "@/lib/globalSearchTypes";
+import { toggleThemePreference } from "@/lib/theme";
+import { cn } from "@/lib/utils";
 
 // ============================================================================
 // Types
@@ -317,7 +317,7 @@ export function SpotlightSearch({
           keywords: ["session", "brief"],
           section: "Session",
           action: () => pushAndClose(`${base}/brief`),
-        }
+        },
       );
     }
 
@@ -365,12 +365,7 @@ export function SpotlightSearch({
     if (trimmedQuery.length < 2) return [];
     const q = trimmedQuery.toLowerCase();
     return commands.filter((cmd) => {
-      const haystack = [
-        cmd.title,
-        cmd.subtitle ?? "",
-        cmd.section,
-        ...(cmd.keywords ?? []),
-      ]
+      const haystack = [cmd.title, cmd.subtitle ?? "", cmd.section, ...(cmd.keywords ?? [])]
         .join(" ")
         .toLowerCase();
       return haystack.includes(q);
@@ -413,7 +408,7 @@ export function SpotlightSearch({
       router.push(url.pathname + url.search + url.hash);
       onClose();
     },
-    [router, onClose, query]
+    [router, onClose, query],
   );
 
   const canAddHitToExcerpt = React.useCallback((hit: GlobalSearchHit): boolean => {
@@ -428,7 +423,7 @@ export function SpotlightSearch({
       addItem(createBasketItem(hit));
       onClose();
     },
-    [addItem, onClose, canAddHitToExcerpt]
+    [addItem, onClose, canAddHitToExcerpt],
   );
 
   // Reset state when opening
@@ -522,14 +517,10 @@ export function SpotlightSearch({
 
       if (e.key === "ArrowDown") {
         e.preventDefault();
-        setSelectedIndex((prev) =>
-          prev < flatItems.length - 1 ? prev + 1 : 0
-        );
+        setSelectedIndex((prev) => (prev < flatItems.length - 1 ? prev + 1 : 0));
       } else if (e.key === "ArrowUp") {
         e.preventDefault();
-        setSelectedIndex((prev) =>
-          prev > 0 ? prev - 1 : flatItems.length - 1
-        );
+        setSelectedIndex((prev) => (prev > 0 ? prev - 1 : flatItems.length - 1));
       } else if (e.key === "Enter" && flatItems[selectedIndex]) {
         e.preventDefault();
         const item = flatItems[selectedIndex];
@@ -562,9 +553,7 @@ export function SpotlightSearch({
   // Scroll selected item into view
   React.useEffect(() => {
     if (!resultsRef.current) return;
-    const selectedEl = resultsRef.current.querySelector(
-      `[data-index="${selectedIndex}"]`
-    );
+    const selectedEl = resultsRef.current.querySelector(`[data-index="${selectedIndex}"]`);
     selectedEl?.scrollIntoView({ block: "nearest" });
   }, [selectedIndex]);
 
@@ -622,7 +611,9 @@ export function SpotlightSearch({
                         Palette
                       </div>
                       <ShortcutRow label="Open palette">
-                        <kbd className="kbd"><Command className="size-3" /></kbd>
+                        <kbd className="kbd">
+                          <Command className="size-3" />
+                        </kbd>
                         <kbd className="kbd">K</kbd>
                       </ShortcutRow>
                       <ShortcutRow label="Navigate">
@@ -630,11 +621,15 @@ export function SpotlightSearch({
                         <kbd className="kbd">↓</kbd>
                       </ShortcutRow>
                       <ShortcutRow label="Select">
-                        <kbd className="kbd"><CornerDownLeft className="size-3" /></kbd>
+                        <kbd className="kbd">
+                          <CornerDownLeft className="size-3" />
+                        </kbd>
                       </ShortcutRow>
                       <ShortcutRow label="Add to excerpt basket">
                         <kbd className="kbd">⇧</kbd>
-                        <kbd className="kbd"><CornerDownLeft className="size-3" /></kbd>
+                        <kbd className="kbd">
+                          <CornerDownLeft className="size-3" />
+                        </kbd>
                       </ShortcutRow>
                       <ShortcutRow label="Help">
                         <kbd className="kbd">?</kbd>
@@ -694,8 +689,8 @@ export function SpotlightSearch({
                         </>
                       )}
                       <p className="text-xs text-muted-foreground leading-relaxed">
-                        Tip: Type at least <span className="font-mono text-foreground">2</span> characters to match commands.
-                        Shorter queries search the corpus only.
+                        Tip: Type at least <span className="font-mono text-foreground">2</span>{" "}
+                        characters to match commands. Shorter queries search the corpus only.
                       </p>
                     </div>
                   </div>
@@ -723,7 +718,7 @@ export function SpotlightSearch({
                     "w-full bg-transparent py-4 sm:py-5 pl-12 sm:pl-14 pr-12 sm:pr-14",
                     "text-base sm:text-lg text-foreground placeholder:text-muted-foreground/60",
                     "border-b border-border/50",
-                    "focus:outline-none"
+                    "focus:outline-none",
                   )}
                   autoComplete="off"
                   autoCorrect="off"
@@ -827,7 +822,7 @@ export function SpotlightSearch({
                             </div>
                           </div>
                         );
-                      }
+                      },
                     )}
                   </div>
                 </div>
@@ -870,14 +865,10 @@ export function SpotlightSearch({
               )}
 
               {/* No Results */}
-              {results && results.hits.length === 0 && !isLoading && (
-                <EmptyState query={query} />
-              )}
+              {results && results.hits.length === 0 && !isLoading && <EmptyState query={query} />}
 
               {/* Initial State */}
-              {!query && (
-                <InitialState onSearch={setQuery} />
-              )}
+              {!query && <InitialState onSearch={setQuery} />}
             </div>
 
             {/* Footer */}
@@ -889,12 +880,16 @@ export function SpotlightSearch({
                   <span className="ml-1 hidden sm:inline">Navigate</span>
                 </span>
                 <span className="flex items-center gap-1">
-                  <kbd className="kbd"><CornerDownLeft className="size-3" /></kbd>
+                  <kbd className="kbd">
+                    <CornerDownLeft className="size-3" />
+                  </kbd>
                   <span className="ml-1 hidden sm:inline">Open</span>
                 </span>
                 <span className="flex items-center gap-1">
                   <kbd className="kbd">⇧</kbd>
-                  <kbd className="kbd"><CornerDownLeft className="size-3" /></kbd>
+                  <kbd className="kbd">
+                    <CornerDownLeft className="size-3" />
+                  </kbd>
                   <span className="ml-1 hidden sm:inline">Add to Excerpt</span>
                 </span>
                 <span className="flex items-center gap-1">
@@ -942,7 +937,8 @@ function CategoryPill({
   onClick: () => void;
   count?: number;
 }) {
-  const label = category === "all" ? "All" : getCategoryInfo(category as Exclude<SearchCategory, "all">).label;
+  const label =
+    category === "all" ? "All" : getCategoryInfo(category as Exclude<SearchCategory, "all">).label;
 
   return (
     <button
@@ -951,15 +947,12 @@ function CategoryPill({
         "flex-shrink-0 flex items-center gap-1.5 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full text-xs sm:text-sm font-medium transition-all touch-manipulation active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
         isActive
           ? "bg-primary text-primary-foreground shadow-sm shadow-primary/25"
-          : "bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground"
+          : "bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground",
       )}
     >
       {label}
       {count !== undefined && count > 0 && (
-        <span className={cn(
-          "text-[10px] sm:text-xs",
-          isActive ? "opacity-80" : "opacity-60"
-        )}>
+        <span className={cn("text-[10px] sm:text-xs", isActive ? "opacity-80" : "opacity-60")}>
           {count}
         </span>
       )}
@@ -1001,26 +994,24 @@ function CommandResultItem({
         "w-full flex items-start gap-3 px-3 py-2.5 rounded-xl text-left transition-all",
         isSelected
           ? "bg-primary/10 border border-primary/20"
-          : "hover:bg-muted/50 border border-transparent"
+          : "hover:bg-muted/50 border border-transparent",
       )}
     >
-      <div className={cn(
-        "flex-shrink-0 flex items-center justify-center size-9 rounded-lg",
-        isSelected ? "bg-primary/10 text-primary" : "bg-muted/40 text-muted-foreground"
-      )}>
+      <div
+        className={cn(
+          "flex-shrink-0 flex items-center justify-center size-9 rounded-lg",
+          isSelected ? "bg-primary/10 text-primary" : "bg-muted/40 text-muted-foreground",
+        )}
+      >
         {command.icon}
       </div>
 
       <div className="flex-1 min-w-0">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
-            <div className="font-medium text-sm text-foreground truncate">
-              {command.title}
-            </div>
+            <div className="font-medium text-sm text-foreground truncate">{command.title}</div>
             {command.subtitle && (
-              <div className="text-xs text-muted-foreground truncate">
-                {command.subtitle}
-              </div>
+              <div className="text-xs text-muted-foreground truncate">{command.subtitle}</div>
             )}
           </div>
 
@@ -1094,21 +1085,23 @@ function SearchResultItem({
         "w-full flex items-start gap-3 px-3 py-2.5 sm:py-3 rounded-xl text-left transition-all",
         isSelected
           ? "bg-primary/10 border border-primary/20"
-          : "hover:bg-muted/50 border border-transparent"
+          : "hover:bg-muted/50 border border-transparent",
       )}
       style={{
         animationDelay: `${index * 30}ms`,
       }}
     >
       {/* Icon */}
-      <div className={cn(
-        "flex-shrink-0 flex items-center justify-center size-9 sm:size-10 rounded-lg",
-        getCategoryBgClass(hit.category, hit.model)
-      )}>
-        <CategoryIcon category={hit.category} className={cn(
-          "size-4 sm:size-5",
-          getCategoryTextClass(hit.category, hit.model)
-        )} />
+      <div
+        className={cn(
+          "flex-shrink-0 flex items-center justify-center size-9 sm:size-10 rounded-lg",
+          getCategoryBgClass(hit.category, hit.model),
+        )}
+      >
+        <CategoryIcon
+          category={hit.category}
+          className={cn("size-4 sm:size-5", getCategoryTextClass(hit.category, hit.model))}
+        />
       </div>
 
       {/* Content */}
@@ -1127,15 +1120,15 @@ function SearchResultItem({
           <HighlightedText text={hit.snippet} query={query} />
         </p>
         <div className="flex items-center gap-2 mt-1.5">
-          <span className={cn(
-            "inline-flex items-center gap-1 text-[10px] sm:text-xs font-medium px-1.5 py-0.5 rounded",
-            getCategoryBadgeClass(hit.category, hit.model)
-          )}>
+          <span
+            className={cn(
+              "inline-flex items-center gap-1 text-[10px] sm:text-xs font-medium px-1.5 py-0.5 rounded",
+              getCategoryBadgeClass(hit.category, hit.model),
+            )}
+          >
             {categoryInfo.label}
           </span>
-          {hit.model && (
-            <ModelBadge model={hit.model} />
-          )}
+          {hit.model && <ModelBadge model={hit.model} />}
         </div>
       </div>
 
@@ -1148,7 +1141,7 @@ function SearchResultItem({
               "inline-flex items-center justify-center size-8 rounded-lg",
               "text-muted-foreground hover:text-primary hover:bg-primary/10 active:bg-primary/20 active:scale-95",
               "transition-all touch-manipulation",
-              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
+              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30",
             )}
             onKeyDown={(e) => {
               if (e.key === "Enter" || e.key === " ") {
@@ -1169,10 +1162,12 @@ function SearchResultItem({
       )}
 
       {/* Arrow */}
-      <div className={cn(
-        "flex-shrink-0 self-center transition-transform",
-        isSelected ? "translate-x-0 opacity-100" : "-translate-x-2 opacity-0"
-      )}>
+      <div
+        className={cn(
+          "flex-shrink-0 self-center transition-transform",
+          isSelected ? "translate-x-0 opacity-100" : "-translate-x-2 opacity-0",
+        )}
+      >
         <ArrowRight className="size-4 text-primary" />
       </div>
     </div>
@@ -1182,7 +1177,10 @@ function SearchResultItem({
 function HighlightedText({ text, query }: { text: string; query: string }) {
   if (!query) return <>{text}</>;
 
-  const terms = query.toLowerCase().split(/\s+/).filter((t) => t.length > 1);
+  const terms = query
+    .toLowerCase()
+    .split(/\s+/)
+    .filter((t) => t.length > 1);
   if (terms.length === 0) return <>{text}</>;
   const regex = new RegExp(`(${terms.map(escapeRegex).join("|")})`, "gi");
   const parts = text.split(regex);
@@ -1218,10 +1216,12 @@ function ModelBadge({ model }: { model: "gpt" | "opus" | "gemini" }) {
   };
 
   return (
-    <span className={cn(
-      "inline-flex items-center text-[10px] sm:text-xs font-medium px-1.5 py-0.5 rounded border",
-      config[model].class
-    )}>
+    <span
+      className={cn(
+        "inline-flex items-center text-[10px] sm:text-xs font-medium px-1.5 py-0.5 rounded border",
+        config[model].class,
+      )}
+    >
       {config[model].label}
     </span>
   );
@@ -1249,9 +1249,7 @@ function EmptyState({ query }: { query: string }) {
       <div className="inline-flex items-center justify-center size-14 sm:size-16 rounded-2xl bg-muted/50 mb-4">
         <Search className="size-6 sm:size-7 text-muted-foreground" />
       </div>
-      <h3 className="text-base sm:text-lg font-medium text-foreground mb-1">
-        No results found
-      </h3>
+      <h3 className="text-base sm:text-lg font-medium text-foreground mb-1">No results found</h3>
       <p className="text-sm text-muted-foreground max-w-sm mx-auto">
         No matches for &ldquo;<span className="text-foreground font-medium">{query}</span>&rdquo;.
         Try different keywords or check your spelling.
@@ -1428,7 +1426,9 @@ function isEditableTarget(target: EventTarget | null): boolean {
   return tag === "input" || tag === "textarea" || tag === "select";
 }
 
-function parseSessionNavContext(pathname: string): { sessionId: string; location: SessionNavLocation } | null {
+function parseSessionNavContext(
+  pathname: string,
+): { sessionId: string; location: SessionNavLocation } | null {
   const parts = pathname.split("/").filter(Boolean);
   if (parts[0] !== "sessions") return null;
 
@@ -1437,13 +1437,19 @@ function parseSessionNavContext(pathname: string): { sessionId: string; location
 
   const segment = parts[2];
   const location: SessionNavLocation =
-    segment === "hypothesis" ? "hypothesis" :
-    segment === "operators" ? "operators" :
-    segment === "test-queue" ? "test-queue" :
-    segment === "agents" ? "agents" :
-    segment === "evidence" ? "evidence" :
-    segment === "brief" ? "brief" :
-    "overview";
+    segment === "hypothesis"
+      ? "hypothesis"
+      : segment === "operators"
+        ? "operators"
+        : segment === "test-queue"
+          ? "test-queue"
+          : segment === "agents"
+            ? "agents"
+            : segment === "evidence"
+              ? "evidence"
+              : segment === "brief"
+                ? "brief"
+                : "overview";
 
   return { sessionId, location };
 }
@@ -1500,7 +1506,7 @@ export function SearchProvider({ children }: { children: React.ReactNode }) {
   const toggle = React.useCallback(() => setIsOpen((prev) => !prev), []);
   const toggleKeyboardShortcuts = React.useCallback(
     () => setKeyboardShortcutsEnabled((prev) => !prev),
-    []
+    [],
   );
   const toggleVimMode = React.useCallback(() => setVimMode((prev) => !prev), []);
 
@@ -1555,7 +1561,10 @@ export function SearchProvider({ children }: { children: React.ReactNode }) {
         if (vimMode && e.key === "G") {
           e.preventDefault();
           router.push(
-            buildSessionNavHref(session.sessionId, SESSION_NAV_ORDER[SESSION_NAV_ORDER.length - 1]!)
+            buildSessionNavHref(
+              session.sessionId,
+              SESSION_NAV_ORDER[SESSION_NAV_ORDER.length - 1]!,
+            ),
           );
           return;
         }
@@ -1625,13 +1634,19 @@ export function SearchProvider({ children }: { children: React.ReactNode }) {
       }
 
       const href =
-        key === "h" ? "/" :
-        key === "c" ? "/corpus" :
-        key === "d" ? "/distillations" :
-        key === "m" ? "/method" :
-        key === "o" ? "/operators" :
-        key === "s" ? "/sessions" :
-        null;
+        key === "h"
+          ? "/"
+          : key === "c"
+            ? "/corpus"
+            : key === "d"
+              ? "/distillations"
+              : key === "m"
+                ? "/method"
+                : key === "o"
+                  ? "/operators"
+                  : key === "s"
+                    ? "/sessions"
+                    : null;
 
       if (href) {
         e.preventDefault();
@@ -1693,7 +1708,7 @@ export function SearchTrigger({ className }: { className?: string }) {
         "border border-border bg-muted/50 hover:bg-muted transition-all",
         "text-sm text-muted-foreground hover:text-foreground",
         "touch-manipulation active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-        className
+        className,
       )}
     >
       <Search className="size-4" />

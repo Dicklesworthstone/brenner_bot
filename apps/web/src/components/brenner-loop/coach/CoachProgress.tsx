@@ -8,20 +8,12 @@
 
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
+import { Award, Check, Sparkles, Star, Target, TrendingUp, Trophy, X } from "lucide-react";
+import type React from "react";
+import { useEffect, useState } from "react";
+import { type CoachLevel, LEVEL_THRESHOLDS, useCoach } from "@/lib/brenner-loop/coach-context";
 import { cn } from "@/lib/utils";
-import {
-  Trophy,
-  Star,
-  Sparkles,
-  X,
-  Check,
-  Award,
-  TrendingUp,
-  Target,
-} from "lucide-react";
-import { useCoach, LEVEL_THRESHOLDS, type CoachLevel } from "@/lib/brenner-loop/coach-context";
 
 // ============================================================================
 // Types
@@ -127,31 +119,22 @@ export function ProgressCelebration({
             "rounded-lg border shadow-lg",
             config.bg,
             config.border,
-            className
+            className,
           )}
         >
           <div className="flex items-start gap-3 p-4">
-            <div
-              className={cn(
-                "rounded-full p-2 shrink-0",
-                config.iconBg
-              )}
-            >
+            <div className={cn("rounded-full p-2 shrink-0", config.iconBg)}>
               <Icon className={cn("h-5 w-5", config.iconColor)} />
             </div>
             <div className="flex-1 min-w-0">
               <p className={cn("font-medium", config.text)}>{message}</p>
-              {detail && (
-                <p className={cn("text-sm opacity-70 mt-0.5", config.text)}>
-                  {detail}
-                </p>
-              )}
+              {detail && <p className={cn("text-sm opacity-70 mt-0.5", config.text)}>{detail}</p>}
             </div>
             <button
               onClick={handleDismiss}
               className={cn(
                 "shrink-0 rounded p-1 hover:opacity-70 transition-opacity",
-                config.text
+                config.text,
               )}
             >
               <X className="h-4 w-4" />
@@ -164,10 +147,7 @@ export function ProgressCelebration({
               initial={{ scaleX: 1 }}
               animate={{ scaleX: 0 }}
               transition={{ duration: autoDismissMs / 1000, ease: "linear" }}
-              className={cn(
-                "h-1 origin-left",
-                config.iconBg
-              )}
+              className={cn("h-1 origin-left", config.iconBg)}
             />
           )}
         </motion.div>
@@ -227,7 +207,7 @@ export function LevelBadge({
         className={cn(
           "inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium",
           config.color,
-          className
+          className,
         )}
       >
         <Icon className="h-3 w-3" />
@@ -238,12 +218,7 @@ export function LevelBadge({
 
   return (
     <div className={cn("flex items-center gap-2", className)}>
-      <div
-        className={cn(
-          "flex items-center gap-2 px-3 py-1.5 rounded-full",
-          config.color
-        )}
-      >
+      <div className={cn("flex items-center gap-2 px-3 py-1.5 rounded-full", config.color)}>
         <Icon className="h-4 w-4" />
         <span className="font-medium text-sm">{config.label}</span>
       </div>
@@ -286,7 +261,7 @@ export function AchievementCard({
         achievement.unlocked
           ? "border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/30"
           : "border-gray-200 bg-gray-50 dark:border-gray-800 dark:bg-gray-950/30 opacity-60",
-        className
+        className,
       )}
     >
       <div className="flex items-start gap-3">
@@ -295,7 +270,7 @@ export function AchievementCard({
             "rounded-full p-2",
             achievement.unlocked
               ? "bg-amber-100 dark:bg-amber-900"
-              : "bg-gray-200 dark:bg-gray-800"
+              : "bg-gray-200 dark:bg-gray-800",
           )}
         >
           <Icon
@@ -303,7 +278,7 @@ export function AchievementCard({
               "h-5 w-5",
               achievement.unlocked
                 ? "text-amber-600 dark:text-amber-400"
-                : "text-gray-400 dark:text-gray-600"
+                : "text-gray-400 dark:text-gray-600",
             )}
           />
         </div>
@@ -313,7 +288,7 @@ export function AchievementCard({
               "font-medium",
               achievement.unlocked
                 ? "text-amber-900 dark:text-amber-100"
-                : "text-gray-700 dark:text-gray-300"
+                : "text-gray-700 dark:text-gray-300",
             )}
           >
             {achievement.title}
@@ -323,7 +298,7 @@ export function AchievementCard({
               "text-sm mt-0.5",
               achievement.unlocked
                 ? "text-amber-700 dark:text-amber-300"
-                : "text-gray-500 dark:text-gray-500"
+                : "text-gray-500 dark:text-gray-500",
             )}
           >
             {achievement.description}
@@ -347,9 +322,7 @@ export interface CoachProgressStatsProps {
   className?: string;
 }
 
-export function CoachProgressStats({
-  className,
-}: CoachProgressStatsProps): React.ReactElement {
+export function CoachProgressStats({ className }: CoachProgressStatsProps): React.ReactElement {
   const { progress, effectiveLevel } = useCoach();
 
   const stats = [
@@ -397,10 +370,7 @@ export function CoachProgressStats({
       {/* Stats grid */}
       <div className="grid grid-cols-2 gap-4">
         {stats.map((stat) => (
-          <div
-            key={stat.label}
-            className="rounded-lg border bg-muted/30 p-4 text-center"
-          >
+          <div key={stat.label} className="rounded-lg border bg-muted/30 p-4 text-center">
             <stat.icon className="h-5 w-5 mx-auto mb-2 text-muted-foreground" />
             <div className="text-2xl font-bold">{stat.value}</div>
             <div className="text-xs text-muted-foreground">{stat.label}</div>
@@ -411,15 +381,9 @@ export function CoachProgressStats({
       {/* Timeline */}
       {progress.firstSessionDate && (
         <div className="text-sm text-muted-foreground">
-          <p>
-            Started:{" "}
-            {new Date(progress.firstSessionDate).toLocaleDateString()}
-          </p>
+          <p>Started: {new Date(progress.firstSessionDate).toLocaleDateString()}</p>
           {progress.lastSessionDate && (
-            <p>
-              Last active:{" "}
-              {new Date(progress.lastSessionDate).toLocaleDateString()}
-            </p>
+            <p>Last active: {new Date(progress.lastSessionDate).toLocaleDateString()}</p>
           )}
         </div>
       )}

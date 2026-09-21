@@ -164,16 +164,14 @@ export function detectInflatedScores(score: EvidencePerWeekScore): {
   if (total === 12) {
     return {
       inflated: true,
-      message:
-        "All scores are maximum (12/12). This is suspicious - real tests have trade-offs.",
+      message: "All scores are maximum (12/12). This is suspicious - real tests have trade-offs.",
     };
   }
 
   if (total >= 11) {
     return {
       inflated: true,
-      message:
-        "Scores are very high (11+/12). Consider if this is realistic or optimistic.",
+      message: "Scores are very high (11+/12). Consider if this is realistic or optimistic.",
     };
   }
 
@@ -220,7 +218,7 @@ export const ObjectTranspositionSchema = z.object({
         pros: z.string(),
         /** Disadvantages of this system */
         cons: z.string(),
-      })
+      }),
     )
     .optional(),
 
@@ -334,12 +332,12 @@ export type TestExecution = z.infer<typeof TestExecutionSchema>;
 // ============================================================================
 
 export const TestStatusSchema = z.enum([
-  "designed",    // Test has been designed but not started
-  "ready",       // Test is ready to run (all requirements met)
+  "designed", // Test has been designed but not started
+  "ready", // Test is ready to run (all requirements met)
   "in_progress", // Test is currently being executed
-  "completed",   // Test has been completed with results
-  "blocked",     // Test cannot proceed (missing requirements)
-  "abandoned",   // Test was abandoned (no longer relevant)
+  "completed", // Test has been completed with results
+  "blocked", // Test cannot proceed (missing requirements)
+  "abandoned", // Test was abandoned (no longer relevant)
 ]);
 
 export type TestStatus = z.infer<typeof TestStatusSchema>;
@@ -513,9 +511,7 @@ export function validateDiscriminativePower(test: TestRecord): {
   }
 
   // Check that discriminated hypotheses have outcomes
-  const outcomesMap = new Map(
-    test.expectedOutcomes.map((o) => [o.hypothesisId, o])
-  );
+  const outcomesMap = new Map(test.expectedOutcomes.map((o) => [o.hypothesisId, o]));
   for (const hId of test.discriminates) {
     if (!outcomesMap.has(hId)) {
       issues.push(`Missing expected outcome for hypothesis ${hId}`);
@@ -539,7 +535,7 @@ export function validateDiscriminativePower(test: TestRecord): {
     (o) =>
       o.resultType === "positive" ||
       o.resultType === "negative" ||
-      /present|absent|yes|no/i.test(o.outcome)
+      /present|absent|yes|no/i.test(o.outcome),
   );
 
   if (hasBinaryOutcome && uniqueOutcomes.size === test.expectedOutcomes.length) {
@@ -581,8 +577,13 @@ export function validatePotencyCheck(test: TestRecord): {
 
   // Add suggestions for improving potency score (these are NOT errors)
   if (score < 3) {
-    if (!check.sensitivityVerification?.trim() || check.sensitivityVerification.trim().length < 10) {
-      suggestions.push("Consider adding sensitivity verification for a more complete potency check");
+    if (
+      !check.sensitivityVerification?.trim() ||
+      check.sensitivityVerification.trim().length < 10
+    ) {
+      suggestions.push(
+        "Consider adding sensitivity verification for a more complete potency check",
+      );
     }
     if (!check.timingValidation?.trim() || check.timingValidation.trim().length < 10) {
       suggestions.push("Consider adding timing validation for a more complete potency check");
@@ -629,9 +630,7 @@ export function validateTest(test: TestRecord): {
 
   // Check object transposition
   if (!test.objectTransposition?.considered) {
-    warnings.push(
-      "Consider object transposition: could this test be done in a different system?"
-    );
+    warnings.push("Consider object transposition: could this test be done in a different system?");
   }
 
   return {
@@ -736,7 +735,7 @@ export function createBinaryTest(input: {
     throw new Error(
       `Binary test is not discriminative: both hypotheses predict ${
         input.hypothesis1.predictsPositive ? "positive" : "negative"
-      }. For a discriminative test, hypotheses must predict different outcomes.`
+      }. For a discriminative test, hypotheses must predict different outcomes.`,
     );
   }
 

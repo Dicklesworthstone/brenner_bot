@@ -1,11 +1,13 @@
-import * as React from "react";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import * as React from "react";
 import { describe, expect, it } from "vitest";
 import type { AgentMailMessage } from "@/lib/agentMail";
 import { ObjectionRegisterPanel } from "./ObjectionRegisterPanel";
 
-function msg(partial: Partial<AgentMailMessage> & Pick<AgentMailMessage, "id" | "subject" | "created_ts">): AgentMailMessage {
+function msg(
+  partial: Partial<AgentMailMessage> & Pick<AgentMailMessage, "id" | "subject" | "created_ts">,
+): AgentMailMessage {
   return {
     thread_id: "TRIBUNAL-SESSION-abc",
     ...partial,
@@ -22,7 +24,12 @@ describe("ObjectionRegisterPanel", () => {
         subject: "TRIBUNAL[devils_advocate]: HYP-1",
         created_ts: "2026-01-01T00:00:00.000Z",
         from: "DevilBot",
-        body_md: ["## Critical Assessment", "", "### Key Objection", "Reverse causation is plausible."].join("\n"),
+        body_md: [
+          "## Critical Assessment",
+          "",
+          "### Key Objection",
+          "Reverse causation is plausible.",
+        ].join("\n"),
       }),
     ];
 
@@ -34,7 +41,9 @@ describe("ObjectionRegisterPanel", () => {
     const trigger = screen.getByLabelText("Objection status 123:0");
     expect(trigger).toHaveTextContent("Open");
 
-    const snapshotRaw = localStorage.getItem("brenner-objection-register-snapshot:TRIBUNAL-SESSION-abc");
+    const snapshotRaw = localStorage.getItem(
+      "brenner-objection-register-snapshot:TRIBUNAL-SESSION-abc",
+    );
     expect(snapshotRaw).toContain("Reverse causation is plausible.");
   });
 
@@ -48,11 +57,18 @@ describe("ObjectionRegisterPanel", () => {
         subject: "TRIBUNAL[devils_advocate]: HYP-1",
         created_ts: "2026-01-01T00:00:00.000Z",
         from: "DevilBot",
-        body_md: ["## Critical Assessment", "", "### Key Objection", "Reverse causation is plausible."].join("\n"),
+        body_md: [
+          "## Critical Assessment",
+          "",
+          "### Key Objection",
+          "Reverse causation is plausible.",
+        ].join("\n"),
       }),
     ];
 
-    const { unmount } = render(<ObjectionRegisterPanel threadId="TRIBUNAL-SESSION-abc" messages={messages} />);
+    const { unmount } = render(
+      <ObjectionRegisterPanel threadId="TRIBUNAL-SESSION-abc" messages={messages} />,
+    );
 
     const trigger = screen.getByLabelText("Objection status 123:0");
     await user.click(trigger);
@@ -61,7 +77,7 @@ describe("ObjectionRegisterPanel", () => {
     expect(screen.getByLabelText("Objection status 123:0")).toHaveTextContent("Addressed");
 
     const raw = localStorage.getItem("brenner-objection-register:TRIBUNAL-SESSION-abc");
-    expect(raw).toContain("\"123:0\":\"addressed\"");
+    expect(raw).toContain('"123:0":"addressed"');
 
     unmount();
 

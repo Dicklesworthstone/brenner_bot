@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 
 /**
  * Comprehensive page tests for Brenner Bot
@@ -17,9 +17,7 @@ const PAGES = [
 ];
 
 // Protected pages that return 404 without auth
-const PROTECTED_PAGES = [
-  { path: "/sessions/new", name: "sessions-new" },
-];
+const PROTECTED_PAGES = [{ path: "/sessions/new", name: "sessions-new" }];
 
 // Large pages that may timeout on full screenshot (or exceed 32767px height limit)
 const LARGE_PAGES = [

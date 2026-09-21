@@ -1,4 +1,4 @@
-import { describe, expect, it, vi, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 // ============================================================================//
 // Mock localStorage (errorRecovery relies on sessionStorage/recoverSessions)
@@ -72,7 +72,7 @@ describe("errorRecovery", () => {
         }
         return "ok";
       },
-      { maxAttempts: 3, baseDelayMs: 0, maxDelayMs: 0, jitterRatio: 0 }
+      { maxAttempts: 3, baseDelayMs: 0, maxDelayMs: 0, jitterRatio: 0 },
     );
 
     expect(result).toBe("ok");
@@ -89,8 +89,8 @@ describe("errorRecovery", () => {
           attempts += 1;
           throw new Error("nope");
         },
-        { maxAttempts: 3, baseDelayMs: 0, maxDelayMs: 0, jitterRatio: 0, shouldRetry: () => false }
-      )
+        { maxAttempts: 3, baseDelayMs: 0, maxDelayMs: 0, jitterRatio: 0, shouldRetry: () => false },
+      ),
     ).rejects.toThrow(/nope/);
 
     expect(attempts).toBe(1);
@@ -103,8 +103,8 @@ describe("errorRecovery", () => {
         async () => {
           throw "not-an-error";
         },
-        { maxAttempts: 2, baseDelayMs: 0, maxDelayMs: 0, jitterRatio: 0 }
-      )
+        { maxAttempts: 2, baseDelayMs: 0, maxDelayMs: 0, jitterRatio: 0 },
+      ),
     ).rejects.toThrow(/Retry attempts exhausted/);
   });
 
@@ -121,7 +121,7 @@ describe("errorRecovery", () => {
         if (attempts === 1) throw new Error("transient");
         return "ok";
       },
-      { maxAttempts: 2, baseDelayMs: 10, maxDelayMs: 10, jitterRatio: 0.5 }
+      { maxAttempts: 2, baseDelayMs: 10, maxDelayMs: 10, jitterRatio: 0.5 },
     );
 
     await vi.runAllTimersAsync();
@@ -140,7 +140,7 @@ describe("errorRecovery", () => {
       new Promise(() => {
         // never resolves
       }),
-      { timeoutMs: 50, timeoutMessage: "Timed out" }
+      { timeoutMs: 50, timeoutMessage: "Timed out" },
     );
 
     const expectation = expect(promise).rejects.toBeInstanceOf(TimeoutError);
@@ -171,7 +171,7 @@ describe("errorRecovery", () => {
       "warning",
       [{ label: "Retry", variant: "default" }],
       "detail",
-      "safe"
+      "safe",
     );
 
     expect(notice.title).toBe("Title");
@@ -199,7 +199,7 @@ describe("errorRecovery", () => {
         primaryHypothesisId: "",
         alternativeHypothesisIds: [],
         hypothesisCards: {},
-      })
+      }),
     );
 
     // First load sees corrupted JSON; second load sees a valid session.
@@ -215,7 +215,7 @@ describe("errorRecovery", () => {
         primaryHypothesisId: "",
         alternativeHypothesisIds: [],
         hypothesisCards: {},
-      })
+      }),
     );
 
     const result = await loadSessionWithRecovery(sessionId);
@@ -244,7 +244,7 @@ describe("errorRecovery", () => {
         primaryHypothesisId: "",
         alternativeHypothesisIds: [],
         hypothesisCards: {},
-      })
+      }),
     );
 
     const originalSetItem = localStorageMock.setItem;

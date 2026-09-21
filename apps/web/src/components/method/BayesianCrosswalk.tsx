@@ -9,10 +9,10 @@
  * - Links to transcript quotes where applicable
  */
 
+import { AnimatePresence, motion } from "framer-motion";
 import * as React from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { cn } from "@/lib/utils";
 import { Jargon } from "@/components/jargon";
+import { cn } from "@/lib/utils";
 
 // ============================================================================
 // Types
@@ -187,9 +187,11 @@ function ObjectiveFunction() {
         </div>
       </div>
       <p className="text-sm text-muted-foreground text-center mt-4 max-w-xl mx-auto">
-        Brenner&apos;s genius was making the denominator small (DIY methods, clever design, digital handles)
-        while keeping the numerator large (exclusion tests, paradox resolution). He did this by
-        <em className="text-foreground"> changing the problem</em> rather than brute-forcing the experiment.
+        Brenner&apos;s genius was making the denominator small (DIY methods, clever design, digital
+        handles) while keeping the numerator large (exclusion tests, paradox resolution). He did
+        this by
+        <em className="text-foreground"> changing the problem</em> rather than brute-forcing the
+        experiment.
       </p>
     </div>
   );
@@ -213,7 +215,7 @@ function MappingRow({
         onClick={onToggle}
         className={cn(
           "w-full text-left p-4 transition-colors hover:bg-muted/30 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
-          isExpanded && "bg-muted/20"
+          isExpanded && "bg-muted/20",
         )}
         aria-expanded={isExpanded}
       >
@@ -224,7 +226,7 @@ function MappingRow({
               className={cn(
                 "inline-flex items-center justify-center px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider shrink-0 mt-0.5",
                 colors.bg,
-                colors.text
+                colors.text,
               )}
             >
               {mapping.category.slice(0, 3)}
@@ -304,7 +306,7 @@ function CategoryLegend() {
               className={cn(
                 "inline-flex items-center justify-center px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider",
                 colors.bg,
-                colors.text
+                colors.text,
               )}
             >
               {key.slice(0, 3)}

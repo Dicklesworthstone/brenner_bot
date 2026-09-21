@@ -1,13 +1,15 @@
 import { resolve } from "node:path";
-import Link from "next/link";
+import type { Metadata } from "next";
 import { cookies, headers } from "next/headers";
+import Link from "next/link";
 import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
 import rehypeHighlight from "rehype-highlight";
+import remarkGfm from "remark-gfm";
+import { AgentTribunalPanel } from "@/components/brenner-loop/agents/AgentTribunalPanel";
+import { ObjectionRegisterPanel } from "@/components/brenner-loop/agents/ObjectionRegisterPanel";
+import { Jargon } from "@/components/jargon";
 import { RefreshControls, SessionActions } from "@/components/sessions";
 import { AgentMailClient, type AgentMailMessage } from "@/lib/agentMail";
-import { isLabModeEnabled, checkOrchestrationAuth } from "@/lib/auth";
-import { Jargon } from "@/components/jargon";
 import {
   createEmptyArtifact,
   formatLintReportHuman,
@@ -15,14 +17,17 @@ import {
   lintArtifact,
   mergeArtifactWithTimestamps,
 } from "@/lib/artifact-merge";
-import { computeThreadStatusFromThread, parseSubjectType } from "@/lib/threadStatus";
+import { checkOrchestrationAuth, isLabModeEnabled } from "@/lib/auth";
 import { parseDeltaMessage, type ValidDelta } from "@/lib/delta-parser";
-import { isDemoSession, getDemoSession, type DemoMessage, type DemoThreadSummary } from "@/lib/fixtures/demo-sessions";
-import { isRobotSession, getRobotSession, type RobotSessionDetail } from "@/lib/robot-sessions";
-import type { Metadata } from "next";
+import {
+  type DemoMessage,
+  type DemoThreadSummary,
+  getDemoSession,
+  isDemoSession,
+} from "@/lib/fixtures/demo-sessions";
+import { getRobotSession, isRobotSession, type RobotSessionDetail } from "@/lib/robot-sessions";
+import { computeThreadStatusFromThread, parseSubjectType } from "@/lib/threadStatus";
 import { LocalSessionHub } from "./LocalSessionHub";
-import { AgentTribunalPanel } from "@/components/brenner-loop/agents/AgentTribunalPanel";
-import { ObjectionRegisterPanel } from "@/components/brenner-loop/agents/ObjectionRegisterPanel";
 
 export const metadata: Metadata = {
   title: "Session",
@@ -94,8 +99,18 @@ function LockedState({ reason }: { reason: string }) {
       <div className="rounded-2xl border border-border bg-card p-8">
         <div className="flex items-start gap-4">
           <div className="flex items-center justify-center size-12 rounded-xl bg-warning/10 border border-warning/20 text-warning">
-            <svg className="size-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
+            <svg
+              className="size-6"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={1.5}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z"
+              />
             </svg>
           </div>
           <div className="space-y-2">
@@ -120,14 +135,27 @@ function DemoSessionNotFound({ threadId }: { threadId: string }) {
       <div className="rounded-2xl border border-border bg-card p-8">
         <div className="flex items-start gap-4">
           <div className="flex items-center justify-center size-12 rounded-xl bg-muted border border-border text-muted-foreground">
-            <svg className="size-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M9.75 9.75l4.5 4.5m0-4.5l-4.5 4.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            <svg
+              className="size-6"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={1.5}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M9.75 9.75l4.5 4.5m0-4.5l-4.5 4.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
             </svg>
           </div>
           <div className="space-y-2">
-            <h1 className="text-xl font-bold tracking-tight text-foreground">Demo Session Not Found</h1>
+            <h1 className="text-xl font-bold tracking-tight text-foreground">
+              Demo Session Not Found
+            </h1>
             <p className="text-sm text-muted-foreground">
-              The demo session <span className="font-mono text-foreground">{threadId}</span> doesn&apos;t exist.
+              The demo session <span className="font-mono text-foreground">{threadId}</span>{" "}
+              doesn&apos;t exist.
             </p>
           </div>
         </div>
@@ -153,7 +181,7 @@ function DemoSessionDetail({
 }) {
   // Convert demo messages to AgentMailMessage-compatible format
   const messagesSorted = [...messages].sort(
-    (a, b) => new Date(a.created_ts).getTime() - new Date(b.created_ts).getTime()
+    (a, b) => new Date(a.created_ts).getTime() - new Date(b.created_ts).getTime(),
   );
 
   // Compute basic stats
@@ -167,17 +195,25 @@ function DemoSessionDetail({
       <div className="rounded-xl border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/20 p-5 animate-fade-in-up">
         <div className="flex items-start gap-4">
           <div className="flex items-center justify-center size-10 rounded-lg bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 shrink-0">
-            <svg className="size-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M9.75 3.75v4.5m0 0H9A5.25 5.25 0 003.75 13.5v0A5.25 5.25 0 009 18.75h6a5.25 5.25 0 005.25-5.25v0A5.25 5.25 0 0015 8.25h-.75m-4.5 0h4.5m0 0v-4.5" />
+            <svg
+              className="size-5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={1.5}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M9.75 3.75v4.5m0 0H9A5.25 5.25 0 003.75 13.5v0A5.25 5.25 0 009 18.75h6a5.25 5.25 0 005.25-5.25v0A5.25 5.25 0 0015 8.25h-.75m-4.5 0h4.5m0 0v-4.5"
+              />
             </svg>
           </div>
           <div className="space-y-2">
-            <h2 className="font-semibold text-amber-900 dark:text-amber-100">
-              Demo Session
-            </h2>
+            <h2 className="font-semibold text-amber-900 dark:text-amber-100">Demo Session</h2>
             <p className="text-sm text-amber-700 dark:text-amber-300">
-              This is example data demonstrating a Brenner Loop research session.
-              Actions like Compile and Critique are disabled in demo mode.
+              This is example data demonstrating a Brenner Loop research session. Actions like
+              Compile and Critique are disabled in demo mode.
             </p>
             <div className="flex flex-wrap gap-3 pt-1">
               <Link
@@ -206,10 +242,16 @@ function DemoSessionDetail({
           </div>
           <div className="flex flex-wrap items-center justify-end gap-3">
             {/* No RefreshControls in demo mode */}
-            <Link href={`/sessions/${threadId}/evidence`} className="text-sm text-primary hover:underline">
+            <Link
+              href={`/sessions/${threadId}/evidence`}
+              className="text-sm text-primary hover:underline"
+            >
               Evidence Pack
             </Link>
-            <Link href={`/sessions/${threadId}/test-queue`} className="text-sm text-primary hover:underline">
+            <Link
+              href={`/sessions/${threadId}/test-queue`}
+              className="text-sm text-primary hover:underline"
+            >
               Test Queue
             </Link>
             <Link href="/sessions/new" className="text-sm text-primary hover:underline">
@@ -243,16 +285,24 @@ function DemoSessionDetail({
 
         <div className="grid gap-3 md:grid-cols-3">
           <div className="rounded-lg border border-border bg-muted/30 p-3">
-            <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Deltas</div>
+            <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+              Deltas
+            </div>
             <div className="mt-1 text-lg font-bold text-foreground">{deltaCount}</div>
           </div>
           <div className="rounded-lg border border-border bg-muted/30 p-3">
-            <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Critiques</div>
+            <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+              Critiques
+            </div>
             <div className="mt-1 text-lg font-bold text-foreground">{critiqueCount}</div>
           </div>
           <div className="rounded-lg border border-border bg-muted/30 p-3">
-            <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Participants</div>
-            <div className="mt-1 text-sm font-mono text-foreground">{summary.participants.slice(0, 3).join(", ")}</div>
+            <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+              Participants
+            </div>
+            <div className="mt-1 text-sm font-mono text-foreground">
+              {summary.participants.slice(0, 3).join(", ")}
+            </div>
           </div>
         </div>
       </section>
@@ -260,8 +310,18 @@ function DemoSessionDetail({
       {/* Demo Actions Placeholder - instead of SessionActions */}
       <section className="rounded-xl border border-dashed border-border bg-muted/20 p-5 animate-fade-in-up stagger-3">
         <div className="flex items-center gap-3">
-          <svg className="size-5 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          <svg
+            className="size-5 text-muted-foreground"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={1.5}
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
           </svg>
           <div>
             <div className="font-medium text-foreground">Session Actions Disabled</div>
@@ -307,12 +367,16 @@ function DemoMessageCard({ message }: { message: DemoMessage }) {
       <summary className="cursor-pointer list-none space-y-2 touch-manipulation rounded-lg -m-1 p-1 transition-colors active:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
         <div className="flex items-start justify-between gap-4">
           <div className="flex flex-wrap items-center gap-2">
-            <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${typeBadgeClasses(parsed.type)}`}>
+            <span
+              className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${typeBadgeClasses(parsed.type)}`}
+            >
               {typeLabel(parsed.type)}
             </span>
             <span className="text-sm font-medium text-foreground">{message.subject}</span>
           </div>
-          <span className="text-xs text-muted-foreground font-mono">{formatTs(message.created_ts)}</span>
+          <span className="text-xs text-muted-foreground font-mono">
+            {formatTs(message.created_ts)}
+          </span>
         </div>
         <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
           <span>
@@ -339,7 +403,9 @@ function MessageHeader({ message }: { message: AgentMailMessage }) {
 
   return (
     <div className="flex flex-wrap items-center gap-2">
-      <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${typeBadgeClasses(parsed.type)}`}>
+      <span
+        className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${typeBadgeClasses(parsed.type)}`}
+      >
         {typeLabel(parsed.type)}
       </span>
       {role && (
@@ -386,20 +452,27 @@ function MarkdownBody({ body }: { body: string }) {
   );
 }
 
-function MessageCard({ message, deltaSummary }: { message: AgentMailMessage; deltaSummary?: { valid: number; invalid: number; total: number } }) {
+function MessageCard({
+  message,
+  deltaSummary,
+}: {
+  message: AgentMailMessage;
+  deltaSummary?: { valid: number; invalid: number; total: number };
+}) {
   return (
     <details className="group rounded-xl border border-border bg-card p-4 transition-all">
       <summary className="cursor-pointer list-none space-y-2 touch-manipulation rounded-lg -m-1 p-1 transition-colors active:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
         <div className="flex items-start justify-between gap-4">
           <MessageHeader message={message} />
-          <span className="text-xs text-muted-foreground font-mono">{formatTs(message.created_ts)}</span>
+          <span className="text-xs text-muted-foreground font-mono">
+            {formatTs(message.created_ts)}
+          </span>
         </div>
         <MessageMeta message={message} />
         {deltaSummary && (
           <div className="text-xs text-muted-foreground">
-            Parsed deltas:{" "}
-            <span className="font-mono text-foreground">{deltaSummary.valid}</span> valid,{" "}
-            <span className="font-mono text-foreground">{deltaSummary.invalid}</span> invalid{" "}
+            Parsed deltas: <span className="font-mono text-foreground">{deltaSummary.valid}</span>{" "}
+            valid, <span className="font-mono text-foreground">{deltaSummary.invalid}</span> invalid{" "}
             <span className="font-mono">({deltaSummary.total} blocks)</span>
           </div>
         )}
@@ -411,7 +484,9 @@ function MessageCard({ message, deltaSummary }: { message: AgentMailMessage; del
             <div className="flex flex-wrap gap-x-4 gap-y-1 text-muted-foreground">
               <span>
                 <span className="font-medium text-foreground/80">Commit:</span>{" "}
-                <span className="font-mono text-foreground">{message.commit.hexsha.slice(0, 8)}</span>
+                <span className="font-mono text-foreground">
+                  {message.commit.hexsha.slice(0, 8)}
+                </span>
               </span>
               <span className="font-mono">{message.commit.authored_ts}</span>
               <span>
@@ -439,7 +514,12 @@ type CompiledLintState =
       reportHuman: string;
       reportJson: string;
       deltaMessagesAfterCompile: number;
-      deltaStats: { deltaMessageCount: number; totalBlocks: number; validBlocks: number; invalidBlocks: number };
+      deltaStats: {
+        deltaMessageCount: number;
+        totalBlocks: number;
+        validBlocks: number;
+        invalidBlocks: number;
+      };
       merge: { applied: number; skipped: number; warningCount: number };
     }
   | {
@@ -540,8 +620,18 @@ function RobotSessionDetailView({ session }: { session: RobotSessionDetail }) {
       <div className="rounded-xl border border-violet-200 dark:border-violet-800 bg-violet-50 dark:bg-violet-950/20 p-5 animate-fade-in-up">
         <div className="flex items-start gap-4">
           <div className="flex items-center justify-center size-10 rounded-lg bg-violet-100 dark:bg-violet-900/30 text-violet-600 dark:text-violet-400 shrink-0">
-            <svg className="size-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 3v1.5M4.5 8.25H3m18 0h-1.5M4.5 12H3m18 0h-1.5m-15 3.75H3m18 0h-1.5M8.25 19.5V21M12 3v1.5m0 15V21m3.75-18v1.5m0 15V21m-9-1.5h10.5a2.25 2.25 0 002.25-2.25V6.75a2.25 2.25 0 00-2.25-2.25H6.75A2.25 2.25 0 004.5 6.75v10.5a2.25 2.25 0 002.25 2.25z" />
+            <svg
+              className="size-5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={1.5}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M8.25 3v1.5M4.5 8.25H3m18 0h-1.5M4.5 12H3m18 0h-1.5m-15 3.75H3m18 0h-1.5M8.25 19.5V21M12 3v1.5m0 15V21m3.75-18v1.5m0 15V21m-9-1.5h10.5a2.25 2.25 0 002.25-2.25V6.75a2.25 2.25 0 00-2.25-2.25H6.75A2.25 2.25 0 004.5 6.75v10.5a2.25 2.25 0 002.25 2.25z"
+              />
             </svg>
           </div>
           <div className="space-y-2">
@@ -597,27 +687,40 @@ function RobotSessionDetailView({ session }: { session: RobotSessionDetail }) {
 
         <div className="grid gap-3 md:grid-cols-4">
           <div className="rounded-lg border border-border bg-muted/30 p-3">
-            <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Rounds</div>
+            <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+              Rounds
+            </div>
             <div className="mt-1 text-lg font-bold text-foreground">{summary.roundsCompleted}</div>
           </div>
           <div className="rounded-lg border border-border bg-muted/30 p-3">
-            <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Hypotheses</div>
+            <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+              Hypotheses
+            </div>
             <div className="mt-1 text-lg font-bold text-foreground">
               {summary.activeHypotheses} active
               {summary.killedHypotheses > 0 && (
-                <span className="text-sm font-normal text-muted-foreground"> / {summary.killedHypotheses} killed</span>
+                <span className="text-sm font-normal text-muted-foreground">
+                  {" "}
+                  / {summary.killedHypotheses} killed
+                </span>
               )}
             </div>
           </div>
           <div className="rounded-lg border border-border bg-muted/30 p-3">
-            <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Operations</div>
+            <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+              Operations
+            </div>
             <div className="mt-1 text-sm font-mono text-foreground">
               +{totalAdds} / ~{totalEdits} / -{totalKills}
             </div>
           </div>
           <div className="rounded-lg border border-border bg-muted/30 p-3">
-            <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Agents</div>
-            <div className="mt-1 text-sm font-mono text-foreground">{summary.participants.join(", ")}</div>
+            <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+              Agents
+            </div>
+            <div className="mt-1 text-sm font-mono text-foreground">
+              {summary.participants.join(", ")}
+            </div>
           </div>
         </div>
       </section>
@@ -637,7 +740,9 @@ function RobotSessionDetailView({ session }: { session: RobotSessionDetail }) {
                     <div className="text-sm font-medium text-foreground">Round {round.round}</div>
                     <div className="text-xs text-muted-foreground font-mono">
                       +{round.adds} adds / ~{round.edits} edits / -{round.kills} kills
-                      {round.errors > 0 && <span className="text-warning"> / {round.errors} errors</span>}
+                      {round.errors > 0 && (
+                        <span className="text-warning"> / {round.errors} errors</span>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -720,20 +825,35 @@ export default async function SessionDetailPage({
           <div className="rounded-2xl border border-border bg-card p-8">
             <div className="flex items-start gap-4">
               <div className="flex items-center justify-center size-12 rounded-xl bg-muted border border-border text-muted-foreground">
-                <svg className="size-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M9.75 9.75l4.5 4.5m0-4.5l-4.5 4.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                <svg
+                  className="size-6"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={1.5}
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M9.75 9.75l4.5 4.5m0-4.5l-4.5 4.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
                 </svg>
               </div>
               <div className="space-y-2">
-                <h1 className="text-xl font-bold tracking-tight text-foreground">Robot Session Not Found</h1>
+                <h1 className="text-xl font-bold tracking-tight text-foreground">
+                  Robot Session Not Found
+                </h1>
                 <p className="text-sm text-muted-foreground">
-                  Could not find session directory for <span className="font-mono text-foreground">{threadId}</span>.
+                  Could not find session directory for{" "}
+                  <span className="font-mono text-foreground">{threadId}</span>.
                 </p>
               </div>
             </div>
           </div>
           <div className="text-center">
-            <Link href="/sessions" className="text-primary hover:underline">Back to Sessions</Link>
+            <Link href="/sessions" className="text-primary hover:underline">
+              Back to Sessions
+            </Link>
           </div>
         </div>
       );
@@ -742,7 +862,9 @@ export default async function SessionDetailPage({
   }
 
   if (!isLabModeEnabled()) {
-    return <LockedState reason="Lab mode is disabled. Set BRENNER_LAB_MODE=1 to enable orchestration." />;
+    return (
+      <LockedState reason="Lab mode is disabled. Set BRENNER_LAB_MODE=1 to enable orchestration." />
+    );
   }
 
   const reqHeaders = await headers();
@@ -790,7 +912,7 @@ export default async function SessionDetailPage({
   }
 
   const messagesSorted = [...threadMessages].sort(
-    (a, b) => new Date(a.created_ts).getTime() - new Date(b.created_ts).getTime()
+    (a, b) => new Date(a.created_ts).getTime() - new Date(b.created_ts).getTime(),
   );
 
   const isTribunalThread =
@@ -832,9 +954,7 @@ export default async function SessionDetailPage({
                 No messages yet.
               </div>
             ) : (
-              messagesSorted.map((message) => (
-                <MessageCard key={message.id} message={message} />
-              ))
+              messagesSorted.map((message) => <MessageCard key={message.id} message={message} />)
             )}
           </div>
         </section>
@@ -881,10 +1001,16 @@ export default async function SessionDetailPage({
           <div className="flex flex-wrap items-center justify-end gap-3">
             <RefreshControls threadId={threadId} defaultAuto />
             <span className="text-xs text-muted-foreground font-mono">refreshed {now}</span>
-            <Link href={`/sessions/${threadId}/evidence`} className="text-sm text-primary hover:underline">
+            <Link
+              href={`/sessions/${threadId}/evidence`}
+              className="text-sm text-primary hover:underline"
+            >
               Evidence Pack
             </Link>
-            <Link href={`/sessions/${threadId}/test-queue`} className="text-sm text-primary hover:underline">
+            <Link
+              href={`/sessions/${threadId}/test-queue`}
+              className="text-sm text-primary hover:underline"
+            >
               Test Queue
             </Link>
             <Link href="/sessions/new" className="text-sm text-primary hover:underline">
@@ -919,7 +1045,9 @@ export default async function SessionDetailPage({
             </div>
             {status.round > 0 && (
               <div className="text-center px-4 py-2 rounded-lg bg-muted/50 border border-border">
-                <div className="text-lg font-bold text-foreground">{status.critiquesInCurrentRound}</div>
+                <div className="text-lg font-bold text-foreground">
+                  {status.critiquesInCurrentRound}
+                </div>
                 <div className="text-xs text-muted-foreground">critiques</div>
               </div>
             )}
@@ -928,14 +1056,29 @@ export default async function SessionDetailPage({
         <div className="text-sm text-muted-foreground">
           {status.round === 0 ? (
             status.deltasInCurrentRound === 0 ? (
-              <>Waiting for agents to submit <span className="font-mono text-foreground">DELTA[...]</span> responses.</>
+              <>
+                Waiting for agents to submit{" "}
+                <span className="font-mono text-foreground">DELTA[...]</span> responses.
+              </>
             ) : (
-              <>Collecting responses. When all roles have contributed, run <span className="font-semibold text-primary">Compile</span> to create the first artifact.</>
+              <>
+                Collecting responses. When all roles have contributed, run{" "}
+                <span className="font-semibold text-primary">Compile</span> to create the first
+                artifact.
+              </>
             )
           ) : status.critiquesInCurrentRound === 0 ? (
-            <>Artifact v{status.round} compiled. Send for <span className="font-semibold text-warning">Critique</span> to identify gaps and iterate.</>
+            <>
+              Artifact v{status.round} compiled. Send for{" "}
+              <span className="font-semibold text-warning">Critique</span> to identify gaps and
+              iterate.
+            </>
           ) : (
-            <>Critiques received. Submit new <span className="font-mono text-foreground">DELTA[...]</span> responses addressing feedback, then <span className="font-semibold text-primary">Compile</span> again.</>
+            <>
+              Critiques received. Submit new{" "}
+              <span className="font-mono text-foreground">DELTA[...]</span> responses addressing
+              feedback, then <span className="font-semibold text-primary">Compile</span> again.
+            </>
           )}
         </div>
       </section>
@@ -971,7 +1114,9 @@ export default async function SessionDetailPage({
                 <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
                   {formatRoleLabel(role)}
                 </div>
-                <span className={`text-xs font-medium ${roleStatus.completed ? "text-success" : "text-muted-foreground"}`}>
+                <span
+                  className={`text-xs font-medium ${roleStatus.completed ? "text-success" : "text-muted-foreground"}`}
+                >
                   {roleStatus.completed ? "complete" : "pending"}
                 </span>
               </div>
@@ -989,10 +1134,16 @@ export default async function SessionDetailPage({
         {status.latestArtifact && (
           <div className="text-xs text-muted-foreground">
             Latest artifact compiled at{" "}
-            <span className="font-mono text-foreground">{formatTs(status.latestArtifact.compiledAt)}</span>
+            <span className="font-mono text-foreground">
+              {formatTs(status.latestArtifact.compiledAt)}
+            </span>
             {status.latestArtifact.contributors.length > 0 && (
               <>
-                {" "}by <span className="font-mono text-foreground">{status.latestArtifact.contributors.join(", ")}</span>
+                {" "}
+                by{" "}
+                <span className="font-mono text-foreground">
+                  {status.latestArtifact.contributors.join(", ")}
+                </span>
               </>
             )}
             .
@@ -1018,8 +1169,12 @@ export default async function SessionDetailPage({
       {/* Compiled Artifact */}
       <section className="space-y-3 animate-fade-in-up stagger-3">
         <div className="flex items-baseline justify-between gap-4">
-          <h2 className="text-lg font-semibold tracking-tight">Compiled <Jargon term="artifact">Artifact</Jargon></h2>
-          <span className="text-xs text-muted-foreground">From latest <span className="font-mono">COMPILED:</span> message</span>
+          <h2 className="text-lg font-semibold tracking-tight">
+            Compiled <Jargon term="artifact">Artifact</Jargon>
+          </h2>
+          <span className="text-xs text-muted-foreground">
+            From latest <span className="font-mono">COMPILED:</span> message
+          </span>
         </div>
 
         <div className="grid gap-4 lg:grid-cols-[2fr,1fr]">
@@ -1028,7 +1183,8 @@ export default async function SessionDetailPage({
               <MarkdownBody body={latestArtifactBody} />
             ) : (
               <div className="text-sm text-muted-foreground">
-                No compiled artifact found yet. Once a <span className="font-mono">COMPILED:</span> message is posted to the thread, it will appear here.
+                No compiled artifact found yet. Once a <span className="font-mono">COMPILED:</span>{" "}
+                message is posted to the thread, it will appear here.
               </div>
             )}
           </div>
@@ -1047,7 +1203,8 @@ export default async function SessionDetailPage({
 
             {!status.latestArtifact ? (
               <div className="text-sm text-muted-foreground">
-                No compiled artifact yet. Run <span className="font-mono">Compile</span> to see lint results.
+                No compiled artifact yet. Run <span className="font-mono">Compile</span> to see lint
+                results.
               </div>
             ) : latestCompiledMeta && !latestCompiledMeta.ok ? (
               <div className="rounded-lg border border-warning/30 bg-warning/5 p-3 text-xs text-muted-foreground">
@@ -1070,7 +1227,8 @@ export default async function SessionDetailPage({
 
                 {latestCompiledMeta.deltaMessagesAfterCompile > 0 && (
                   <div className="text-xs text-warning">
-                    {latestCompiledMeta.deltaMessagesAfterCompile} DELTA message(s) arrived after this compile. Re-run Compile to refresh.
+                    {latestCompiledMeta.deltaMessagesAfterCompile} DELTA message(s) arrived after
+                    this compile. Re-run Compile to refresh.
                   </div>
                 )}
 
@@ -1099,7 +1257,9 @@ export default async function SessionDetailPage({
 
       {/* Parsed Deltas */}
       <section className="space-y-4 animate-fade-in-up stagger-4">
-        <h2 className="text-lg font-semibold tracking-tight">Parsed <Jargon term="delta">Deltas</Jargon></h2>
+        <h2 className="text-lg font-semibold tracking-tight">
+          Parsed <Jargon term="delta">Deltas</Jargon>
+        </h2>
         {deltaMessages.length === 0 ? (
           <div className="rounded-xl border border-border bg-card p-5 text-sm text-muted-foreground">
             No <span className="font-mono">DELTA[...]</span> messages yet.
@@ -1107,15 +1267,18 @@ export default async function SessionDetailPage({
         ) : (
           <div className="space-y-3">
             {deltaMessages.map(({ message, parse }) => (
-              <details key={message.id} className="group rounded-xl border border-border bg-card p-4 transition-all">
+              <details
+                key={message.id}
+                className="group rounded-xl border border-border bg-card p-4 transition-all"
+              >
                 <summary className="cursor-pointer list-none space-y-2 touch-manipulation rounded-lg -m-1 p-1 transition-colors active:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
                   <MessageHeader message={message} />
                   <MessageMeta message={message} />
                   {parse ? (
                     <div className="text-xs text-muted-foreground">
                       <span className="font-mono text-foreground">{parse.validCount}</span> valid,{" "}
-                      <span className="font-mono text-foreground">{parse.invalidCount}</span> invalid{" "}
-                      <span className="font-mono">({parse.totalBlocks} blocks)</span>
+                      <span className="font-mono text-foreground">{parse.invalidCount}</span>{" "}
+                      invalid <span className="font-mono">({parse.totalBlocks} blocks)</span>
                     </div>
                   ) : (
                     <div className="text-xs text-muted-foreground">No message body to parse.</div>
@@ -1138,13 +1301,15 @@ export default async function SessionDetailPage({
                                 </span>
                                 {d.target_id && (
                                   <span className="text-xs text-muted-foreground">
-                                    target <span className="font-mono text-foreground">{d.target_id}</span>
+                                    target{" "}
+                                    <span className="font-mono text-foreground">{d.target_id}</span>
                                   </span>
                                 )}
                               </div>
                               {d.rationale && (
                                 <div className="text-xs text-muted-foreground">
-                                  Rationale: <span className="text-foreground/90">{d.rationale}</span>
+                                  Rationale:{" "}
+                                  <span className="text-foreground/90">{d.rationale}</span>
                                 </div>
                               )}
                               <details className="mt-2 transition-all">
@@ -1161,9 +1326,7 @@ export default async function SessionDetailPage({
                               <div className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-destructive/15 text-destructive border border-destructive/20">
                                 invalid delta
                               </div>
-                              <div className="text-xs text-muted-foreground">
-                                {d.error}
-                              </div>
+                              <div className="text-xs text-muted-foreground">{d.error}</div>
                               <details className="transition-all">
                                 <summary className="cursor-pointer text-xs text-muted-foreground hover:text-foreground touch-manipulation rounded-md px-1 py-0.5 -mx-1 transition-colors active:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
                                   Show raw JSON

@@ -11,14 +11,10 @@
  * @module components/brenner-loop/SessionDashboard
  */
 
+import { AnimatePresence, motion } from "framer-motion";
 import * as React from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import {
   Dialog,
   DialogBody,
@@ -27,81 +23,130 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { LoadingOverlay } from "@/components/ui/loading-overlay";
-import { Skeleton, SkeletonCard, SkeletonButton } from "@/components/ui/skeleton";
+import { Skeleton, SkeletonButton, SkeletonCard } from "@/components/ui/skeleton";
+import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/components/ui/toast";
-import { HypothesisCard } from "./HypothesisCard";
-import { HypothesisIntake } from "./HypothesisIntake";
-import { PhaseTimeline } from "./PhaseTimeline";
 import { useAsyncOperation } from "@/hooks/useAsyncOperation";
-import { CorpusSearchDialog } from "./CorpusSearch";
+import {
+  type AlternativeSystem,
+  exportSession,
+  getSessionProgress,
+  type HypothesisCard as HypothesisCardModel,
+  type LevelIdentification,
+  PHASE_ORDER,
+  type ScaleCalculation,
+  type Session,
+  type EvidenceEntry as SessionEvidenceEntry,
+  type ExclusionTestResult as SessionExclusionTestResult,
+  type LevelSplitResult as SessionLevelSplitResult,
+  type ObjectTransposeResult as SessionObjectTransposeResult,
+  type SessionPhase,
+  type ScaleCheckResult as SessionScaleCheckResult,
+  usePhaseNavigation,
+  useSession,
+  useSessionMachine,
+} from "@/lib/brenner-loop";
+import {
+  type EvidenceEntry as FullEvidenceEntry,
+  isEvidenceEntry,
+} from "@/lib/brenner-loop/evidence";
+import type { ExclusionTestResult as UiExclusionTestResult } from "@/lib/brenner-loop/operators/exclusion-test";
+import type { LevelSplitResult as UiLevelSplitResult } from "@/lib/brenner-loop/operators/level-split";
+import type {
+  AlternativeExplanation as UiAlternativeExplanation,
+  ObjectTransposeResult as UiObjectTransposeResult,
+} from "@/lib/brenner-loop/operators/object-transpose";
+import type { ScaleCheckResult as UiScaleCheckResult } from "@/lib/brenner-loop/operators/scale-check";
+import { cn } from "@/lib/utils";
 import { AgentTribunalPanel } from "./agents/AgentTribunalPanel";
 import { ObjectionRegisterPanel } from "./agents/ObjectionRegisterPanel";
+import { CorpusSearchDialog } from "./CorpusSearch";
 import { ConfidenceChart } from "./evidence/ConfidenceChart";
 import { EvidenceTimeline } from "./evidence/EvidenceTimeline";
+import { HypothesisCard } from "./HypothesisCard";
+import { HypothesisIntake } from "./HypothesisIntake";
 import { ExclusionTestSession } from "./operators/ExclusionTestSession";
 import { LevelSplitSession } from "./operators/LevelSplitSession";
 import { ObjectTransposeSession } from "./operators/ObjectTransposeSession";
 import { ScaleCheckSession } from "./operators/ScaleCheckSession";
-import type { ExclusionTestResult as UiExclusionTestResult } from "@/lib/brenner-loop/operators/exclusion-test";
-import type { LevelSplitResult as UiLevelSplitResult } from "@/lib/brenner-loop/operators/level-split";
-import type {
-  ObjectTransposeResult as UiObjectTransposeResult,
-  AlternativeExplanation as UiAlternativeExplanation,
-} from "@/lib/brenner-loop/operators/object-transpose";
-import type { ScaleCheckResult as UiScaleCheckResult } from "@/lib/brenner-loop/operators/scale-check";
-import { isEvidenceEntry, type EvidenceEntry as FullEvidenceEntry } from "@/lib/brenner-loop/evidence";
-import {
-  PHASE_ORDER,
-  useSession,
-  useSessionMachine,
-  usePhaseNavigation,
-  getSessionProgress,
-  exportSession,
-  type Session,
-  type SessionPhase,
-  type HypothesisCard as HypothesisCardModel,
-  type EvidenceEntry as SessionEvidenceEntry,
-  type LevelIdentification,
-  type LevelSplitResult as SessionLevelSplitResult,
-  type ExclusionTestResult as SessionExclusionTestResult,
-  type ObjectTransposeResult as SessionObjectTransposeResult,
-  type ScaleCheckResult as SessionScaleCheckResult,
-  type AlternativeSystem,
-  type ScaleCalculation,
-} from "@/lib/brenner-loop";
+import { PhaseTimeline } from "./PhaseTimeline";
 
 // ============================================================================
 // Icons
 // ============================================================================
 
 const ChevronLeftIcon = ({ className }: { className?: string }) => (
-  <svg className={cn("size-4", className)} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+  <svg
+    className={cn("size-4", className)}
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+    strokeWidth={2}
+  >
     <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
   </svg>
 );
 
 const ChevronRightIcon = ({ className }: { className?: string }) => (
-  <svg className={cn("size-4", className)} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+  <svg
+    className={cn("size-4", className)}
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+    strokeWidth={2}
+  >
     <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
   </svg>
 );
 
 const SearchIcon = ({ className }: { className?: string }) => (
-  <svg className={cn("size-4", className)} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-4.35-4.35m0 0A7.5 7.5 0 1 0 6 6a7.5 7.5 0 0 0 10.65 10.65Z" />
+  <svg
+    className={cn("size-4", className)}
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+    strokeWidth={2}
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="m21 21-4.35-4.35m0 0A7.5 7.5 0 1 0 6 6a7.5 7.5 0 0 0 10.65 10.65Z"
+    />
   </svg>
 );
 
 const DocumentIcon = ({ className }: { className?: string }) => (
-  <svg className={cn("size-4", className)} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
+  <svg
+    className={cn("size-4", className)}
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+    strokeWidth={2}
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z"
+    />
   </svg>
 );
 
 const CodeBracketIcon = ({ className }: { className?: string }) => (
-  <svg className={cn("size-4", className)} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M17.25 6.75 22.5 12l-5.25 5.25m-10.5 0L1.5 12l5.25-5.25m7.5-3-4.5 16.5" />
+  <svg
+    className={cn("size-4", className)}
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+    strokeWidth={2}
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M17.25 6.75 22.5 12l-5.25 5.25m-10.5 0L1.5 12l5.25-5.25m7.5-3-4.5 16.5"
+    />
   </svg>
 );
 
@@ -244,7 +289,9 @@ function BrennerQuote({ phase, className }: BrennerQuoteProps) {
     <Card className={cn("bg-muted/50", className)}>
       <CardContent className="pt-4">
         <div className="flex items-start gap-2">
-          <span className="text-2xl leading-none" aria-hidden="true">&ldquo;</span>
+          <span className="text-2xl leading-none" aria-hidden="true">
+            &ldquo;
+          </span>
           <div className="flex-1">
             <blockquote className="text-sm italic text-muted-foreground">
               {config.quote.text}
@@ -272,7 +319,7 @@ function isEditableTarget(target: EventTarget | null): boolean {
   if (!(target instanceof Element)) return false;
   return (
     target.closest(
-      'input, textarea, select, [contenteditable="true"], [contenteditable=""], [role="textbox"]'
+      'input, textarea, select, [contenteditable="true"], [contenteditable=""], [role="textbox"]',
     ) !== null
   );
 }
@@ -309,18 +356,22 @@ function toSessionLevelSplitResult(args: {
   const selectedY = args.result.yLevels.filter((level) => level.selected);
 
   const levels: LevelIdentification[] = [
-    ...selectedX.map((level): LevelIdentification => ({
-      name: `X: ${level.name}`,
-      description: `${level.description} (category: ${level.category})`,
-      hypothesisIds: [args.hypothesisId],
-      levelType: "unclear",
-    })),
-    ...selectedY.map((level): LevelIdentification => ({
-      name: `Y: ${level.name}`,
-      description: `${level.description} (category: ${level.category})`,
-      hypothesisIds: [args.hypothesisId],
-      levelType: "unclear",
-    })),
+    ...selectedX.map(
+      (level): LevelIdentification => ({
+        name: `X: ${level.name}`,
+        description: `${level.description} (category: ${level.category})`,
+        hypothesisIds: [args.hypothesisId],
+        levelType: "unclear",
+      }),
+    ),
+    ...selectedY.map(
+      (level): LevelIdentification => ({
+        name: `Y: ${level.name}`,
+        description: `${level.description} (category: ${level.category})`,
+        hypothesisIds: [args.hypothesisId],
+        levelType: "unclear",
+      }),
+    ),
   ];
 
   const conflationDetected = selectedX.length > 1 || selectedY.length > 1;
@@ -366,7 +417,9 @@ function toSessionExclusionTestResult(args: {
   };
 }
 
-function pickObjectTransposeSelection(alternatives: UiAlternativeExplanation[]): UiAlternativeExplanation | null {
+function pickObjectTransposeSelection(
+  alternatives: UiAlternativeExplanation[],
+): UiAlternativeExplanation | null {
   const selected = alternatives.find((alt) => alt.selected);
   if (selected) return selected;
 
@@ -409,7 +462,10 @@ function toSessionObjectTransposeResult(args: {
     alternativeSystems,
     selectedSystem: selection?.name,
     selectionRationale: selection?.description,
-    notes: alternatives.length > 0 ? `Generated ${alternatives.length} alternative explanation(s).` : undefined,
+    notes:
+      alternatives.length > 0
+        ? `Generated ${alternatives.length} alternative explanation(s).`
+        : undefined,
   };
 }
 
@@ -444,13 +500,17 @@ function toSessionScaleCheckResult(args: {
     toScaleCalculation({
       name: "Effect size",
       quantities: `direction: ${effect.direction}`,
-      result: typeof effect.value === "number" ? effect.value.toString() : effect.estimate ?? "unspecified",
+      result:
+        typeof effect.value === "number"
+          ? effect.value.toString()
+          : (effect.estimate ?? "unspecified"),
       units: effect.type,
-      implication: context.warnings.length > 0
-        ? context.warnings.join(" ")
-        : context.insights.length > 0
-          ? context.insights.join(" ")
-          : `Relative to norms: ${context.relativeToNorm}.`,
+      implication:
+        context.warnings.length > 0
+          ? context.warnings.join(" ")
+          : context.insights.length > 0
+            ? context.insights.join(" ")
+            : `Relative to norms: ${context.relativeToNorm}.`,
     }),
     ...(typeof context.varianceExplained === "number"
       ? [
@@ -459,9 +519,10 @@ function toSessionScaleCheckResult(args: {
             quantities: "r² × 100",
             result: context.varianceExplained.toString(),
             units: "%",
-            implication: context.relativeToNorm === "below_typical"
-              ? "Small explanatory power; may be hard to detect or act on."
-              : "Meaningful explanatory power in context.",
+            implication:
+              context.relativeToNorm === "below_typical"
+                ? "Small explanatory power; may be hard to detect or act on."
+                : "Meaningful explanatory power in context.",
           }),
         ]
       : []),
@@ -472,9 +533,10 @@ function toSessionScaleCheckResult(args: {
             quantities: "design + noise floor",
             result: precision.minimumDetectableEffect.toString(),
             units: effect.type,
-            implication: precision.isDetectable === false
-              ? "Claimed effect may be below detection threshold."
-              : "Effect appears detectable with appropriate design.",
+            implication:
+              precision.isDetectable === false
+                ? "Claimed effect may be below detection threshold."
+                : "Effect appears detectable with appropriate design.",
           }),
         ]
       : []),
@@ -492,13 +554,17 @@ function toSessionScaleCheckResult(args: {
     toScaleCalculation({
       name: "Practical significance",
       quantities: "stakeholders + threshold",
-      result: practical.isPracticallyMeaningful === null
-        ? "unknown"
-        : practical.isPracticallyMeaningful
-          ? "meaningful"
-          : "not meaningful",
+      result:
+        practical.isPracticallyMeaningful === null
+          ? "unknown"
+          : practical.isPracticallyMeaningful
+            ? "meaningful"
+            : "not meaningful",
       units: "",
-      implication: practical.reasoning.length > 0 ? practical.reasoning : "Assess whether the effect would change decisions.",
+      implication:
+        practical.reasoning.length > 0
+          ? practical.reasoning
+          : "Assess whether the effect would change decisions.",
     }),
   ];
 
@@ -544,8 +610,12 @@ function HypothesisEditorPanel({
 }) {
   const [statement, setStatement] = React.useState(hypothesis?.statement ?? "");
   const [mechanism, setMechanism] = React.useState(hypothesis?.mechanism ?? "");
-  const [predictionsIfTrue, setPredictionsIfTrue] = React.useState(joinLines(hypothesis?.predictionsIfTrue));
-  const [predictionsIfFalse, setPredictionsIfFalse] = React.useState(joinLines(hypothesis?.predictionsIfFalse));
+  const [predictionsIfTrue, setPredictionsIfTrue] = React.useState(
+    joinLines(hypothesis?.predictionsIfTrue),
+  );
+  const [predictionsIfFalse, setPredictionsIfFalse] = React.useState(
+    joinLines(hypothesis?.predictionsIfFalse),
+  );
   const [falsifiers, setFalsifiers] = React.useState(joinLines(hypothesis?.impossibleIfTrue));
   const [assumptions, setAssumptions] = React.useState(joinLines(hypothesis?.assumptions));
   const [confidence, setConfidence] = React.useState<number>(hypothesis?.confidence ?? 0);
@@ -570,7 +640,16 @@ function HypothesisEditorPanel({
       assumptions: splitLines(assumptions),
       confidence: clampConfidence(confidence),
     });
-  }, [assumptions, confidence, falsifiers, mechanism, onSave, predictionsIfFalse, predictionsIfTrue, statement]);
+  }, [
+    assumptions,
+    confidence,
+    falsifiers,
+    mechanism,
+    onSave,
+    predictionsIfFalse,
+    predictionsIfTrue,
+    statement,
+  ]);
 
   if (!hypothesis) {
     return <p className="text-sm text-muted-foreground">No hypothesis loaded.</p>;
@@ -635,7 +714,9 @@ function HypothesisEditorPanel({
           id={`${mode}-falsifiers`}
           value={falsifiers}
           onChange={(e) => setFalsifiers(e.target.value)}
-          placeholder={"What observation would make the hypothesis impossible?\n(one falsifier per line)"}
+          placeholder={
+            "What observation would make the hypothesis impossible?\n(one falsifier per line)"
+          }
           className="min-h-[120px]"
         />
       </div>
@@ -646,7 +727,9 @@ function HypothesisEditorPanel({
           id={`${mode}-assumptions`}
           value={assumptions}
           onChange={(e) => setAssumptions(e.target.value)}
-          placeholder={"What must be true for this hypothesis to even make sense?\n(one assumption per line)"}
+          placeholder={
+            "What must be true for this hypothesis to even make sense?\n(one assumption per line)"
+          }
           className="min-h-[120px]"
         />
       </div>
@@ -675,13 +758,8 @@ function HypothesisEditorPanel({
 
 function PhaseContent({ phase, className }: PhaseContentProps) {
   const config = PHASE_CONFIG[phase];
-  const {
-    session,
-    primaryHypothesis,
-    updateHypothesis,
-    advancePhase,
-    appendOperatorApplication,
-  } = useSession();
+  const { session, primaryHypothesis, updateHypothesis, advancePhase, appendOperatorApplication } =
+    useSession();
 
   const appliedBy = React.useMemo(() => getAppliedBy(session), [session]);
 
@@ -701,7 +779,7 @@ function PhaseContent({ phase, className }: PhaseContentProps) {
     let runningConfidence = initialConfidence;
 
     const sorted = [...ledger].sort(
-      (a, b) => new Date(a.recordedAt).getTime() - new Date(b.recordedAt).getTime()
+      (a, b) => new Date(a.recordedAt).getTime() - new Date(b.recordedAt).getTime(),
     );
 
     return sorted.map((entry) => {
@@ -716,9 +794,10 @@ function PhaseContent({ phase, className }: PhaseContentProps) {
       const confidenceAfter = clampConfidence(confidenceBefore + delta);
       runningConfidence = confidenceAfter;
 
-      const testId = typeof simplified.testId === "string" && simplified.testId.trim().length > 0
-        ? simplified.testId
-        : "unknown";
+      const testId =
+        typeof simplified.testId === "string" && simplified.testId.trim().length > 0
+          ? simplified.testId
+          : "unknown";
 
       return {
         id: simplified.id,
@@ -768,7 +847,7 @@ function PhaseContent({ phase, className }: PhaseContentProps) {
       });
       advancePhase();
     },
-    [advancePhase, updateHypothesis]
+    [advancePhase, updateHypothesis],
   );
 
   return (
@@ -780,9 +859,7 @@ function PhaseContent({ phase, className }: PhaseContentProps) {
           )}
           <div>
             <CardTitle>{config.name}</CardTitle>
-            <p className="text-sm text-muted-foreground mt-1">
-              {config.description}
-            </p>
+            <p className="text-sm text-muted-foreground mt-1">{config.description}</p>
           </div>
         </div>
       </CardHeader>
@@ -790,16 +867,20 @@ function PhaseContent({ phase, className }: PhaseContentProps) {
         {phase === "intake" && session ? (
           <HypothesisIntake
             sessionId={session.id}
-            initialValues={primaryHypothesis ? {
-              statement: primaryHypothesis.statement,
-              mechanism: primaryHypothesis.mechanism,
-              domain: primaryHypothesis.domain,
-              predictionsIfTrue: primaryHypothesis.predictionsIfTrue,
-              predictionsIfFalse: primaryHypothesis.predictionsIfFalse,
-              impossibleIfTrue: primaryHypothesis.impossibleIfTrue,
-              assumptions: primaryHypothesis.assumptions ?? [],
-              confidence: primaryHypothesis.confidence ?? 0,
-            } : undefined}
+            initialValues={
+              primaryHypothesis
+                ? {
+                    statement: primaryHypothesis.statement,
+                    mechanism: primaryHypothesis.mechanism,
+                    domain: primaryHypothesis.domain,
+                    predictionsIfTrue: primaryHypothesis.predictionsIfTrue,
+                    predictionsIfFalse: primaryHypothesis.predictionsIfFalse,
+                    impossibleIfTrue: primaryHypothesis.impossibleIfTrue,
+                    assumptions: primaryHypothesis.assumptions ?? [],
+                    confidence: primaryHypothesis.confidence ?? 0,
+                  }
+                : undefined
+            }
             createdBy={appliedBy}
             onComplete={(hypothesis) => handleIntakeComplete(hypothesis)}
           />
@@ -826,7 +907,7 @@ function PhaseContent({ phase, className }: PhaseContentProps) {
                     hypothesisId: primaryHypothesis.id,
                     appliedAt,
                     appliedBy,
-                  })
+                  }),
                 );
                 advancePhase();
               }}
@@ -849,7 +930,7 @@ function PhaseContent({ phase, className }: PhaseContentProps) {
                     hypothesisId: primaryHypothesis.id,
                     appliedAt,
                     appliedBy,
-                  })
+                  }),
                 );
                 advancePhase();
               }}
@@ -872,7 +953,7 @@ function PhaseContent({ phase, className }: PhaseContentProps) {
                     hypothesisStatement: primaryHypothesis.statement,
                     appliedAt,
                     appliedBy,
-                  })
+                  }),
                 );
                 advancePhase();
               }}
@@ -895,7 +976,7 @@ function PhaseContent({ phase, className }: PhaseContentProps) {
                     hypothesisId: primaryHypothesis.id,
                     appliedAt,
                     appliedBy,
-                  })
+                  }),
                 );
                 advancePhase();
               }}
@@ -921,7 +1002,10 @@ function PhaseContent({ phase, className }: PhaseContentProps) {
 
         {phase === "evidence_gathering" ? (
           <div className="space-y-6">
-            <ConfidenceChart entries={evidenceEntries} initialConfidence={primaryHypothesis?.confidence ?? 0} />
+            <ConfidenceChart
+              entries={evidenceEntries}
+              initialConfidence={primaryHypothesis?.confidence ?? 0}
+            />
             <EvidenceTimeline entries={evidenceEntries} />
           </div>
         ) : null}
@@ -1029,7 +1113,7 @@ export function SessionDashboard({
         },
       });
     },
-    [exportOperation, session]
+    [exportOperation, session],
   );
 
   // Save status indicator - must be before early returns per React hooks rules
@@ -1197,11 +1281,7 @@ export function SessionDashboard({
             <p className="text-destructive font-medium">Error loading session</p>
             <p className="text-sm text-muted-foreground mt-2">{error.message}</p>
             <div className="mt-4">
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => window.location.reload()}
-              >
+              <Button size="sm" variant="outline" onClick={() => window.location.reload()}>
                 Retry
               </Button>
             </div>
@@ -1297,8 +1377,8 @@ export function SessionDashboard({
                 <kbd className="kbd">H</kbd>
               </ShortcutRow>
               <p className="text-xs text-muted-foreground leading-relaxed">
-                Tip: Use the phase timeline buttons for arrow-key focus navigation and <kbd className="kbd">Enter</kbd>{" "}
-                to activate.
+                Tip: Use the phase timeline buttons for arrow-key focus navigation and{" "}
+                <kbd className="kbd">Enter</kbd> to activate.
               </p>
             </div>
           </DialogBody>
@@ -1310,7 +1390,7 @@ export function SessionDashboard({
         className={cn(
           "sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[60]",
           "rounded-md bg-background px-3 py-2 text-sm text-foreground shadow-lg ring-1 ring-border",
-          "focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+          "focus:outline-none focus-visible:ring-2 focus-visible:ring-primary",
         )}
       >
         Skip to main content
@@ -1324,9 +1404,7 @@ export function SessionDashboard({
         <div className="flex items-center justify-between sm:block">
           <div>
             <h1 className="text-xl sm:text-2xl font-bold">BrennerBot Lab</h1>
-            <p className="text-xs sm:text-sm text-muted-foreground">
-              Session: {session.id}
-            </p>
+            <p className="text-xs sm:text-sm text-muted-foreground">Session: {session.id}</p>
           </div>
           {/* Mobile progress badge */}
           <span className="sm:hidden text-xs font-medium px-2 py-1 rounded-full bg-primary/10 text-primary">
@@ -1344,7 +1422,9 @@ export function SessionDashboard({
               className="h-9 w-9 p-0 sm:h-auto sm:w-auto sm:px-3 sm:py-2"
               aria-label="Keyboard shortcuts"
             >
-              <span aria-hidden="true" className="font-mono">?</span>
+              <span aria-hidden="true" className="font-mono">
+                ?
+              </span>
               <span className="hidden sm:inline ml-2">Shortcuts</span>
             </Button>
             {/* Search button - icon only on mobile */}
@@ -1392,17 +1472,13 @@ export function SessionDashboard({
             </span>
           </div>
           {exportOperation.isError && (
-            <p className="text-xs text-destructive">
-              Export failed. Please try again.
-            </p>
+            <p className="text-xs text-destructive">Export failed. Please try again.</p>
           )}
           {saveStatus && (
             <p
               className={cn(
                 "text-xs",
-                saveStatus.tone === "destructive"
-                  ? "text-destructive"
-                  : "text-muted-foreground"
+                saveStatus.tone === "destructive" ? "text-destructive" : "text-muted-foreground",
               )}
             >
               {saveStatus.label}
@@ -1461,13 +1537,11 @@ export function SessionDashboard({
       </main>
 
       {/* Navigation Footer */}
-      <nav className="flex items-center justify-between pt-4 border-t" aria-label="Phase navigation">
-        <Button
-          variant="outline"
-          onClick={prev}
-          disabled={!canPrev}
-          aria-keyshortcuts="ArrowLeft"
-        >
+      <nav
+        className="flex items-center justify-between pt-4 border-t"
+        aria-label="Phase navigation"
+      >
+        <Button variant="outline" onClick={prev} disabled={!canPrev} aria-keyshortcuts="ArrowLeft">
           <ChevronLeftIcon className="size-4 mr-2" />
           Previous
         </Button>
@@ -1489,4 +1563,4 @@ export function SessionDashboard({
 // Exports
 // ============================================================================
 
-export { PhaseTimeline, BrennerQuote, PhaseContent, PHASE_CONFIG };
+export { BrennerQuote, PHASE_CONFIG, PhaseContent, PhaseTimeline };

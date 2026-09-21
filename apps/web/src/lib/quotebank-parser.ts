@@ -133,6 +133,6 @@ export function searchQuotes(quotes: Quote[], query: string): Quote[] {
       q.title.toLowerCase().includes(lower) ||
       q.quote.toLowerCase().includes(lower) ||
       q.context.toLowerCase().includes(lower) ||
-      q.tags.some((t) => t.toLowerCase().includes(lower))
+      q.tags.some((t) => t.toLowerCase().includes(lower)),
   );
 }

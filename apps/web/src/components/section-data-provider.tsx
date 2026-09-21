@@ -78,7 +78,7 @@ export function SectionDataProvider({ children }: SectionDataProviderProps) {
       if (!section) return null;
       return { title: section.t, excerpt: section.e };
     },
-    [data]
+    [data],
   );
 
   const contextValue = React.useMemo(
@@ -86,12 +86,8 @@ export function SectionDataProvider({ children }: SectionDataProviderProps) {
       getSection,
       isLoaded: data !== null,
     }),
-    [getSection, data]
+    [getSection, data],
   );
 
-  return (
-    <SectionDataContext.Provider value={contextValue}>
-      {children}
-    </SectionDataContext.Provider>
-  );
+  return <SectionDataContext.Provider value={contextValue}>{children}</SectionDataContext.Provider>;
 }

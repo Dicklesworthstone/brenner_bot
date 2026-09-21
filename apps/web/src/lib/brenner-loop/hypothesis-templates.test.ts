@@ -4,19 +4,19 @@
  * @see brenner_bot-838e - FEATURE: Hypothesis Template Library
  */
 
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
 import {
+  getFeaturedTemplates,
+  getTemplate,
+  getTemplatesByDifficulty,
+  getTemplatesByDomain,
+  getTemplatesByTag,
   HYPOTHESIS_TEMPLATES,
+  type HypothesisTemplate,
+  searchTemplates,
   TEMPLATE_BY_ID,
   TEMPLATE_CATEGORIES,
-  getTemplate,
-  getTemplatesByDomain,
-  getFeaturedTemplates,
-  getTemplatesByTag,
-  getTemplatesByDifficulty,
-  searchTemplates,
   templateToPartialCard,
-  type HypothesisTemplate,
 } from "./hypothesis-templates";
 
 // ============================================================================
@@ -162,9 +162,7 @@ describe("getTemplatesByDomain", () => {
     expect(templates.length).toBeGreaterThan(0);
 
     for (const t of templates) {
-      expect(
-        t.domains.includes("psychology") || t.domains.includes("custom")
-      ).toBe(true);
+      expect(t.domains.includes("psychology") || t.domains.includes("custom")).toBe(true);
     }
   });
 
@@ -180,9 +178,7 @@ describe("getTemplatesByDomain", () => {
 
   it("always includes custom domain templates", () => {
     const templates = getTemplatesByDomain("some_obscure_domain");
-    const customTemplates = templates.filter((t) =>
-      t.domains.includes("custom")
-    );
+    const customTemplates = templates.filter((t) => t.domains.includes("custom"));
     expect(customTemplates.length).toBeGreaterThan(0);
   });
 });
@@ -264,9 +260,7 @@ describe("searchTemplates", () => {
     const results = searchTemplates("intervention");
     expect(results.length).toBeGreaterThan(0);
 
-    const hasMatch = results.some((t) =>
-      t.name.toLowerCase().includes("intervention")
-    );
+    const hasMatch = results.some((t) => t.name.toLowerCase().includes("intervention"));
     expect(hasMatch).toBe(true);
   });
 
@@ -280,7 +274,7 @@ describe("searchTemplates", () => {
     expect(results.length).toBeGreaterThan(0);
 
     const hasTag = results.some((t) =>
-      t.tags.some((tag) => tag.toLowerCase().includes("ablation"))
+      t.tags.some((tag) => tag.toLowerCase().includes("ablation")),
     );
     expect(hasTag).toBe(true);
   });
@@ -381,13 +375,16 @@ describe("Template Content Quality", () => {
   it("templates have appropriate confounds for their domains", () => {
     // Psychology templates should have psychology-relevant confounds
     const psychTemplates = HYPOTHESIS_TEMPLATES.filter(
-      (t) => t.domains.includes("psychology") && !t.domains.includes("custom") && !t.domains.includes("neuroscience")
+      (t) =>
+        t.domains.includes("psychology") &&
+        !t.domains.includes("custom") &&
+        !t.domains.includes("neuroscience"),
     );
 
     for (const template of psychTemplates) {
       const confoundDomains = template.template.confounds.map((c) => c.domain);
       const hasPsychConfound = confoundDomains.some(
-        (d) => d === "psychology" || d === "methodology" || d === "statistics"
+        (d) => d === "psychology" || d === "methodology" || d === "statistics",
       );
       expect(hasPsychConfound).toBe(true);
     }
@@ -398,16 +395,12 @@ describe("Template Content Quality", () => {
     const advancedTemplates = getTemplatesByDifficulty("advanced");
 
     const avgBeginnerConfounds =
-      beginnerTemplates.reduce(
-        (sum, t) => sum + t.template.confounds.length,
-        0
-      ) / beginnerTemplates.length;
+      beginnerTemplates.reduce((sum, t) => sum + t.template.confounds.length, 0) /
+      beginnerTemplates.length;
 
     const avgAdvancedConfounds =
-      advancedTemplates.reduce(
-        (sum, t) => sum + t.template.confounds.length,
-        0
-      ) / advancedTemplates.length;
+      advancedTemplates.reduce((sum, t) => sum + t.template.confounds.length, 0) /
+      advancedTemplates.length;
 
     // Advanced templates should have at least as many confounds (usually more)
     expect(avgAdvancedConfounds).toBeGreaterThanOrEqual(avgBeginnerConfounds - 0.5);
@@ -446,9 +439,7 @@ describe("Domain Coverage", () => {
     const majorDomains = ["psychology", "biology_medicine", "economics", "computer_science"];
 
     for (const domain of majorDomains) {
-      const templates = HYPOTHESIS_TEMPLATES.filter((t) =>
-        t.domains.includes(domain)
-      );
+      const templates = HYPOTHESIS_TEMPLATES.filter((t) => t.domains.includes(domain));
       expect(templates.length).toBeGreaterThanOrEqual(2);
     }
   });
@@ -464,9 +455,7 @@ describe("Domain Coverage", () => {
     };
 
     for (const [_category, domains] of Object.entries(categoryDomains)) {
-      const hasFeatured = featured.some((t) =>
-        t.domains.some((d) => domains.includes(d))
-      );
+      const hasFeatured = featured.some((t) => t.domains.some((d) => domains.includes(d)));
       expect(hasFeatured).toBe(true);
     }
   });

@@ -13,10 +13,10 @@
  */
 
 import type { HypothesisCard } from "../hypothesis";
-import type { TribunalAgentRole } from "./index";
+import { getPersona } from "./agent-personas";
 import type { OperatorResults } from "./dispatch";
 import { formatHypothesisForPrompt, formatOperatorResultsForPrompt } from "./dispatch";
-import { getPersona } from "./agent-personas";
+import type { TribunalAgentRole } from "./index";
 
 // ============================================================================
 // Types
@@ -26,18 +26,18 @@ import { getPersona } from "./agent-personas";
  * Available debate formats
  */
 export type DebateFormat =
-  | "oxford_style"      // Proposition vs Opposition with Judge
-  | "socratic"          // Probing questions reveal weaknesses
+  | "oxford_style" // Proposition vs Opposition with Judge
+  | "socratic" // Probing questions reveal weaknesses
   | "steelman_contest"; // Each agent builds and attacks strongest version
 
 /**
  * Status of an agent debate
  */
 export type DebateStatus =
-  | "not_started"   // Debate created but not begun
-  | "in_progress"   // Actively exchanging rounds
-  | "concluded"     // Debate finished with conclusion
-  | "timed_out";    // Debate exceeded max rounds or time
+  | "not_started" // Debate created but not begun
+  | "in_progress" // Actively exchanging rounds
+  | "concluded" // Debate finished with conclusion
+  | "timed_out"; // Debate exceeded max rounds or time
 
 /**
  * Analysis extracted from a debate round
@@ -233,12 +233,12 @@ export function generateDebateId(sessionId: string): string {
   if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
     return `DEBATE-${sessionId}-${crypto.randomUUID().slice(0, 8)}`;
   }
-  
+
   if (typeof crypto !== "undefined" && typeof crypto.getRandomValues === "function") {
     const rnd = new Uint32Array(1);
     crypto.getRandomValues(rnd);
     // Use first 32 bits for randomness
-    const randomHex = rnd[0].toString(16).toUpperCase().padStart(8, '0');
+    const randomHex = rnd[0].toString(16).toUpperCase().padStart(8, "0");
     return `DEBATE-${sessionId}-${randomHex}`;
   }
 
@@ -379,7 +379,7 @@ export function buildDebateOpeningPrompt(debate: AgentDebate, speaker: TribunalA
     "Provide your opening statement. Be specific, challenging, and substantive.",
     "",
     "**Important**: Structure your response with clear points that can be responded to.",
-    ""
+    "",
   );
 
   return parts.join("\n");
@@ -391,7 +391,7 @@ export function buildDebateOpeningPrompt(debate: AgentDebate, speaker: TribunalA
 export function buildDebateFollowUpPrompt(
   debate: AgentDebate,
   speaker: TribunalAgentRole,
-  previousRounds: DebateRound[]
+  previousRounds: DebateRound[],
 ): string {
   const persona = getPersona(speaker);
   const roundNum = previousRounds.length + 1;
@@ -412,12 +412,7 @@ export function buildDebateFollowUpPrompt(
   // Include previous rounds for context
   for (const round of previousRounds) {
     const roundPersona = getPersona(round.speaker);
-    parts.push(
-      `### Round ${round.number} - ${roundPersona.displayName}`,
-      "",
-      round.content,
-      "",
-    );
+    parts.push(`### Round ${round.number} - ${roundPersona.displayName}`, "", round.content, "");
   }
 
   parts.push(
@@ -428,7 +423,7 @@ export function buildDebateFollowUpPrompt(
     getFollowUpInstructions(debate.format, speaker, previousRounds),
     "",
     "Respond directly to the previous statements. Be specific about what you agree with, disagree with, or want to challenge.",
-    ""
+    "",
   );
 
   return parts.join("\n");
@@ -440,7 +435,7 @@ export function buildDebateFollowUpPrompt(
 function getOpeningInstructions(
   format: DebateFormat,
   speaker: TribunalAgentRole,
-  participants: TribunalAgentRole[]
+  participants: TribunalAgentRole[],
 ): string {
   const isFirst = participants[0] === speaker;
 
@@ -471,7 +466,7 @@ function getOpeningInstructions(
 function getFollowUpInstructions(
   format: DebateFormat,
   speaker: TribunalAgentRole,
-  previousRounds: DebateRound[]
+  previousRounds: DebateRound[],
 ): string {
   const lastRound = previousRounds[previousRounds.length - 1];
 
@@ -498,7 +493,7 @@ function getFollowUpInstructions(
  */
 export function addRound(
   debate: AgentDebate,
-  round: Omit<DebateRound, "number" | "recordedAt">
+  round: Omit<DebateRound, "number" | "recordedAt">,
 ): AgentDebate {
   const newRound: DebateRound = {
     ...round,
@@ -530,7 +525,7 @@ export function addRound(
 export function addUserInjection(
   debate: AgentDebate,
   content: string,
-  targetAgent: TribunalAgentRole | "all" = "all"
+  targetAgent: TribunalAgentRole | "all" = "all",
 ): AgentDebate {
   const injection: UserInjection = {
     content,
@@ -647,9 +642,7 @@ export function generateConclusion(debate: AgentDebate): DebateConclusion {
   }
 
   // Winning arguments are the most substantive new points
-  const winningArguments = allPoints
-    .filter((p) => p.length > 50)
-    .slice(0, 3);
+  const winningArguments = allPoints.filter((p) => p.length > 50).slice(0, 3);
 
   // Generate key insight
   const keyInsight = generateKeyInsight(debate, allAnalyses);
@@ -672,14 +665,14 @@ export function generateConclusion(debate: AgentDebate): DebateConclusion {
  */
 function generateKeyInsight(
   debate: AgentDebate,
-  analyses: Array<{ round: DebateRound; analysis: RoundAnalysis }>
+  analyses: Array<{ round: DebateRound; analysis: RoundAnalysis }>,
 ): string {
   // Look for the most impactful objection or concession
   const allContent = analyses.map((a) => a.round.content).join(" ");
 
   // Simple heuristic: find sentences with "key", "crucial", "important", "fundamental"
   const impactfulMatches = allContent.match(
-    /[^.!?]*(?:key|crucial|important|fundamental|critical)[^.!?]*[.!?]/gi
+    /[^.!?]*(?:key|crucial|important|fundamental|critical)[^.!?]*[.!?]/gi,
   );
 
   if (impactfulMatches && impactfulMatches.length > 0) {
@@ -742,13 +735,19 @@ export function getDebateStatus(debate: AgentDebate): {
   roundsCompleted: number;
   maxRounds: number;
   currentSpeaker: TribunalAgentRole | null;
-  participantStats: Record<TribunalAgentRole, { rounds: number; objections: number; concessions: number }>;
+  participantStats: Record<
+    TribunalAgentRole,
+    { rounds: number; objections: number; concessions: number }
+  >;
   readyToConclude: boolean;
 } {
   const currentSpeaker = getNextSpeaker(debate);
   const readyToConclude = shouldConclude(debate);
 
-  const participantStats: Record<TribunalAgentRole, { rounds: number; objections: number; concessions: number }> = {} as Record<TribunalAgentRole, { rounds: number; objections: number; concessions: number }>;
+  const participantStats: Record<
+    TribunalAgentRole,
+    { rounds: number; objections: number; concessions: number }
+  > = {} as Record<TribunalAgentRole, { rounds: number; objections: number; concessions: number }>;
 
   for (const participant of debate.participants) {
     participantStats[participant] = { rounds: 0, objections: 0, concessions: 0 };
@@ -793,7 +792,10 @@ export function isDebateFormat(value: unknown): value is DebateFormat {
 export function isDebateStatus(value: unknown): value is DebateStatus {
   return (
     typeof value === "string" &&
-    (value === "not_started" || value === "in_progress" || value === "concluded" || value === "timed_out")
+    (value === "not_started" ||
+      value === "in_progress" ||
+      value === "concluded" ||
+      value === "timed_out")
   );
 }
 

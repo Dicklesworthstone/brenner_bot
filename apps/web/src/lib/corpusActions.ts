@@ -8,7 +8,7 @@
  * These actions are consumed by the TanStack Query hooks in @/hooks/queries.
  */
 
-import { listCorpusDocs, readCorpusDoc, type CorpusDoc } from "./corpus";
+import { type CorpusDoc, listCorpusDocs, readCorpusDoc } from "./corpus";
 
 /**
  * Fetch the list of all corpus documents.
@@ -22,9 +22,7 @@ export async function fetchCorpusList(): Promise<CorpusDoc[]> {
  * Fetch a single corpus document by ID.
  * Returns both metadata and full content.
  */
-export async function fetchCorpusDoc(
-  id: string
-): Promise<{ doc: CorpusDoc; content: string }> {
+export async function fetchCorpusDoc(id: string): Promise<{ doc: CorpusDoc; content: string }> {
   return readCorpusDoc(id);
 }
 
@@ -33,7 +31,7 @@ export async function fetchCorpusDoc(
  * Useful for prefetching or batch loading.
  */
 export async function fetchCorpusDocs(
-  ids: string[]
+  ids: string[],
 ): Promise<{ doc: CorpusDoc; content: string }[]> {
   return Promise.all(ids.map((id) => readCorpusDoc(id)));
 }

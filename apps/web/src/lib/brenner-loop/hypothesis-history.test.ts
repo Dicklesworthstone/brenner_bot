@@ -6,28 +6,28 @@
  * @see brenner_bot-7usw (bead)
  */
 import { describe, expect, it } from "vitest";
+import type { HypothesisCard } from "./hypothesis";
+import { createHypothesisCard, generateHypothesisCardId } from "./hypothesis";
 import {
-  createHistoryStore,
-  addRootHypothesis,
-  evolveHypothesis,
   abandonHypothesis,
-  getAncestors,
-  getDescendants,
-  getRoot,
-  getLeaves,
-  findCommonAncestor,
+  addRootHypothesis,
+  createHistoryStore,
   diffHypotheses,
-  generateEvolutionGraph,
-  generateLineageGraph,
-  getEvolutionStats,
-  findByTrigger,
-  findByTimeRange,
-  isAncestor,
   EVOLUTION_TRIGGER_LABELS,
   type EvolutionTrigger,
+  evolveHypothesis,
+  findByTimeRange,
+  findByTrigger,
+  findCommonAncestor,
+  generateEvolutionGraph,
+  generateLineageGraph,
+  getAncestors,
+  getDescendants,
+  getEvolutionStats,
+  getLeaves,
+  getRoot,
+  isAncestor,
 } from "./hypothesis-history";
-import { createHypothesisCard, generateHypothesisCardId } from "./hypothesis";
-import type { HypothesisCard } from "./hypothesis";
 
 // ============================================================================
 // Test Fixtures
@@ -36,7 +36,7 @@ import type { HypothesisCard } from "./hypothesis";
 function makeHypothesis(
   sessionId: string,
   seq: number,
-  overrides: Partial<HypothesisCard> = {}
+  overrides: Partial<HypothesisCard> = {},
 ): HypothesisCard {
   return createHypothesisCard({
     id: overrides.id ?? generateHypothesisCardId(sessionId, seq),
@@ -102,7 +102,7 @@ describe("addRootHypothesis", () => {
       store,
       hypothesis,
       "Initial hypothesis",
-      "user@test.com"
+      "user@test.com",
     );
 
     expect(version.id).toBe(hypothesis.id);
@@ -148,7 +148,7 @@ describe("evolveHypothesis", () => {
       "evidence",
       "Evidence caused refinement",
       "user@test.com",
-      "EV-001"
+      "EV-001",
     );
 
     expect(v2.hypothesis.statement).toBe("Evolved statement");
@@ -361,7 +361,7 @@ describe("diffHypotheses", () => {
       v1.id,
       { statement: "Changed hypothesis statement", mechanism: "New mechanism for testing" },
       "manual",
-      "Updated"
+      "Updated",
     );
 
     const diff = diffHypotheses(v1.hypothesis, v2.hypothesis);

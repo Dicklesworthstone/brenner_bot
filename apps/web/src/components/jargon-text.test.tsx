@@ -9,8 +9,8 @@
  */
 
 import { render, screen } from "@testing-library/react";
-import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
-import { JargonText, JargonParagraph, JargonBlockquote } from "./jargon-text";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { JargonBlockquote, JargonParagraph, JargonText } from "./jargon-text";
 
 // ============================================================================
 // Mock Setup
@@ -51,7 +51,15 @@ vi.mock("@/lib/jargon", () => ({
 
 // Mock the Jargon component to simplify testing
 vi.mock("@/components/jargon", () => ({
-  Jargon: ({ term, children, className }: { term: string; children: React.ReactNode; className?: string }) => (
+  Jargon: ({
+    term,
+    children,
+    className,
+  }: {
+    term: string;
+    children: React.ReactNode;
+    className?: string;
+  }) => (
     <span data-testid={`jargon-${term}`} data-jargon-term={term} className={className}>
       {children}
     </span>
@@ -60,16 +68,19 @@ vi.mock("@/components/jargon", () => ({
 
 // Mock matchMedia for tests
 beforeEach(() => {
-  vi.stubGlobal("matchMedia", vi.fn().mockImplementation((query: string) => ({
-    matches: false,
-    media: query,
-    onchange: null,
-    addListener: vi.fn(),
-    removeListener: vi.fn(),
-    addEventListener: vi.fn(),
-    removeEventListener: vi.fn(),
-    dispatchEvent: vi.fn(),
-  })));
+  vi.stubGlobal(
+    "matchMedia",
+    vi.fn().mockImplementation((query: string) => ({
+      matches: false,
+      media: query,
+      onchange: null,
+      addListener: vi.fn(),
+      removeListener: vi.fn(),
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      dispatchEvent: vi.fn(),
+    })),
+  );
 });
 
 afterEach(() => {
@@ -101,9 +112,7 @@ describe("JargonText", () => {
     });
 
     it("applies custom className", () => {
-      const { container } = render(
-        <JargonText className="custom-class">Text</JargonText>
-      );
+      const { container } = render(<JargonText className="custom-class">Text</JargonText>);
 
       expect(container.firstChild).toHaveClass("custom-class");
     });
@@ -112,7 +121,7 @@ describe("JargonText", () => {
       const { container } = render(
         <JargonText data-testid="jargon-wrapper" id="test-id">
           Text
-        </JargonText>
+        </JargonText>,
       );
 
       expect(container.firstChild).toHaveAttribute("data-testid", "jargon-wrapper");
@@ -131,9 +140,7 @@ describe("JargonText", () => {
 
     it("detects multiple jargon terms in text", () => {
       render(
-        <JargonText>
-          Level-split and third alternative are both important concepts.
-        </JargonText>
+        <JargonText>Level-split and third alternative are both important concepts.</JargonText>,
       );
 
       expect(screen.getByTestId("jargon-level-split")).toBeInTheDocument();
@@ -150,9 +157,7 @@ describe("JargonText", () => {
     it("handles text with no jargon", () => {
       render(<JargonText>This is plain text without special terms.</JargonText>);
 
-      expect(
-        screen.getByText("This is plain text without special terms.")
-      ).toBeInTheDocument();
+      expect(screen.getByText("This is plain text without special terms.")).toBeInTheDocument();
     });
 
     it("handles text that is only jargon", () => {
@@ -179,33 +184,21 @@ describe("JargonText", () => {
 
   describe("highlights prop", () => {
     it("highlights specified terms", () => {
-      render(
-        <JargonText highlights={["important"]}>
-          This is an important message.
-        </JargonText>
-      );
+      render(<JargonText highlights={["important"]}>This is an important message.</JargonText>);
 
       const highlight = screen.getByText("important");
       expect(highlight).toHaveClass("font-semibold", "text-primary");
     });
 
     it("highlights multiple terms", () => {
-      render(
-        <JargonText highlights={["first", "second"]}>
-          The first and second items.
-        </JargonText>
-      );
+      render(<JargonText highlights={["first", "second"]}>The first and second items.</JargonText>);
 
       expect(screen.getByText("first")).toHaveClass("font-semibold");
       expect(screen.getByText("second")).toHaveClass("font-semibold");
     });
 
     it("handles overlapping jargon and highlights", () => {
-      render(
-        <JargonText highlights={["potency"]}>
-          Check the potency value.
-        </JargonText>
-      );
+      render(<JargonText highlights={["potency"]}>Check the potency value.</JargonText>);
 
       // Should have both jargon and highlight styling
       const element = screen.getByTestId("jargon-potency");
@@ -214,31 +207,19 @@ describe("JargonText", () => {
     });
 
     it("handles empty highlights array", () => {
-      render(
-        <JargonText highlights={[]}>
-          Simple text here.
-        </JargonText>
-      );
+      render(<JargonText highlights={[]}>Simple text here.</JargonText>);
 
       expect(screen.getByText(/Simple text here/)).toBeInTheDocument();
     });
 
     it("handles case-insensitive highlighting", () => {
-      render(
-        <JargonText highlights={["IMPORTANT"]}>
-          This is important to know.
-        </JargonText>
-      );
+      render(<JargonText highlights={["IMPORTANT"]}>This is important to know.</JargonText>);
 
       expect(screen.getByText("important")).toHaveClass("font-semibold");
     });
 
     it("ignores whitespace-only highlight terms", () => {
-      render(
-        <JargonText highlights={["  ", ""]}>
-          Normal text without issues.
-        </JargonText>
-      );
+      render(<JargonText highlights={["  ", ""]}>Normal text without issues.</JargonText>);
 
       expect(screen.getByText(/Normal text without issues/)).toBeInTheDocument();
     });
@@ -277,18 +258,14 @@ describe("JargonText", () => {
 describe("JargonParagraph", () => {
   describe("rendering", () => {
     it("renders as paragraph element", () => {
-      const { container } = render(
-        <JargonParagraph>Paragraph content</JargonParagraph>
-      );
+      const { container } = render(<JargonParagraph>Paragraph content</JargonParagraph>);
 
       expect(container.firstChild?.nodeName).toBe("P");
     });
 
     it("applies custom className", () => {
       const { container } = render(
-        <JargonParagraph className="custom-paragraph">
-          Content
-        </JargonParagraph>
+        <JargonParagraph className="custom-paragraph">Content</JargonParagraph>,
       );
 
       expect(container.firstChild).toHaveClass("custom-paragraph");
@@ -301,11 +278,7 @@ describe("JargonParagraph", () => {
     });
 
     it("supports highlights prop", () => {
-      render(
-        <JargonParagraph highlights={["key"]}>
-          The key point is here.
-        </JargonParagraph>
-      );
+      render(<JargonParagraph highlights={["key"]}>The key point is here.</JargonParagraph>);
 
       expect(screen.getByText("key")).toHaveClass("font-semibold");
     });
@@ -316,7 +289,7 @@ describe("JargonParagraph", () => {
       const { container } = render(
         <JargonParagraph id="para-1" data-section="intro">
           Content
-        </JargonParagraph>
+        </JargonParagraph>,
       );
 
       expect(container.firstChild).toHaveAttribute("id", "para-1");
@@ -332,38 +305,28 @@ describe("JargonParagraph", () => {
 describe("JargonBlockquote", () => {
   describe("rendering", () => {
     it("renders as blockquote element", () => {
-      const { container } = render(
-        <JargonBlockquote>Quote content</JargonBlockquote>
-      );
+      const { container } = render(<JargonBlockquote>Quote content</JargonBlockquote>);
 
       expect(container.firstChild?.nodeName).toBe("BLOCKQUOTE");
     });
 
     it("applies custom className", () => {
       const { container } = render(
-        <JargonBlockquote className="custom-quote">
-          Content
-        </JargonBlockquote>
+        <JargonBlockquote className="custom-quote">Content</JargonBlockquote>,
       );
 
       expect(container.firstChild).toHaveClass("custom-quote");
     });
 
     it("detects jargon in blockquote", () => {
-      render(
-        <JargonBlockquote>
-          The third alternative is crucial.
-        </JargonBlockquote>
-      );
+      render(<JargonBlockquote>The third alternative is crucial.</JargonBlockquote>);
 
       expect(screen.getByTestId("jargon-third-alternative")).toBeInTheDocument();
     });
 
     it("supports highlights prop", () => {
       render(
-        <JargonBlockquote highlights={["crucial"]}>
-          This is a crucial quote.
-        </JargonBlockquote>
+        <JargonBlockquote highlights={["crucial"]}>This is a crucial quote.</JargonBlockquote>,
       );
 
       expect(screen.getByText("crucial")).toHaveClass("font-semibold");
@@ -375,7 +338,7 @@ describe("JargonBlockquote", () => {
       const { container } = render(
         <JargonBlockquote cite="source.html" id="quote-1">
           Content
-        </JargonBlockquote>
+        </JargonBlockquote>,
       );
 
       expect(container.firstChild).toHaveAttribute("cite", "source.html");
@@ -405,22 +368,14 @@ describe("Text Segmentation", () => {
     });
 
     it("renders highlight segments with highlight classes", () => {
-      render(
-        <JargonText highlights={["special"]}>
-          A special word here.
-        </JargonText>
-      );
+      render(<JargonText highlights={["special"]}>A special word here.</JargonText>);
 
       const highlight = screen.getByText("special");
       expect(highlight).toHaveClass("bg-primary/10", "px-0.5", "rounded");
     });
 
     it("renders jargon-highlight segments with both treatments", () => {
-      render(
-        <JargonText highlights={["potency"]}>
-          Check potency levels.
-        </JargonText>
-      );
+      render(<JargonText highlights={["potency"]}>Check potency levels.</JargonText>);
 
       const element = screen.getByTestId("jargon-potency");
       expect(element).toHaveClass("font-semibold");
@@ -433,7 +388,7 @@ describe("Text Segmentation", () => {
       render(
         <JargonText highlights={["important"]}>
           The level-split is important for understanding potency.
-        </JargonText>
+        </JargonText>,
       );
 
       // Has jargon

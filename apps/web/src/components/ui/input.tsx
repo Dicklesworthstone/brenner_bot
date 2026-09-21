@@ -1,21 +1,21 @@
-"use client"
+"use client";
 
-import * as React from "react"
-import { cn } from "@/lib/utils"
+import * as React from "react";
+import { cn } from "@/lib/utils";
 
 export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
-  label?: string
-  error?: string
-  hint?: string
-  icon?: React.ReactNode
-  iconPosition?: "left" | "right"
+  label?: string;
+  error?: string;
+  hint?: string;
+  icon?: React.ReactNode;
+  iconPosition?: "left" | "right";
 }
 
 const Input = React.forwardRef<HTMLInputElement, InputProps>(
   ({ className, type, label, error, hint, icon, iconPosition = "left", id, ...props }, ref) => {
-    const generatedId = React.useId()
-    const inputId = id || generatedId
-    const hasIcon = !!icon
+    const generatedId = React.useId();
+    const inputId = id || generatedId;
+    const hasIcon = !!icon;
 
     return (
       <div className="w-full space-y-2">
@@ -63,7 +63,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
               // Icon padding
               hasIcon && iconPosition === "left" && "pl-10",
               hasIcon && iconPosition === "right" && "pr-10",
-              className
+              className,
             )}
             ref={ref}
             aria-invalid={!!error}
@@ -87,10 +87,10 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
           </p>
         )}
       </div>
-    )
-  }
-)
-Input.displayName = "Input"
+    );
+  },
+);
+Input.displayName = "Input";
 
 // Search input variant with built-in icon
 const SearchInput = React.forwardRef<HTMLInputElement, Omit<InputProps, "icon" | "iconPosition">>(
@@ -118,8 +118,8 @@ const SearchInput = React.forwardRef<HTMLInputElement, Omit<InputProps, "icon" |
       className={cn("", className)}
       {...props}
     />
-  )
-)
-SearchInput.displayName = "SearchInput"
+  ),
+);
+SearchInput.displayName = "SearchInput";
 
-export { Input, SearchInput }
+export { Input, SearchInput };

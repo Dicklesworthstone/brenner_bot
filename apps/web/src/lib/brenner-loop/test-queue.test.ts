@@ -1,18 +1,18 @@
-import { describe, it, expect, beforeEach, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import type { ExclusionTest } from "./operators/exclusion-test";
 import {
   addExclusionTestsToQueue,
   addManualQueueItem,
   clearTestQueue,
+  generateQueueItemId,
   getTestQueueStats,
+  isPredictionsLocked,
   loadTestQueue,
   lockQueueItemPredictions,
   priorityFromPower,
   saveTestQueue,
-  generateQueueItemId,
-  isPredictionsLocked,
   updateQueueItem,
 } from "./test-queue";
-import type { ExclusionTest } from "./operators/exclusion-test";
 
 // ============================================================================//
 // Mock localStorage

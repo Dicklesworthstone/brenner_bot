@@ -8,9 +8,8 @@
  * @see brenner_bot-ft14 (bead)
  */
 
-import * as React from "react";
 import { AlertTriangle, HelpCircle, RefreshCcw } from "lucide-react";
-import { cn } from "@/lib/utils";
+import * as React from "react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -20,7 +19,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import type { RecoveryNotice, RecoveryAction } from "@/lib/brenner-loop/errorRecovery";
+import type { RecoveryAction, RecoveryNotice } from "@/lib/brenner-loop/errorRecovery";
+import { cn } from "@/lib/utils";
 
 export interface ErrorRecoveryModalProps {
   open: boolean;
@@ -40,13 +40,23 @@ function actionButtonVariant(action?: RecoveryAction): "default" | "outline" | "
   return action.variant;
 }
 
-export function ErrorRecoveryModal({ open, notice, onOpenChange, className }: ErrorRecoveryModalProps) {
+export function ErrorRecoveryModal({
+  open,
+  notice,
+  onOpenChange,
+  className,
+}: ErrorRecoveryModalProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className={cn("max-w-lg", className)}>
         <DialogHeader separated>
           <div className="flex items-start gap-3">
-            <div className={cn("flex size-10 items-center justify-center rounded-xl", severityStyles[notice.severity])}>
+            <div
+              className={cn(
+                "flex size-10 items-center justify-center rounded-xl",
+                severityStyles[notice.severity],
+              )}
+            >
               <AlertTriangle className="size-5" />
             </div>
             <div>
@@ -81,7 +91,12 @@ export function ErrorRecoveryModal({ open, notice, onOpenChange, className }: Er
               </Button>
             ))}
 
-            <Button size="sm" variant="ghost" className="ml-auto" onClick={() => onOpenChange?.(false)}>
+            <Button
+              size="sm"
+              variant="ghost"
+              className="ml-auto"
+              onClick={() => onOpenChange?.(false)}
+            >
               <HelpCircle className="mr-2 size-4" />
               Close
             </Button>

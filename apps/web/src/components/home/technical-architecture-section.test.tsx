@@ -1,5 +1,5 @@
-import { describe, it, expect } from "vitest";
 import { render, screen } from "@testing-library/react";
+import { describe, expect, it } from "vitest";
 import { TechnicalArchitectureSection } from "./technical-architecture-section";
 
 describe("TechnicalArchitectureSection", () => {
@@ -7,7 +7,9 @@ describe("TechnicalArchitectureSection", () => {
     render(<TechnicalArchitectureSection />);
 
     expect(screen.getByText("Technical Architecture")).toBeInTheDocument();
-    expect(screen.getByText("Built for Serious Work: Architecture That Respects Your Research")).toBeInTheDocument();
+    expect(
+      screen.getByText("Built for Serious Work: Architecture That Respects Your Research"),
+    ).toBeInTheDocument();
   });
 
   it("renders all four architecture feature blocks", () => {

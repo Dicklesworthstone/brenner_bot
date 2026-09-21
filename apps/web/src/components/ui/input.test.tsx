@@ -7,9 +7,9 @@
  * @see @/components/ui/input.tsx
  */
 
-import { createRef } from "react";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { createRef } from "react";
 import { describe, expect, it, vi } from "vitest";
 import { Input, SearchInput } from "./input";
 
@@ -150,18 +150,12 @@ describe("Input", () => {
   describe("accessibility", () => {
     it("has aria-describedby for error", () => {
       render(<Input id="test" error="Error message" />);
-      expect(screen.getByRole("textbox")).toHaveAttribute(
-        "aria-describedby",
-        "test-error"
-      );
+      expect(screen.getByRole("textbox")).toHaveAttribute("aria-describedby", "test-error");
     });
 
     it("has aria-describedby for hint", () => {
       render(<Input id="test" hint="Hint message" />);
-      expect(screen.getByRole("textbox")).toHaveAttribute(
-        "aria-describedby",
-        "test-hint"
-      );
+      expect(screen.getByRole("textbox")).toHaveAttribute("aria-describedby", "test-hint");
     });
   });
 });

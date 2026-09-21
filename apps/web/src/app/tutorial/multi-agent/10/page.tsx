@@ -8,12 +8,11 @@
  * @see brenner_bot-nm89 (Tutorial Path: Multi-Agent Cockpit)
  */
 
-import * as React from "react";
 import { useRouter } from "next/navigation";
-import { TutorialStep } from "@/components/tutorial";
-import { TutorialCodeBlock, ProTip } from "@/components/tutorial";
+import * as React from "react";
+import { ProTip, TutorialCodeBlock, TutorialStep } from "@/components/tutorial";
 import { useTutorial } from "@/lib/tutorial-context";
-import type { TutorialStep as TutorialStepType, TroubleshootingItem } from "@/lib/tutorial-types";
+import type { TroubleshootingItem, TutorialStep as TutorialStepType } from "@/lib/tutorial-types";
 
 // ============================================================================
 // Step Data
@@ -26,7 +25,8 @@ const troubleshooting: TroubleshootingItem[] = [
   },
   {
     problem: "Lost my session files",
-    solution: "Check the sessions/ directory. All artifacts and messages are persisted in the Agent Mail archive.",
+    solution:
+      "Check the sessions/ directory. All artifacts and messages are persisted in the Agent Mail archive.",
   },
 ];
 
@@ -41,11 +41,7 @@ const stepData: TutorialStepType = {
     "How to review agent performance",
     "Best practices for future sessions",
   ],
-  whatYouDo: [
-    "Stop all agents",
-    "Archive the session",
-    "Review what worked",
-  ],
+  whatYouDo: ["Stop all agents", "Archive the session", "Review what worked"],
   troubleshooting,
 };
 
@@ -97,8 +93,8 @@ export default function MultiAgentStep10() {
         {/* Introduction */}
         <div className="space-y-4">
           <p className="text-muted-foreground leading-relaxed">
-            Congratulations on completing your first multi-agent research session! Before
-            moving on, let&apos;s properly clean up and extract lessons for future sessions.
+            Congratulations on completing your first multi-agent research session! Before moving on,
+            let&apos;s properly clean up and extract lessons for future sessions.
           </p>
         </div>
 
@@ -226,15 +222,15 @@ cat sessions/$SESSION_ID/log.md`}
             <div className="p-5 rounded-xl border border-border bg-card space-y-3">
               <h3 className="font-semibold">Run More Sessions</h3>
               <p className="text-sm text-muted-foreground">
-                Practice makes perfect. Run sessions on different research questions to
-                develop your orchestration intuition.
+                Practice makes perfect. Run sessions on different research questions to develop your
+                orchestration intuition.
               </p>
             </div>
             <div className="p-5 rounded-xl border border-border bg-card space-y-3">
               <h3 className="font-semibold">Customize Roles</h3>
               <p className="text-sm text-muted-foreground">
-                Create custom role definitions beyond the standard three. Experiment with
-                specialist roles for your domain.
+                Create custom role definitions beyond the standard three. Experiment with specialist
+                roles for your domain.
               </p>
             </div>
             <div className="p-5 rounded-xl border border-border bg-card space-y-3">
@@ -247,8 +243,8 @@ cat sessions/$SESSION_ID/log.md`}
             <div className="p-5 rounded-xl border border-border bg-card space-y-3">
               <h3 className="font-semibold">Automate Workflows</h3>
               <p className="text-sm text-muted-foreground">
-                Use the brenner CLI in scripts to automate common patterns. Create templates
-                for different research types.
+                Use the brenner CLI in scripts to automate common patterns. Create templates for
+                different research types.
               </p>
             </div>
           </div>
@@ -264,9 +260,7 @@ cat sessions/$SESSION_ID/log.md`}
           <div className="flex items-center gap-3">
             <span className="text-3xl">🎉</span>
             <div>
-              <h3 className="font-semibold text-[oklch(0.72_0.19_145)]">
-                Tutorial Complete!
-              </h3>
+              <h3 className="font-semibold text-[oklch(0.72_0.19_145)]">Tutorial Complete!</h3>
               <p className="text-sm text-muted-foreground">
                 You&apos;ve learned the full multi-agent cockpit workflow.
               </p>

@@ -1,10 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useMemo, useCallback, type ReactNode } from "react";
-import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { AnimatedElement, HeroBackground } from "@/components/ui/animated-element";
+import { type ReactNode, useCallback, useMemo, useState } from "react";
 import { Jargon } from "@/components/jargon";
+import { AnimatedElement, HeroBackground } from "@/components/ui/animated-element";
+import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 // ============================================================================
 // TYPES
@@ -89,7 +89,8 @@ const CORPUS_DOCS: CorpusDoc[] = [
     id: "raw-gpt-truncated",
     title: "GPT-5.2 Response (Previously Truncated)",
     description: "Previously truncated GPT-5.2 responses, now complete",
-    filename: "gpt_pro_extended_reasoning_responses/brenner_bot__gpt_pro_52__response_previously_truncated_batch.md",
+    filename:
+      "gpt_pro_extended_reasoning_responses/brenner_bot__gpt_pro_52__response_previously_truncated_batch.md",
   },
   // Raw Model Responses - Opus
   {
@@ -136,32 +137,76 @@ const CORPUS_DOCS: CorpusDoc[] = [
 // ============================================================================
 
 const BookOpenIcon = ({ className = "size-5" }: { className?: string }) => (
-  <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" />
+  <svg
+    className={className}
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+    strokeWidth={1.5}
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25"
+    />
   </svg>
 );
 
 const DocumentIcon = ({ className = "size-5" }: { className?: string }) => (
-  <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+  <svg
+    className={className}
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+    strokeWidth={1.5}
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"
+    />
   </svg>
 );
 
 const SparklesIcon = ({ className = "size-5" }: { className?: string }) => (
-  <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" />
+  <svg
+    className={className}
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+    strokeWidth={1.5}
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z"
+    />
   </svg>
 );
 
 const SearchIcon = ({ className = "size-5" }: { className?: string }) => (
   <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"
+    />
   </svg>
 );
 
 const ChatBubbleIcon = ({ className = "size-5" }: { className?: string }) => (
-  <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M20.25 8.511c.884.284 1.5 1.128 1.5 2.097v4.286c0 1.136-.847 2.1-1.98 2.193-.34.027-.68.052-1.02.072v3.091l-3-3c-1.354 0-2.694-.055-4.02-.163a2.115 2.115 0 01-.825-.242m9.345-8.334a2.126 2.126 0 00-.476-.095 48.64 48.64 0 00-8.048 0c-1.131.094-1.976 1.057-1.976 2.192v4.286c0 .837.46 1.58 1.155 1.951m9.345-8.334V6.637c0-1.621-1.152-3.026-2.76-3.235A48.455 48.455 0 0011.25 3c-2.115 0-4.198.137-6.24.402-1.608.209-2.76 1.614-2.76 3.235v6.226c0 1.621 1.152 3.026 2.76 3.235.577.075 1.157.14 1.74.194V21l4.155-4.155" />
+  <svg
+    className={className}
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+    strokeWidth={1.5}
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M20.25 8.511c.884.284 1.5 1.128 1.5 2.097v4.286c0 1.136-.847 2.1-1.98 2.193-.34.027-.68.052-1.02.072v3.091l-3-3c-1.354 0-2.694-.055-4.02-.163a2.115 2.115 0 01-.825-.242m9.345-8.334a2.126 2.126 0 00-.476-.095 48.64 48.64 0 00-8.048 0c-1.131.094-1.976 1.057-1.976 2.192v4.286c0 .837.46 1.58 1.155 1.951m9.345-8.334V6.637c0-1.621-1.152-3.026-2.76-3.235A48.455 48.455 0 0011.25 3c-2.115 0-4.198.137-6.24.402-1.608.209-2.76 1.614-2.76 3.235v6.226c0 1.621 1.152 3.026 2.76 3.235.577.075 1.157.14 1.74.194V21l4.155-4.155"
+    />
   </svg>
 );
 
@@ -173,7 +218,11 @@ const ArrowRightIcon = ({ className = "size-4" }: { className?: string }) => (
 
 const ClockIcon = ({ className = "size-3.5" }: { className?: string }) => (
   <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"
+    />
   </svg>
 );
 
@@ -193,7 +242,10 @@ const XMarkIcon = ({ className = "size-4" }: { className?: string }) => (
 // CATEGORY CONFIG
 // ============================================================================
 
-const categories: Record<CategoryKey, { title: string; description: string; icon: ReactNode; color: string }> = {
+const categories: Record<
+  CategoryKey,
+  { title: string; description: string; icon: ReactNode; color: string }
+> = {
   primary: {
     title: "Primary Sources",
     description: "The original transcript and curated quotes",
@@ -251,13 +303,31 @@ function getReadTime(id: string): string {
 
 function getModelBadge(id: string): { label: string; colorClass: string } | null {
   // Distillations
-  if (id === "distillation-opus-45") return { label: "Claude Opus 4.5", colorClass: "bg-amber-500/15 text-amber-600 dark:text-amber-400" };
-  if (id === "distillation-gpt-52") return { label: "GPT-5.2 Pro", colorClass: "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400" };
-  if (id === "distillation-gemini-3") return { label: "Gemini 3", colorClass: "bg-blue-500/15 text-blue-600 dark:text-blue-400" };
+  if (id === "distillation-opus-45")
+    return {
+      label: "Claude Opus 4.5",
+      colorClass: "bg-amber-500/15 text-amber-600 dark:text-amber-400",
+    };
+  if (id === "distillation-gpt-52")
+    return {
+      label: "GPT-5.2 Pro",
+      colorClass: "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400",
+    };
+  if (id === "distillation-gemini-3")
+    return { label: "Gemini 3", colorClass: "bg-blue-500/15 text-blue-600 dark:text-blue-400" };
   // Raw responses
-  if (id.startsWith("raw-gpt")) return { label: "GPT-5.2 Pro", colorClass: "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400" };
-  if (id.startsWith("raw-opus")) return { label: "Claude Opus 4.5", colorClass: "bg-amber-500/15 text-amber-600 dark:text-amber-400" };
-  if (id.startsWith("raw-gemini")) return { label: "Gemini 3", colorClass: "bg-blue-500/15 text-blue-600 dark:text-blue-400" };
+  if (id.startsWith("raw-gpt"))
+    return {
+      label: "GPT-5.2 Pro",
+      colorClass: "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400",
+    };
+  if (id.startsWith("raw-opus"))
+    return {
+      label: "Claude Opus 4.5",
+      colorClass: "bg-amber-500/15 text-amber-600 dark:text-amber-400",
+    };
+  if (id.startsWith("raw-gemini"))
+    return { label: "Gemini 3", colorClass: "bg-blue-500/15 text-blue-600 dark:text-blue-400" };
   return null;
 }
 
@@ -287,7 +357,10 @@ function DocCard({ doc, index }: DocCardProps) {
         href={`/corpus/${doc.id}`}
         className="group block touch-manipulation h-full rounded-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       >
-        <Card hover className="h-full relative overflow-hidden active:scale-[0.98] transition-transform flex flex-col">
+        <Card
+          hover
+          className="h-full relative overflow-hidden active:scale-[0.98] transition-transform flex flex-col"
+        >
           {/* Hover gradient overlay */}
           <div className="absolute inset-0 bg-gradient-to-br from-primary/0 via-primary/0 to-primary/0 group-hover:from-primary/5 group-hover:via-transparent group-hover:to-primary/3 transition-all duration-500 pointer-events-none" />
 
@@ -308,7 +381,9 @@ function DocCard({ doc, index }: DocCardProps) {
                 <div className="flex flex-wrap items-center gap-2 sm:gap-3 pt-1">
                   {/* Model badge */}
                   {badge && (
-                    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] sm:text-xs font-medium ${badge.colorClass}`}>
+                    <span
+                      className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] sm:text-xs font-medium ${badge.colorClass}`}
+                    >
                       {badge.label}
                     </span>
                   )}
@@ -346,14 +421,17 @@ function DocCard({ doc, index }: DocCardProps) {
 
 type ModelKey = "gpt" | "opus" | "gemini";
 
-const modelConfig: Record<ModelKey, {
-  name: string;
-  fullName: string;
-  color: string;
-  bgColor: string;
-  borderColor: string;
-  iconBg: string;
-}> = {
+const modelConfig: Record<
+  ModelKey,
+  {
+    name: string;
+    fullName: string;
+    color: string;
+    bgColor: string;
+    borderColor: string;
+    iconBg: string;
+  }
+> = {
   gpt: {
     name: "GPT-5.2",
     fullName: "GPT-5.2 Pro",
@@ -416,7 +494,14 @@ const ClaudeIcon = ({ className = "size-5" }: { className?: string }) => (
 
 const GeminiIcon = ({ className = "size-5" }: { className?: string }) => (
   <svg className={className} viewBox="0 0 24 24" fill="currentColor">
-    <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+    <path
+      d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"
+      stroke="currentColor"
+      strokeWidth="2"
+      fill="none"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
   </svg>
 );
 
@@ -434,14 +519,19 @@ interface RawResponsesSectionProps {
   sectionIndex: number;
 }
 
-function RawResponsesSection({ docs, isExpanded, onToggle, sectionIndex }: RawResponsesSectionProps) {
+function RawResponsesSection({
+  docs,
+  isExpanded,
+  onToggle,
+  sectionIndex,
+}: RawResponsesSectionProps) {
   const [activeModel, setActiveModel] = useState<ModelKey>("gpt");
   const category = categories["raw-responses"];
 
   // Group docs by model
   const groupedByModel = useMemo(() => {
     const groups: Record<ModelKey, CorpusDoc[]> = { gpt: [], opus: [], gemini: [] };
-    docs.forEach(doc => {
+    docs.forEach((doc) => {
       const model = getModelFromId(doc.id);
       if (model) groups[model].push(doc);
     });
@@ -464,25 +554,29 @@ function RawResponsesSection({ docs, isExpanded, onToggle, sectionIndex }: RawRe
         className="w-full flex items-center justify-between gap-3 text-left group lg:cursor-default"
       >
         <div className="flex items-center gap-2 sm:gap-3">
-          <div className={`flex items-center justify-center size-8 sm:size-10 rounded-xl bg-gradient-to-br ${category.color} text-foreground transition-transform group-hover:scale-105 lg:group-hover:scale-100`}>
+          <div
+            className={`flex items-center justify-center size-8 sm:size-10 rounded-xl bg-gradient-to-br ${category.color} text-foreground transition-transform group-hover:scale-105 lg:group-hover:scale-100`}
+          >
             {category.icon}
           </div>
           <div>
-            <h2 className="text-base sm:text-lg font-semibold text-foreground">
-              {category.title}
-            </h2>
+            <h2 className="text-base sm:text-lg font-semibold text-foreground">{category.title}</h2>
             <p className="text-xs sm:text-sm text-muted-foreground hidden sm:block">
               {category.description}
             </p>
           </div>
         </div>
-        <div className={`lg:hidden flex items-center justify-center size-8 rounded-full bg-muted/50 transition-transform duration-200 ${isExpanded ? "rotate-180" : ""}`}>
+        <div
+          className={`lg:hidden flex items-center justify-center size-8 rounded-full bg-muted/50 transition-transform duration-200 ${isExpanded ? "rotate-180" : ""}`}
+        >
           <ChevronDownIcon className="size-4 text-muted-foreground" />
         </div>
       </button>
 
       {/* Content - Collapsible on mobile */}
-      <div className={`transition-all duration-300 ease-out lg:block ${isExpanded ? "block" : "hidden lg:block"}`}>
+      <div
+        className={`transition-all duration-300 ease-out lg:block ${isExpanded ? "block" : "hidden lg:block"}`}
+      >
         {/* Desktop: Premium tabbed interface */}
         <div className="hidden lg:block">
           <div className="rounded-2xl border border-border/50 bg-gradient-to-b from-card to-card/80 overflow-hidden shadow-sm">
@@ -506,18 +600,25 @@ function RawResponsesSection({ docs, isExpanded, onToggle, sectionIndex }: RawRe
                     <div className="flex items-center justify-center gap-2">
                       <ModelIcon model={model} className="size-4" />
                       <span>{config.name}</span>
-                      <span className={`px-1.5 py-0.5 rounded-full text-xs ${
-                        isActive ? config.bgColor : "bg-muted"
-                      }`}>
+                      <span
+                        className={`px-1.5 py-0.5 rounded-full text-xs ${
+                          isActive ? config.bgColor : "bg-muted"
+                        }`}
+                      >
                         {count}
                       </span>
                     </div>
                     {/* Active indicator line */}
                     {isActive && (
-                      <div className={`absolute bottom-0 left-0 right-0 h-0.5 ${
-                        model === "gpt" ? "bg-emerald-500" :
-                        model === "opus" ? "bg-amber-500" : "bg-blue-500"
-                      }`} />
+                      <div
+                        className={`absolute bottom-0 left-0 right-0 h-0.5 ${
+                          model === "gpt"
+                            ? "bg-emerald-500"
+                            : model === "opus"
+                              ? "bg-amber-500"
+                              : "bg-blue-500"
+                        }`}
+                      />
                     )}
                   </button>
                 );
@@ -536,7 +637,9 @@ function RawResponsesSection({ docs, isExpanded, onToggle, sectionIndex }: RawRe
                       className={`group flex items-center gap-4 p-4 rounded-xl border ${config.borderColor} ${config.bgColor} hover:shadow-md active:scale-[0.98] transition-all duration-200 touch-manipulation focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring`}
                     >
                       {/* Batch number indicator */}
-                      <div className={`flex items-center justify-center size-10 rounded-lg ${config.iconBg} ${config.color} font-semibold text-lg shrink-0`}>
+                      <div
+                        className={`flex items-center justify-center size-10 rounded-lg ${config.iconBg} ${config.color} font-semibold text-lg shrink-0`}
+                      >
                         {index + 1}
                       </div>
 
@@ -556,7 +659,9 @@ function RawResponsesSection({ docs, isExpanded, onToggle, sectionIndex }: RawRe
                       </div>
 
                       {/* Arrow */}
-                      <ArrowRightIcon className={`size-4 ${config.color} opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all duration-200 shrink-0`} />
+                      <ArrowRightIcon
+                        className={`size-4 ${config.color} opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all duration-200 shrink-0`}
+                      />
                     </Link>
                   );
                 })}
@@ -579,12 +684,16 @@ function RawResponsesSection({ docs, isExpanded, onToggle, sectionIndex }: RawRe
               >
                 {/* Model header */}
                 <div className={`flex items-center gap-3 px-4 py-3 ${config.bgColor}`}>
-                  <div className={`flex items-center justify-center size-8 rounded-lg ${config.iconBg} ${config.color}`}>
+                  <div
+                    className={`flex items-center justify-center size-8 rounded-lg ${config.iconBg} ${config.color}`}
+                  >
                     <ModelIcon model={model} className="size-4" />
                   </div>
                   <div className="flex-1">
                     <h3 className={`font-medium ${config.color}`}>{config.fullName}</h3>
-                    <p className="text-xs text-muted-foreground">{modelDocs.length} response batches</p>
+                    <p className="text-xs text-muted-foreground">
+                      {modelDocs.length} response batches
+                    </p>
                   </div>
                 </div>
 
@@ -597,14 +706,20 @@ function RawResponsesSection({ docs, isExpanded, onToggle, sectionIndex }: RawRe
                       className="group flex items-center gap-3 px-4 py-3 bg-background hover:bg-muted/50 transition-all active:bg-muted active:scale-[0.98] touch-manipulation focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
                     >
                       {/* Batch number */}
-                      <span className={`flex items-center justify-center size-7 rounded-md ${config.bgColor} ${config.color} text-sm font-medium`}>
+                      <span
+                        className={`flex items-center justify-center size-7 rounded-md ${config.bgColor} ${config.color} text-sm font-medium`}
+                      >
                         {index + 1}
                       </span>
 
                       {/* Info */}
                       <div className="flex-1 min-w-0">
-                        <span className="text-sm font-medium text-foreground">{getBatchLabel(doc.id)}</span>
-                        <span className="text-xs text-muted-foreground ml-2">{getReadTime(doc.id)}</span>
+                        <span className="text-sm font-medium text-foreground">
+                          {getBatchLabel(doc.id)}
+                        </span>
+                        <span className="text-xs text-muted-foreground ml-2">
+                          {getReadTime(doc.id)}
+                        </span>
                       </div>
 
                       {/* Arrow */}
@@ -633,7 +748,13 @@ interface CategorySectionProps {
   sectionIndex: number;
 }
 
-function CategorySection({ categoryKey, docs, isExpanded, onToggle, sectionIndex }: CategorySectionProps) {
+function CategorySection({
+  categoryKey,
+  docs,
+  isExpanded,
+  onToggle,
+  sectionIndex,
+}: CategorySectionProps) {
   const category = categories[categoryKey];
 
   if (docs.length === 0) return null;
@@ -662,13 +783,13 @@ function CategorySection({ categoryKey, docs, isExpanded, onToggle, sectionIndex
         className="w-full flex items-center justify-between gap-3 text-left group lg:cursor-default"
       >
         <div className="flex items-center gap-2 sm:gap-3">
-          <div className={`flex items-center justify-center size-8 sm:size-10 rounded-xl bg-gradient-to-br ${category.color} text-foreground transition-transform group-hover:scale-105 lg:group-hover:scale-100`}>
+          <div
+            className={`flex items-center justify-center size-8 sm:size-10 rounded-xl bg-gradient-to-br ${category.color} text-foreground transition-transform group-hover:scale-105 lg:group-hover:scale-100`}
+          >
             {category.icon}
           </div>
           <div>
-            <h2 className="text-base sm:text-lg font-semibold text-foreground">
-              {category.title}
-            </h2>
+            <h2 className="text-base sm:text-lg font-semibold text-foreground">{category.title}</h2>
             <p className="text-xs sm:text-sm text-muted-foreground hidden sm:block">
               {category.description}
             </p>
@@ -676,13 +797,17 @@ function CategorySection({ categoryKey, docs, isExpanded, onToggle, sectionIndex
         </div>
 
         {/* Mobile toggle indicator */}
-        <div className={`lg:hidden flex items-center justify-center size-8 rounded-full bg-muted/50 transition-transform duration-200 ${isExpanded ? "rotate-180" : ""}`}>
+        <div
+          className={`lg:hidden flex items-center justify-center size-8 rounded-full bg-muted/50 transition-transform duration-200 ${isExpanded ? "rotate-180" : ""}`}
+        >
           <ChevronDownIcon className="size-4 text-muted-foreground" />
         </div>
       </button>
 
       {/* Cards Grid - Collapsible on mobile */}
-      <div className={`transition-all duration-300 ease-out lg:block ${isExpanded ? "block" : "hidden lg:block"}`}>
+      <div
+        className={`transition-all duration-300 ease-out lg:block ${isExpanded ? "block" : "hidden lg:block"}`}
+      >
         <div className="grid gap-3 sm:gap-4 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 items-stretch">
           {docs.map((doc, index) => (
             <DocCard key={doc.id} doc={doc} index={index} />
@@ -734,9 +859,14 @@ function SearchBar({ value, onChange, resultCount }: SearchBarProps) {
       {/* Result count or search hint */}
       <div className="absolute -bottom-6 left-4 text-xs text-muted-foreground animate-fade-in">
         {value ? (
-          <span>{resultCount} {resultCount === 1 ? "result" : "results"} found</span>
+          <span>
+            {resultCount} {resultCount === 1 ? "result" : "results"} found
+          </span>
         ) : (
-          <span>Press <kbd className="px-1 py-0.5 rounded bg-muted font-mono text-[10px]">⌘K</kbd> for full-text search</span>
+          <span>
+            Press <kbd className="px-1 py-0.5 rounded bg-muted font-mono text-[10px]">⌘K</kbd> for
+            full-text search
+          </span>
         )}
       </div>
     </div>
@@ -754,7 +884,13 @@ interface CategoryPillsProps {
 }
 
 function CategoryPills({ activeCategory, onChange, counts }: CategoryPillsProps) {
-  const allCategories: (CategoryKey | "all")[] = ["all", "primary", "distillations", "raw-responses", "prompts"];
+  const allCategories: (CategoryKey | "all")[] = [
+    "all",
+    "primary",
+    "distillations",
+    "raw-responses",
+    "prompts",
+  ];
 
   return (
     <div className="relative -mx-4 sm:mx-0">
@@ -775,9 +911,11 @@ function CategoryPills({ activeCategory, onChange, counts }: CategoryPillsProps)
               }`}
             >
               <span>{label}</span>
-              <span className={`px-1.5 py-0.5 rounded-full text-[10px] sm:text-xs ${
-                isActive ? "bg-primary-foreground/20" : "bg-background/50"
-              }`}>
+              <span
+                className={`px-1.5 py-0.5 rounded-full text-[10px] sm:text-xs ${
+                  isActive ? "bg-primary-foreground/20" : "bg-background/50"
+                }`}
+              >
                 {count}
               </span>
             </button>
@@ -817,10 +955,11 @@ export default function CorpusIndexPage() {
     // Search filter
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase().trim();
-      docs = docs.filter((doc) =>
-        doc.title.toLowerCase().includes(query) ||
-        doc.description.toLowerCase().includes(query) ||
-        doc.filename.toLowerCase().includes(query)
+      docs = docs.filter(
+        (doc) =>
+          doc.title.toLowerCase().includes(query) ||
+          doc.description.toLowerCase().includes(query) ||
+          doc.filename.toLowerCase().includes(query),
       );
     }
 
@@ -836,7 +975,7 @@ export default function CorpusIndexPage() {
         acc[cat].push(doc);
         return acc;
       },
-      {} as Record<CategoryKey, CorpusDoc[]>
+      {} as Record<CategoryKey, CorpusDoc[]>,
     );
   }, [filteredDocs]);
 
@@ -869,7 +1008,11 @@ export default function CorpusIndexPage() {
   return (
     <div className="space-y-6 sm:space-y-8 lg:space-y-10">
       {/* Hero Section */}
-      <HeroBackground showOrbs showGrid className="rounded-2xl sm:rounded-3xl -mx-4 px-4 sm:mx-0 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-10">
+      <HeroBackground
+        showOrbs
+        showGrid
+        className="rounded-2xl sm:rounded-3xl -mx-4 px-4 sm:mx-0 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-10"
+      >
         <AnimatedElement animation="reveal-up" className="space-y-4 sm:space-y-6">
           {/* Header */}
           <div className="flex items-start sm:items-center gap-3 sm:gap-4">
@@ -877,9 +1020,7 @@ export default function CorpusIndexPage() {
               <BookOpenIcon className="size-6 sm:size-7 lg:size-8" />
             </div>
             <div>
-              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight">
-                Corpus
-              </h1>
+              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight">Corpus</h1>
               <p className="text-sm sm:text-base lg:text-lg text-muted-foreground mt-0.5">
                 The complete Brenner document collection
               </p>
@@ -962,7 +1103,11 @@ export default function CorpusIndexPage() {
                   1
                 </span>
                 <span>
-                  Start with a <Jargon term="distillation"><strong className="text-foreground">Distillation</strong></Jargon> for a structured overview of Brenner&apos;s methodology.
+                  Start with a{" "}
+                  <Jargon term="distillation">
+                    <strong className="text-foreground">Distillation</strong>
+                  </Jargon>{" "}
+                  for a structured overview of Brenner&apos;s methodology.
                 </span>
               </li>
               <li className="flex items-start gap-3">
@@ -970,7 +1115,11 @@ export default function CorpusIndexPage() {
                   2
                 </span>
                 <span>
-                  Use the <Jargon term="quote-bank"><strong className="text-foreground">Quote Bank</strong></Jargon> to find specific Brenner quotes on topics of interest.
+                  Use the{" "}
+                  <Jargon term="quote-bank">
+                    <strong className="text-foreground">Quote Bank</strong>
+                  </Jargon>{" "}
+                  to find specific Brenner quotes on topics of interest.
                 </span>
               </li>
               <li className="flex items-start gap-3">
@@ -978,7 +1127,11 @@ export default function CorpusIndexPage() {
                   3
                 </span>
                 <span>
-                  Dive into the full <Jargon term="corpus"><strong className="text-foreground">Transcript</strong></Jargon> for context and nuance around specific ideas.
+                  Dive into the full{" "}
+                  <Jargon term="corpus">
+                    <strong className="text-foreground">Transcript</strong>
+                  </Jargon>{" "}
+                  for context and nuance around specific ideas.
                 </span>
               </li>
             </ul>

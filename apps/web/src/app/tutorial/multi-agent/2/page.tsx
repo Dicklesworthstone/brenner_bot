@@ -8,12 +8,11 @@
  * @see brenner_bot-nm89 (Tutorial Path: Multi-Agent Cockpit)
  */
 
-import * as React from "react";
 import { useRouter } from "next/navigation";
-import { TutorialStep } from "@/components/tutorial";
-import { TutorialCodeBlock, ProTip, Warning } from "@/components/tutorial";
+import * as React from "react";
+import { ProTip, TutorialCodeBlock, TutorialStep, Warning } from "@/components/tutorial";
 import { useTutorial } from "@/lib/tutorial-context";
-import type { TutorialStep as TutorialStepType, TroubleshootingItem } from "@/lib/tutorial-types";
+import type { TroubleshootingItem, TutorialStep as TutorialStepType } from "@/lib/tutorial-types";
 
 // ============================================================================
 // Step Data
@@ -23,13 +22,15 @@ const troubleshooting: TroubleshootingItem[] = [
   {
     problem: "Claude Code authentication fails",
     symptoms: ["'Authentication required' errors", "Unable to start Claude Code"],
-    solution: "Run 'claude auth' to re-authenticate. Make sure you have an active Claude Max subscription.",
+    solution:
+      "Run 'claude auth' to re-authenticate. Make sure you have an active Claude Max subscription.",
     commands: ["claude auth"],
   },
   {
     problem: "Codex quota exceeded",
     symptoms: ["Rate limit errors", "429 responses"],
-    solution: "Check your OpenAI usage dashboard. Consider upgrading your tier or waiting for quota reset.",
+    solution:
+      "Check your OpenAI usage dashboard. Consider upgrading your tier or waiting for quota reset.",
   },
   {
     problem: "Gemini CLI not connecting",
@@ -82,7 +83,9 @@ function AgentCard({ name, model, subscription, color, children }: AgentCardProp
         </div>
         <div>
           <h3 className="font-semibold">{name}</h3>
-          <p className="text-xs text-muted-foreground">{model} • {subscription}</p>
+          <p className="text-xs text-muted-foreground">
+            {model} • {subscription}
+          </p>
         </div>
       </div>
       {children}
@@ -127,27 +130,24 @@ export default function MultiAgentStep2() {
           <div className="p-4 rounded-xl border border-destructive/30 bg-destructive/5">
             <p className="text-sm text-muted-foreground">
               <strong className="text-foreground">Cost Consideration:</strong> Running all three
-              agents for a full session (1-2 hours) typically costs $5-15 in API usage, depending
-              on context length and iteration count. Monitor your usage dashboards.
+              agents for a full session (1-2 hours) typically costs $5-15 in API usage, depending on
+              context length and iteration count. Monitor your usage dashboards.
             </p>
           </div>
         </div>
 
         {/* Claude Configuration */}
-        <AgentCard
-          name="Claude"
-          model="Opus 4.5"
-          subscription="Claude Max"
-          color="#8B5CF6"
-        >
+        <AgentCard name="Claude" model="Opus 4.5" subscription="Claude Max" color="#8B5CF6">
           <div className="space-y-3">
             <p className="text-sm text-muted-foreground">
-              Claude Code is Anthropic&apos;s coding agent CLI. It requires a Claude Max subscription
-              for access to Opus 4.5 (the most capable model).
+              Claude Code is Anthropic&apos;s coding agent CLI. It requires a Claude Max
+              subscription for access to Opus 4.5 (the most capable model).
             </p>
 
             <div className="space-y-2">
-              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Install & Verify</p>
+              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                Install & Verify
+              </p>
               <TutorialCodeBlock
                 code={`# Install Claude Code (if not already installed)
 # See: https://github.com/anthropics/claude-code
@@ -167,26 +167,25 @@ claude "What is 2 + 2?"`}
 
             <div className="flex items-center gap-2 text-sm">
               <span className="size-2 rounded-full bg-purple-500"></span>
-              <span className="text-muted-foreground">Best for: Test design, careful reasoning, nuanced analysis</span>
+              <span className="text-muted-foreground">
+                Best for: Test design, careful reasoning, nuanced analysis
+              </span>
             </div>
           </div>
         </AgentCard>
 
         {/* GPT/Codex Configuration */}
-        <AgentCard
-          name="Codex"
-          model="GPT 5.2"
-          subscription="GPT Pro"
-          color="#10B981"
-        >
+        <AgentCard name="Codex" model="GPT 5.2" subscription="GPT Pro" color="#10B981">
           <div className="space-y-3">
             <p className="text-sm text-muted-foreground">
-              Codex CLI is OpenAI&apos;s coding agent. GPT Pro subscription unlocks extended
-              context and higher rate limits needed for research sessions.
+              Codex CLI is OpenAI&apos;s coding agent. GPT Pro subscription unlocks extended context
+              and higher rate limits needed for research sessions.
             </p>
 
             <div className="space-y-2">
-              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Install & Verify</p>
+              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                Install & Verify
+              </p>
               <TutorialCodeBlock
                 code={`# Install Codex CLI (if not already installed)
 # See: https://github.com/openai/codex-cli
@@ -206,18 +205,15 @@ codex "What is 2 + 2?"`}
 
             <div className="flex items-center gap-2 text-sm">
               <span className="size-2 rounded-full bg-emerald-500"></span>
-              <span className="text-muted-foreground">Best for: Creative hypotheses, broad knowledge, cross-domain connections</span>
+              <span className="text-muted-foreground">
+                Best for: Creative hypotheses, broad knowledge, cross-domain connections
+              </span>
             </div>
           </div>
         </AgentCard>
 
         {/* Gemini Configuration */}
-        <AgentCard
-          name="Gemini"
-          model="Gemini 3"
-          subscription="Gemini Ultra"
-          color="#EA580C"
-        >
+        <AgentCard name="Gemini" model="Gemini 3" subscription="Gemini Ultra" color="#EA580C">
           <div className="space-y-3">
             <p className="text-sm text-muted-foreground">
               Gemini CLI is Google&apos;s coding agent. Gemini Ultra provides access to the most
@@ -225,7 +221,9 @@ codex "What is 2 + 2?"`}
             </p>
 
             <div className="space-y-2">
-              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Install & Verify</p>
+              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                Install & Verify
+              </p>
               <TutorialCodeBlock
                 code={`# Install Gemini CLI (if not already installed)
 # See: Google AI Studio for API access
@@ -245,7 +243,9 @@ gemini "What is 2 + 2?"`}
 
             <div className="flex items-center gap-2 text-sm">
               <span className="size-2 rounded-full bg-orange-500"></span>
-              <span className="text-muted-foreground">Best for: Adversarial critique, edge-case finding, skeptical analysis</span>
+              <span className="text-muted-foreground">
+                Best for: Adversarial critique, edge-case finding, skeptical analysis
+              </span>
             </div>
           </div>
         </AgentCard>
@@ -281,15 +281,15 @@ echo "=== End Check ==="`}
         </div>
 
         <Warning>
-          <strong>API Keys are sensitive:</strong> Never commit API keys to version control.
-          Use environment variables or a secrets manager. The brenner CLI can read keys from
-          environment variables or a <code>.env</code> file.
+          <strong>API Keys are sensitive:</strong> Never commit API keys to version control. Use
+          environment variables or a secrets manager. The brenner CLI can read keys from environment
+          variables or a <code>.env</code> file.
         </Warning>
 
         <ProTip>
           If budget is a concern, you can start with just one or two agents. Claude + Codex is a
-          strong pair for hypothesis generation and test design. Add Gemini for the full
-          adversarial critique capability.
+          strong pair for hypothesis generation and test design. Add Gemini for the full adversarial
+          critique capability.
         </ProTip>
 
         {/* Ready Checkpoint */}

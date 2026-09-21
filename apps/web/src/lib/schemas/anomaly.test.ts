@@ -1,24 +1,24 @@
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
 import {
-  AnomalySchema,
-  QuarantineStatusSchema,
-  AnomalySourceSchema,
-  AnomalyConflictsWithSchema,
   type Anomaly,
-  type AnomalySource,
   type AnomalyConflictsWith,
-  generateAnomalyId,
-  isValidAnomalyId,
+  AnomalyConflictsWithSchema,
+  AnomalySchema,
+  type AnomalySource,
+  AnomalySourceSchema,
+  canSpawnHypothesis,
   createAnomaly,
   createExperimentalAnomaly,
   createLiteratureAnomaly,
-  resolveAnomaly,
   deferAnomaly,
-  markParadigmShifting,
-  reactivateAnomaly,
+  generateAnomalyId,
+  isValidAnomalyId,
   linkSpawnedHypothesis,
+  markParadigmShifting,
+  QuarantineStatusSchema,
+  reactivateAnomaly,
+  resolveAnomaly,
   validateQuarantineDiscipline,
-  canSpawnHypothesis,
 } from "./anomaly";
 
 // ============================================================================
@@ -104,12 +104,12 @@ describe("AnomalySchema", () => {
   describe("invalid cases", () => {
     it("rejects invalid anomaly ID format", () => {
       const invalidIds = [
-        "X-123",              // Missing session-seq format
-        "H-RS20251230-001",   // Wrong prefix (hypothesis)
-        "A-RS20251230-001",   // Wrong prefix (assumption)
-        "X-001",              // Missing session
-        "X-RS20251230-1",     // Non-padded sequence
-        "X-RS20251230-1000",  // Sequence too long
+        "X-123", // Missing session-seq format
+        "H-RS20251230-001", // Wrong prefix (hypothesis)
+        "A-RS20251230-001", // Wrong prefix (assumption)
+        "X-001", // Missing session
+        "X-RS20251230-1", // Non-padded sequence
+        "X-RS20251230-1000", // Sequence too long
       ];
 
       for (const id of invalidIds) {
@@ -292,44 +292,30 @@ describe("generateAnomalyId", () => {
   });
 
   it("handles mixed session IDs", () => {
-    const existing = [
-      "X-RS20251230-001",
-      "X-OTHER-002",
-      "X-RS20251230-002",
-    ];
+    const existing = ["X-RS20251230-001", "X-OTHER-002", "X-RS20251230-002"];
     const id = generateAnomalyId("RS20251230", existing);
     expect(id).toBe("X-RS20251230-003");
   });
 
   it("throws on sequence overflow", () => {
-    const existing = Array.from({ length: 999 }, (_, i) =>
-      `X-RS20251230-${(i + 1).toString().padStart(3, "0")}`
+    const existing = Array.from(
+      { length: 999 },
+      (_, i) => `X-RS20251230-${(i + 1).toString().padStart(3, "0")}`,
     );
-    expect(() => generateAnomalyId("RS20251230", existing)).toThrow(
-      /sequence overflow/i
-    );
+    expect(() => generateAnomalyId("RS20251230", existing)).toThrow(/sequence overflow/i);
   });
 });
 
 describe("isValidAnomalyId", () => {
   it("validates correct IDs", () => {
-    const validIds = [
-      "X-RS20251230-001",
-      "X-CELL-FATE-002",
-      "X-session123-999",
-    ];
+    const validIds = ["X-RS20251230-001", "X-CELL-FATE-002", "X-session123-999"];
     for (const id of validIds) {
       expect(isValidAnomalyId(id), `${id} should be valid`).toBe(true);
     }
   });
 
   it("rejects invalid IDs", () => {
-    const invalidIds = [
-      "X-001",
-      "H-RS20251230-001",
-      "X-RS20251230-1",
-      "anomaly-123",
-    ];
+    const invalidIds = ["X-001", "H-RS20251230-001", "X-RS20251230-1", "anomaly-123"];
     for (const id of invalidIds) {
       expect(isValidAnomalyId(id), `${id} should be invalid`).toBe(false);
     }
@@ -443,9 +429,7 @@ describe("resolveAnomaly", () => {
     const anomaly = createMinimalAnomaly();
     const resolved = resolveAnomaly(anomaly, "H-RS20251230-003");
 
-    expect(() => resolveAnomaly(resolved, "H-RS20251230-004")).toThrow(
-      /already resolved/i
-    );
+    expect(() => resolveAnomaly(resolved, "H-RS20251230-004")).toThrow(/already resolved/i);
   });
 
   it("preserves notes when resolving", () => {

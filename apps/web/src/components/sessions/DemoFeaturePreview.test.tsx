@@ -1,15 +1,11 @@
-import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
+import { describe, expect, it, vi } from "vitest";
 import { DemoFeaturePreview } from "./DemoFeaturePreview";
 
 vi.mock("next/link", () => ({
-  default: ({
-    children,
-    href,
-  }: {
-    children: React.ReactNode;
-    href: string;
-  }) => <a href={href}>{children}</a>,
+  default: ({ children, href }: { children: React.ReactNode; href: string }) => (
+    <a href={href}>{children}</a>
+  ),
 }));
 
 describe("DemoFeaturePreview", () => {
@@ -19,12 +15,10 @@ describe("DemoFeaturePreview", () => {
         threadId="demo-test-001"
         featureName="Evidence Pack"
         featureDescription="Collect external evidence"
-      />
+      />,
     );
 
-    expect(
-      screen.getByText("Evidence Pack - Demo Preview")
-    ).toBeInTheDocument();
+    expect(screen.getByText("Evidence Pack - Demo Preview")).toBeInTheDocument();
     expect(screen.getByText("Collect external evidence")).toBeInTheDocument();
   });
 
@@ -34,7 +28,7 @@ describe("DemoFeaturePreview", () => {
         threadId="demo-test-001"
         featureName="Test Feature"
         featureDescription="Description"
-      />
+      />,
     );
 
     const backLink = screen.getByRole("link", {
@@ -49,7 +43,7 @@ describe("DemoFeaturePreview", () => {
         threadId="demo-test-001"
         featureName="Test Feature"
         featureDescription="Description"
-      />
+      />,
     );
 
     const learnMore = screen.getByRole("link", {

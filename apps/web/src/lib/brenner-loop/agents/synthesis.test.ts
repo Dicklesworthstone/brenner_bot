@@ -42,7 +42,9 @@ describe("synthesizeResponses", () => {
     expect(result.consensusPoints.some((p) => /selection bias/i.test(p.claim))).toBe(true);
 
     const selectionConsensus = result.consensusPoints.find((p) => /selection bias/i.test(p.claim));
-    expect(selectionConsensus?.supportingAgents.sort()).toEqual(["devils_advocate", "experiment_designer"].sort());
+    expect(selectionConsensus?.supportingAgents.sort()).toEqual(
+      ["devils_advocate", "experiment_designer"].sort(),
+    );
 
     expect(result.recommendations.some((r) => /randomized/i.test(r.action))).toBe(true);
 
@@ -68,7 +70,8 @@ describe("synthesizeResponses", () => {
     ]);
 
     expect(result.conflictPoints.length).toBeGreaterThan(0);
-    expect(result.conflictPoints[0]?.positions.map((p) => p.agent).sort()).toEqual(["agent_a", "agent_b"].sort());
+    expect(result.conflictPoints[0]?.positions.map((p) => p.agent).sort()).toEqual(
+      ["agent_a", "agent_b"].sort(),
+    );
   });
 });
-

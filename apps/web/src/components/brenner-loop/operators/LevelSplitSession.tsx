@@ -16,29 +16,29 @@
  * @module components/brenner-loop/operators/LevelSplitSession
  */
 
+import { AnimatePresence, motion } from "framer-motion";
+import { Check, Lightbulb, Plus, Target } from "lucide-react";
 import * as React from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Check, Plus, Lightbulb, Target } from "lucide-react";
-import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import type { HypothesisCard } from "@/lib/brenner-loop/hypothesis";
-import type { Quote } from "@/lib/quotebank-parser";
 import { useOperatorSession } from "@/hooks/useOperatorSession";
+import type { HypothesisCard } from "@/lib/brenner-loop/hypothesis";
 import type {
   Level,
   LevelCombination,
-  SubHypothesis,
   LevelSplitResult,
+  SubHypothesis,
 } from "@/lib/brenner-loop/operators/level-split";
 import {
-  LEVEL_SPLIT_STEPS,
-  LEVEL_SPLIT_STEP_IDS,
-  generateXLevels,
-  generateYLevels,
   generateCombinationMatrix,
   generateSubHypothesis,
+  generateXLevels,
+  generateYLevels,
   LEVEL_SPLIT_FALLBACK_QUOTES,
+  LEVEL_SPLIT_STEP_IDS,
+  LEVEL_SPLIT_STEPS,
 } from "@/lib/brenner-loop/operators/level-split";
+import type { Quote } from "@/lib/quotebank-parser";
+import { cn } from "@/lib/utils";
 import { OperatorShell } from "./OperatorShell";
 
 // ============================================================================
@@ -121,9 +121,7 @@ function LevelChecklist({ levels, onToggle, title, description }: LevelChecklist
                 className={cn(
                   "w-full flex items-start gap-3 p-3 rounded-lg border text-left transition-all",
                   "hover:border-primary/50 hover:bg-muted/30",
-                  level.selected
-                    ? "border-primary bg-primary/5"
-                    : "border-border bg-card"
+                  level.selected ? "border-primary bg-primary/5" : "border-border bg-card",
                 )}
                 whileTap={{ scale: 0.98 }}
               >
@@ -132,16 +130,14 @@ function LevelChecklist({ levels, onToggle, title, description }: LevelChecklist
                     "flex items-center justify-center size-5 rounded border flex-shrink-0 mt-0.5 transition-colors",
                     level.selected
                       ? "bg-primary border-primary text-primary-foreground"
-                      : "border-muted-foreground/30"
+                      : "border-muted-foreground/30",
                   )}
                 >
                   {level.selected && <Check className="size-3" strokeWidth={3} />}
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="font-medium text-sm">{level.name}</div>
-                  <div className="text-xs text-muted-foreground mt-0.5">
-                    {level.description}
-                  </div>
+                  <div className="text-xs text-muted-foreground mt-0.5">{level.description}</div>
                 </div>
               </motion.button>
             ))}
@@ -165,8 +161,8 @@ function CombinationMatrix({ combinations, onToggle }: CombinationMatrixProps) {
   const xLevels = React.useMemo(() => {
     const seen = new Set<string>();
     return combinations
-      .map(c => c.xLevel)
-      .filter(l => {
+      .map((c) => c.xLevel)
+      .filter((l) => {
         if (seen.has(l.id)) return false;
         seen.add(l.id);
         return true;
@@ -176,8 +172,8 @@ function CombinationMatrix({ combinations, onToggle }: CombinationMatrixProps) {
   const yLevels = React.useMemo(() => {
     const seen = new Set<string>();
     return combinations
-      .map(c => c.yLevel)
-      .filter(l => {
+      .map((c) => c.yLevel)
+      .filter((l) => {
         if (seen.has(l.id)) return false;
         seen.add(l.id);
         return true;
@@ -209,11 +205,8 @@ function CombinationMatrix({ combinations, onToggle }: CombinationMatrixProps) {
             <th className="p-2 text-left text-xs font-medium text-muted-foreground uppercase">
               X / Y
             </th>
-            {yLevels.map(y => (
-              <th
-                key={y.id}
-                className="p-2 text-center text-xs font-medium text-muted-foreground"
-              >
+            {yLevels.map((y) => (
+              <th key={y.id} className="p-2 text-center text-xs font-medium text-muted-foreground">
                 <div className="max-w-[100px]">
                   <div className="truncate">{y.name}</div>
                 </div>
@@ -222,22 +215,19 @@ function CombinationMatrix({ combinations, onToggle }: CombinationMatrixProps) {
           </tr>
         </thead>
         <tbody>
-          {xLevels.map(x => (
+          {xLevels.map((x) => (
             <tr key={x.id}>
               <td className="p-2 text-sm font-medium border-t border-border">
                 <div className="max-w-[120px]">
                   <div className="truncate">{x.name}</div>
                 </div>
               </td>
-              {yLevels.map(y => {
+              {yLevels.map((y) => {
                 const combination = combinationMap.get(`${x.id}-${y.id}`);
                 const isSelected = combination?.selected ?? false;
 
                 return (
-                  <td
-                    key={`${x.id}-${y.id}`}
-                    className="p-2 text-center border-t border-border"
-                  >
+                  <td key={`${x.id}-${y.id}`} className="p-2 text-center border-t border-border">
                     <motion.button
                       type="button"
                       onClick={() => onToggle(x.id, y.id)}
@@ -246,7 +236,7 @@ function CombinationMatrix({ combinations, onToggle }: CombinationMatrixProps) {
                         "hover:border-primary/50",
                         isSelected
                           ? "bg-primary border-primary text-primary-foreground"
-                          : "border-border bg-muted/30 hover:bg-muted/50"
+                          : "border-border bg-muted/30 hover:bg-muted/50",
                       )}
                       whileTap={{ scale: 0.9 }}
                     >
@@ -297,9 +287,7 @@ function SubHypothesisList({
 }: SubHypothesisListProps) {
   if (subHypotheses.length === 0) {
     return (
-      <div className="p-8 text-center text-muted-foreground">
-        No sub-hypotheses generated yet.
-      </div>
+      <div className="p-8 text-center text-muted-foreground">No sub-hypotheses generated yet.</div>
     );
   }
 
@@ -318,7 +306,7 @@ function SubHypothesisList({
               "p-4 rounded-lg border transition-all",
               isFocused
                 ? "border-primary bg-primary/5 ring-2 ring-primary/20"
-                : "border-border bg-card hover:border-primary/30"
+                : "border-border bg-card hover:border-primary/30",
             )}
           >
             <div className="flex items-start gap-3">
@@ -327,7 +315,7 @@ function SubHypothesisList({
                   "flex items-center justify-center size-8 rounded-full flex-shrink-0 text-sm font-bold",
                   isFocused
                     ? "bg-primary text-primary-foreground"
-                    : "bg-muted text-muted-foreground"
+                    : "bg-muted text-muted-foreground",
                 )}
               >
                 H<sub>{index + 1}</sub>
@@ -444,25 +432,29 @@ export function LevelSplitSession({
   const focusedId = getSelection<string>(LEVEL_SPLIT_STEP_IDS.CHOOSE_FOCUS) ?? null;
 
   // Toggle X level selection
-  const toggleXLevel = React.useCallback((levelId: string) => {
-    const updated = xLevels.map(l =>
-      l.id === levelId ? { ...l, selected: !l.selected } : l
-    );
-    setSelection(LEVEL_SPLIT_STEP_IDS.IDENTIFY_X, updated);
-  }, [xLevels, setSelection]);
+  const toggleXLevel = React.useCallback(
+    (levelId: string) => {
+      const updated = xLevels.map((l) => (l.id === levelId ? { ...l, selected: !l.selected } : l));
+      setSelection(LEVEL_SPLIT_STEP_IDS.IDENTIFY_X, updated);
+    },
+    [xLevels, setSelection],
+  );
 
   // Toggle Y level selection
-  const toggleYLevel = React.useCallback((levelId: string) => {
-    const updated = yLevels.map(l =>
-      l.id === levelId ? { ...l, selected: !l.selected } : l
-    );
-    setSelection(LEVEL_SPLIT_STEP_IDS.IDENTIFY_Y, updated);
-  }, [yLevels, setSelection]);
+  const toggleYLevel = React.useCallback(
+    (levelId: string) => {
+      const updated = yLevels.map((l) => (l.id === levelId ? { ...l, selected: !l.selected } : l));
+      setSelection(LEVEL_SPLIT_STEP_IDS.IDENTIFY_Y, updated);
+    },
+    [yLevels, setSelection],
+  );
 
   // Generate combinations when entering matrix step
   React.useEffect(() => {
     if (currentStepConfig?.id === LEVEL_SPLIT_STEP_IDS.REVIEW_MATRIX) {
-      const existingCombinations = getSelection<LevelCombination[]>(LEVEL_SPLIT_STEP_IDS.REVIEW_MATRIX);
+      const existingCombinations = getSelection<LevelCombination[]>(
+        LEVEL_SPLIT_STEP_IDS.REVIEW_MATRIX,
+      );
       if (!existingCombinations || existingCombinations.length === 0) {
         const newCombinations = generateCombinationMatrix(xLevels, yLevels);
         setSelection(LEVEL_SPLIT_STEP_IDS.REVIEW_MATRIX, newCombinations);
@@ -471,40 +463,42 @@ export function LevelSplitSession({
   }, [currentStepConfig?.id, xLevels, yLevels, getSelection, setSelection]);
 
   // Toggle combination selection
-  const toggleCombination = React.useCallback((xLevelId: string, yLevelId: string) => {
-    const updated = combinations.map(c =>
-      c.xLevel.id === xLevelId && c.yLevel.id === yLevelId
-        ? { ...c, selected: !c.selected }
-        : c
-    );
-    setSelection(LEVEL_SPLIT_STEP_IDS.REVIEW_MATRIX, updated);
-  }, [combinations, setSelection]);
+  const toggleCombination = React.useCallback(
+    (xLevelId: string, yLevelId: string) => {
+      const updated = combinations.map((c) =>
+        c.xLevel.id === xLevelId && c.yLevel.id === yLevelId ? { ...c, selected: !c.selected } : c,
+      );
+      setSelection(LEVEL_SPLIT_STEP_IDS.REVIEW_MATRIX, updated);
+    },
+    [combinations, setSelection],
+  );
 
   // Generate sub-hypotheses when entering that step
   React.useEffect(() => {
     if (currentStepConfig?.id === LEVEL_SPLIT_STEP_IDS.GENERATE_SUB) {
-      const selectedCombinations = combinations.filter(c => c.selected);
+      const selectedCombinations = combinations.filter((c) => c.selected);
       const existingSubs = getContent<SubHypothesis[]>(LEVEL_SPLIT_STEP_IDS.GENERATE_SUB);
       if (!existingSubs || existingSubs.length !== selectedCombinations.length) {
-        const newSubs = selectedCombinations.map(c =>
-          generateSubHypothesis(hypothesis, c)
-        );
+        const newSubs = selectedCombinations.map((c) => generateSubHypothesis(hypothesis, c));
         setContent(LEVEL_SPLIT_STEP_IDS.GENERATE_SUB, newSubs);
       }
     }
   }, [currentStepConfig?.id, combinations, hypothesis, getContent, setContent]);
 
   // Set focus
-  const setFocus = React.useCallback((id: string) => {
-    setSelection(LEVEL_SPLIT_STEP_IDS.CHOOSE_FOCUS, id);
-  }, [setSelection]);
+  const setFocus = React.useCallback(
+    (id: string) => {
+      setSelection(LEVEL_SPLIT_STEP_IDS.CHOOSE_FOCUS, id);
+    },
+    [setSelection],
+  );
 
   // Handle completion
   const handleComplete = React.useCallback(() => {
     const result: LevelSplitResult = {
-      xLevels: xLevels.filter(l => l.selected),
-      yLevels: yLevels.filter(l => l.selected),
-      selectedCombinations: combinations.filter(c => c.selected),
+      xLevels: xLevels.filter((l) => l.selected),
+      yLevels: yLevels.filter((l) => l.selected),
+      selectedCombinations: combinations.filter((c) => c.selected),
       subHypotheses,
       focusedHypothesisId: focusedId,
     };
@@ -539,14 +533,11 @@ export function LevelSplitSession({
           <div className="space-y-4">
             <div className="p-4 rounded-lg bg-muted/50 border border-border">
               <p className="text-sm text-muted-foreground">
-                Select which X→Y combinations you&apos;re actually investigating.
-                Not every combination may be relevant to your study.
+                Select which X→Y combinations you&apos;re actually investigating. Not every
+                combination may be relevant to your study.
               </p>
             </div>
-            <CombinationMatrix
-              combinations={combinations}
-              onToggle={toggleCombination}
-            />
+            <CombinationMatrix combinations={combinations} onToggle={toggleCombination} />
           </div>
         );
 
@@ -582,8 +573,8 @@ export function LevelSplitSession({
                 <div>
                   <p className="text-sm font-medium">Choose Your Focus</p>
                   <p className="text-sm text-muted-foreground mt-1">
-                    Which sub-hypothesis will you pursue first? Select the one that is
-                    most tractable and most likely to provide discriminative information.
+                    Which sub-hypothesis will you pursue first? Select the one that is most
+                    tractable and most likely to provide discriminative information.
                   </p>
                 </div>
               </div>
@@ -598,18 +589,12 @@ export function LevelSplitSession({
         );
 
       default:
-        return (
-          <div className="p-8 text-center text-muted-foreground">
-            Unknown step
-          </div>
-        );
+        return <div className="p-8 text-center text-muted-foreground">Unknown step</div>;
     }
   };
 
   // Use quotes or fallback
-  const displayQuotes = quotes && quotes.length > 0
-    ? quotes
-    : LEVEL_SPLIT_FALLBACK_QUOTES;
+  const displayQuotes = quotes && quotes.length > 0 ? quotes : LEVEL_SPLIT_FALLBACK_QUOTES;
 
   return (
     <OperatorShell

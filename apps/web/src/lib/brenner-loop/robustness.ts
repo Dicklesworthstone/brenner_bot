@@ -12,8 +12,8 @@
  * @module brenner-loop/robustness
  */
 
-import type { HypothesisCard } from "./hypothesis";
 import type { EvidenceResult } from "./evidence";
+import type { HypothesisCard } from "./hypothesis";
 
 // ============================================================================
 // Types
@@ -155,7 +155,10 @@ export const DEFAULT_ROBUSTNESS_CONFIG: RobustnessConfig = {
 /**
  * Labels and colors for interpretation display.
  */
-export const ROBUSTNESS_LABELS: Record<RobustnessInterpretation, { label: string; color: string; description: string }> = {
+export const ROBUSTNESS_LABELS: Record<
+  RobustnessInterpretation,
+  { label: string; color: string; description: string }
+> = {
   robust: {
     label: "Robust",
     color: "green",
@@ -207,12 +210,12 @@ export function computeSpecificityScore(predictions: string[]): number {
 
   // Factor 3: Quantitative indicators
   const quantitativePatterns = [
-    /\d+/,              // numbers
+    /\d+/, // numbers
     /more than|less than|at least|at most/i,
     /increase|decrease|higher|lower/i,
     /percent|%/i,
     /significant|measurable/i,
-    /within \d/i,       // timeframes
+    /within \d/i, // timeframes
   ];
 
   let quantitativeScore = 0;
@@ -284,7 +287,7 @@ export function computeFalsifiabilityScore(hypothesis: HypothesisCard): number {
  */
 function computeWeightedSurvival(
   evidence: RobustnessEvidenceInput[],
-  testLookup?: Record<string, { discriminativePower: number }>
+  testLookup?: Record<string, { discriminativePower: number }>,
 ): {
   weightedSurvival: number;
   testsAttempted: number;
@@ -362,7 +365,7 @@ function computeWeightedSurvival(
  */
 function determineInterpretation(
   survival: ReturnType<typeof computeWeightedSurvival>,
-  config: RobustnessConfig
+  config: RobustnessConfig,
 ): RobustnessInterpretation {
   // If any test has failed (challenged), hypothesis is falsified
   if (survival.testsFailed > 0) {
@@ -391,37 +394,45 @@ function determineInterpretation(
  */
 function generateExplanation(
   score: Omit<RobustnessScore, "explanation">,
-  hypothesis: HypothesisCard
+  hypothesis: HypothesisCard,
 ): string {
   void hypothesis;
   const { components, interpretation } = score;
 
   if (interpretation === "untested") {
-    return `This hypothesis has not been subjected to meaningful testing yet. ` +
-      `Consider designing discriminative tests to challenge it.`;
+    return (
+      `This hypothesis has not been subjected to meaningful testing yet. ` +
+      `Consider designing discriminative tests to challenge it.`
+    );
   }
 
   if (interpretation === "falsified") {
-    return `This hypothesis failed ${components.testsFailed} test(s). ` +
+    return (
+      `This hypothesis failed ${components.testsFailed} test(s). ` +
       `${components.testsSurvived} test(s) supported it before falsification. ` +
-      `Consider revising or abandoning in favor of alternatives.`;
+      `Consider revising or abandoning in favor of alternatives.`
+    );
   }
 
   const totalTests = components.testsAttempted;
   const avgPowerLabel = getTestPowerLabel(components.averageTestPower);
 
   if (interpretation === "robust") {
-    return `Hypothesis survived ${components.testsSurvived}/${totalTests} tests ` +
+    return (
+      `Hypothesis survived ${components.testsSurvived}/${totalTests} tests ` +
       `(average power: ${avgPowerLabel}). ` +
       `Weighted survival rate: ${(components.weightedSurvival * 100).toFixed(0)}%. ` +
-      `This is a well-tested hypothesis.`;
+      `This is a well-tested hypothesis.`
+    );
   }
 
   // shaky
-  return `Mixed results: ${components.testsSurvived} supporting, ` +
+  return (
+    `Mixed results: ${components.testsSurvived} supporting, ` +
     `${components.testsInconclusive} inconclusive out of ${totalTests} tests ` +
     `(average power: ${avgPowerLabel}). ` +
-    `Consider more decisive tests to clarify the hypothesis status.`;
+    `Consider more decisive tests to clarify the hypothesis status.`
+  );
 }
 
 /**
@@ -454,13 +465,13 @@ export function computeRobustness(
   hypothesis: HypothesisCard,
   evidenceLedger: RobustnessEvidenceInput[],
   config: Partial<RobustnessConfig> = {},
-  testLookup?: Record<string, { discriminativePower: number }>
+  testLookup?: Record<string, { discriminativePower: number }>,
 ): RobustnessScore {
   const cfg: RobustnessConfig = { ...DEFAULT_ROBUSTNESS_CONFIG, ...config };
 
   // Filter evidence to this hypothesis version
   const relevantEvidence = evidenceLedger.filter(
-    (e) => e.hypothesisVersion === hypothesis.id || e.matchedHypothesisId === hypothesis.id
+    (e) => e.hypothesisVersion === hypothesis.id || e.matchedHypothesisId === hypothesis.id,
   );
 
   // Compute component scores
@@ -488,9 +499,10 @@ export function computeRobustness(
 
   if (interpretation === "untested") {
     // Untested hypotheses get base score adjusted by structural quality
-    overall = cfg.untestedBaseScore +
-      (falsifiabilityScore * cfg.falsifiabilityWeight / 2) +
-      (specificityScore * cfg.specificityWeight / 2);
+    overall =
+      cfg.untestedBaseScore +
+      (falsifiabilityScore * cfg.falsifiabilityWeight) / 2 +
+      (specificityScore * cfg.specificityWeight) / 2;
   } else if (interpretation === "falsified") {
     // Falsified hypotheses get low score based on how badly they failed
     // But structural quality still matters for learning
@@ -498,8 +510,8 @@ export function computeRobustness(
     overall = Math.max(
       5,
       20 * (1 - failureRatio) +
-        (falsifiabilityScore * cfg.falsifiabilityWeight / 4) +
-        (specificityScore * cfg.specificityWeight / 4)
+        (falsifiabilityScore * cfg.falsifiabilityWeight) / 4 +
+        (specificityScore * cfg.specificityWeight) / 4,
     );
   } else {
     // Normal calculation: weighted sum of components

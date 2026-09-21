@@ -9,19 +9,20 @@
 
 "use client";
 
-import React, { useState, useCallback, useMemo } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
+import { AnimatePresence, motion } from "framer-motion";
 import {
   AlertTriangle,
   CheckCircle,
-  XCircle,
   ChevronRight,
-  RefreshCw,
   Lightbulb,
+  RefreshCw,
+  XCircle,
 } from "lucide-react";
+import type React from "react";
+import { useCallback, useMemo, useState } from "react";
+import { Button } from "@/components/ui/button";
 import { useCoach } from "@/lib/brenner-loop/coach-context";
+import { cn } from "@/lib/utils";
 
 // ============================================================================
 // Types
@@ -103,8 +104,7 @@ export function QualityCheckpoint({
   onBypass,
   className,
 }: QualityCheckpointProps): React.ReactElement | null {
-  const { isCoachActive, recordCheckpointPassed, recordMistakeCaught } =
-    useCoach();
+  const { isCoachActive, recordCheckpointPassed, recordMistakeCaught } = useCoach();
 
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
 
@@ -153,7 +153,7 @@ export function QualityCheckpoint({
           : hasBlockingErrors
             ? "border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-950/30"
             : "border-orange-200 bg-orange-50 dark:border-orange-800 dark:bg-orange-950/30",
-        className
+        className,
       )}
     >
       {/* Header */}
@@ -174,14 +174,12 @@ export function QualityCheckpoint({
                   ? "text-green-900 dark:text-green-100"
                   : hasBlockingErrors
                     ? "text-red-900 dark:text-red-100"
-                    : "text-orange-900 dark:text-orange-100"
+                    : "text-orange-900 dark:text-orange-100",
               )}
             >
               {title}
             </h3>
-            {contentLabel && (
-              <p className="text-sm opacity-70">{contentLabel}</p>
-            )}
+            {contentLabel && <p className="text-sm opacity-70">{contentLabel}</p>}
           </div>
         </div>
 
@@ -193,7 +191,7 @@ export function QualityCheckpoint({
               ? "bg-green-200 text-green-800 dark:bg-green-800 dark:text-green-200"
               : result.score >= 50
                 ? "bg-orange-200 text-orange-800 dark:bg-orange-800 dark:text-orange-200"
-                : "bg-red-200 text-red-800 dark:bg-red-800 dark:text-red-200"
+                : "bg-red-200 text-red-800 dark:bg-red-800 dark:text-red-200",
           )}
         >
           {result.score}%
@@ -251,10 +249,7 @@ export function QualityCheckpoint({
         {/* Actions */}
         <div className="flex items-center gap-2 pt-2 border-t border-inherit">
           {result.passed ? (
-            <Button
-              onClick={handleProceed}
-              className="bg-green-600 hover:bg-green-700 text-white"
-            >
+            <Button onClick={handleProceed} className="bg-green-600 hover:bg-green-700 text-white">
               <ChevronRight className="h-4 w-4 mr-1" />
               Continue
             </Button>
@@ -270,7 +265,11 @@ export function QualityCheckpoint({
                 Fix Issues
               </Button>
               {allowBypass && (
-                <Button onClick={handleBypass} variant="ghost" className="text-orange-700 dark:text-orange-300">
+                <Button
+                  onClick={handleBypass}
+                  variant="ghost"
+                  className="text-orange-700 dark:text-orange-300"
+                >
                   Continue anyway
                 </Button>
               )}
@@ -323,23 +322,21 @@ function IssueCard({ issue, expanded, onToggle }: IssueCardProps): React.ReactEl
         onClick={onToggle}
         className={cn(
           "w-full flex items-start gap-2 px-3 py-2 text-left",
-          "hover:opacity-80 transition-opacity"
+          "hover:opacity-80 transition-opacity",
         )}
       >
         <Icon className={cn("h-4 w-4 mt-0.5 shrink-0", style.iconColor)} />
         <div className="flex-1">
           <p className={cn("text-sm font-medium", style.text)}>{issue.message}</p>
           {issue.highlightText && (
-            <p className="text-xs opacity-70 mt-1 font-mono">
-              &ldquo;{issue.highlightText}&rdquo;
-            </p>
+            <p className="text-xs opacity-70 mt-1 font-mono">&ldquo;{issue.highlightText}&rdquo;</p>
           )}
         </div>
         <ChevronRight
           className={cn(
             "h-4 w-4 shrink-0 transition-transform",
             style.iconColor,
-            expanded && "rotate-90"
+            expanded && "rotate-90",
           )}
         />
       </button>
@@ -426,27 +423,22 @@ export function HypothesisQualityChecker({
         message: "Hypothesis statement is too short",
         explanation:
           "A good hypothesis needs enough detail to be testable. One-liners are usually too vague.",
-        suggestion:
-          "Expand your statement to include what you believe and why you believe it.",
+        suggestion: "Expand your statement to include what you believe and why you believe it.",
       });
       score -= 30;
     }
 
     // Check for vague terms
     const vagueTerms = ["affects", "impacts", "influences", "relates to", "causes"];
-    const foundVague = vagueTerms.filter((term) =>
-      statement.toLowerCase().includes(term)
-    );
+    const foundVague = vagueTerms.filter((term) => statement.toLowerCase().includes(term));
     if (foundVague.length > 0 && !mechanism) {
       issues.push({
         id: "vague-terms",
         severity: "warning",
         message: `Vague causal language detected: "${foundVague.join('", "')}"`,
         highlightText: foundVague[0],
-        explanation:
-          "Terms like 'affects' or 'causes' are vague without a specific mechanism.",
-        suggestion:
-          "Specify HOW the effect occurs. What is the causal chain?",
+        explanation: "Terms like 'affects' or 'causes' are vague without a specific mechanism.",
+        suggestion: "Specify HOW the effect occurs. What is the causal chain?",
       });
       score -= 15;
     }
@@ -459,8 +451,7 @@ export function HypothesisQualityChecker({
         message: "No mechanism specified",
         explanation:
           "A hypothesis without a mechanism is just a correlation claim. You need to explain HOW it works.",
-        suggestion:
-          "Add a mechanism that explains the causal pathway from cause to effect.",
+        suggestion: "Add a mechanism that explains the causal pathway from cause to effect.",
       });
       score -= 25;
     }
@@ -471,8 +462,7 @@ export function HypothesisQualityChecker({
         id: "no-predictions",
         severity: "warning",
         message: "No predictions specified",
-        explanation:
-          "If your hypothesis doesn't make predictions, it can't be tested.",
+        explanation: "If your hypothesis doesn't make predictions, it can't be tested.",
         suggestion:
           "Add at least one specific prediction that would follow if your hypothesis is true.",
       });
@@ -487,8 +477,7 @@ export function HypothesisQualityChecker({
         message: "No falsification conditions specified",
         explanation:
           "A hypothesis that can't be proven wrong is unfalsifiable—and therefore unscientific.",
-        suggestion:
-          "Add at least one condition that would DISPROVE your hypothesis.",
+        suggestion: "Add at least one condition that would DISPROVE your hypothesis.",
       });
       score -= 15;
     }
@@ -500,9 +489,7 @@ export function HypothesisQualityChecker({
       /may sometimes/i,
       /in some cases/i,
     ];
-    const foundUnfalsifiable = unfalsifiablePatterns.some((p) =>
-      p.test(statement)
-    );
+    const foundUnfalsifiable = unfalsifiablePatterns.some((p) => p.test(statement));
     if (foundUnfalsifiable) {
       issues.push({
         id: "unfalsifiable-language",
@@ -510,8 +497,7 @@ export function HypothesisQualityChecker({
         message: "Language may make hypothesis hard to falsify",
         explanation:
           "Hedging language like 'might' or 'sometimes' can make a hypothesis impossible to disprove.",
-        suggestion:
-          "Make a stronger, more specific claim that could actually be wrong.",
+        suggestion: "Make a stronger, more specific claim that could actually be wrong.",
       });
       score -= 5;
     }

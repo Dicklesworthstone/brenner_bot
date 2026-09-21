@@ -7,8 +7,8 @@
  * Run with: bun run test
  */
 
-import { describe, expect, it } from "vitest";
 import { render, screen } from "@testing-library/react";
+import { describe, expect, it } from "vitest";
 import { Badge } from "./badge";
 
 // ============================================================================
@@ -42,7 +42,11 @@ describe("Badge", () => {
     });
 
     it("applies custom className", () => {
-      render(<Badge className="custom-badge" data-testid="badge">Label</Badge>);
+      render(
+        <Badge className="custom-badge" data-testid="badge">
+          Label
+        </Badge>,
+      );
       const badge = screen.getByTestId("badge");
       expect(badge.className).toContain("custom-badge");
     });
@@ -54,28 +58,44 @@ describe("Badge", () => {
 
   describe("variants", () => {
     it("applies default variant classes", () => {
-      render(<Badge variant="default" data-testid="badge">Default</Badge>);
+      render(
+        <Badge variant="default" data-testid="badge">
+          Default
+        </Badge>,
+      );
       const badge = screen.getByTestId("badge");
       expect(badge.className).toContain("bg-primary");
       expect(badge.className).toContain("text-primary-foreground");
     });
 
     it("applies secondary variant classes", () => {
-      render(<Badge variant="secondary" data-testid="badge">Secondary</Badge>);
+      render(
+        <Badge variant="secondary" data-testid="badge">
+          Secondary
+        </Badge>,
+      );
       const badge = screen.getByTestId("badge");
       expect(badge.className).toContain("bg-secondary");
       expect(badge.className).toContain("text-secondary-foreground");
     });
 
     it("applies destructive variant classes", () => {
-      render(<Badge variant="destructive" data-testid="badge">Destructive</Badge>);
+      render(
+        <Badge variant="destructive" data-testid="badge">
+          Destructive
+        </Badge>,
+      );
       const badge = screen.getByTestId("badge");
       expect(badge.className).toContain("bg-destructive");
       expect(badge.className).toContain("text-white");
     });
 
     it("applies outline variant classes", () => {
-      render(<Badge variant="outline" data-testid="badge">Outline</Badge>);
+      render(
+        <Badge variant="outline" data-testid="badge">
+          Outline
+        </Badge>,
+      );
       const badge = screen.getByTestId("badge");
       expect(badge.className).toContain("text-foreground");
     });
@@ -96,7 +116,7 @@ describe("Badge", () => {
       render(
         <Badge asChild>
           <a href="/test">Link Badge</a>
-        </Badge>
+        </Badge>,
       );
       const link = screen.getByRole("link", { name: "Link Badge" });
       expect(link).toBeInTheDocument();
@@ -106,8 +126,10 @@ describe("Badge", () => {
     it("applies badge classes to child when asChild is true", () => {
       render(
         <Badge asChild variant="secondary">
-          <a href="/test" data-testid="badge-link">Link Badge</a>
-        </Badge>
+          <a href="/test" data-testid="badge-link">
+            Link Badge
+          </a>
+        </Badge>,
       );
       const link = screen.getByTestId("badge-link");
       expect(link.className).toContain("bg-secondary");
@@ -117,8 +139,10 @@ describe("Badge", () => {
     it("preserves child element attributes with asChild", () => {
       render(
         <Badge asChild>
-          <button type="submit" data-testid="badge-button">Submit</button>
-        </Badge>
+          <button type="submit" data-testid="badge-button">
+            Submit
+          </button>
+        </Badge>,
       );
       const button = screen.getByTestId("badge-button");
       expect(button.getAttribute("type")).toBe("submit");
@@ -137,7 +161,7 @@ describe("Badge", () => {
             <circle cx="12" cy="12" r="10" />
           </svg>
           With Icon
-        </Badge>
+        </Badge>,
       );
       expect(screen.getByTestId("icon")).toBeInTheDocument();
       expect(screen.getByText("With Icon")).toBeInTheDocument();
@@ -160,7 +184,7 @@ describe("Badge", () => {
       render(
         <Badge asChild>
           <a href="/test">Focusable Badge</a>
-        </Badge>
+        </Badge>,
       );
       const link = screen.getByRole("link");
       expect(link.className).toContain("focus-visible:ring");

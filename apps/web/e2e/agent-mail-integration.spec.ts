@@ -17,17 +17,17 @@
  */
 
 import {
-  test,
+  assertTextContent,
+  createKickoffSession,
+  createSessionWithArtifact,
+  createSessionWithDeltas,
   expect,
   navigateTo,
   takeScreenshot,
-  assertTextContent,
+  test,
   waitForNetworkIdle,
-  createKickoffSession,
-  createSessionWithDeltas,
-  createSessionWithArtifact,
 } from "./utils";
-import { withStep, createE2ELogger } from "./utils/e2e-logging";
+import { type createE2ELogger, withStep } from "./utils/e2e-logging";
 
 declare global {
   interface Window {
@@ -75,12 +75,16 @@ async function preflightAgentMailTestServer(params: {
 
   // Refuse to run if we'd hit the real local Agent Mail default.
   if (pageText?.includes("http://127.0.0.1:8765") || pageText?.includes("http://localhost:8765")) {
-    logger.warn("Refusing to run integration E2E: Agent Mail base URL points at :8765 (real server).");
+    logger.warn(
+      "Refusing to run integration E2E: Agent Mail base URL points at :8765 (real server).",
+    );
     return false;
   }
 
   if (!pageText?.includes(serverUrl)) {
-    logger.warn(`Skipping: web app not configured to use E2E Agent Mail test server (${serverUrl}).`);
+    logger.warn(
+      `Skipping: web app not configured to use E2E Agent Mail test server (${serverUrl}).`,
+    );
     return false;
   }
 
@@ -114,7 +118,7 @@ async function setupLabAuth(context: import("@playwright/test").BrowserContext) 
 async function shouldSkipTest(
   page: import("@playwright/test").Page,
   logger: { info: (msg: string) => void; warn: (msg: string) => void },
-  testName: string
+  testName: string,
 ): Promise<boolean> {
   const pageText = await page.locator("body").textContent();
 
@@ -183,8 +187,7 @@ test.describe("Agent Mail Integration: Seeded Session Display", () => {
       // Verify KICKOFF message is visible
       await withStep(logger, page, "Verify KICKOFF message", async () => {
         const pageText = await page.locator("body").textContent();
-        const hasKickoff =
-          pageText?.includes("KICKOFF") || pageText?.includes("Research Session");
+        const hasKickoff = pageText?.includes("KICKOFF") || pageText?.includes("Research Session");
         expect(hasKickoff).toBeTruthy();
         logger.info("KICKOFF message found in thread");
       });
@@ -332,8 +335,7 @@ test.describe("Agent Mail Integration: Seeded Session Display", () => {
       // Verify hypothesis slate content
       await withStep(logger, page, "Verify hypothesis content", async () => {
         const pageText = await page.locator("body").textContent();
-        const hasHypotheses =
-          pageText?.includes("H1") || pageText?.includes("hypothesis");
+        const hasHypotheses = pageText?.includes("H1") || pageText?.includes("hypothesis");
         logger.info(`Hypothesis content visible: ${hasHypotheses}`);
       });
 
@@ -347,12 +349,7 @@ test.describe("Agent Mail Integration: Seeded Session Display", () => {
 // ============================================================================
 
 test.describe("Agent Mail Integration: Thread Navigation", () => {
-  test("navigates between seeded sessions", async ({
-    page,
-    logger,
-    context,
-    testSession,
-  }) => {
+  test("navigates between seeded sessions", async ({ page, logger, context, testSession }) => {
     if (!(await preflightAgentMailTestServer({ page, logger, context, testSession }))) {
       return;
     }
@@ -484,12 +481,7 @@ test.describe("Agent Mail Integration: Message Details", () => {
 // ============================================================================
 
 test.describe("Agent Mail Integration: Error Handling", () => {
-  test("handles non-existent thread gracefully", async ({
-    page,
-    logger,
-    context,
-    testSession,
-  }) => {
+  test("handles non-existent thread gracefully", async ({ page, logger, context, testSession }) => {
     if (!(await preflightAgentMailTestServer({ page, logger, context, testSession }))) {
       return;
     }
@@ -594,7 +586,8 @@ test.describe("Agent Mail Integration: Real-Time Updates (SSE)", () => {
               if (window.__brennerE2E?.realtime) window.__brennerE2E.realtime.readyCount += 1;
             });
             this.addEventListener("thread_update", () => {
-              if (window.__brennerE2E?.realtime) window.__brennerE2E.realtime.threadUpdateCount += 1;
+              if (window.__brennerE2E?.realtime)
+                window.__brennerE2E.realtime.threadUpdateCount += 1;
             });
           } catch {}
         }
@@ -607,7 +600,12 @@ test.describe("Agent Mail Integration: Real-Time Updates (SSE)", () => {
     await assertTextContent(page, logger, "body", threadId);
 
     await withStep(logger, page, "Wait for /api/realtime to reach ready state", async () => {
-      await page.waitForFunction(() => window.__brennerE2E?.realtime?.readyCount && window.__brennerE2E.realtime.readyCount > 0, null, { timeout: 20000 });
+      await page.waitForFunction(
+        () =>
+          window.__brennerE2E?.realtime?.readyCount && window.__brennerE2E.realtime.readyCount > 0,
+        null,
+        { timeout: 20000 },
+      );
     });
 
     if (await shouldSkipTest(page, logger, "realtime updates")) {
@@ -626,15 +624,20 @@ test.describe("Agent Mail Integration: Real-Time Updates (SSE)", () => {
           sender_name: "HypothesisAgent",
           to: ["TestOperator"],
           subject,
-          body_md: "```delta\n{\"operation\":\"EDIT\",\"section\":\"hypothesis_slate\",\"target_id\":\"H-TEST\",\"payload\":{\"statement\":\"realtime\"}}\n```",
+          body_md:
+            '```delta\n{"operation":"EDIT","section":"hypothesis_slate","target_id":"H-TEST","payload":{"statement":"realtime"}}\n```',
           thread_id: threadId,
         },
       });
     });
 
     await withStep(logger, page, "Verify toast appears for new message", async () => {
-      await expect(page.locator(".toast-title").filter({ hasText: /New\s+DELTA/i })).toBeVisible({ timeout: 20000 });
-      await expect(page.locator(".toast-title").filter({ hasText: /HypothesisAgent/i })).toBeVisible();
+      await expect(page.locator(".toast-title").filter({ hasText: /New\s+DELTA/i })).toBeVisible({
+        timeout: 20000,
+      });
+      await expect(
+        page.locator(".toast-title").filter({ hasText: /HypothesisAgent/i }),
+      ).toBeVisible();
     });
 
     await withStep(logger, page, "Verify session refreshed and message is visible", async () => {
@@ -702,9 +705,11 @@ test.describe("Agent Mail Integration: Full Session Lifecycle", () => {
       await page.locator('input[name="threadId"]').fill(threadId);
       await page.locator('input[name="sender"]').fill(sender);
       await page.locator('input[name="recipients"]').fill("HypothesisAgent,TestDesigner,Critic");
-      await page.locator('textarea[name="excerpt"]').fill(
-        `> §42: E2E excerpt for ${threadId}\n\nA short excerpt is enough for end-to-end wiring tests.`
-      );
+      await page
+        .locator('textarea[name="excerpt"]')
+        .fill(
+          `> §42: E2E excerpt for ${threadId}\n\nA short excerpt is enough for end-to-end wiring tests.`,
+        );
 
       await page.getByRole("button", { name: /send kickoff/i }).click();
       await waitForNetworkIdle(page, logger);
@@ -737,7 +742,9 @@ test.describe("Agent Mail Integration: Full Session Lifecycle", () => {
     testSession.seededSessions.push(threadId);
 
     const deltaConfig = createSessionWithDeltas(threadId);
-    const deltaMessages = (deltaConfig.messages ?? []).filter((m) => m.subject.startsWith("DELTA["));
+    const deltaMessages = (deltaConfig.messages ?? []).filter((m) =>
+      m.subject.startsWith("DELTA["),
+    );
     const serverUrl = testSession.getServerUrl();
 
     await withStep(logger, page, "Send simulated agent DELTA replies", async () => {

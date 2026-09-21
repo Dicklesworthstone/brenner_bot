@@ -25,11 +25,7 @@ import type { HypothesisCard } from "../hypothesis";
  * - object_transpose (Object): Change experimental system
  * - scale_check (Scale): Verify physical/mathematical plausibility
  */
-export type OperatorType =
-  | "level_split"
-  | "exclusion_test"
-  | "object_transpose"
-  | "scale_check";
+export type OperatorType = "level_split" | "exclusion_test" | "object_transpose" | "scale_check";
 
 /**
  * All valid operator types for type guard
@@ -78,34 +74,34 @@ export const OPERATOR_METADATA: Record<OperatorType, OperatorMetadata> = {
   level_split: {
     type: "level_split",
     name: "Level Split",
-    symbol: "\u03A3",  // Σ
+    symbol: "\u03A3", // Σ
     description: "Identify confused levels of explanation (program vs interpreter)",
     color: "blue",
-    icon: "\u{1F50D}",  // Magnifying glass
+    icon: "\u{1F50D}", // Magnifying glass
   },
   exclusion_test: {
     type: "exclusion_test",
     name: "Exclusion Test",
-    symbol: "\u2298",  // ⊘
+    symbol: "\u2298", // ⊘
     description: "Design tests that can rule out hypotheses",
     color: "green",
-    icon: "\u{1F9EA}",  // Test tube
+    icon: "\u{1F9EA}", // Test tube
   },
   object_transpose: {
     type: "object_transpose",
     name: "Object Transpose",
-    symbol: "\u27F3",  // ⟳
+    symbol: "\u27F3", // ⟳
     description: "Change experimental system to reveal invariants",
     color: "purple",
-    icon: "\u{1F504}",  // Cycle
+    icon: "\u{1F504}", // Cycle
   },
   scale_check: {
     type: "scale_check",
     name: "Scale Check",
-    symbol: "\u2299",  // ⊙
+    symbol: "\u2299", // ⊙
     description: "Verify physical and mathematical plausibility",
     color: "orange",
-    icon: "\u{1F4CF}",  // Ruler
+    icon: "\u{1F4CF}", // Ruler
   },
 };
 
@@ -113,10 +109,10 @@ export const OPERATOR_METADATA: Record<OperatorType, OperatorMetadata> = {
  * Status of an operator session
  */
 export type OperatorSessionStatus =
-  | "initializing"  // Setting up
-  | "in_progress"   // User is working through steps
-  | "completed"     // All steps complete, result generated
-  | "abandoned";    // User quit early
+  | "initializing" // Setting up
+  | "in_progress" // User is working through steps
+  | "completed" // All steps complete, result generated
+  | "abandoned"; // User quit early
 
 /**
  * An insight generated during operator application
@@ -342,7 +338,7 @@ export function createSession<TResult = unknown>(
   operatorType: OperatorType,
   inputHypothesis: HypothesisCard,
   stepConfigs: OperatorStepConfig[],
-  startedBy?: string
+  startedBy?: string,
 ): OperatorSession<TResult> {
   return {
     id: generateSessionId(operatorType),
@@ -369,7 +365,7 @@ export function createSession<TResult = unknown>(
  */
 export function sessionReducer<TResult = unknown>(
   session: OperatorSession<TResult>,
-  action: OperatorSessionAction
+  action: OperatorSessionAction,
 ): OperatorSession<TResult> {
   switch (action.type) {
     case "NEXT_STEP": {
@@ -540,7 +536,7 @@ export function sessionReducer<TResult = unknown>(
  * Get the current step state
  */
 export function getCurrentStep<TResult>(
-  session: OperatorSession<TResult>
+  session: OperatorSession<TResult>,
 ): OperatorStepState | undefined {
   return session.steps[session.currentStepIndex];
 }
@@ -549,7 +545,7 @@ export function getCurrentStep<TResult>(
  * Get the current step configuration
  */
 export function getCurrentStepConfig<TResult>(
-  session: OperatorSession<TResult>
+  session: OperatorSession<TResult>,
 ): OperatorStepConfig | undefined {
   return session.steps[session.currentStepIndex]?.config;
 }
@@ -557,9 +553,10 @@ export function getCurrentStepConfig<TResult>(
 /**
  * Check if session can proceed to next step
  */
-export function canProceedToNext<TResult>(
-  session: OperatorSession<TResult>
-): { canProceed: boolean; validation?: StepValidation } {
+export function canProceedToNext<TResult>(session: OperatorSession<TResult>): {
+  canProceed: boolean;
+  validation?: StepValidation;
+} {
   if (session.currentStepIndex >= session.steps.length - 1) {
     return { canProceed: false };
   }
@@ -629,9 +626,7 @@ export function getSessionSummary<TResult>(session: OperatorSession<TResult>): {
   const currentStepConfig = getCurrentStepConfig(session);
 
   const startTime = new Date(session.startedAt).getTime();
-  const endTime = session.completedAt
-    ? new Date(session.completedAt).getTime()
-    : Date.now();
+  const endTime = session.completedAt ? new Date(session.completedAt).getTime() : Date.now();
 
   return {
     operatorName: metadata.name,
@@ -647,18 +642,14 @@ export function getSessionSummary<TResult>(session: OperatorSession<TResult>): {
 /**
  * Serialize session to JSON-safe format
  */
-export function serializeSession<TResult>(
-  session: OperatorSession<TResult>
-): string {
+export function serializeSession<TResult>(session: OperatorSession<TResult>): string {
   return JSON.stringify(session);
 }
 
 /**
  * Deserialize session from JSON
  */
-export function deserializeSession<TResult>(
-  json: string
-): OperatorSession<TResult> | null {
+export function deserializeSession<TResult>(json: string): OperatorSession<TResult> | null {
   try {
     return JSON.parse(json) as OperatorSession<TResult>;
   } catch {

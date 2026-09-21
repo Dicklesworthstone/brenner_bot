@@ -33,4 +33,3 @@ describe("FirstRunOnboarding", () => {
     expect(localStorage.getItem(STORAGE_KEY)).toBe("1");
   });
 });
-

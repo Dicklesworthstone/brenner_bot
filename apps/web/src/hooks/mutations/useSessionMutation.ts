@@ -31,10 +31,10 @@
  * ```
  */
 
-import { useMutation, type UseMutationOptions } from "@tanstack/react-query";
-import type { AgentRole, OperatorSelection } from "@/lib/schemas/session";
-import { enqueueOfflineAction, isOnline } from "@/lib/offline";
+import { type UseMutationOptions, useMutation } from "@tanstack/react-query";
 import { normalizeSystemError, nowMs, trackSystemEvent, trackSystemLatency } from "@/lib/analytics";
+import { enqueueOfflineAction, isOnline } from "@/lib/offline";
+import type { AgentRole, OperatorSelection } from "@/lib/schemas/session";
 
 // ============================================================================
 // Types
@@ -160,7 +160,8 @@ async function createSession(input: SessionKickoffInput): Promise<SessionKickoff
     data = null;
   }
 
-  const success = response.ok && !!(data as SessionKickoffResult | SessionKickoffError | null)?.success;
+  const success =
+    response.ok && !!(data as SessionKickoffResult | SessionKickoffError | null)?.success;
   trackSystemLatency("session_kickoff", nowMs() - start, {
     status_code: response.status,
     success,
@@ -170,7 +171,11 @@ async function createSession(input: SessionKickoffInput): Promise<SessionKickoff
     const payload: SessionKickoffError =
       data && typeof data === "object"
         ? (data as SessionKickoffError)
-        : ({ success: false, error: "Request failed", code: "NETWORK_ERROR" } satisfies SessionKickoffError);
+        : ({
+            success: false,
+            error: "Request failed",
+            code: "NETWORK_ERROR",
+          } satisfies SessionKickoffError);
     trackSystemEvent("session_kickoff_error", {
       status_code: response.status,
       error_code: payload.code,

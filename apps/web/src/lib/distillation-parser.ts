@@ -97,15 +97,17 @@ const DISTILLATION_META: Record<string, DistillationMeta> = {
  * Get rich metadata for a distillation by ID
  */
 export function getDistillationMeta(id: string): DistillationMeta {
-  return DISTILLATION_META[id] ?? {
-    name: "AI Model",
-    color: "from-gray-500 to-gray-600",
-    icon: "?",
-    tagline: "Model distillation",
-    approach: "Synthesis of Brenner's methodology",
-    strengths: ["Systematic analysis of the transcript"],
-    date: "2025",
-  };
+  return (
+    DISTILLATION_META[id] ?? {
+      name: "AI Model",
+      color: "from-gray-500 to-gray-600",
+      icon: "?",
+      tagline: "Model distillation",
+      approach: "Synthesis of Brenner's methodology",
+      strengths: ["Systematic analysis of the transcript"],
+      date: "2025",
+    }
+  );
 }
 
 /**
@@ -295,8 +297,16 @@ export function parseDistillation(markdown: string, docId: string): ParsedDistil
   } else {
     // Parse each PART
     const romanToNumber: Record<string, number> = {
-      I: 1, II: 2, III: 3, IV: 4, V: 5,
-      VI: 6, VII: 7, VIII: 8, IX: 9, X: 10,
+      I: 1,
+      II: 2,
+      III: 3,
+      IV: 4,
+      V: 5,
+      VI: 6,
+      VII: 7,
+      VIII: 8,
+      IX: 9,
+      X: 10,
     };
 
     for (let i = 0; i < partMatches.length; i++) {
@@ -341,7 +351,7 @@ export function parseDistillation(markdown: string, docId: string): ParsedDistil
   // Only use narrative preambles - skip technical metadata with lists/code
   let preamble: string | undefined;
   const preambleMatch = markdown.match(
-    /^#\s+.+\n+(?:\*[^*]+\*\n+)?(?:---\n+)?([\s\S]+?)(?=^#\s+PART|^##\s+)/m
+    /^#\s+.+\n+(?:\*[^*]+\*\n+)?(?:---\n+)?([\s\S]+?)(?=^#\s+PART|^##\s+)/m,
   );
   if (preambleMatch) {
     const rawPreamble = preambleMatch[1].trim();
@@ -351,13 +361,13 @@ export function parseDistillation(markdown: string, docId: string): ParsedDistil
     const hasFileRefs = /\.(md|ts|json|js)\b/.test(rawPreamble);
     if (!hasBullets && !hasCode && !hasFileRefs) {
       preamble = rawPreamble
-        .replace(/^>\s*/gm, "")           // Strip blockquote markers
-        .replace(/^##\s+.+$/gm, "")       // Strip section headers
-        .replace(/^---+$/gm, "")          // Strip horizontal rules
+        .replace(/^>\s*/gm, "") // Strip blockquote markers
+        .replace(/^##\s+.+$/gm, "") // Strip section headers
+        .replace(/^---+$/gm, "") // Strip horizontal rules
         .replace(/\*\*([^*]+)\*\*/g, "$1") // Strip bold markers
-        .replace(/\*([^*]+)\*/g, "$1")    // Strip italic markers
-        .replace(/\n+/g, " ")             // Join lines
-        .replace(/\s+/g, " ")             // Normalize whitespace
+        .replace(/\*([^*]+)\*/g, "$1") // Strip italic markers
+        .replace(/\n+/g, " ") // Join lines
+        .replace(/\s+/g, " ") // Normalize whitespace
         .trim();
       // Clear preamble if it ended up empty after stripping
       if (!preamble) preamble = undefined;

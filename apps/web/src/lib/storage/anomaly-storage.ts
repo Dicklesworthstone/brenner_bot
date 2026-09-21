@@ -1,10 +1,6 @@
 import { promises as fs } from "fs";
 import { join } from "path";
-import {
-  type Anomaly,
-  type QuarantineStatus,
-  AnomalySchema,
-} from "../schemas/anomaly";
+import { type Anomaly, AnomalySchema, type QuarantineStatus } from "../schemas/anomaly";
 import { withFileLock } from "./file-lock";
 
 /**
@@ -159,7 +155,9 @@ export class AnomalyStorage {
       }
 
       if (!Array.isArray(data.anomalies)) {
-        console.warn(`[AnomalyStorage] Malformed session file ${filePath}; returning empty anomalies.`);
+        console.warn(
+          `[AnomalyStorage] Malformed session file ${filePath}; returning empty anomalies.`,
+        );
         return [];
       }
 
@@ -190,7 +188,10 @@ export class AnomalyStorage {
     });
   }
 
-  private async saveSessionAnomaliesUnlocked(sessionId: string, anomalies: Anomaly[]): Promise<void> {
+  private async saveSessionAnomaliesUnlocked(
+    sessionId: string,
+    anomalies: Anomaly[],
+  ): Promise<void> {
     await ensureStorageStructure(this.baseDir);
 
     const filePath = getSessionFilePath(this.baseDir, sessionId);
@@ -220,7 +221,10 @@ export class AnomalyStorage {
     }
   }
 
-  private async updateIndexForSessionUnlocked(sessionId: string, anomalies: Anomaly[]): Promise<void> {
+  private async updateIndexForSessionUnlocked(
+    sessionId: string,
+    anomalies: Anomaly[],
+  ): Promise<void> {
     const indexPath = getIndexPath(this.baseDir);
     let index: AnomalyIndex;
 
@@ -367,7 +371,10 @@ export class AnomalyStorage {
         }
 
         if (!Array.isArray(data.anomalies)) {
-          warnings.push({ file: filePath, message: "Skipping malformed session file (missing anomalies[])." });
+          warnings.push({
+            file: filePath,
+            message: "Skipping malformed session file (missing anomalies[]).",
+          });
           continue;
         }
 
@@ -463,20 +470,14 @@ export class AnomalyStorage {
    */
   async getAnomaliesForHypothesis(hypothesisId: string): Promise<Anomaly[]> {
     const index = await this.loadIndex();
-    const matching = index.entries.filter((e) =>
-      e.conflictsWithHypotheses.includes(hypothesisId)
-    );
+    const matching = index.entries.filter((e) => e.conflictsWithHypotheses.includes(hypothesisId));
 
     const results: Anomaly[] = [];
     const sessionIds = [...new Set(matching.map((e) => e.sessionId))];
 
     for (const sessionId of sessionIds) {
       const anomalies = await this.loadSessionAnomalies(sessionId);
-      results.push(
-        ...anomalies.filter((a) =>
-          a.conflictsWith.hypotheses.includes(hypothesisId)
-        )
-      );
+      results.push(...anomalies.filter((a) => a.conflictsWith.hypotheses.includes(hypothesisId)));
     }
 
     return results;
@@ -487,20 +488,14 @@ export class AnomalyStorage {
    */
   async getAnomaliesForAssumption(assumptionId: string): Promise<Anomaly[]> {
     const index = await this.loadIndex();
-    const matching = index.entries.filter((e) =>
-      e.conflictsWithAssumptions.includes(assumptionId)
-    );
+    const matching = index.entries.filter((e) => e.conflictsWithAssumptions.includes(assumptionId));
 
     const results: Anomaly[] = [];
     const sessionIds = [...new Set(matching.map((e) => e.sessionId))];
 
     for (const sessionId of sessionIds) {
       const anomalies = await this.loadSessionAnomalies(sessionId);
-      results.push(
-        ...anomalies.filter((a) =>
-          a.conflictsWith.assumptions.includes(assumptionId)
-        )
-      );
+      results.push(...anomalies.filter((a) => a.conflictsWith.assumptions.includes(assumptionId)));
     }
 
     return results;
@@ -519,9 +514,7 @@ export class AnomalyStorage {
     for (const sessionId of sessionIds) {
       const anomalies = await this.loadSessionAnomalies(sessionId);
       results.push(
-        ...anomalies.filter(
-          (a) => a.spawnedHypotheses && a.spawnedHypotheses.length > 0
-        )
+        ...anomalies.filter((a) => a.spawnedHypotheses && a.spawnedHypotheses.length > 0),
       );
     }
 
@@ -533,9 +526,7 @@ export class AnomalyStorage {
    */
   async getAnomalyThatSpawned(hypothesisId: string): Promise<Anomaly | null> {
     const index = await this.loadIndex();
-    const matching = index.entries.filter((e) =>
-      e.spawnedHypotheses.includes(hypothesisId)
-    );
+    const matching = index.entries.filter((e) => e.spawnedHypotheses.includes(hypothesisId));
 
     if (matching.length === 0) {
       return null;
@@ -588,7 +579,7 @@ export class AnomalyStorage {
 
     const sessionsWithAnomalies = new Set(index.entries.map((e) => e.sessionId)).size;
     const withSpawnedHypotheses = index.entries.filter(
-      (e) => e.spawnedHypotheses.length > 0
+      (e) => e.spawnedHypotheses.length > 0,
     ).length;
 
     return {

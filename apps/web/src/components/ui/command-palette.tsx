@@ -1,50 +1,78 @@
 "use client";
 
-import * as React from "react";
 import { useRouter } from "next/navigation";
-import { cn } from "@/lib/utils";
+import * as React from "react";
 import { toggleThemePreference } from "@/lib/theme";
+import { cn } from "@/lib/utils";
 
 // Icons
 const SearchIcon = () => (
   <svg className="size-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"
+    />
   </svg>
 );
 
 const HomeIcon = () => (
   <svg className="size-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25"
+    />
   </svg>
 );
 
 const BookIcon = () => (
   <svg className="size-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" />
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25"
+    />
   </svg>
 );
 
 const SparklesIcon = () => (
   <svg className="size-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" />
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z"
+    />
   </svg>
 );
 
 const BeakerIcon = () => (
   <svg className="size-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M9.75 3.104v5.714a2.25 2.25 0 01-.659 1.591L5 14.5M9.75 3.104c-.251.023-.501.05-.75.082m.75-.082a24.301 24.301 0 014.5 0m0 0v5.714c0 .597.237 1.17.659 1.591L19.8 15.3M14.25 3.104c.251.023.501.05.75.082M19.8 15.3l-1.57.393A9.065 9.065 0 0112 15a9.065 9.065 0 00-6.23.693L5 14.5m14.8.8l1.402 5.07a1.125 1.125 0 01-1.135 1.416H3.933a1.125 1.125 0 01-1.135-1.416L5 14.5" />
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M9.75 3.104v5.714a2.25 2.25 0 01-.659 1.591L5 14.5M9.75 3.104c-.251.023-.501.05-.75.082m.75-.082a24.301 24.301 0 014.5 0m0 0v5.714c0 .597.237 1.17.659 1.591L19.8 15.3M14.25 3.104c.251.023.501.05.75.082M19.8 15.3l-1.57.393A9.065 9.065 0 0112 15a9.065 9.065 0 00-6.23.693L5 14.5m14.8.8l1.402 5.07a1.125 1.125 0 01-1.135 1.416H3.933a1.125 1.125 0 01-1.135-1.416L5 14.5"
+    />
   </svg>
 );
 
 const DocumentIcon = () => (
   <svg className="size-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"
+    />
   </svg>
 );
 
 const MoonIcon = () => (
   <svg className="size-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M21.752 15.002A9.718 9.718 0 0118 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 003 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 009.002-5.998z" />
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M21.752 15.002A9.718 9.718 0 0118 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 003 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 009.002-5.998z"
+    />
   </svg>
 );
 
@@ -156,7 +184,7 @@ export function CommandPalette() {
         section: "Actions",
       },
     ],
-    [router, toggleTheme]
+    [router, toggleTheme],
   );
 
   const filteredCommands = React.useMemo(() => {
@@ -166,7 +194,7 @@ export function CommandPalette() {
       (cmd) =>
         cmd.title.toLowerCase().includes(lowerQuery) ||
         cmd.subtitle?.toLowerCase().includes(lowerQuery) ||
-        cmd.section.toLowerCase().includes(lowerQuery)
+        cmd.section.toLowerCase().includes(lowerQuery),
     );
   }, [commands, query]);
 
@@ -183,10 +211,7 @@ export function CommandPalette() {
   }, [filteredCommands]);
 
   // Flatten for keyboard navigation
-  const flatCommands = React.useMemo(
-    () => filteredCommands,
-    [filteredCommands]
-  );
+  const flatCommands = React.useMemo(() => filteredCommands, [filteredCommands]);
 
   // Keyboard shortcuts
   React.useEffect(() => {
@@ -213,18 +238,14 @@ export function CommandPalette() {
       if (e.key === "ArrowDown") {
         e.preventDefault();
         if (flatCommands.length === 0) return;
-        setSelectedIndex((prev) =>
-          prev < flatCommands.length - 1 ? prev + 1 : 0
-        );
+        setSelectedIndex((prev) => (prev < flatCommands.length - 1 ? prev + 1 : 0));
         return;
       }
 
       if (e.key === "ArrowUp") {
         e.preventDefault();
         if (flatCommands.length === 0) return;
-        setSelectedIndex((prev) =>
-          prev > 0 ? prev - 1 : flatCommands.length - 1
-        );
+        setSelectedIndex((prev) => (prev > 0 ? prev - 1 : flatCommands.length - 1));
         return;
       }
 
@@ -304,7 +325,7 @@ export function CommandPalette() {
                     className={cn(
                       "command-palette-item w-full text-left touch-manipulation active:scale-[0.98] transition-transform",
                       "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset",
-                      isSelected && "bg-muted"
+                      isSelected && "bg-muted",
                     )}
                     onClick={() => {
                       item.action();
@@ -378,9 +399,7 @@ export function CommandPaletteHint() {
     <button
       className="hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-lg border border-border bg-muted/50 text-sm text-muted-foreground hover:text-foreground hover:bg-muted active:scale-[0.98] transition-all touch-manipulation focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       onClick={() => {
-        window.dispatchEvent(
-          new KeyboardEvent("keydown", { key: "/", metaKey: true })
-        );
+        window.dispatchEvent(new KeyboardEvent("keydown", { key: "/", metaKey: true }));
       }}
     >
       <SearchIcon />

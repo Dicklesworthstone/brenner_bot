@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 /**
  * Debounce a value with configurable delay.
@@ -14,9 +14,12 @@ export function useDebounce<T>(value: T, delay: number): [T, boolean] {
       clearTimeout(timeoutRef.current);
     }
 
-    timeoutRef.current = setTimeout(() => {
-      setDebouncedValue(value);
-    }, isImmediate ? 0 : delay);
+    timeoutRef.current = setTimeout(
+      () => {
+        setDebouncedValue(value);
+      },
+      isImmediate ? 0 : delay,
+    );
 
     return () => {
       if (timeoutRef.current) {
@@ -38,7 +41,7 @@ export function useDebounce<T>(value: T, delay: number): [T, boolean] {
  */
 export function useDebouncedCallback<T extends (...args: unknown[]) => unknown>(
   callback: T,
-  delay: number
+  delay: number,
 ): [T, () => void] {
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const callbackRef = useRef(callback);
@@ -62,7 +65,7 @@ export function useDebouncedCallback<T extends (...args: unknown[]) => unknown>(
         callbackRef.current(...args);
       }, delay);
     },
-    [delay, cancel]
+    [delay, cancel],
   ) as T;
 
   // Cleanup on unmount

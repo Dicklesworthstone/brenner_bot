@@ -176,7 +176,7 @@ function finalizeSection(
   partial: Partial<Section>,
   body: string,
   lineEnd: number,
-  charEnd: number
+  charEnd: number,
 ): Section {
   const sectionNumber = partial.sectionNumber;
   const title = partial.title;

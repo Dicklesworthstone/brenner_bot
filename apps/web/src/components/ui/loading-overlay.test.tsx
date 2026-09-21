@@ -22,7 +22,7 @@ describe("LoadingOverlay", () => {
         message="Analyzing"
         detail="This may take a minute"
         progress={0.25}
-      />
+      />,
     );
 
     expect(screen.getByText("Analyzing")).toBeInTheDocument();
@@ -34,14 +34,7 @@ describe("LoadingOverlay", () => {
     const onCancel = vi.fn();
     const user = userEvent.setup();
 
-    render(
-      <LoadingOverlay
-        visible
-        message="Working"
-        cancellable
-        onCancel={onCancel}
-      />
-    );
+    render(<LoadingOverlay visible message="Working" cancellable onCancel={onCancel} />);
 
     await user.click(screen.getByRole("button", { name: "Cancel" }));
     expect(onCancel).toHaveBeenCalledTimes(1);

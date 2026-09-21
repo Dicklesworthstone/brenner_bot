@@ -5,12 +5,12 @@
  * Run with: bun scripts/search-benchmark.ts
  */
 
+import FlexSearch from "flexsearch";
 import { readFileSync } from "fs";
+import Fuse from "fuse.js";
+import MiniSearch from "minisearch";
 import { dirname, join } from "path";
 import { fileURLToPath } from "url";
-import FlexSearch from "flexsearch";
-import MiniSearch from "minisearch";
-import Fuse from "fuse.js";
 
 // ============================================================================
 // Load Corpus
@@ -249,9 +249,27 @@ async function main() {
   console.log("=".repeat(60));
   console.log("\n| Library     | Build Time | Avg Search | Max Search |");
   console.log("|-------------|------------|------------|------------|");
-  console.log(`| FlexSearch  | ${flexResults.buildTime.toFixed(0).padStart(7)}ms | ${flexResults.avgSearchTime.toFixed(2).padStart(7)}ms | ${Math.max(...testQueries.map((_, i) => flexResults.results[i]?.count || 0)).toString().padStart(10)} |`);
-  console.log(`| MiniSearch  | ${miniResults.buildTime.toFixed(0).padStart(7)}ms | ${miniResults.avgSearchTime.toFixed(2).padStart(7)}ms | ${Math.max(...testQueries.map((_, i) => miniResults.results[i]?.count || 0)).toString().padStart(10)} |`);
-  console.log(`| Fuse.js     | ${fuseResults.buildTime.toFixed(0).padStart(7)}ms | ${fuseResults.avgSearchTime.toFixed(2).padStart(7)}ms | ${Math.max(...testQueries.map((_, i) => fuseResults.results[i]?.count || 0)).toString().padStart(10)} |`);
+  console.log(
+    `| FlexSearch  | ${flexResults.buildTime.toFixed(0).padStart(7)}ms | ${flexResults.avgSearchTime.toFixed(2).padStart(7)}ms | ${Math.max(
+      ...testQueries.map((_, i) => flexResults.results[i]?.count || 0),
+    )
+      .toString()
+      .padStart(10)} |`,
+  );
+  console.log(
+    `| MiniSearch  | ${miniResults.buildTime.toFixed(0).padStart(7)}ms | ${miniResults.avgSearchTime.toFixed(2).padStart(7)}ms | ${Math.max(
+      ...testQueries.map((_, i) => miniResults.results[i]?.count || 0),
+    )
+      .toString()
+      .padStart(10)} |`,
+  );
+  console.log(
+    `| Fuse.js     | ${fuseResults.buildTime.toFixed(0).padStart(7)}ms | ${fuseResults.avgSearchTime.toFixed(2).padStart(7)}ms | ${Math.max(
+      ...testQueries.map((_, i) => fuseResults.results[i]?.count || 0),
+    )
+      .toString()
+      .padStart(10)} |`,
+  );
 
   // Result counts per query
   console.log("\n| Query               | FlexSearch | MiniSearch | Fuse.js |");
@@ -269,7 +287,10 @@ async function main() {
   console.log("RECOMMENDATION");
   console.log("=".repeat(60));
 
-  if (miniResults.avgSearchTime < flexResults.avgSearchTime && miniResults.avgSearchTime < fuseResults.avgSearchTime) {
+  if (
+    miniResults.avgSearchTime < flexResults.avgSearchTime &&
+    miniResults.avgSearchTime < fuseResults.avgSearchTime
+  ) {
     console.log("\nMiniSearch is recommended based on:");
     console.log("- Fastest average search time");
     console.log("- Smallest bundle size (~7KB gzipped)");

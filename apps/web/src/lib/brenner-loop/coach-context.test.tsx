@@ -7,18 +7,18 @@
  * @vitest-environment happy-dom
  */
 
-import { describe, expect, it, beforeEach, vi } from "vitest";
-import { renderHook, act } from "@testing-library/react";
-import React from "react";
+import { act, renderHook } from "@testing-library/react";
+import type React from "react";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
+  type CoachLevel,
   CoachProvider,
+  LEVEL_THRESHOLDS,
+  PHASE_COACHING,
   useCoach,
   useCoachActive,
-  usePhaseCoaching,
   useCoachProgress,
-  PHASE_COACHING,
-  LEVEL_THRESHOLDS,
-  type CoachLevel,
+  usePhaseCoaching,
 } from "./coach-context";
 
 // Mock localStorage

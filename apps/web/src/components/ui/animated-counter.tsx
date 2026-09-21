@@ -36,7 +36,7 @@ export function AnimatedCounter({
           setHasStarted(true);
         }
       },
-      { threshold: 0.1 }
+      { threshold: 0.1 },
     );
 
     observer.observe(element);
@@ -51,7 +51,7 @@ export function AnimatedCounter({
     let animationFrame: number;
 
     const easeOutExpo = (t: number): number => {
-      return t === 1 ? 1 : 1 - Math.pow(2, -10 * t);
+      return t === 1 ? 1 : 1 - 2 ** (-10 * t);
     };
 
     const animate = (currentTime: number) => {

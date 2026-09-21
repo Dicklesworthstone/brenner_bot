@@ -17,7 +17,7 @@
  *   }
  */
 
-import { NextRequest, NextResponse } from 'next/server';
+import { type NextRequest, NextResponse } from "next/server";
 
 // =============================================================================
 // Configuration
@@ -25,7 +25,7 @@ import { NextRequest, NextResponse } from 'next/server';
 
 // Sanitize and validate GA Measurement ID
 function sanitizeGaMeasurementId(value: unknown): string | undefined {
-  if (typeof value !== 'string') return undefined;
+  if (typeof value !== "string") return undefined;
   let cleaned = value.trim();
   if (!cleaned) return undefined;
 
@@ -38,7 +38,7 @@ function sanitizeGaMeasurementId(value: unknown): string | undefined {
   }
 
   // Remove escaped newlines
-  cleaned = cleaned.replace(/\\n$/, '').replace(/\s+$/, '');
+  cleaned = cleaned.replace(/\\n$/, "").replace(/\s+$/, "");
 
   const ga4Match = cleaned.match(/^(G-[A-Z0-9]+)/i);
   if (ga4Match) return ga4Match[1];
@@ -48,7 +48,7 @@ function sanitizeGaMeasurementId(value: unknown): string | undefined {
 
 // Sanitize API secret
 function sanitizeApiSecret(value: unknown): string | undefined {
-  if (typeof value !== 'string') return undefined;
+  if (typeof value !== "string") return undefined;
   let cleaned = value.trim();
   if (!cleaned) return undefined;
 
@@ -61,7 +61,7 @@ function sanitizeApiSecret(value: unknown): string | undefined {
   }
 
   // Remove escaped newlines
-  cleaned = cleaned.replace(/\\n$/, '').replace(/\s+$/, '');
+  cleaned = cleaned.replace(/\\n$/, "").replace(/\s+$/, "");
 
   return cleaned || undefined;
 }
@@ -144,17 +144,15 @@ function isValidClientId(clientId: string): boolean {
 function isValidParamKey(key: string): boolean {
   if (!key || key.length > 40) return false;
   // Prevent prototype pollution
-  if (['__proto__', 'constructor', 'prototype'].includes(key)) return false;
+  if (["__proto__", "constructor", "prototype"].includes(key)) return false;
   return /^[a-zA-Z][a-zA-Z0-9_]*$/.test(key);
 }
 
 function isPlainObject(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null && !Array.isArray(value);
+  return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
-function sanitizeEventParams(
-  params: unknown
-): Record<string, string | number | boolean> {
+function sanitizeEventParams(params: unknown): Record<string, string | number | boolean> {
   if (!isPlainObject(params)) return {};
 
   const sanitized: Record<string, string | number | boolean> = {};
@@ -164,13 +162,13 @@ function sanitizeEventParams(
     if (count >= MAX_PARAM_KEYS_PER_EVENT) break;
     if (!isValidParamKey(key)) continue;
 
-    if (typeof value === 'string') {
+    if (typeof value === "string") {
       sanitized[key] = value.slice(0, MAX_PARAM_STRING_LENGTH);
       count++;
-    } else if (typeof value === 'number' && Number.isFinite(value)) {
+    } else if (typeof value === "number" && Number.isFinite(value)) {
       sanitized[key] = value;
       count++;
-    } else if (typeof value === 'boolean') {
+    } else if (typeof value === "boolean") {
       sanitized[key] = value;
       count++;
     }
@@ -180,7 +178,7 @@ function sanitizeEventParams(
 }
 
 function sanitizeUserProperties(
-  props: unknown
+  props: unknown,
 ): Record<string, { value: string | number | boolean }> | null {
   if (!isPlainObject(props)) return null;
 
@@ -191,13 +189,13 @@ function sanitizeUserProperties(
     if (count >= 25) break;
     if (!isValidParamKey(key)) continue;
 
-    if (typeof value === 'string') {
+    if (typeof value === "string") {
       sanitized[key] = { value: value.slice(0, MAX_PARAM_STRING_LENGTH) };
       count++;
-    } else if (typeof value === 'number' && Number.isFinite(value)) {
+    } else if (typeof value === "number" && Number.isFinite(value)) {
       sanitized[key] = { value };
       count++;
-    } else if (typeof value === 'boolean') {
+    } else if (typeof value === "boolean") {
       sanitized[key] = { value };
       count++;
     }
@@ -213,57 +211,42 @@ function sanitizeUserProperties(
 export async function POST(request: NextRequest) {
   // Check if GA is configured
   if (!GA_MEASUREMENT_ID || !GA_API_SECRET) {
-    return NextResponse.json(
-      { error: 'Analytics not configured' },
-      { status: 503 }
-    );
+    return NextResponse.json({ error: "Analytics not configured" }, { status: 503 });
   }
 
   // Rate limiting
   // SECURITY: Use X-Real-IP header which is set by Vercel edge (not spoofable by clients).
   // Avoid X-Forwarded-For as clients can prepend arbitrary values to it.
-  const ip = request.headers.get('x-real-ip') || 'unknown';
+  const ip = request.headers.get("x-real-ip") || "unknown";
 
   if (isRateLimited(ip)) {
-    return NextResponse.json(
-      { error: 'Rate limit exceeded' },
-      { status: 429 }
-    );
+    return NextResponse.json({ error: "Rate limit exceeded" }, { status: 429 });
   }
 
   // Check content length
-  const contentLength = parseInt(request.headers.get('content-length') || '0', 10);
+  const contentLength = parseInt(request.headers.get("content-length") || "0", 10);
   if (contentLength > MAX_PAYLOAD_SIZE) {
-    return NextResponse.json(
-      { error: 'Payload too large' },
-      { status: 413 }
-    );
+    return NextResponse.json({ error: "Payload too large" }, { status: 413 });
   }
 
   try {
     const body = await request.json();
 
     // Validate client_id
-    const clientId = typeof body.client_id === 'string' ? body.client_id : '';
+    const clientId = typeof body.client_id === "string" ? body.client_id : "";
     if (!isValidClientId(clientId)) {
-      return NextResponse.json(
-        { error: 'Invalid client_id' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Invalid client_id" }, { status: 400 });
     }
 
     // Validate events
     if (!Array.isArray(body.events) || body.events.length === 0) {
-      return NextResponse.json(
-        { error: 'Events array required' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Events array required" }, { status: 400 });
     }
 
     if (body.events.length > MAX_EVENTS_PER_REQUEST) {
       return NextResponse.json(
         { error: `Max ${MAX_EVENTS_PER_REQUEST} events per request` },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -273,7 +256,7 @@ export async function POST(request: NextRequest) {
     for (const event of body.events) {
       if (!isPlainObject(event)) continue;
 
-      const eventName = typeof event.name === 'string' ? event.name : '';
+      const eventName = typeof event.name === "string" ? event.name : "";
       if (!isValidEventName(eventName)) continue;
 
       const sanitizedParams = sanitizeEventParams(event.params);
@@ -285,10 +268,7 @@ export async function POST(request: NextRequest) {
     }
 
     if (sanitizedEvents.length === 0) {
-      return NextResponse.json(
-        { error: 'No valid events' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "No valid events" }, { status: 400 });
     }
 
     // Sanitize user properties if provided
@@ -296,9 +276,7 @@ export async function POST(request: NextRequest) {
 
     // Optional user_id
     const userId =
-      typeof body.user_id === 'string' && body.user_id.length <= 100
-        ? body.user_id
-        : undefined;
+      typeof body.user_id === "string" && body.user_id.length <= 100 ? body.user_id : undefined;
 
     // Generate session ID
     const sessionId = `server_${Date.now()}`;
@@ -326,21 +304,18 @@ export async function POST(request: NextRequest) {
       const response = await fetch(
         `https://www.google-analytics.com/mp/collect?measurement_id=${GA_MEASUREMENT_ID}&api_secret=${GA_API_SECRET}`,
         {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),
           signal: controller.signal,
-        }
+        },
       );
 
       clearTimeout(timeout);
 
       if (!response.ok) {
         console.error(`GA4 MP error: ${response.status}`);
-        return NextResponse.json(
-          { error: 'Analytics service error' },
-          { status: 502 }
-        );
+        return NextResponse.json({ error: "Analytics service error" }, { status: 502 });
       }
 
       return NextResponse.json({
@@ -349,17 +324,11 @@ export async function POST(request: NextRequest) {
       });
     } catch (fetchError) {
       clearTimeout(timeout);
-      console.error('GA4 MP fetch error:', fetchError);
-      return NextResponse.json(
-        { error: 'Analytics service unavailable' },
-        { status: 502 }
-      );
+      console.error("GA4 MP fetch error:", fetchError);
+      return NextResponse.json({ error: "Analytics service unavailable" }, { status: 502 });
     }
   } catch {
-    return NextResponse.json(
-      { error: 'Invalid JSON payload' },
-      { status: 400 }
-    );
+    return NextResponse.json({ error: "Invalid JSON payload" }, { status: 400 });
   }
 }
 
@@ -368,9 +337,9 @@ export async function OPTIONS() {
   return new NextResponse(null, {
     status: 204,
     headers: {
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'POST, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type',
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Methods": "POST, OPTIONS",
+      "Access-Control-Allow-Headers": "Content-Type",
     },
   });
 }

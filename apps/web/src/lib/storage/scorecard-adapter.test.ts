@@ -1,17 +1,17 @@
-import { describe, expect, it } from "vitest";
 import { resolve } from "node:path";
-import type { Assumption } from "../schemas/assumption";
+import { describe, expect, it } from "vitest";
 import type { Anomaly } from "../schemas/anomaly";
+import type { Assumption } from "../schemas/assumption";
 import type { Critique } from "../schemas/critique";
 import type { Hypothesis } from "../schemas/hypothesis";
 import type { TestRecord } from "../schemas/test-record";
 import {
-  ScorecardAdapter,
-  assumptionToArtifactItem,
   anomalyToArtifactItem,
+  assumptionToArtifactItem,
   critiqueToArtifactItem,
   extractHypothesisTransitions,
   hypothesisToArtifactItem,
+  ScorecardAdapter,
   testToArtifactItem,
 } from "./scorecard-adapter";
 
@@ -22,7 +22,11 @@ describe("scorecard-adapter", () => {
       statement: "A very important assumption statement.",
       type: "scale_physics",
       status: "verified",
-      load: { affectedHypotheses: ["H-RS20251230-001"], affectedTests: ["T1"], description: "load" },
+      load: {
+        affectedHypotheses: ["H-RS20251230-001"],
+        affectedTests: ["T1"],
+        description: "load",
+      },
       testMethod: "measure it",
       calculation: { result: "1e3", implication: "ok" },
     } as unknown as Assumption;
@@ -163,7 +167,11 @@ describe("scorecard-adapter", () => {
     const testBlocked = { ...testDesigned, id: "T-3", status: "blocked" } as unknown as TestRecord;
     expect(testToArtifactItem(testBlocked).status).toBe("blocked");
 
-    const testAbandoned = { ...testDesigned, id: "T-4", status: "abandoned" } as unknown as TestRecord;
+    const testAbandoned = {
+      ...testDesigned,
+      id: "T-4",
+      status: "abandoned",
+    } as unknown as TestRecord;
     expect(testToArtifactItem(testAbandoned).status).toBe("error");
 
     const testUnknown = { ...testDesigned, id: "T-5", status: "weird" } as unknown as TestRecord;
@@ -179,12 +187,19 @@ describe("scorecard-adapter", () => {
 
     const transitions = extractHypothesisTransitions(hypotheses);
     expect(transitions.some((t) => t.hypothesisId === "H1" && t.toState === "refuted")).toBe(true);
-    expect(transitions.some((t) => t.hypothesisId === "H2" && t.toState === "superseded")).toBe(true);
+    expect(transitions.some((t) => t.hypothesisId === "H2" && t.toState === "superseded")).toBe(
+      true,
+    );
   });
 
   it("extractHypothesisTransitions handles refuted hypotheses without test IDs", () => {
     const hypotheses = [
-      { id: "H1", state: "refuted", notes: "Refuted by observation", updatedAt: "2025-01-01T00:00:00Z" },
+      {
+        id: "H1",
+        state: "refuted",
+        notes: "Refuted by observation",
+        updatedAt: "2025-01-01T00:00:00Z",
+      },
     ] as unknown as Hypothesis[];
     const transitions = extractHypothesisTransitions(hypotheses);
     expect(transitions[0]?.triggeredBy).toBeUndefined();
@@ -200,7 +215,7 @@ describe("scorecard-adapter", () => {
       [],
       [],
       [],
-      "RQ"
+      "RQ",
     );
 
     expect(sessionData.sessionId).toBe("RS-TEST");
@@ -224,7 +239,9 @@ describe("scorecard-adapter", () => {
     const hypoStore = {
       loadSessionHypotheses: async (sessionId: string) =>
         sessionId === "S1"
-          ? ([{ id: "H1", statement: "H1", updatedAt: "2025-01-01T00:00:00Z" }] as unknown as Hypothesis[])
+          ? ([
+              { id: "H1", statement: "H1", updatedAt: "2025-01-01T00:00:00Z" },
+            ] as unknown as Hypothesis[])
           : ([
               { id: "H2", statement: "H2", updatedAt: "2025-01-01T00:00:00Z" },
               { id: "H3", statement: "H3", updatedAt: "2025-01-01T00:00:00Z" },

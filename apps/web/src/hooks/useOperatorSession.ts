@@ -11,31 +11,31 @@
 
 "use client";
 
-import { useReducer, useCallback, useMemo, useEffect, useRef } from "react";
-import type { HypothesisCard } from "@/lib/brenner-loop/hypothesis";
+import { useCallback, useEffect, useMemo, useReducer, useRef } from "react";
 import { trackSystemEvent } from "@/lib/analytics";
+import type { HypothesisCard } from "@/lib/brenner-loop/hypothesis";
 import type {
-  OperatorType,
+  OperatorInsight,
+  OperatorMetadata,
   OperatorSession,
   OperatorStepConfig,
   OperatorStepState,
-  OperatorInsight,
+  OperatorType,
   StepValidation,
-  OperatorMetadata,
 } from "@/lib/brenner-loop/operators/framework";
 import {
-  OPERATOR_METADATA,
+  canGoBack,
+  canProceedToNext,
+  canSkipCurrent,
   createSession,
-  sessionReducer,
+  deserializeSession,
   getCurrentStep,
   getCurrentStepConfig,
-  canProceedToNext,
-  canGoBack,
-  canSkipCurrent,
   getProgress,
   getSessionSummary,
+  OPERATOR_METADATA,
   serializeSession,
-  deserializeSession,
+  sessionReducer,
 } from "@/lib/brenner-loop/operators/framework";
 
 // ============================================================================
@@ -128,7 +128,7 @@ export interface UseOperatorSessionResult<TResult = unknown> {
  * Hook for managing operator session state
  */
 export function useOperatorSession<TResult = unknown>(
-  config: UseOperatorSessionConfig<TResult>
+  config: UseOperatorSessionConfig<TResult>,
 ): UseOperatorSessionResult<TResult> {
   const {
     operatorType,
@@ -164,7 +164,7 @@ export function useOperatorSession<TResult = unknown>(
   const [session, dispatch] = useReducer(
     sessionReducer as typeof sessionReducer<TResult>,
     undefined,
-    getInitialSession
+    getInitialSession,
   );
 
   // Track if session just started
@@ -206,10 +206,7 @@ export function useOperatorSession<TResult = unknown>(
   const summary = useMemo(() => getSessionSummary(session), [session]);
   const metadata = OPERATOR_METADATA[operatorType];
 
-  const { canProceed: canNext, validation } = useMemo(
-    () => canProceedToNext(session),
-    [session]
-  );
+  const { canProceed: canNext, validation } = useMemo(() => canProceedToNext(session), [session]);
   const canPrev = useMemo(() => canGoBack(session), [session]);
   const canSkip = useMemo(() => canSkipCurrent(session), [session]);
 
@@ -247,10 +244,10 @@ export function useOperatorSession<TResult = unknown>(
   }, []);
 
   const getContent = useCallback(
-    <T,>(key: string): T | undefined => {
+    <T>(key: string): T | undefined => {
       return session.generatedContent[key] as T | undefined;
     },
-    [session.generatedContent]
+    [session.generatedContent],
   );
 
   // Selection actions
@@ -259,10 +256,10 @@ export function useOperatorSession<TResult = unknown>(
   }, []);
 
   const getSelection = useCallback(
-    <T,>(key: string): T | undefined => {
+    <T>(key: string): T | undefined => {
       return session.userSelections[key] as T | undefined;
     },
-    [session.userSelections]
+    [session.userSelections],
   );
 
   const clearSelection = useCallback((key: string): void => {
@@ -270,12 +267,9 @@ export function useOperatorSession<TResult = unknown>(
   }, []);
 
   // Insight actions
-  const addInsight = useCallback(
-    (insight: Omit<OperatorInsight, "id" | "createdAt">): void => {
-      dispatch({ type: "ADD_INSIGHT", insight });
-    },
-    []
-  );
+  const addInsight = useCallback((insight: Omit<OperatorInsight, "id" | "createdAt">): void => {
+    dispatch({ type: "ADD_INSIGHT", insight });
+  }, []);
 
   // Session lifecycle
   const setNotes = useCallback((notes: string): void => {
@@ -310,7 +304,7 @@ export function useOperatorSession<TResult = unknown>(
       });
       onComplete?.(completedSession);
     },
-    [session, persistKey, onComplete, operatorType]
+    [session, persistKey, onComplete, operatorType],
   );
 
   const abandon = useCallback((): void => {

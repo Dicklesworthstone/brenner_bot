@@ -9,7 +9,12 @@
  * because corpus.ts uses Node.js APIs and cannot be imported in client code.
  */
 
-export type DocCategory = "transcript" | "quote-bank" | "distillation" | "metaprompt" | "raw-response";
+export type DocCategory =
+  | "transcript"
+  | "quote-bank"
+  | "distillation"
+  | "metaprompt"
+  | "raw-response";
 export type SearchCategory = DocCategory | "all";
 
 export interface GlobalSearchHit {
@@ -38,7 +43,11 @@ export interface GlobalSearchResult {
 /**
  * Get category display info (for use in client components).
  */
-export function getCategoryInfo(category: DocCategory): { label: string; icon: string; color: string } {
+export function getCategoryInfo(category: DocCategory): {
+  label: string;
+  icon: string;
+  color: string;
+} {
   switch (category) {
     case "transcript":
       return { label: "Transcript", icon: "scroll", color: "primary" };

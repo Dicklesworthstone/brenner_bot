@@ -19,7 +19,7 @@ describe("offline queue", () => {
           payload: {},
           [protoKey]: { polluted: true },
         },
-      ])
+      ]),
     );
 
     expect(getOfflineQueue()).toEqual([]);

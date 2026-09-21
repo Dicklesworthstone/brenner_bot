@@ -1,9 +1,6 @@
 import type { Artifact } from "@/lib/artifact-merge";
 
-export type TutorialExampleDomain =
-  | "biology"
-  | "computer_science"
-  | "social_science";
+export type TutorialExampleDomain = "biology" | "computer_science" | "social_science";
 
 export interface TutorialDomainExample {
   /** URL slug (used at /tutorial/examples/[slug]) */
@@ -30,4 +27,3 @@ export interface TutorialDomainExample {
   /** Commentary on why the artifact is good */
   commentary: string[];
 }
-

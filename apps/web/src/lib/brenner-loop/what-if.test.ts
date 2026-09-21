@@ -6,35 +6,33 @@
  */
 
 import { describe, expect, it } from "vitest";
-import type { TestQueueItem } from "./test-queue";
 import type { EvidenceResult } from "./evidence";
+import type { TestQueueItem } from "./test-queue";
 import {
-  createScenario,
+  type AssumedTestResult,
   addTestToScenario,
-  removeTestFromScenario,
-  updateTestInScenario,
-  calculateScenarioOutcome,
   analyzeScenario,
+  analyzeTestQueueItem,
+  calculateRecommendationRating,
+  calculateScenarioOutcome,
   compareTests,
   createBestCaseScenario,
-  createWorstCaseScenario,
   createMixedScenario,
-  calculateRecommendationRating,
+  createScenario,
+  createWorstCaseScenario,
   formatInformationValue,
-  getRecommendationStars,
   getRecommendationColor,
+  getRecommendationStars,
+  removeTestFromScenario,
   summarizeScenario,
-  analyzeTestQueueItem,
-  type AssumedTestResult,
+  updateTestInScenario,
 } from "./what-if";
 
 // ============================================================================
 // Test Helpers
 // ============================================================================
 
-function createMockTestQueueItem(
-  overrides: Partial<TestQueueItem> = {}
-): TestQueueItem {
+function createMockTestQueueItem(overrides: Partial<TestQueueItem> = {}): TestQueueItem {
   const id = overrides.id ?? `TQ-test-${Math.random().toString(36).slice(2, 8)}`;
   return {
     id,
@@ -63,9 +61,7 @@ function createMockTestQueueItem(
   };
 }
 
-function createMockAssumedTest(
-  overrides: Partial<AssumedTestResult> = {}
-): AssumedTestResult {
+function createMockAssumedTest(overrides: Partial<AssumedTestResult> = {}): AssumedTestResult {
   return {
     testId: `TQ-${Math.random().toString(36).slice(2, 8)}`,
     testName: "Mock Test",
@@ -155,7 +151,7 @@ describe("addTestToScenario", () => {
       createMockAssumedTest({
         assumedResult: "supports",
         discriminativePower: 5,
-      })
+      }),
     );
 
     expect(updated.assumedTests).toHaveLength(1);
@@ -248,9 +244,7 @@ describe("calculateScenarioOutcome", () => {
       sessionId: "test-session",
       hypothesisId: "HYP-1",
       startingConfidence: 50,
-      assumedTests: [
-        createMockAssumedTest({ assumedResult: "supports", discriminativePower: 3 }),
-      ],
+      assumedTests: [createMockAssumedTest({ assumedResult: "supports", discriminativePower: 3 })],
     });
 
     const singleResult = calculateScenarioOutcome(singleTestScenario);
@@ -291,9 +285,7 @@ describe("analyzeScenario", () => {
       sessionId: "test-session",
       hypothesisId: "HYP-1",
       startingConfidence: 50,
-      assumedTests: [
-        createMockAssumedTest({ assumedResult: "supports", discriminativePower: 4 }),
-      ],
+      assumedTests: [createMockAssumedTest({ assumedResult: "supports", discriminativePower: 4 })],
     });
 
     const analysis = analyzeScenario(scenario);
@@ -391,7 +383,7 @@ describe("compareTests", () => {
     expect(result.rankedTests).toHaveLength(2);
     expect(result.rankedTests[0].testId).toBe("high-dp");
     expect(result.rankedTests[0].informationValue).toBeGreaterThan(
-      result.rankedTests[1].informationValue
+      result.rankedTests[1].informationValue,
     );
   });
 

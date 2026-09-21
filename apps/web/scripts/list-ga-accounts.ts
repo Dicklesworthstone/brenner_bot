@@ -15,8 +15,8 @@ function getErrorMessage(error: unknown): string {
  * Timestamps from GA Admin API are objects like {seconds: string|number, nanos: number}
  */
 function formatProtobufTimestamp(timestamp: unknown): string {
-  if (!timestamp || typeof timestamp !== 'object') {
-    return 'unknown';
+  if (!timestamp || typeof timestamp !== "object") {
+    return "unknown";
   }
 
   const ts = timestamp as { seconds?: unknown; nanos?: unknown };
@@ -24,16 +24,16 @@ function formatProtobufTimestamp(timestamp: unknown): string {
 
   // Handle both string and number types for seconds
   let seconds: number;
-  if (typeof rawSeconds === 'string') {
+  if (typeof rawSeconds === "string") {
     seconds = parseInt(rawSeconds, 10);
-  } else if (typeof rawSeconds === 'number') {
+  } else if (typeof rawSeconds === "number") {
     seconds = rawSeconds;
   } else {
-    return 'unknown';
+    return "unknown";
   }
 
   if (Number.isNaN(seconds)) {
-    return 'unknown';
+    return "unknown";
   }
 
   return new Date(seconds * 1000).toISOString();
@@ -56,13 +56,13 @@ async function listAccounts() {
     console.log(`  Name: ${account.name}`);
     console.log(`  Created: ${formatProtobufTimestamp(account.createTime)}`);
     console.log("");
-    
+
     // List properties for this account
     try {
       const [properties] = await client.listProperties({
         filter: `parent:${account.name}`,
       });
-      
+
       if (properties && properties.length > 0) {
         console.log("  Properties:");
         for (const prop of properties) {

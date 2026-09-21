@@ -17,27 +17,25 @@
  * @module components/brenner-loop/evidence/EvidenceRecorder
  */
 
-import * as React from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import {
+  AlertCircle,
   ArrowLeft,
   ArrowRight,
   Check,
+  CheckCircle2,
+  Eye,
+  HelpCircle,
+  Lightbulb,
+  Minus,
   Plus,
   TestTube,
-  Lightbulb,
-  Eye,
-  CheckCircle2,
-  XCircle,
-  HelpCircle,
-  TrendingUp,
   TrendingDown,
-  Minus,
-  AlertCircle,
+  TrendingUp,
+  XCircle,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import * as React from "react";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -47,26 +45,28 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import type { ExclusionTest, ExclusionTestCategory } from "@/lib/brenner-loop/operators/exclusion-test";
-import type {
-  EvidenceEntry,
-  EvidenceResult,
-  TestDescription,
-  TestType,
-  DiscriminativePower,
-} from "@/lib/brenner-loop/evidence";
-import {
-  TEST_TYPE_LABELS,
-  generateEvidenceId,
-} from "@/lib/brenner-loop/evidence";
+import { Textarea } from "@/components/ui/textarea";
 import {
   computeConfidenceUpdate,
   formatConfidence,
   formatDelta,
-  getStarRating,
-  getConfidenceAssessment,
   getAsymmetryExplanation,
+  getConfidenceAssessment,
+  getStarRating,
 } from "@/lib/brenner-loop/confidence";
+import type {
+  DiscriminativePower,
+  EvidenceEntry,
+  EvidenceResult,
+  TestDescription,
+  TestType,
+} from "@/lib/brenner-loop/evidence";
+import { generateEvidenceId, TEST_TYPE_LABELS } from "@/lib/brenner-loop/evidence";
+import type {
+  ExclusionTest,
+  ExclusionTestCategory,
+} from "@/lib/brenner-loop/operators/exclusion-test";
+import { cn } from "@/lib/utils";
 
 // ============================================================================
 // Types
@@ -202,7 +202,9 @@ function StepIndicator({
                 isCompleted && "bg-primary text-primary-foreground",
                 isCurrent && "bg-primary/20 text-primary ring-2 ring-primary",
                 !isCompleted && !isCurrent && "bg-muted text-muted-foreground",
-                onStepClick && index <= currentIndex && "cursor-pointer hover:ring-2 hover:ring-primary/50"
+                onStepClick &&
+                  index <= currentIndex &&
+                  "cursor-pointer hover:ring-2 hover:ring-primary/50",
               )}
               title={step.title}
             >
@@ -212,7 +214,7 @@ function StepIndicator({
               <div
                 className={cn(
                   "w-6 h-0.5 rounded",
-                  index < currentIndex ? "bg-primary" : "bg-muted"
+                  index < currentIndex ? "bg-primary" : "bg-muted",
                 )}
               />
             )}
@@ -271,7 +273,7 @@ function ResultButton({
       onClick={onClick}
       className={cn(
         "flex-1 p-4 rounded-lg border-2 text-left transition-all",
-        selected ? `${cfg.bgColor} ${cfg.borderColor}` : "border-border hover:border-primary/50"
+        selected ? `${cfg.bgColor} ${cfg.borderColor}` : "border-border hover:border-primary/50",
       )}
       whileTap={{ scale: 0.98 }}
     >
@@ -327,7 +329,7 @@ function ConfidencePreview({
                 "text-lg font-bold",
                 delta > 0 && "text-green-500",
                 delta < 0 && "text-red-500",
-                delta === 0 && "text-muted-foreground"
+                delta === 0 && "text-muted-foreground",
               )}
             >
               {formatDelta(delta)}
@@ -359,7 +361,7 @@ function ConfidencePreview({
               assessment.color === "lime" && "bg-lime-500/10 text-lime-600",
               assessment.color === "yellow" && "bg-yellow-500/10 text-yellow-600",
               assessment.color === "orange" && "bg-orange-500/10 text-orange-600",
-              assessment.color === "red" && "bg-red-500/10 text-red-600"
+              assessment.color === "red" && "bg-red-500/10 text-red-600",
             )}
           >
             {assessment.label}
@@ -430,7 +432,7 @@ export function EvidenceRecorder({
     return computeConfidenceUpdate(
       currentConfidence,
       { discriminativePower: state.test.discriminativePower },
-      state.result
+      state.result,
     );
   }, [currentConfidence, state.test, state.result]);
 
@@ -557,7 +559,7 @@ export function EvidenceRecorder({
                       "w-full p-4 rounded-lg border text-left transition-all",
                       state.test?.id === test.id
                         ? "border-primary bg-primary/5"
-                        : "border-border hover:border-primary/50"
+                        : "border-border hover:border-primary/50",
                     )}
                     whileTap={{ scale: 0.99 }}
                   >
@@ -695,11 +697,7 @@ export function EvidenceRecorder({
                 </div>
               </div>
             ) : (
-              <Button
-                variant="outline"
-                onClick={startCustomTest}
-                className="w-full"
-              >
+              <Button variant="outline" onClick={startCustomTest} className="w-full">
                 <Plus className="size-4 mr-2" />
                 Add Custom Test
               </Button>
@@ -748,8 +746,8 @@ export function EvidenceRecorder({
               <div className="flex items-start gap-2">
                 <Lightbulb className="size-4 text-primary flex-shrink-0 mt-0.5" />
                 <p className="text-xs text-muted-foreground">
-                  <strong>Pre-registration matters:</strong> Specifying predictions before
-                  observing results is key to honest testing. This prevents post-hoc rationalization.
+                  <strong>Pre-registration matters:</strong> Specifying predictions before observing
+                  results is key to honest testing. This prevents post-hoc rationalization.
                 </p>
               </div>
             </div>
@@ -764,9 +762,7 @@ export function EvidenceRecorder({
               <Textarea
                 id="observation"
                 value={state.observation}
-                onChange={(e) =>
-                  setState((prev) => ({ ...prev, observation: e.target.value }))
-                }
+                onChange={(e) => setState((prev) => ({ ...prev, observation: e.target.value }))}
                 placeholder="Describe the factual observation, not interpretation..."
                 rows={4}
               />
@@ -797,9 +793,7 @@ export function EvidenceRecorder({
         return (
           <div className="space-y-4">
             <div className="p-4 rounded-lg bg-muted/50 border border-border">
-              <p className="text-sm mb-3">
-                How does your observation relate to your predictions?
-              </p>
+              <p className="text-sm mb-3">How does your observation relate to your predictions?</p>
               <div className="grid grid-cols-1 gap-3 text-xs">
                 <div className="flex gap-2">
                   <span className="font-medium">If true:</span>
@@ -840,9 +834,7 @@ export function EvidenceRecorder({
               <Textarea
                 id="interpretation"
                 value={state.interpretation}
-                onChange={(e) =>
-                  setState((prev) => ({ ...prev, interpretation: e.target.value }))
-                }
+                onChange={(e) => setState((prev) => ({ ...prev, interpretation: e.target.value }))}
                 placeholder="What does this mean for the hypothesis? Why does it support or challenge it?"
                 rows={4}
               />

@@ -13,12 +13,23 @@
  * - Mobile: Strong press feedback with ripple effect
  */
 
-import * as React from "react";
+import { motion, useMotionValue, useSpring, useTransform, type Variants } from "framer-motion";
+import {
+  ChevronRight,
+  Clock,
+  Cpu,
+  Lock,
+  Play,
+  Rocket,
+  Sparkles,
+  Trophy,
+  Users,
+  Zap,
+} from "lucide-react";
 import Link from "next/link";
-import { motion, useMotionValue, useTransform, useSpring, type Variants } from "framer-motion";
-import { Lock, Play, Clock, ChevronRight, Rocket, Cpu, Users, Sparkles, Zap, Trophy } from "lucide-react";
+import * as React from "react";
+import type { DifficultyLevel, TutorialPath } from "@/lib/tutorial-types";
 import { cn } from "@/lib/utils";
-import type { TutorialPath, DifficultyLevel } from "@/lib/tutorial-types";
 
 // ============================================================================
 // Types
@@ -142,7 +153,7 @@ export function TutorialPathCard({
       cardRef.current.style.setProperty("--mouse-x", `${percentX}%`);
       cardRef.current.style.setProperty("--mouse-y", `${percentY}%`);
     },
-    [mouseX, mouseY, prefersReducedMotion, isAccessible]
+    [mouseX, mouseY, prefersReducedMotion, isAccessible],
   );
 
   const handleMouseLeave = React.useCallback(() => {
@@ -156,18 +167,10 @@ export function TutorialPathCard({
       initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={
-        prefersReducedMotion
-          ? { duration: 0 }
-          : { type: "spring", stiffness: 300, damping: 25 }
+        prefersReducedMotion ? { duration: 0 } : { type: "spring", stiffness: 300, damping: 25 }
       }
-      whileHover={
-        isAccessible && !prefersReducedMotion
-          ? { y: -8, scale: 1.02 }
-          : undefined
-      }
-      whileTap={
-        isAccessible && !prefersReducedMotion ? { scale: 0.97 } : undefined
-      }
+      whileHover={isAccessible && !prefersReducedMotion ? { y: -8, scale: 1.02 } : undefined}
+      whileTap={isAccessible && !prefersReducedMotion ? { scale: 0.97 } : undefined}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
       style={
@@ -185,7 +188,7 @@ export function TutorialPathCard({
           isAccessible
             ? "cursor-pointer hover:border-primary/60 hover:shadow-xl hover:shadow-primary/15"
             : "cursor-not-allowed opacity-60",
-          className
+          className,
         )}
         style={{ minHeight: 44 }} // Touch target
       >
@@ -249,7 +252,7 @@ export function TutorialPathCard({
             className={cn(
               "relative flex items-center justify-center size-9 rounded-full shadow-lg",
               config.iconBg,
-              config.iconText
+              config.iconText,
             )}
           >
             {/* Glow ring for available status */}
@@ -267,11 +270,7 @@ export function TutorialPathCard({
               />
             )}
             <motion.div
-              animate={
-                config.pulse && !prefersReducedMotion
-                  ? { scale: [1, 1.15, 1] }
-                  : undefined
-              }
+              animate={config.pulse && !prefersReducedMotion ? { scale: [1, 1.15, 1] } : undefined}
               transition={
                 config.pulse && !prefersReducedMotion
                   ? { duration: 2, repeat: Infinity, ease: "easeInOut" }
@@ -292,7 +291,7 @@ export function TutorialPathCard({
               : status === "locked"
                 ? "bg-muted text-muted-foreground"
                 : "bg-primary/20 text-primary group-hover:bg-primary/30",
-            recommended && isAccessible && "mt-8" // Make room for badge
+            recommended && isAccessible && "mt-8", // Make room for badge
           )}
         >
           {icon}
@@ -304,16 +303,14 @@ export function TutorialPathCard({
             "mb-2 text-lg sm:text-xl font-bold transition-colors",
             status === "locked"
               ? "text-muted-foreground"
-              : "text-foreground group-hover:text-primary"
+              : "text-foreground group-hover:text-primary",
           )}
         >
           {path.title}
         </h3>
 
         {/* Description */}
-        <p className="mb-4 text-sm leading-relaxed text-muted-foreground">
-          {path.description}
-        </p>
+        <p className="mb-4 text-sm leading-relaxed text-muted-foreground">{path.description}</p>
 
         {/* Meta info row */}
         <div className="flex flex-wrap items-center gap-3 text-xs">
@@ -322,7 +319,7 @@ export function TutorialPathCard({
             className={cn(
               "px-2 py-0.5 rounded-full font-medium capitalize",
               diffColors.bg,
-              diffColors.text
+              diffColors.text,
             )}
           >
             {path.difficulty}
@@ -335,17 +332,14 @@ export function TutorialPathCard({
           </span>
 
           {/* Step count */}
-          <span className="text-muted-foreground">
-            {path.totalSteps} steps
-          </span>
+          <span className="text-muted-foreground">{path.totalSteps} steps</span>
         </div>
 
         {/* Prerequisites (if locked) */}
         {status === "locked" && path.prerequisites && path.prerequisites.length > 0 && (
           <div className="mt-4 pt-4 border-t border-border/50">
             <p className="text-xs text-muted-foreground">
-              <span className="font-medium">Prerequisites:</span>{" "}
-              {path.prerequisites.join(", ")}
+              <span className="font-medium">Prerequisites:</span> {path.prerequisites.join(", ")}
             </p>
           </div>
         )}
@@ -458,17 +452,12 @@ export function TutorialPathGrid({
       animate="visible"
       className={cn(
         "grid gap-4 sm:gap-6",
-        paths.length <= 2
-          ? "sm:grid-cols-2"
-          : "sm:grid-cols-2 lg:grid-cols-3",
-        className
+        paths.length <= 2 ? "sm:grid-cols-2" : "sm:grid-cols-2 lg:grid-cols-3",
+        className,
       )}
     >
       {paths.map((path) => (
-        <motion.div
-          key={path.id}
-          variants={prefersReducedMotion ? undefined : itemVariants}
-        >
+        <motion.div key={path.id} variants={prefersReducedMotion ? undefined : itemVariants}>
           <TutorialPathCard
             path={path}
             status={pathStatus[path.id] || "locked"}

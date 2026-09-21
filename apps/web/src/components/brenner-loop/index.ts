@@ -4,60 +4,63 @@
  * UI components for the Brenner Loop research methodology system.
  */
 
-export { HypothesisCard, HypothesisCardList } from "./HypothesisCard";
-export type { HypothesisCardProps, HypothesisCardMode } from "./HypothesisCard";
-
-export { HypothesisIntake } from "./HypothesisIntake";
-export type { HypothesisIntakeProps } from "./HypothesisIntake";
-
-export { HypothesisArena } from "./HypothesisArena";
-export type { HypothesisArenaProps } from "./HypothesisArena";
-
-export { ComparisonView } from "./ComparisonView";
-export type { ComparisonViewProps } from "./ComparisonView";
-
-export { HypothesisDiff } from "./HypothesisDiff";
-export type { HypothesisDiffProps } from "./HypothesisDiff";
-
-export { PredictionMatrix } from "./PredictionMatrix";
-export type { PredictionMatrixProps } from "./PredictionMatrix";
-
-export { ErrorBoundary } from "./ErrorBoundary";
-export type { ErrorBoundaryProps } from "./ErrorBoundary";
-
-export { ErrorRecoveryModal } from "./ErrorRecoveryModal";
-export type { ErrorRecoveryModalProps } from "./ErrorRecoveryModal";
-
-export { AgentProgress } from "./AgentProgress";
 export type { AgentProgressProps } from "./AgentProgress";
-
+export { AgentProgress } from "./AgentProgress";
+export type { ComparisonViewProps } from "./ComparisonView";
+export { ComparisonView } from "./ComparisonView";
+export type { CompactDomainSelectorProps, DomainSelectorProps } from "./DomainSelector";
+export { CompactDomainSelector, DomainSelector } from "./DomainSelector";
+export type { ErrorBoundaryProps } from "./ErrorBoundary";
+export { ErrorBoundary } from "./ErrorBoundary";
+export type { ErrorRecoveryModalProps } from "./ErrorRecoveryModal";
+export { ErrorRecoveryModal } from "./ErrorRecoveryModal";
+export type {
+  FalsificationCeremonyProps,
+  FalsificationCeremonyResult,
+} from "./FalsificationCeremony";
+export { FalsificationCeremony } from "./FalsificationCeremony";
+export type { HypothesisArenaProps } from "./HypothesisArena";
+export { HypothesisArena } from "./HypothesisArena";
+export type { HypothesisCardMode, HypothesisCardProps } from "./HypothesisCard";
+export { HypothesisCard, HypothesisCardList } from "./HypothesisCard";
+export type { HypothesisDiffProps } from "./HypothesisDiff";
+export { HypothesisDiff } from "./HypothesisDiff";
+export type { HypothesisGraveyardProps } from "./HypothesisGraveyard";
+export { HypothesisGraveyard } from "./HypothesisGraveyard";
+export type { HypothesisIntakeProps } from "./HypothesisIntake";
+export { HypothesisIntake } from "./HypothesisIntake";
+export type {
+  CompactTemplatePickerProps,
+  HypothesisTemplateSelectorProps,
+} from "./HypothesisTemplateSelector";
+export { CompactTemplatePicker, HypothesisTemplateSelector } from "./HypothesisTemplateSelector";
+export type { PredictionLockProps } from "./PredictionLock";
 export {
   PredictionLock,
   PredictionLockItem,
   UnlockedPredictionItem,
 } from "./PredictionLock";
-export type { PredictionLockProps } from "./PredictionLock";
-
-export { SessionDashboard, PhaseTimeline, BrennerQuote, PhaseContent, PHASE_CONFIG } from "./SessionDashboard";
-export type { SessionDashboardProps } from "./SessionDashboard";
-
-export { SessionList } from "./SessionList";
-export type { SessionListProps } from "./SessionList";
-
-export { SessionCard } from "./SessionCard";
+export type { PredictionMatrixProps } from "./PredictionMatrix";
+export { PredictionMatrix } from "./PredictionMatrix";
 export type { SessionCardProps } from "./SessionCard";
-
-export { HypothesisGraveyard } from "./HypothesisGraveyard";
-export type { HypothesisGraveyardProps } from "./HypothesisGraveyard";
-
-export { FalsificationCeremony } from "./FalsificationCeremony";
-export type { FalsificationCeremonyProps, FalsificationCeremonyResult } from "./FalsificationCeremony";
-
-export { DomainSelector, CompactDomainSelector } from "./DomainSelector";
-export type { DomainSelectorProps, CompactDomainSelectorProps } from "./DomainSelector";
-
-export { HypothesisTemplateSelector, CompactTemplatePicker } from "./HypothesisTemplateSelector";
-export type { HypothesisTemplateSelectorProps, CompactTemplatePickerProps } from "./HypothesisTemplateSelector";
-
-export { SessionTemplateSelector, CompactTemplateSelector, TemplateDropdown } from "./SessionTemplateSelector";
-export type { SessionTemplateSelectorProps, CompactTemplateSelectorProps, TemplateDropdownProps } from "./SessionTemplateSelector";
+export { SessionCard } from "./SessionCard";
+export type { SessionDashboardProps } from "./SessionDashboard";
+export {
+  BrennerQuote,
+  PHASE_CONFIG,
+  PhaseContent,
+  PhaseTimeline,
+  SessionDashboard,
+} from "./SessionDashboard";
+export type { SessionListProps } from "./SessionList";
+export { SessionList } from "./SessionList";
+export type {
+  CompactTemplateSelectorProps,
+  SessionTemplateSelectorProps,
+  TemplateDropdownProps,
+} from "./SessionTemplateSelector";
+export {
+  CompactTemplateSelector,
+  SessionTemplateSelector,
+  TemplateDropdown,
+} from "./SessionTemplateSelector";

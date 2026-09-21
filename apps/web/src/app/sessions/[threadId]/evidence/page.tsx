@@ -1,11 +1,11 @@
-import { resolve, join } from "node:path";
 import { existsSync, readFileSync } from "node:fs";
-import Link from "next/link";
-import { cookies, headers } from "next/headers";
-import { DemoFeaturePreview } from "@/components/sessions/DemoFeaturePreview";
-import { isLabModeEnabled, checkOrchestrationAuth } from "@/lib/auth";
-import { isDemoThreadId } from "@/lib/demo-mode";
+import { join, resolve } from "node:path";
 import type { Metadata } from "next";
+import { cookies, headers } from "next/headers";
+import Link from "next/link";
+import { DemoFeaturePreview } from "@/components/sessions/DemoFeaturePreview";
+import { checkOrchestrationAuth, isLabModeEnabled } from "@/lib/auth";
+import { isDemoThreadId } from "@/lib/demo-mode";
 
 export const metadata: Metadata = {
   title: "Evidence Pack",
@@ -82,8 +82,14 @@ function sanitizeThreadId(threadId: string): string {
 }
 
 const VALID_EVIDENCE_TYPES = new Set<string>([
-  "paper", "preprint", "dataset", "experiment",
-  "observation", "prior_session", "expert_opinion", "code_artifact",
+  "paper",
+  "preprint",
+  "dataset",
+  "experiment",
+  "observation",
+  "prior_session",
+  "expert_opinion",
+  "code_artifact",
 ]);
 
 const VALID_ACCESS_METHODS = new Set<string>(["url", "doi", "file", "session", "manual"]);
@@ -220,8 +226,18 @@ function LockedState({ reason }: { reason: string }) {
       <div className="rounded-2xl border border-border bg-card p-8">
         <div className="flex items-start gap-4">
           <div className="flex items-center justify-center size-12 rounded-xl bg-warning/10 border border-warning/20 text-warning">
-            <svg className="size-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
+            <svg
+              className="size-6"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={1.5}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z"
+              />
             </svg>
           </div>
           <div className="space-y-2">
@@ -242,7 +258,9 @@ function LockedState({ reason }: { reason: string }) {
 
 function EvidenceBadge({ record }: { record: EvidenceRecord }) {
   return (
-    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border ${EVIDENCE_TYPE_COLORS[record.type]}`}>
+    <span
+      className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border ${EVIDENCE_TYPE_COLORS[record.type]}`}
+    >
       {EVIDENCE_TYPE_LABELS[record.type]}
     </span>
   );
@@ -251,7 +269,10 @@ function EvidenceBadge({ record }: { record: EvidenceRecord }) {
 function VerifiedBadge({ verified, notes }: { verified: boolean; notes?: string }) {
   if (verified) {
     return (
-      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-success/15 text-success border border-success/20" title={notes}>
+      <span
+        className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-success/15 text-success border border-success/20"
+        title={notes}
+      >
         Verified
       </span>
     );
@@ -267,13 +288,25 @@ function RelationshipBadges({ record }: { record: EvidenceRecord }) {
   const badges: { label: string; items: string[]; color: string }[] = [];
 
   if (record.supports?.length) {
-    badges.push({ label: "Supports", items: record.supports, color: "bg-success/15 text-success border-success/20" });
+    badges.push({
+      label: "Supports",
+      items: record.supports,
+      color: "bg-success/15 text-success border-success/20",
+    });
   }
   if (record.refutes?.length) {
-    badges.push({ label: "Refutes", items: record.refutes, color: "bg-destructive/15 text-destructive border-destructive/20" });
+    badges.push({
+      label: "Refutes",
+      items: record.refutes,
+      color: "bg-destructive/15 text-destructive border-destructive/20",
+    });
   }
   if (record.informs?.length) {
-    badges.push({ label: "Informs", items: record.informs, color: "bg-muted text-foreground border-border" });
+    badges.push({
+      label: "Informs",
+      items: record.informs,
+      color: "bg-muted text-foreground border-border",
+    });
   }
 
   if (badges.length === 0) return null;
@@ -281,7 +314,10 @@ function RelationshipBadges({ record }: { record: EvidenceRecord }) {
   return (
     <div className="flex flex-wrap gap-2">
       {badges.map(({ label, items, color }) => (
-        <span key={label} className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border ${color}`}>
+        <span
+          key={label}
+          className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border ${color}`}
+        >
           {label}: <span className="font-mono ml-1">{items.join(", ")}</span>
         </span>
       ))}
@@ -296,7 +332,9 @@ function ExcerptCard({ excerpt, recordId }: { excerpt: EvidenceExcerpt; recordId
     <div className="rounded-lg border border-border bg-muted/30 p-4 space-y-2">
       <div className="flex items-center gap-2">
         <span className="font-mono text-xs font-semibold text-primary">{fullAnchor}</span>
-        <span className={`text-xs px-1.5 py-0.5 rounded ${excerpt.verbatim ? "bg-blue-500/15 text-blue-600 dark:text-blue-400" : "bg-amber-500/15 text-amber-600 dark:text-amber-400"}`}>
+        <span
+          className={`text-xs px-1.5 py-0.5 rounded ${excerpt.verbatim ? "bg-blue-500/15 text-blue-600 dark:text-blue-400" : "bg-amber-500/15 text-amber-600 dark:text-amber-400"}`}
+        >
           {excerpt.verbatim ? "verbatim" : "paraphrased"}
         </span>
         {excerpt.location && (
@@ -366,7 +404,8 @@ function EvidenceRecordCard({ record }: { record: EvidenceRecord }) {
           <div className="flex gap-2">
             <span className="font-medium text-muted-foreground w-20">Imported:</span>
             <span className="text-foreground">
-              {formatTs(record.imported_at)} by <span className="font-mono">{record.imported_by}</span>
+              {formatTs(record.imported_at)} by{" "}
+              <span className="font-mono">{record.imported_by}</span>
             </span>
           </div>
           {record.verification_notes && (
@@ -395,7 +434,11 @@ function EvidenceRecordCard({ record }: { record: EvidenceRecord }) {
             <h4 className="text-sm font-semibold text-foreground">Excerpts</h4>
             <div className="space-y-3">
               {record.excerpts.map((excerpt, idx) => (
-                <ExcerptCard key={`${excerpt.anchor}-${idx}`} excerpt={excerpt} recordId={record.id} />
+                <ExcerptCard
+                  key={`${excerpt.anchor}-${idx}`}
+                  excerpt={excerpt}
+                  recordId={record.id}
+                />
               ))}
             </div>
           </div>
@@ -426,7 +469,9 @@ export default async function EvidencePackPage({
 
   // Check lab mode
   if (!isLabModeEnabled()) {
-    return <LockedState reason="Lab mode is disabled. Set BRENNER_LAB_MODE=1 to enable orchestration." />;
+    return (
+      <LockedState reason="Lab mode is disabled. Set BRENNER_LAB_MODE=1 to enable orchestration." />
+    );
   }
 
   // Check auth
@@ -489,8 +534,18 @@ export default async function EvidencePackPage({
       {!loadError && !evidencePack && (
         <div className="rounded-xl border border-border bg-card p-8 text-center space-y-4 animate-fade-in-up stagger-1">
           <div className="flex items-center justify-center size-16 mx-auto rounded-2xl bg-muted/50 border border-border">
-            <svg className="size-8 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+            <svg
+              className="size-8 text-muted-foreground"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={1.5}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"
+              />
             </svg>
           </div>
           <div>
@@ -513,13 +568,15 @@ export default async function EvidencePackPage({
             <div className="flex flex-wrap items-center justify-between gap-4">
               <div className="flex items-center gap-4">
                 <div className="flex items-center justify-center size-14 rounded-xl bg-primary/10 border border-primary/20">
-                  <span className="text-2xl font-bold text-primary">{evidencePack.records.length}</span>
+                  <span className="text-2xl font-bold text-primary">
+                    {evidencePack.records.length}
+                  </span>
                 </div>
                 <div className="space-y-1">
                   <div className="text-sm text-muted-foreground">Evidence Records</div>
                   <div className="font-semibold text-foreground">
-                    {evidencePack.records.filter(r => r.verified).length} verified,{" "}
-                    {evidencePack.records.filter(r => !r.verified).length} unverified
+                    {evidencePack.records.filter((r) => r.verified).length} verified,{" "}
+                    {evidencePack.records.filter((r) => !r.verified).length} unverified
                   </div>
                 </div>
               </div>
@@ -533,9 +590,11 @@ export default async function EvidencePackPage({
               </div>
             </div>
             <div className="text-xs text-muted-foreground">
-              Created: <span className="font-mono text-foreground">{formatTs(evidencePack.created_at)}</span>
+              Created:{" "}
+              <span className="font-mono text-foreground">{formatTs(evidencePack.created_at)}</span>
               {" | "}
-              Updated: <span className="font-mono text-foreground">{formatTs(evidencePack.updated_at)}</span>
+              Updated:{" "}
+              <span className="font-mono text-foreground">{formatTs(evidencePack.updated_at)}</span>
             </div>
           </section>
 
@@ -546,7 +605,8 @@ export default async function EvidencePackPage({
               <div className="rounded-xl border border-border bg-card p-5 text-sm text-muted-foreground">
                 No evidence records yet. Add evidence using the CLI:
                 <pre className="mt-2 p-2 rounded bg-muted font-mono text-xs">
-                  brenner evidence add --thread-id {threadId} --type paper --title &quot;...&quot; --source &quot;...&quot;
+                  brenner evidence add --thread-id {threadId} --type paper --title &quot;...&quot;
+                  --source &quot;...&quot;
                 </pre>
               </div>
             ) : (
@@ -569,14 +629,18 @@ export default async function EvidencePackPage({
                     <span className="text-primary">{record.id}</span>
                     {record.excerpts.length > 0 && (
                       <span className="text-muted-foreground">
-                        {" "}({record.excerpts.map(e => `${record.id}#${e.anchor}`).join(", ")})
+                        {" "}
+                        ({record.excerpts.map((e) => `${record.id}#${e.anchor}`).join(", ")})
                       </span>
                     )}
                   </div>
                 ))}
               </div>
               <p className="mt-3 pt-3 border-t border-border">
-                Example: <code className="bg-muted px-1 rounded">**Anchors**: &sect;58, EV-001#E1 [inference]</code>
+                Example:{" "}
+                <code className="bg-muted px-1 rounded">
+                  **Anchors**: &sect;58, EV-001#E1 [inference]
+                </code>
               </p>
             </div>
           </section>

@@ -1,4 +1,5 @@
 #!/usr/bin/env bun
+
 /**
  * Brenner Bot CLI.
  *
@@ -9,43 +10,157 @@
  * Runtime: Bun-only. Local imports are bundled when compiled.
  */
 
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { spawn } from "node:child_process";
 import { randomUUID } from "node:crypto";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { dirname, isAbsolute, join, resolve } from "node:path";
 import { createInterface } from "node:readline";
-import { spawn } from "node:child_process";
 
 // Shared modules from web lib (bundled by Bun)
 import { AgentMailClient } from "./apps/web/src/lib/agentMail";
-import { buildExcerptFromSections, composeExcerpt, type ComposedExcerpt, type ExcerptSection } from "./apps/web/src/lib/excerpt-builder";
-import { CORPUS_DOCS } from "./apps/web/src/lib/corpus";
-import { globalSearch, type SearchCategory } from "./apps/web/src/lib/globalSearch";
-import type { Json } from "./apps/web/src/lib/json";
-import { parseQuoteBank } from "./apps/web/src/lib/quotebank-parser";
-import { parseOperatorCards, resolveOperatorCard, type OperatorCard } from "./apps/web/src/lib/operator-library";
 import {
-  AGENT_ROLES,
-  composeKickoffMessages,
-  getRolePromptMarkdown,
-  getTriangulatedBrennerKernelMarkdown,
-  type AgentRole,
-  type KickoffConfig,
-  type RoleConfig,
-} from "./apps/web/src/lib/session-kickoff";
-import { extractValidDeltas, parseDeltaMessage, type ValidDelta } from "./apps/web/src/lib/delta-parser";
-import {
+  type Artifact,
   createEmptyArtifact,
   formatLintReportHuman,
   formatLintReportJson,
-  lintArtifact,
-  mergeArtifactWithTimestamps,
-  renderArtifactMarkdown,
-  type Artifact,
   type LintReport,
   type LintSeverity,
   type LintViolation,
+  lintArtifact,
+  mergeArtifactWithTimestamps,
+  renderArtifactMarkdown,
 } from "./apps/web/src/lib/artifact-merge";
+import { CORPUS_DOCS } from "./apps/web/src/lib/corpus";
+import {
+  extractValidDeltas,
+  parseDeltaMessage,
+  type ValidDelta,
+} from "./apps/web/src/lib/delta-parser";
+import {
+  buildExcerptFromSections,
+  type ComposedExcerpt,
+  composeExcerpt,
+  type ExcerptSection,
+} from "./apps/web/src/lib/excerpt-builder";
+import { globalSearch, type SearchCategory } from "./apps/web/src/lib/globalSearch";
+import type { Json } from "./apps/web/src/lib/json";
+import {
+  type OperatorCard,
+  parseOperatorCards,
+  resolveOperatorCard,
+} from "./apps/web/src/lib/operator-library";
+import { parseQuoteBank } from "./apps/web/src/lib/quotebank-parser";
+import {
+  type Anomaly,
+  createAnomaly,
+  deferAnomaly,
+  generateAnomalyId,
+  linkSpawnedHypothesis,
+  type QuarantineStatus,
+  reactivateAnomaly,
+  resolveAnomaly,
+} from "./apps/web/src/lib/schemas/anomaly";
+import {
+  type Assumption,
+  type AssumptionStatus,
+  type AssumptionType,
+  createAssumption,
+  generateAssumptionId,
+  type ScaleCalculation,
+  ScaleCalculationSchema,
+} from "./apps/web/src/lib/schemas/assumption";
+import {
+  challengeAssumption,
+  falsifyAssumption,
+  verifyAssumption,
+} from "./apps/web/src/lib/schemas/assumption-lifecycle";
+import {
+  acceptCritique,
+  addressCritique,
+  type Critique,
+  type CritiqueAction,
+  type CritiqueSeverity,
+  type CritiqueStatus,
+  type CritiqueTargetType,
+  createCritique,
+  dismissCritique,
+  generateCritiqueId,
+} from "./apps/web/src/lib/schemas/critique";
+import {
+  createHypothesis,
+  generateHypothesisId,
+  type Hypothesis,
+  type HypothesisCategory,
+  type HypothesisConfidence,
+  type HypothesisOrigin,
+  HypothesisSchema,
+  type HypothesisState,
+} from "./apps/web/src/lib/schemas/hypothesis";
+import {
+  activateHypothesis,
+  confirmHypothesis,
+  deferHypothesis,
+  isTerminalState,
+  reactivateHypothesis,
+  refuteHypothesis,
+  type StateTransition,
+  supersedeHypothesis,
+  transitionHypothesis,
+} from "./apps/web/src/lib/schemas/hypothesis-lifecycle";
+import { type Prediction, PredictionSchema } from "./apps/web/src/lib/schemas/prediction";
+import {
+  abandonProgram,
+  addSessionToProgram,
+  completeProgram,
+  createResearchProgram,
+  generateProgramId,
+  type ProgramStatus,
+  pauseProgram,
+  type ResearchProgram,
+  removeSessionFromProgram,
+  resumeProgram,
+} from "./apps/web/src/lib/schemas/research-program";
+import {
+  BRENNER_QUOTES,
+  type DimensionScore,
+  type SessionData,
+  type SessionDimensionScore,
+  scoreSession,
+} from "./apps/web/src/lib/schemas/scorecard";
+import {
+  computeContentHash,
+  createEmptySessionRecord,
+  createTraceMessage,
+  isReplayable,
+  validateSessionRecord,
+} from "./apps/web/src/lib/schemas/session-replay";
+import {
+  type ExecutionInput,
+  recordTestExecution,
+  suggestTransitionsFromExecution,
+} from "./apps/web/src/lib/schemas/test-binding";
+import {
+  type TestRecord,
+  TestRecordSchema,
+  type TestStatus,
+} from "./apps/web/src/lib/schemas/test-record";
+import {
+  AGENT_ROLES,
+  type AgentRole,
+  composeKickoffMessages,
+  getRolePromptMarkdown,
+  getTriangulatedBrennerKernelMarkdown,
+  type KickoffConfig,
+  type RoleConfig,
+} from "./apps/web/src/lib/session-kickoff";
+import { AnomalyStorage } from "./apps/web/src/lib/storage/anomaly-storage";
+import { AssumptionStorage } from "./apps/web/src/lib/storage/assumption-storage";
+import { CritiqueStorage } from "./apps/web/src/lib/storage/critique-storage";
+import { HypothesisStorage } from "./apps/web/src/lib/storage/hypothesis-storage";
+import { DashboardAggregator } from "./apps/web/src/lib/storage/program-dashboard";
+import { ProgramStorage } from "./apps/web/src/lib/storage/program-storage";
+import { TestStorage } from "./apps/web/src/lib/storage/test-storage";
 import {
   computeThreadStatusFromThread,
   extractVersion,
@@ -53,107 +168,14 @@ import {
   parseSubjectType,
 } from "./apps/web/src/lib/threadStatus";
 import {
-  parseManifest,
   detectPlatform,
-  generateInstallPlan,
   formatPlanHuman,
   formatPlanJson,
+  generateInstallPlan,
   type PlatformString,
+  parseManifest,
 } from "./apps/web/src/lib/toolchain-manifest";
 import { parseTranscript } from "./apps/web/src/lib/transcript-parser";
-import { AnomalyStorage } from "./apps/web/src/lib/storage/anomaly-storage";
-import {
-  createAnomaly,
-  resolveAnomaly,
-  deferAnomaly,
-  reactivateAnomaly,
-  linkSpawnedHypothesis,
-  generateAnomalyId,
-  type Anomaly,
-  type QuarantineStatus,
-} from "./apps/web/src/lib/schemas/anomaly";
-import { AssumptionStorage } from "./apps/web/src/lib/storage/assumption-storage";
-import {
-  createAssumption,
-  generateAssumptionId,
-  ScaleCalculationSchema,
-  type Assumption,
-  type AssumptionStatus,
-  type AssumptionType,
-  type ScaleCalculation,
-} from "./apps/web/src/lib/schemas/assumption";
-import { challengeAssumption, verifyAssumption, falsifyAssumption } from "./apps/web/src/lib/schemas/assumption-lifecycle";
-import { CritiqueStorage } from "./apps/web/src/lib/storage/critique-storage";
-import {
-  acceptCritique,
-  addressCritique,
-  createCritique,
-  dismissCritique,
-  generateCritiqueId,
-  type Critique,
-  type CritiqueAction,
-  type CritiqueSeverity,
-  type CritiqueStatus,
-  type CritiqueTargetType,
-} from "./apps/web/src/lib/schemas/critique";
-import { ProgramStorage } from "./apps/web/src/lib/storage/program-storage";
-import { DashboardAggregator } from "./apps/web/src/lib/storage/program-dashboard";
-import {
-  createResearchProgram,
-  generateProgramId,
-  addSessionToProgram,
-  removeSessionFromProgram,
-  pauseProgram,
-  resumeProgram,
-  completeProgram,
-  abandonProgram,
-  type ResearchProgram,
-  type ProgramStatus,
-} from "./apps/web/src/lib/schemas/research-program";
-import { HypothesisStorage } from "./apps/web/src/lib/storage/hypothesis-storage";
-import {
-  createHypothesis,
-  generateHypothesisId,
-  HypothesisSchema,
-  type Hypothesis,
-  type HypothesisState,
-  type HypothesisCategory,
-  type HypothesisOrigin,
-  type HypothesisConfidence,
-} from "./apps/web/src/lib/schemas/hypothesis";
-import {
-  transitionHypothesis,
-  activateHypothesis,
-  refuteHypothesis,
-  confirmHypothesis,
-  supersedeHypothesis,
-  deferHypothesis,
-  reactivateHypothesis,
-  isTerminalState,
-  type StateTransition,
-} from "./apps/web/src/lib/schemas/hypothesis-lifecycle";
-import { TestStorage } from "./apps/web/src/lib/storage/test-storage";
-import { PredictionSchema, type Prediction } from "./apps/web/src/lib/schemas/prediction";
-import { TestRecordSchema, type TestRecord, type TestStatus } from "./apps/web/src/lib/schemas/test-record";
-import {
-  recordTestExecution,
-  suggestTransitionsFromExecution,
-  type ExecutionInput,
-} from "./apps/web/src/lib/schemas/test-binding";
-import {
-  scoreSession,
-  BRENNER_QUOTES,
-  type SessionData,
-  type SessionDimensionScore,
-  type DimensionScore,
-} from "./apps/web/src/lib/schemas/scorecard";
-import {
-  createEmptySessionRecord,
-  createTraceMessage,
-  computeContentHash,
-  validateSessionRecord,
-  isReplayable,
-} from "./apps/web/src/lib/schemas/session-replay";
 
 function isRecord(value: Json): value is { [key: string]: Json } {
   return typeof value === "object" && value !== null && !Array.isArray(value);
@@ -178,7 +200,8 @@ function parseEnsureProjectSlug(result: Json): string | undefined {
     if (isRecord(first) && typeof first.text === "string") {
       try {
         const parsed = JSON.parse(first.text) as Json;
-        if (isRecord(parsed) && typeof parsed.slug === "string" && parsed.slug.length > 0) return parsed.slug;
+        if (isRecord(parsed) && typeof parsed.slug === "string" && parsed.slug.length > 0)
+          return parsed.slug;
       } catch {
         return undefined;
       }
@@ -203,7 +226,8 @@ function parseAgentNameFromToolResult(result: Json): string | undefined {
     if (isRecord(first) && typeof first.text === "string") {
       try {
         const parsed = JSON.parse(first.text) as Json;
-        if (isRecord(parsed) && typeof parsed.name === "string" && parsed.name.length > 0) return parsed.name;
+        if (isRecord(parsed) && typeof parsed.name === "string" && parsed.name.length > 0)
+          return parsed.name;
       } catch {
         return undefined;
       }
@@ -284,7 +308,11 @@ function splitCsv(value: string | undefined): string[] {
     .filter(Boolean);
 }
 
-const VALID_ROSTER_ROLES: AgentRole[] = ["hypothesis_generator", "test_designer", "adversarial_critic"];
+const VALID_ROSTER_ROLES: AgentRole[] = [
+  "hypothesis_generator",
+  "test_designer",
+  "adversarial_critic",
+];
 
 function parseRoleMapFlag(value: string): Record<string, AgentRole> {
   const parts = value
@@ -293,7 +321,7 @@ function parseRoleMapFlag(value: string): Record<string, AgentRole> {
     .filter(Boolean);
   if (parts.length === 0) {
     throw new Error(
-      `Invalid --role-map: expected "Name=role,Name=role" (roles: ${VALID_ROSTER_ROLES.join(", ")})`
+      `Invalid --role-map: expected "Name=role,Name=role" (roles: ${VALID_ROSTER_ROLES.join(", ")})`,
     );
   }
 
@@ -313,13 +341,15 @@ function parseRoleMapFlag(value: string): Record<string, AgentRole> {
     const normalizedName = name.toLowerCase();
     const previous = seen.get(normalizedName);
     if (previous) {
-      throw new Error(`Invalid --role-map: duplicate mapping for "${name}" (also provided for "${previous}")`);
+      throw new Error(
+        `Invalid --role-map: duplicate mapping for "${name}" (also provided for "${previous}")`,
+      );
     }
     seen.set(normalizedName, name);
 
     if (!VALID_ROSTER_ROLES.includes(roleRaw as AgentRole)) {
       throw new Error(
-        `Invalid --role-map role for "${name}": "${roleRaw}". Expected one of: ${VALID_ROSTER_ROLES.join(", ")}`
+        `Invalid --role-map role for "${name}": "${roleRaw}". Expected one of: ${VALID_ROSTER_ROLES.join(", ")}`,
       );
     }
 
@@ -446,7 +476,8 @@ function saveHypothesisTransitionLog(baseDir: string, log: HypothesisTransitionL
 }
 
 function appendHypothesisTransition(baseDir: string, transition: StateTransition): void {
-  const sessionId = transition.sessionId ?? extractSessionIdFromHypothesisId(transition.hypothesisId);
+  const sessionId =
+    transition.sessionId ?? extractSessionIdFromHypothesisId(transition.hypothesisId);
   if (!sessionId) return;
 
   const log = loadHypothesisTransitionLog(baseDir, sessionId);
@@ -564,23 +595,29 @@ type EvidencePack = {
   records: EvidenceRecord[];
 };
 
-function bestEffortGitProvenance(cwd: string):
-  | {
-      sha: string;
-      dirty: boolean;
-      status_porcelain: string[];
-    }
-  | null {
+function bestEffortGitProvenance(cwd: string): {
+  sha: string;
+  dirty: boolean;
+  status_porcelain: string[];
+} | null {
   const gitPath = Bun.which("git");
   if (!gitPath) return null;
 
   try {
-    const rev = Bun.spawnSync([gitPath, "rev-parse", "HEAD"], { cwd, stdout: "pipe", stderr: "pipe" });
+    const rev = Bun.spawnSync([gitPath, "rev-parse", "HEAD"], {
+      cwd,
+      stdout: "pipe",
+      stderr: "pipe",
+    });
     if (rev.exitCode !== 0) return null;
     const sha = rev.stdout.toString().trim();
     if (!sha) return null;
 
-    const status = Bun.spawnSync([gitPath, "status", "--porcelain"], { cwd, stdout: "pipe", stderr: "pipe" });
+    const status = Bun.spawnSync([gitPath, "status", "--porcelain"], {
+      cwd,
+      stdout: "pipe",
+      stderr: "pipe",
+    });
     if (status.exitCode !== 0) return null;
     const statusLines = status.stdout
       .toString()
@@ -608,7 +645,8 @@ function resolveWebAppCwd(projectKey: string): string {
   const absoluteProjectKey = resolve(projectKey);
 
   const webAppMarkerFiles = ["package.json", "next.config.ts"];
-  if (webAppMarkerFiles.every((f) => existsSync(join(absoluteProjectKey, f)))) return absoluteProjectKey;
+  if (webAppMarkerFiles.every((f) => existsSync(join(absoluteProjectKey, f))))
+    return absoluteProjectKey;
 
   let cursor = absoluteProjectKey;
   while (true) {
@@ -624,7 +662,7 @@ function resolveWebAppCwd(projectKey: string): string {
     `Could not locate apps/web from project key: ${absoluteProjectKey}\n` +
       `Expected either:\n` +
       `- A repo root (or subdir) containing apps/web/package.json\n` +
-      `- The web app root itself (apps/web) containing: ${webAppMarkerFiles.join(", ")}`
+      `- The web app root itself (apps/web) containing: ${webAppMarkerFiles.join(", ")}`,
   );
 }
 
@@ -743,7 +781,8 @@ function parseBrennerConfigJson(text: string, configPath: string): BrennerConfig
 
   const agentMail = parsed.agentMail;
   if (agentMail !== undefined) {
-    if (!isRecord(agentMail)) throw new Error(`Config field "agentMail" must be an object: ${configPath}`);
+    if (!isRecord(agentMail))
+      throw new Error(`Config field "agentMail" must be an object: ${configPath}`);
     const baseUrl = nonEmptyString(agentMail.baseUrl);
     const path = nonEmptyString(agentMail.path);
     const bearerToken = nonEmptyString(agentMail.bearerToken);
@@ -758,7 +797,8 @@ function parseBrennerConfigJson(text: string, configPath: string): BrennerConfig
 
   const defaults = parsed.defaults;
   if (defaults !== undefined) {
-    if (!isRecord(defaults)) throw new Error(`Config field "defaults" must be an object: ${configPath}`);
+    if (!isRecord(defaults))
+      throw new Error(`Config field "defaults" must be an object: ${configPath}`);
     const projectKey = nonEmptyString(defaults.projectKey);
     const template = nonEmptyString(defaults.template);
     if (projectKey || template) {
@@ -793,10 +833,11 @@ function loadBrennerConfig(flags: ParsedArgs["flags"]): BrennerLoadedConfig {
 
 function resolveBrennerRuntimeConfig(loaded: BrennerLoadedConfig): BrennerRuntimeConfig {
   const fileAgentMail = loaded.config.agentMail;
-  const baseUrl = (envNonEmpty("AGENT_MAIL_BASE_URL") ?? fileAgentMail?.baseUrl ?? "http://127.0.0.1:8765").replace(
-    /\/+$/,
-    "",
-  );
+  const baseUrl = (
+    envNonEmpty("AGENT_MAIL_BASE_URL") ??
+    fileAgentMail?.baseUrl ??
+    "http://127.0.0.1:8765"
+  ).replace(/\/+$/, "");
   const rawPath = envNonEmpty("AGENT_MAIL_PATH") ?? fileAgentMail?.path ?? "/mcp/";
   const path = rawPath.startsWith("/") ? rawPath : `/${rawPath}`;
   const bearerToken = envNonEmpty("AGENT_MAIL_BEARER_TOKEN") ?? fileAgentMail?.bearerToken;
@@ -947,7 +988,7 @@ function runCommand(command: string): { exitCode: number; stdout: string; stderr
 }
 
 function normalizeExcerptQuote(text: string, maxWords: number): string {
-  const normalized = text.replace(/\s+/g, " ").trim().replaceAll("\"", "'");
+  const normalized = text.replace(/\s+/g, " ").trim().replaceAll('"', "'");
   const words = normalized.split(/\s+/).filter(Boolean);
   if (words.length <= maxWords) return normalized;
   return words.slice(0, maxWords).join(" ") + "...";
@@ -1058,7 +1099,9 @@ function parseCassMemoryContext(raw: Json, fallbackTask: string): CassMemoryCont
     ? raw.relevantBullets.map((item) => normalizeCassMemoryBullet(item))
     : [];
 
-  const antiPatterns = Array.isArray(raw.antiPatterns) ? raw.antiPatterns.map((item) => normalizeCassMemoryBullet(item)) : [];
+  const antiPatterns = Array.isArray(raw.antiPatterns)
+    ? raw.antiPatterns.map((item) => normalizeCassMemoryBullet(item))
+    : [];
 
   const historySnippets = Array.isArray(raw.historySnippets)
     ? raw.historySnippets.map((item) => normalizeCassMemoryHistorySnippet(item))
@@ -1097,7 +1140,8 @@ function extractMcpToolPayload(result: Json): Json | null {
   const structured = result.structuredContent;
   if (isRecord(structured)) {
     if (typeof structured.success === "boolean") return structured;
-    if (isRecord(structured.result) && typeof structured.result.success === "boolean") return structured.result;
+    if (isRecord(structured.result) && typeof structured.result.success === "boolean")
+      return structured.result;
   }
 
   const content = result.content;
@@ -1115,13 +1159,16 @@ function extractMcpToolPayload(result: Json): Json | null {
   return null;
 }
 
-async function getCassMemoryContext(task: string, options: CassMemoryContextOptions = {}): Promise<CassMemoryContextResult> {
+async function getCassMemoryContext(
+  task: string,
+  options: CassMemoryContextOptions = {},
+): Promise<CassMemoryContextResult> {
   const startedAt = new Date().toISOString();
   const startMs = Date.now();
   const errors: string[] = [];
 
   let mcpContext: CassMemoryContextNormalized | null = null;
-  let mcpProvenance: CassMemoryContextProvenance["mcp"] | undefined = undefined;
+  let mcpProvenance: CassMemoryContextProvenance["mcp"] | undefined;
 
   const mcpBaseUrl = process.env.CM_MCP_BASE_URL?.trim();
   const mcpPath = (process.env.CM_MCP_PATH ?? "/mcp/").trim() || "/mcp/";
@@ -1137,7 +1184,11 @@ async function getCassMemoryContext(task: string, options: CassMemoryContextOpti
 
   if (mcpBaseUrl) {
     try {
-      const mcpClient = new AgentMailClient({ baseUrl: mcpBaseUrl, path: mcpPath, bearerToken: mcpBearerToken });
+      const mcpClient = new AgentMailClient({
+        baseUrl: mcpBaseUrl,
+        path: mcpPath,
+        bearerToken: mcpBearerToken,
+      });
       mcpProvenance = { baseUrl: mcpBaseUrl, path: mcpPath, tool: "cm_context", args: toolArgs };
       const toolResult = await mcpClient.toolsCall("cm_context", toolArgs);
       if (isToolError(toolResult)) {
@@ -1181,9 +1232,17 @@ async function getCassMemoryContext(task: string, options: CassMemoryContextOpti
     const durationMs = Date.now() - startMs;
     const allErrors = [...errors, "cm not found"];
     if (mcpContext) {
-      return { ok: false, context: mcpContext, provenance: { mode: "mcp", startedAt, durationMs, mcp: mcpProvenance, errors: allErrors } };
+      return {
+        ok: false,
+        context: mcpContext,
+        provenance: { mode: "mcp", startedAt, durationMs, mcp: mcpProvenance, errors: allErrors },
+      };
     }
-    return { ok: false, context: null, provenance: { mode: "none", startedAt, durationMs, errors: allErrors } };
+    return {
+      ok: false,
+      context: null,
+      provenance: { mode: "none", startedAt, durationMs, errors: allErrors },
+    };
   }
 
   const argv: string[] = [cmPath, "context", task, "--json"];
@@ -1206,9 +1265,17 @@ async function getCassMemoryContext(task: string, options: CassMemoryContextOpti
       errors.push(`cm context exited ${exitCode}: ${stderr.trim() || "(no stderr)"}`);
       const cli = { argv, exitCode, stderr };
       if (mcpContext) {
-        return { ok: false, context: mcpContext, provenance: { mode: "mcp", startedAt, durationMs, mcp: mcpProvenance, cli, errors } };
+        return {
+          ok: false,
+          context: mcpContext,
+          provenance: { mode: "mcp", startedAt, durationMs, mcp: mcpProvenance, cli, errors },
+        };
       }
-      return { ok: false, context: null, provenance: { mode: "cli", startedAt, durationMs, cli, errors } };
+      return {
+        ok: false,
+        context: null,
+        provenance: { mode: "cli", startedAt, durationMs, cli, errors },
+      };
     }
 
     let payload: Json;
@@ -1219,9 +1286,17 @@ async function getCassMemoryContext(task: string, options: CassMemoryContextOpti
       errors.push(`cm context returned non-JSON stdout: ${msg}`);
       const cli = { argv, exitCode, stderr };
       if (mcpContext) {
-        return { ok: false, context: mcpContext, provenance: { mode: "mcp", startedAt, durationMs, mcp: mcpProvenance, cli, errors } };
+        return {
+          ok: false,
+          context: mcpContext,
+          provenance: { mode: "mcp", startedAt, durationMs, mcp: mcpProvenance, cli, errors },
+        };
       }
-      return { ok: false, context: null, provenance: { mode: "cli", startedAt, durationMs, cli, errors } };
+      return {
+        ok: false,
+        context: null,
+        provenance: { mode: "cli", startedAt, durationMs, cli, errors },
+      };
     }
 
     const parsed = parseCassMemoryContext(payload, task);
@@ -1248,7 +1323,11 @@ async function getCassMemoryContext(task: string, options: CassMemoryContextOpti
     const msg = e instanceof Error ? e.message : String(e);
     errors.push(`cm context spawn error: ${msg}`);
     if (mcpContext) {
-      return { ok: false, context: mcpContext, provenance: { mode: "mcp", startedAt, durationMs, mcp: mcpProvenance, errors } };
+      return {
+        ok: false,
+        context: mcpContext,
+        provenance: { mode: "mcp", startedAt, durationMs, mcp: mcpProvenance, errors },
+      };
     }
     return { ok: false, context: null, provenance: { mode: "cli", startedAt, durationMs, errors } };
   }
@@ -1271,7 +1350,7 @@ function formatCassMemoryContextForKickoff(result: CassMemoryContextResult): str
   const lines: string[] = [];
   lines.push("## MEMORY CONTEXT (cass-memory)");
   lines.push(
-    `> Provenance: Generated by cass-memory (${result.provenance.mode}) at ${result.provenance.startedAt}. These are heuristics, not transcript evidence. If anything conflicts with the excerpt, the excerpt wins.`
+    `> Provenance: Generated by cass-memory (${result.provenance.mode}) at ${result.provenance.startedAt}. These are heuristics, not transcript evidence. If anything conflicts with the excerpt, the excerpt wins.`,
   );
   lines.push("");
 
@@ -1744,7 +1823,9 @@ async function diagnoseSessionDeltas(args: {
     if (parsed.totalBlocks === 0 && body.trim().length > 0) {
       // Check if body looks like it contains JSON
       if (body.includes('"operation"') || body.includes('"section"')) {
-        issues.push("INLINE_JSON: Message appears to contain delta JSON without fenced ```delta block");
+        issues.push(
+          "INLINE_JSON: Message appears to contain delta JSON without fenced ```delta block",
+        );
       } else {
         issues.push("NO_DELTA_BLOCKS: DELTA message contains no fenced delta blocks");
       }
@@ -1758,7 +1839,11 @@ async function diagnoseSessionDeltas(args: {
     }
 
     const status: "ok" | "warning" | "error" =
-      issues.length === 0 ? "ok" : issues.some((i) => i.startsWith("INLINE_JSON")) ? "error" : "warning";
+      issues.length === 0
+        ? "ok"
+        : issues.some((i) => i.startsWith("INLINE_JSON"))
+          ? "error"
+          : "warning";
 
     if (status === "ok") {
       healthyCount++;
@@ -1839,7 +1924,11 @@ async function compileSessionArtifact(args: {
     await args.client.toolsCall("ensure_project", { human_key: args.projectKey });
   }
 
-  const thread = await args.client.readThread({ projectKey: args.projectKey, threadId: args.threadId, includeBodies: true });
+  const thread = await args.client.readThread({
+    projectKey: args.projectKey,
+    threadId: args.threadId,
+    includeBodies: true,
+  });
   const version = computeNextCompiledVersion(thread.messages);
 
   const base = createEmptyArtifact(args.threadId);
@@ -1920,11 +2009,11 @@ async function compileSessionArtifact(args: {
           remediation_template: [
             "```delta",
             "{",
-            '  \"operation\": \"ADD\",',
-            '  \"section\": \"hypothesis_slate\",',
-            '  \"target_id\": null,',
-            '  \"payload\": { \"id\": \"H1\", \"name\": \"…\", \"claim\": \"…\", \"mechanism\": \"…\", \"anchors\": [\"inference\"] },',
-            '  \"rationale\": \"…\"',
+            '  "operation": "ADD",',
+            '  "section": "hypothesis_slate",',
+            '  "target_id": null,',
+            '  "payload": { "id": "H1", "name": "…", "claim": "…", "mechanism": "…", "anchors": ["inference"] },',
+            '  "rationale": "…"',
             "}",
             "```",
           ].join("\n"),
@@ -1995,12 +2084,14 @@ const LINT_OPERATOR_GUIDANCE: Record<
   "EH-001": {
     operators: ["◊ Paradox-Hunt", "⊕ Cross-Domain", "⊘ Level-Split"],
     suggested_role: "hypothesis_generator",
-    next_action: "Add 2-4 hypotheses (including a third alternative) with claim, mechanism, and anchors.",
+    next_action:
+      "Add 2-4 hypotheses (including a third alternative) with claim, mechanism, and anchors.",
   },
   "EH-002": {
     operators: ["≡ Invariant-Extract", "✂ Exclusion-Test", "† Theory-Kill"],
     suggested_role: "hypothesis_generator",
-    next_action: "Consolidate or kill hypotheses until <= 6; use invariants + exclusion tests to prune model families.",
+    next_action:
+      "Consolidate or kill hypotheses until <= 6; use invariants + exclusion tests to prune model families.",
   },
   "EH-003": {
     operators: ["⊘ Level-Split", "✂ Exclusion-Test", "◊ Paradox-Hunt"],
@@ -2013,7 +2104,8 @@ const LINT_OPERATOR_GUIDANCE: Record<
   "EP-001": {
     operators: ["⌂ Materialize", "𝓛 Recode"],
     suggested_role: "hypothesis_generator",
-    next_action: "Add 3+ prediction rows in observable terms; ensure each row is testable and anchored.",
+    next_action:
+      "Add 3+ prediction rows in observable terms; ensure each row is testable and anchored.",
   },
   "WP-001": {
     operators: ["𝓛 Recode", "⌂ Materialize", "✂ Exclusion-Test"],
@@ -2026,7 +2118,8 @@ const LINT_OPERATOR_GUIDANCE: Record<
   "ET-001": {
     operators: ["✂ Exclusion-Test", "⌂ Materialize", "⚡ Quickie / Pilot"],
     suggested_role: "test_designer",
-    next_action: "Add 2+ discriminative tests with clear procedures, expected outcomes per hypothesis, potency checks, and scores.",
+    next_action:
+      "Add 2+ discriminative tests with clear procedures, expected outcomes per hypothesis, potency checks, and scores.",
   },
   "ET-002": {
     operators: ["⌂ Materialize"],
@@ -2036,41 +2129,48 @@ const LINT_OPERATOR_GUIDANCE: Record<
   "ET-003": {
     operators: ["⌂ Materialize", "⊘ Level-Split"],
     suggested_role: "test_designer",
-    next_action: "Add expected_outcomes mapping (H1/H2/...) and ensure outcomes are level-typed and discriminative.",
+    next_action:
+      "Add expected_outcomes mapping (H1/H2/...) and ensure outcomes are level-typed and discriminative.",
   },
   "WT-001": {
     operators: ["🎭 Potency-Check"],
     suggested_role: "test_designer",
-    next_action: "Add potency_check positive controls to distinguish assay failure (impotence) from no effect (chastity).",
+    next_action:
+      "Add potency_check positive controls to distinguish assay failure (impotence) from no effect (chastity).",
   },
 
   // Assumptions / scale
   "EA-001": {
     operators: ["≡ Invariant-Extract", "⊞ Scale-Check"],
     suggested_role: "adversarial_critic",
-    next_action: "Add 3+ load-bearing assumptions; include at least one explicit scale/physics assumption.",
+    next_action:
+      "Add 3+ load-bearing assumptions; include at least one explicit scale/physics assumption.",
   },
   "EA-002": {
     operators: ["⊞ Scale-Check"],
     suggested_role: "adversarial_critic",
-    next_action: "Add a scale_check: true assumption with explicit numbers/units and what it would rule out if violated.",
+    next_action:
+      "Add a scale_check: true assumption with explicit numbers/units and what it would rule out if violated.",
   },
   "WA-003": {
     operators: ["⊞ Scale-Check"],
     suggested_role: "adversarial_critic",
-    next_action: "Add a calculation field with explicit numbers and units (order-of-magnitude is OK).",
+    next_action:
+      "Add a calculation field with explicit numbers and units (order-of-magnitude is OK).",
   },
 
   // Critique / third alternative
   "EC-001": {
     operators: ["ΔE Exception-Quarantine", "† Theory-Kill", "⊞ Scale-Check"],
     suggested_role: "adversarial_critic",
-    next_action: "Add 2+ critiques focusing on framing failure modes, scale impossibilities, and explicit theory-kill conditions.",
+    next_action:
+      "Add 2+ critiques focusing on framing failure modes, scale impossibilities, and explicit theory-kill conditions.",
   },
   "WC-001": {
     operators: ["◊ Paradox-Hunt", "⊕ Cross-Domain"],
     suggested_role: "adversarial_critic",
-    next_action: "Propose a specific alternative framing and mark real_third_alternative: true on at least one critique.",
+    next_action:
+      "Propose a specific alternative framing and mark real_third_alternative: true on at least one critique.",
   },
 };
 
@@ -2104,7 +2204,9 @@ function pickTopLintGap(lint: LintReport): LintViolation | null {
   return lint.violations[0] ?? null;
 }
 
-function formatOperatorRecommendationsHuman(recommendations: OperatorRecommendation[]): string | null {
+function formatOperatorRecommendationsHuman(
+  recommendations: OperatorRecommendation[],
+): string | null {
   if (recommendations.length === 0) return null;
 
   const lines: string[] = [];
@@ -2139,8 +2241,7 @@ function loadOperatorCardsFromProject(projectKey: string): OperatorCard[] {
   }
 
   throw new Error(
-    `Operator library not found. Expected one of:\n` +
-      candidates.map((c) => `- ${c}`).join("\n"),
+    `Operator library not found. Expected one of:\n` + candidates.map((c) => `- ${c}`).join("\n"),
   );
 }
 
@@ -2160,7 +2261,10 @@ function toNullProtoRecord<V>(entries: Array<[string, V]>): Record<string, V> {
  * Build SessionData from storage for scoring.
  * Maps storage types to Artifact sections expected by scoreSession().
  */
-async function buildSessionDataFromStorage(sessionId: string, baseDir: string): Promise<SessionData> {
+async function buildSessionDataFromStorage(
+  sessionId: string,
+  baseDir: string,
+): Promise<SessionData> {
   const hypothesisStorage = new HypothesisStorage({ baseDir });
   const testStorage = new TestStorage({ baseDir });
   const assumptionStorage = new AssumptionStorage({ baseDir });
@@ -2185,17 +2289,22 @@ async function buildSessionDataFromStorage(sessionId: string, baseDir: string): 
     anchors: h.anchors ?? [],
   }));
 
-	  const discriminativeTests = tests.map((t) => ({
-	    id: t.id,
-	    name: t.name,
-	    procedure: t.procedure,
-	    discriminates: t.discriminates.join(", "),
-	    expected_outcomes: toNullProtoRecord(t.expectedOutcomes.map((o) => [o.hypothesisId, o.outcome])),
-	    potency_check: t.potencyCheck?.positiveControl ?? "",
-	    feasibility: t.feasibility ? `${t.feasibility.difficulty}: ${t.feasibility.requirements}` : "",
-	    status: t.status === "completed" ? ("passed" as const) : (t.status as "untested" | "passed" | "failed" | "blocked" | "error"),
-	    score: {
-	      likelihood_ratio: t.evidencePerWeekScore.likelihoodRatio,
+  const discriminativeTests = tests.map((t) => ({
+    id: t.id,
+    name: t.name,
+    procedure: t.procedure,
+    discriminates: t.discriminates.join(", "),
+    expected_outcomes: toNullProtoRecord(
+      t.expectedOutcomes.map((o) => [o.hypothesisId, o.outcome]),
+    ),
+    potency_check: t.potencyCheck?.positiveControl ?? "",
+    feasibility: t.feasibility ? `${t.feasibility.difficulty}: ${t.feasibility.requirements}` : "",
+    status:
+      t.status === "completed"
+        ? ("passed" as const)
+        : (t.status as "untested" | "passed" | "failed" | "blocked" | "error"),
+    score: {
+      likelihood_ratio: t.evidencePerWeekScore.likelihoodRatio,
       cost: t.evidencePerWeekScore.cost,
       speed: t.evidencePerWeekScore.speed,
       ambiguity: t.evidencePerWeekScore.ambiguity,
@@ -2210,7 +2319,9 @@ async function buildSessionDataFromStorage(sessionId: string, baseDir: string): 
     test: a.testMethod ?? "",
     status: a.status as "unchecked" | "verified" | "falsified" | undefined,
     scale_check: a.type === "scale_physics",
-    calculation: a.calculation ? `${a.calculation.quantities} → ${a.calculation.result}` : undefined,
+    calculation: a.calculation
+      ? `${a.calculation.quantities} → ${a.calculation.result}`
+      : undefined,
   }));
 
   const anomalyRegister = anomalies.map((x) => ({
@@ -2313,13 +2424,16 @@ async function main(): Promise<void> {
       if (!platform) {
         warnings.push(
           `Unsupported platform for toolchain manifest: ${process.platform}/${process.arch}. ` +
-            `Falling back to presence-only checks.`
+            `Falling back to presence-only checks.`,
         );
       } else {
         const plan = generateInstallPlan(parsed.manifest, platform);
         manifestTools = {};
         for (const t of plan.targets) {
-          manifestTools[t.tool] = { verifyCommand: t.verifyCommand ?? undefined, notes: t.notes ?? undefined };
+          manifestTools[t.tool] = {
+            verifyCommand: t.verifyCommand ?? undefined,
+            notes: t.notes ?? undefined,
+          };
         }
         for (const skipped of plan.skipped) {
           manifestTools[skipped.tool] = { notes: skipped.reason };
@@ -2335,7 +2449,10 @@ async function main(): Promise<void> {
 
     const checks: Record<string, DoctorCheck> = {};
 
-    const checkTool = (tool: "ntm" | "cass" | "cm", opts: { skip: boolean; required: boolean }): void => {
+    const checkTool = (
+      tool: "ntm" | "cass" | "cm",
+      opts: { skip: boolean; required: boolean },
+    ): void => {
       const meta = manifestTools?.[tool];
       const verifyCommand = meta?.verifyCommand ?? defaultVerify[tool] ?? null;
 
@@ -2418,11 +2535,17 @@ async function main(): Promise<void> {
     if (checkAgentMail) {
       const baseUrl = runtimeConfig.agentMail.baseUrl;
       const headers: Record<string, string> = {};
-      if (runtimeConfig.agentMail.bearerToken) headers.Authorization = `Bearer ${runtimeConfig.agentMail.bearerToken}`;
+      if (runtimeConfig.agentMail.bearerToken)
+        headers.Authorization = `Bearer ${runtimeConfig.agentMail.bearerToken}`;
       try {
         const res = await fetch(`${baseUrl}/health/readiness`, { headers });
         if (res.ok) {
-          checks.agentMail = { status: "ok", path: baseUrl, verifyCommand: "GET /health/readiness", exitCode: 0 };
+          checks.agentMail = {
+            status: "ok",
+            path: baseUrl,
+            verifyCommand: "GET /health/readiness",
+            exitCode: 0,
+          };
         } else {
           checks.agentMail = {
             status: "error",
@@ -2459,7 +2582,8 @@ async function main(): Promise<void> {
     // Agent Mail is only checked when explicitly requested (--agent-mail); once
     // requested, a failing check must degrade the overall status so scripted
     // gates (`doctor` as the pre-session health gate) do not get a false green.
-    const agentMailFailed = checks.agentMail.status !== "skipped" && checks.agentMail.status !== "ok";
+    const agentMailFailed =
+      checks.agentMail.status !== "skipped" && checks.agentMail.status !== "ok";
     if (agentMailFailed) {
       const detail = checks.agentMail.notes ? `: ${checks.agentMail.notes}` : "";
       warnings.push(`Agent Mail health check failed (${runtimeConfig.agentMail.baseUrl})${detail}`);
@@ -2491,7 +2615,8 @@ async function main(): Promise<void> {
     let requestedVersion = requestedSemver ?? rawRequestedVersion?.replace(/^v/, "") ?? null;
     if (requestedVersion) {
       const lowered = requestedVersion.toLowerCase();
-      if (lowered === "latest" || lowered === "main" || lowered === "master") requestedVersion = null;
+      if (lowered === "latest" || lowered === "main" || lowered === "master")
+        requestedVersion = null;
     }
 
     const buildInfo = getBrennerBuildInfo();
@@ -2500,7 +2625,8 @@ async function main(): Promise<void> {
     const owner = "Dicklesworthstone";
     const repo = "brenner_bot";
 
-    const suggestableCurrentVersion = currentSemver && !currentSemver.includes("dev") ? currentSemver : null;
+    const suggestableCurrentVersion =
+      currentSemver && !currentSemver.includes("dev") ? currentSemver : null;
     const versionExample = requestedVersion ?? suggestableCurrentVersion;
     const versionExampleSuffix = versionExample ? "" : " # example";
     const resolvedVersionForDisplay = versionExample ?? "0.1.0";
@@ -2516,23 +2642,27 @@ async function main(): Promise<void> {
     lines.push("Pinned release (recommended):");
     lines.push(`  export VERSION="${resolvedVersionForDisplay}"${versionExampleSuffix}`);
     lines.push(
-      `  curl -fsSL "https://raw.githubusercontent.com/${owner}/${repo}/v\${VERSION}/install.sh" | bash -s -- --version "\${VERSION}" --easy-mode --verify`
+      `  curl -fsSL "https://raw.githubusercontent.com/${owner}/${repo}/v\${VERSION}/install.sh" | bash -s -- --version "\${VERSION}" --easy-mode --verify`,
     );
     lines.push("");
     lines.push("Latest from main (not pinned):");
     lines.push(
-      `  curl -fsSL "https://raw.githubusercontent.com/${owner}/${repo}/main/install.sh" | bash -s -- --easy-mode --verify`
+      `  curl -fsSL "https://raw.githubusercontent.com/${owner}/${repo}/main/install.sh" | bash -s -- --easy-mode --verify`,
     );
     lines.push("");
     lines.push("Windows (PowerShell):");
     lines.push(`  $Version = "${resolvedVersionForDisplay}"${versionExampleSuffix}`);
     lines.push(
-      `  iwr "https://raw.githubusercontent.com/${owner}/${repo}/v$Version/install.ps1" -OutFile install.ps1`
+      `  iwr "https://raw.githubusercontent.com/${owner}/${repo}/v$Version/install.ps1" -OutFile install.ps1`,
     );
-    lines.push(`  pwsh -ExecutionPolicy Bypass -File .\\install.ps1 -Version $Version -EasyMode -Verify`);
+    lines.push(
+      `  pwsh -ExecutionPolicy Bypass -File .\\install.ps1 -Version $Version -EasyMode -Verify`,
+    );
     lines.push("");
     lines.push("Notes:");
-    lines.push("- Default install destination is `~/.local/bin` (or override with `--dest <path>` in the installer).");
+    lines.push(
+      "- Default install destination is `~/.local/bin` (or override with `--dest <path>` in the installer).",
+    );
     lines.push("- Remove `--easy-mode` if you do not want PATH changes.");
     lines.push("- Remove `--verify` if you only want installation (not recommended).");
 
@@ -2572,8 +2702,10 @@ async function main(): Promise<void> {
       if (!result.result_id) throw new Error("Result file missing required field: result_id");
       if (!result.test_id) throw new Error("Result file missing required field: test_id");
       if (!result.thread_id) throw new Error("Result file missing required field: thread_id");
-      if (typeof result.exit_code !== "number") throw new Error("Result file missing required field: exit_code");
-      if (typeof result.timed_out !== "boolean") throw new Error("Result file missing required field: timed_out");
+      if (typeof result.exit_code !== "number")
+        throw new Error("Result file missing required field: exit_code");
+      if (typeof result.timed_out !== "boolean")
+        throw new Error("Result file missing required field: timed_out");
 
       // Compute relative path for result_path (relative to project key)
       const resultPath = resultFilePath.startsWith("/")
@@ -2694,8 +2826,10 @@ ${JSON.stringify(delta, null, 2)}
       if (!result.result_id) throw new Error("Result file missing required field: result_id");
       if (!result.test_id) throw new Error("Result file missing required field: test_id");
       if (!result.thread_id) throw new Error("Result file missing required field: thread_id");
-      if (typeof result.exit_code !== "number") throw new Error("Result file missing required field: exit_code");
-      if (typeof result.timed_out !== "boolean") throw new Error("Result file missing required field: timed_out");
+      if (typeof result.exit_code !== "number")
+        throw new Error("Result file missing required field: exit_code");
+      if (typeof result.timed_out !== "boolean")
+        throw new Error("Result file missing required field: timed_out");
 
       // Compute relative path for result_path (relative to project key)
       const resultPath = resultFilePath.startsWith("/")
@@ -2830,7 +2964,9 @@ ${JSON.stringify(delta, null, 2)}
     const safeThreadId = sanitizeThreadIdForArtifactFilename(threadId);
     const safeTestId = sanitizeThreadIdForArtifactFilename(testId);
     if (!outFileRaw && safeThreadId !== threadId) {
-      stderrLine(`Warning: sanitized thread id for experiment path: "${threadId}" -> "${safeThreadId}"`);
+      stderrLine(
+        `Warning: sanitized thread id for experiment path: "${threadId}" -> "${safeThreadId}"`,
+      );
     }
     if (!outFileRaw && safeTestId !== testId) {
       stderrLine(`Warning: sanitized test id for experiment path: "${testId}" -> "${safeTestId}"`);
@@ -2845,7 +2981,7 @@ ${JSON.stringify(delta, null, 2)}
       safeThreadId,
       "experiments",
       safeTestId,
-      `${timestamp}_${resultId}.json`
+      `${timestamp}_${resultId}.json`,
     );
     const outFile = outFileRaw ? resolve(cwd, outFileRaw) : defaultOutFile;
 
@@ -2886,7 +3022,11 @@ ${JSON.stringify(delta, null, 2)}
         const stdoutPromise = proc.stdout ? new Response(proc.stdout).text() : Promise.resolve("");
         const stderrPromise = proc.stderr ? new Response(proc.stderr).text() : Promise.resolve("");
         const exitCodePromise = proc.exited;
-        const [out, err, exitCode] = await Promise.all([stdoutPromise, stderrPromise, exitCodePromise]);
+        const [out, err, exitCode] = await Promise.all([
+          stdoutPromise,
+          stderrPromise,
+          exitCodePromise,
+        ]);
         stdout = out;
         stderr = err;
         const resolvedExitCode = typeof exitCode === "number" ? exitCode : timedOut ? 124 : 1;
@@ -2947,18 +3087,21 @@ ${JSON.stringify(delta, null, 2)}
       const stderrInline = asStringFlag(flags, "stderr");
       const commandRaw = asStringFlag(flags, "command");
 
-      if (stdoutFile && stdoutInline) throw new Error("Use either --stdout-file or --stdout (not both).");
-      if (stderrFile && stderrInline) throw new Error("Use either --stderr-file or --stderr (not both).");
+      if (stdoutFile && stdoutInline)
+        throw new Error("Use either --stdout-file or --stdout (not both).");
+      if (stderrFile && stderrInline)
+        throw new Error("Use either --stderr-file or --stderr (not both).");
 
-      const stdoutText = stdoutFile ? readTextFile(resolve(cwd, stdoutFile)) : stdoutInline ?? "";
-      const stderrText = stderrFile ? readTextFile(resolve(cwd, stderrFile)) : stderrInline ?? "";
+      const stdoutText = stdoutFile ? readTextFile(resolve(cwd, stdoutFile)) : (stdoutInline ?? "");
+      const stderrText = stderrFile ? readTextFile(resolve(cwd, stderrFile)) : (stderrInline ?? "");
 
       let argv: string[] | null = null;
       if (commandRaw) {
         if (commandRaw.trim().startsWith("[")) {
           try {
             const parsed = JSON.parse(commandRaw) as Json;
-            if (Array.isArray(parsed) && parsed.every((v) => typeof v === "string")) argv = parsed as string[];
+            if (Array.isArray(parsed) && parsed.every((v) => typeof v === "string"))
+              argv = parsed as string[];
           } catch {
             // ignore
           }
@@ -3036,7 +3179,9 @@ ${JSON.stringify(delta, null, 2)}
 
     // Prevent directory traversal via special directory names
     if (safeThreadId === "." || safeThreadId === ".." || safeThreadId === "") {
-      throw new Error(`Invalid --thread-id: "${threadId}" (resolves to reserved or empty directory name)`);
+      throw new Error(
+        `Invalid --thread-id: "${threadId}" (resolves to reserved or empty directory name)`,
+      );
     }
 
     const evidenceDir = resolve(projectKey, "artifacts", safeThreadId);
@@ -3051,7 +3196,9 @@ ${JSON.stringify(delta, null, 2)}
       try {
         return JSON.parse(content) as EvidencePack;
       } catch (e) {
-        throw new Error(`Malformed JSON in ${evidenceJsonPath}: ${e instanceof Error ? e.message : String(e)}`);
+        throw new Error(
+          `Malformed JSON in ${evidenceJsonPath}: ${e instanceof Error ? e.message : String(e)}`,
+        );
       }
     }
 
@@ -3071,7 +3218,8 @@ ${JSON.stringify(delta, null, 2)}
     function inferAccessMethod(source: string): EvidenceRecord["access_method"] {
       if (source.startsWith("doi:") || source.startsWith("https://doi.org/")) return "doi";
       if (source.startsWith("http://") || source.startsWith("https://")) return "url";
-      if (source.startsWith("file://") || source.startsWith("/") || source.startsWith("./")) return "file";
+      if (source.startsWith("file://") || source.startsWith("/") || source.startsWith("./"))
+        return "file";
       if (source.startsWith("session://")) return "session";
       return "manual";
     }
@@ -3099,13 +3247,19 @@ ${JSON.stringify(delta, null, 2)}
         lines.push("| Field | Value |");
         lines.push("|-------|-------|");
         lines.push(`| Type | ${rec.type} |`);
-        if (rec.authors?.length) lines.push(`| Authors | ${escapeTableValue(rec.authors.join("; "))} |`);
+        if (rec.authors?.length)
+          lines.push(`| Authors | ${escapeTableValue(rec.authors.join("; "))} |`);
         if (rec.date) lines.push(`| Date | ${escapeTableValue(rec.date)} |`);
         lines.push(`| Source | ${escapeTableValue(rec.source)} |`);
-        lines.push(`| Verified | ${rec.verified ? `Yes${rec.verification_notes ? ` (${escapeTableValue(rec.verification_notes)})` : ""}` : "No"} |`);
-        if (rec.supports?.length) lines.push(`| Supports | ${escapeTableValue(rec.supports.join(", "))} |`);
-        if (rec.refutes?.length) lines.push(`| Refutes | ${escapeTableValue(rec.refutes.join(", "))} |`);
-        if (rec.informs?.length) lines.push(`| Informs | ${escapeTableValue(rec.informs.join(", "))} |`);
+        lines.push(
+          `| Verified | ${rec.verified ? `Yes${rec.verification_notes ? ` (${escapeTableValue(rec.verification_notes)})` : ""}` : "No"} |`,
+        );
+        if (rec.supports?.length)
+          lines.push(`| Supports | ${escapeTableValue(rec.supports.join(", "))} |`);
+        if (rec.refutes?.length)
+          lines.push(`| Refutes | ${escapeTableValue(rec.refutes.join(", "))} |`);
+        if (rec.informs?.length)
+          lines.push(`| Informs | ${escapeTableValue(rec.informs.join(", "))} |`);
         lines.push("");
         lines.push(`**Relevance**: ${rec.relevance}`);
         lines.push("");
@@ -3150,9 +3304,22 @@ ${JSON.stringify(delta, null, 2)}
       const existing = readEvidencePack();
       if (existing) {
         if (jsonMode) {
-          stdoutLine(JSON.stringify({ ok: true, existing: true, path: evidenceJsonPath, records: existing.records.length }, null, 2));
+          stdoutLine(
+            JSON.stringify(
+              {
+                ok: true,
+                existing: true,
+                path: evidenceJsonPath,
+                records: existing.records.length,
+              },
+              null,
+              2,
+            ),
+          );
         } else {
-          stdoutLine(`Evidence pack already exists: ${evidenceJsonPath} (${existing.records.length} records)`);
+          stdoutLine(
+            `Evidence pack already exists: ${evidenceJsonPath} (${existing.records.length} records)`,
+          );
         }
         process.exit(0);
       }
@@ -3186,8 +3353,20 @@ ${JSON.stringify(delta, null, 2)}
       const refutes = splitCsv(asStringFlag(flags, "refutes"));
       const informs = splitCsv(asStringFlag(flags, "informs"));
 
-      const validTypes: EvidenceType[] = ["paper", "preprint", "dataset", "experiment", "observation", "prior_session", "expert_opinion", "code_artifact"];
-      if (!evTypeRaw) throw new Error("Missing --type (paper|preprint|dataset|experiment|observation|prior_session|expert_opinion|code_artifact).");
+      const validTypes: EvidenceType[] = [
+        "paper",
+        "preprint",
+        "dataset",
+        "experiment",
+        "observation",
+        "prior_session",
+        "expert_opinion",
+        "code_artifact",
+      ];
+      if (!evTypeRaw)
+        throw new Error(
+          "Missing --type (paper|preprint|dataset|experiment|observation|prior_session|expert_opinion|code_artifact).",
+        );
       if (!validTypes.includes(evTypeRaw as EvidenceType)) {
         throw new Error(`Invalid --type "${evTypeRaw}". Valid types: ${validTypes.join(", ")}`);
       }
@@ -3234,7 +3413,9 @@ ${JSON.stringify(delta, null, 2)}
       writeEvidencePack(pack);
 
       if (jsonMode) {
-        stdoutLine(JSON.stringify({ ok: true, evidence_id: evId, path: evidenceJsonPath }, null, 2));
+        stdoutLine(
+          JSON.stringify({ ok: true, evidence_id: evId, path: evidenceJsonPath }, null, 2),
+        );
       } else {
         stdoutLine(`Added ${evId}: ${title}`);
       }
@@ -3253,7 +3434,10 @@ ${JSON.stringify(delta, null, 2)}
       if (!text) throw new Error("Missing --text.");
 
       const pack = readEvidencePack();
-      if (!pack) throw new Error(`No evidence pack found at ${evidenceJsonPath}. Run 'evidence init' first.`);
+      if (!pack)
+        throw new Error(
+          `No evidence pack found at ${evidenceJsonPath}. Run 'evidence init' first.`,
+        );
 
       const record = pack.records.find((r) => r.id === evidenceId);
       if (!record) throw new Error(`Evidence record ${evidenceId} not found.`);
@@ -3272,7 +3456,9 @@ ${JSON.stringify(delta, null, 2)}
 
       const fullAnchor = `${evidenceId}#${nextAnchor}`;
       if (jsonMode) {
-        stdoutLine(JSON.stringify({ ok: true, anchor: fullAnchor, path: evidenceJsonPath }, null, 2));
+        stdoutLine(
+          JSON.stringify({ ok: true, anchor: fullAnchor, path: evidenceJsonPath }, null, 2),
+        );
       } else {
         stdoutLine(`Added excerpt ${fullAnchor}`);
       }
@@ -3284,7 +3470,13 @@ ${JSON.stringify(delta, null, 2)}
       const pack = readEvidencePack();
       if (!pack) {
         if (jsonMode) {
-          stdoutLine(JSON.stringify({ ok: true, records: [], path: evidenceJsonPath, exists: false }, null, 2));
+          stdoutLine(
+            JSON.stringify(
+              { ok: true, records: [], path: evidenceJsonPath, exists: false },
+              null,
+              2,
+            ),
+          );
         } else {
           stdoutLine(`No evidence pack found at ${evidenceJsonPath}`);
         }
@@ -3292,7 +3484,13 @@ ${JSON.stringify(delta, null, 2)}
       }
 
       if (jsonMode) {
-        stdoutLine(JSON.stringify({ ok: true, records: pack.records, path: evidenceJsonPath, exists: true }, null, 2));
+        stdoutLine(
+          JSON.stringify(
+            { ok: true, records: pack.records, path: evidenceJsonPath, exists: true },
+            null,
+            2,
+          ),
+        );
       } else {
         if (pack.records.length === 0) {
           stdoutLine("No evidence records.");
@@ -3312,7 +3510,10 @@ ${JSON.stringify(delta, null, 2)}
       const outFile = asStringFlag(flags, "out-file");
 
       const pack = readEvidencePack();
-      if (!pack) throw new Error(`No evidence pack found at ${evidenceJsonPath}. Run 'evidence init' first.`);
+      if (!pack)
+        throw new Error(
+          `No evidence pack found at ${evidenceJsonPath}. Run 'evidence init' first.`,
+        );
 
       const md = renderEvidenceMd(pack);
 
@@ -3350,22 +3551,25 @@ ${JSON.stringify(delta, null, 2)}
       const rawSubject = nonEmptyString(asStringFlag(flags, "subject"));
 
       const pack = readEvidencePack();
-      if (!pack) throw new Error(`No evidence pack found at ${evidenceJsonPath}. Run 'evidence init' first.`);
+      if (!pack)
+        throw new Error(
+          `No evidence pack found at ${evidenceJsonPath}. Run 'evidence init' first.`,
+        );
 
       // Optional filtering to selected evidence IDs (preserve original order)
       const selectedIds = evidenceIdsRaw.length > 0 ? Array.from(new Set(evidenceIdsRaw)) : [];
       const selectedPack: EvidencePack =
         selectedIds.length > 0
           ? (() => {
-            const idSet = new Set(selectedIds);
-            const records = pack.records.filter((r) => idSet.has(r.id));
-            const found = new Set(records.map((r) => r.id));
-            const missing = selectedIds.filter((id) => !found.has(id));
-            if (missing.length > 0) {
-              throw new Error(`Evidence record(s) not found: ${missing.join(", ")}`);
-            }
-            return { ...pack, records };
-          })()
+              const idSet = new Set(selectedIds);
+              const records = pack.records.filter((r) => idSet.has(r.id));
+              const found = new Set(records.map((r) => r.id));
+              const missing = selectedIds.filter((id) => !found.has(id));
+              if (missing.length > 0) {
+                throw new Error(`Evidence record(s) not found: ${missing.join(", ")}`);
+              }
+              return { ...pack, records };
+            })()
           : pack;
 
       const md = renderEvidenceMd(selectedPack).trimEnd();
@@ -3434,7 +3638,9 @@ ${JSON.stringify(delta, null, 2)}
       }
 
       if (jsonMode) {
-        stdoutLine(JSON.stringify({ ok: true, subject, bytes: md.length, message: sendResult }, null, 2));
+        stdoutLine(
+          JSON.stringify({ ok: true, subject, bytes: md.length, message: sendResult }, null, 2),
+        );
       } else {
         stdoutLine(`Sent EVIDENCE message to thread ${threadId}`);
         stdoutLine(`Subject: ${subject}`);
@@ -3453,7 +3659,10 @@ ${JSON.stringify(delta, null, 2)}
       if (!notes) throw new Error("Missing --notes.");
 
       const pack = readEvidencePack();
-      if (!pack) throw new Error(`No evidence pack found at ${evidenceJsonPath}. Run 'evidence init' first.`);
+      if (!pack)
+        throw new Error(
+          `No evidence pack found at ${evidenceJsonPath}. Run 'evidence init' first.`,
+        );
 
       const record = pack.records.find((r) => r.id === evidenceId);
       if (!record) throw new Error(`Evidence record ${evidenceId} not found.`);
@@ -3481,7 +3690,12 @@ ${JSON.stringify(delta, null, 2)}
     const projectKey = asStringFlag(flags, "project-key") ?? runtimeConfig.defaults.projectKey;
     const storage = new AnomalyStorage({ baseDir: projectKey });
 
-    const VALID_QUARANTINE_STATUSES: QuarantineStatus[] = ["active", "resolved", "deferred", "paradigm_shifting"];
+    const VALID_QUARANTINE_STATUSES: QuarantineStatus[] = [
+      "active",
+      "resolved",
+      "deferred",
+      "paradigm_shifting",
+    ];
 
     // Subcommand: list
     if (sub === "list") {
@@ -3489,7 +3703,9 @@ ${JSON.stringify(delta, null, 2)}
       const statusFilter = asStringFlag(flags, "status") as QuarantineStatus | undefined;
 
       if (statusFilter && !VALID_QUARANTINE_STATUSES.includes(statusFilter)) {
-        throw new Error(`Invalid --status "${statusFilter}" (expected one of: ${VALID_QUARANTINE_STATUSES.join(", ")})`);
+        throw new Error(
+          `Invalid --status "${statusFilter}" (expected one of: ${VALID_QUARANTINE_STATUSES.join(", ")})`,
+        );
       }
 
       let anomalies: Anomaly[];
@@ -3514,7 +3730,8 @@ ${JSON.stringify(delta, null, 2)}
           for (const a of anomalies) {
             const status = a.quarantineStatus.padEnd(16);
             const conflicts = a.conflictsWith.hypotheses.join(",") || "(none)";
-            const obsPreview = a.observation.length > 60 ? `${a.observation.slice(0, 60)}...` : a.observation;
+            const obsPreview =
+              a.observation.length > 60 ? `${a.observation.slice(0, 60)}...` : a.observation;
             stdoutLine(`[${status}] ${a.id}: ${obsPreview} (conflicts: ${conflicts})`);
           }
         }
@@ -3538,14 +3755,17 @@ ${JSON.stringify(delta, null, 2)}
         stdoutLine(`Status:          ${anomaly.quarantineStatus}`);
         stdoutLine(`Session:         ${anomaly.sessionId}`);
         stdoutLine(`Observation:     ${anomaly.observation}`);
-        stdoutLine(`Source:          ${anomaly.source.type}${anomaly.source.reference ? ` (${anomaly.source.reference})` : ""}`);
+        stdoutLine(
+          `Source:          ${anomaly.source.type}${anomaly.source.reference ? ` (${anomaly.source.reference})` : ""}`,
+        );
         stdoutLine(`Conflicts with:`);
         stdoutLine(`  Hypotheses:    ${anomaly.conflictsWith.hypotheses.join(", ") || "(none)"}`);
         stdoutLine(`  Assumptions:   ${anomaly.conflictsWith.assumptions.join(", ") || "(none)"}`);
         stdoutLine(`  Description:   ${anomaly.conflictsWith.description}`);
         if (anomaly.resolutionPlan) stdoutLine(`Resolution plan: ${anomaly.resolutionPlan}`);
         if (anomaly.resolvedBy) stdoutLine(`Resolved by:     ${anomaly.resolvedBy}`);
-        if (anomaly.spawnedHypotheses?.length) stdoutLine(`Spawned:         ${anomaly.spawnedHypotheses.join(", ")}`);
+        if (anomaly.spawnedHypotheses?.length)
+          stdoutLine(`Spawned:         ${anomaly.spawnedHypotheses.join(", ")}`);
         stdoutLine(`Created:         ${anomaly.createdAt}`);
         stdoutLine(`Updated:         ${anomaly.updatedAt}`);
       }
@@ -3558,18 +3778,23 @@ ${JSON.stringify(delta, null, 2)}
       const observation = asStringFlag(flags, "observation");
       const conflictsWithRaw = asStringFlag(flags, "conflicts-with");
       const conflictDescription = asStringFlag(flags, "conflict-description");
-      const sessionId = asStringFlag(flags, "session-id") ?? `RS${new Date().toISOString().slice(0, 10).replace(/-/g, "")}`;
+      const sessionId =
+        asStringFlag(flags, "session-id") ??
+        `RS${new Date().toISOString().slice(0, 10).replace(/-/g, "")}`;
       const sourceTypeRaw = asStringFlag(flags, "source-type") ?? "discussion";
       const sourceRef = asStringFlag(flags, "source-ref");
       const name = asStringFlag(flags, "name");
 
       if (!observation) throw new Error("Missing --observation.");
-      if (!conflictsWithRaw) throw new Error("Missing --conflicts-with (e.g., H-RS20251230-001,H-RS20251230-002).");
+      if (!conflictsWithRaw)
+        throw new Error("Missing --conflicts-with (e.g., H-RS20251230-001,H-RS20251230-002).");
       if (!conflictDescription) throw new Error("Missing --conflict-description.");
-      if (!VALID_SOURCE_TYPES.includes(sourceTypeRaw as typeof VALID_SOURCE_TYPES[number])) {
-        throw new Error(`Invalid --source-type "${sourceTypeRaw}" (expected one of: ${VALID_SOURCE_TYPES.join(", ")})`);
+      if (!VALID_SOURCE_TYPES.includes(sourceTypeRaw as (typeof VALID_SOURCE_TYPES)[number])) {
+        throw new Error(
+          `Invalid --source-type "${sourceTypeRaw}" (expected one of: ${VALID_SOURCE_TYPES.join(", ")})`,
+        );
       }
-      const sourceType = sourceTypeRaw as typeof VALID_SOURCE_TYPES[number];
+      const sourceType = sourceTypeRaw as (typeof VALID_SOURCE_TYPES)[number];
 
       const conflictsWithHypotheses = splitCsv(conflictsWithRaw);
       const existingAnomalies = await storage.loadSessionAnomalies(sessionId);
@@ -3608,7 +3833,8 @@ ${JSON.stringify(delta, null, 2)}
       const resolvedByHypothesisId = asStringFlag(flags, "by");
       const notes = asStringFlag(flags, "notes");
 
-      if (!anomalyId) throw new Error("Missing anomaly ID. Usage: anomaly resolve <id> --by <hypothesis-id>");
+      if (!anomalyId)
+        throw new Error("Missing anomaly ID. Usage: anomaly resolve <id> --by <hypothesis-id>");
       if (!resolvedByHypothesisId) throw new Error("Missing --by <hypothesis-id>.");
 
       const anomaly = await storage.getAnomalyById(anomalyId);
@@ -3692,7 +3918,13 @@ ${JSON.stringify(delta, null, 2)}
       await storage.saveAnomaly(updated);
 
       if (jsonMode) {
-        stdoutLine(JSON.stringify({ ok: true, anomaly: updated, spawnedHypothesisId: hypothesisId }, null, 2));
+        stdoutLine(
+          JSON.stringify(
+            { ok: true, anomaly: updated, spawnedHypothesisId: hypothesisId },
+            null,
+            2,
+          ),
+        );
       } else {
         stdoutLine(`Spawned hypothesis ${hypothesisId} from ${anomalyId}`);
         stdoutLine(`Note: Create the full hypothesis record separately with the hypothesis CLI.`);
@@ -3731,12 +3963,21 @@ ${JSON.stringify(delta, null, 2)}
     const projectKey = asStringFlag(flags, "project-key") ?? runtimeConfig.defaults.projectKey;
     const storage = new CritiqueStorage({ baseDir: projectKey });
 
-    const VALID_TARGET_TYPES: CritiqueTargetType[] = ["hypothesis", "test", "assumption", "framing", "methodology"];
+    const VALID_TARGET_TYPES: CritiqueTargetType[] = [
+      "hypothesis",
+      "test",
+      "assumption",
+      "framing",
+      "methodology",
+    ];
     const VALID_STATUSES: CritiqueStatus[] = ["active", "addressed", "dismissed", "accepted"];
     const VALID_SEVERITIES: CritiqueSeverity[] = ["minor", "moderate", "serious", "critical"];
     const VALID_ACTIONS: CritiqueAction[] = ["none", "modified", "killed", "new_test"];
 
-    function parseTargetFilter(targetRaw: string): { targetType: CritiqueTargetType; targetId?: string } {
+    function parseTargetFilter(targetRaw: string): {
+      targetType: CritiqueTargetType;
+      targetId?: string;
+    } {
       const target = targetRaw.trim();
       if (!target) {
         throw new Error("Invalid --target (empty).");
@@ -3759,7 +4000,7 @@ ${JSON.stringify(delta, null, 2)}
       }
 
       throw new Error(
-        `Invalid --target "${targetRaw}" (expected H-..., T-..., A-..., framing, or methodology).`
+        `Invalid --target "${targetRaw}" (expected H-..., T-..., A-..., framing, or methodology).`,
       );
     }
 
@@ -3775,14 +4016,18 @@ ${JSON.stringify(delta, null, 2)}
       const targetFilter = targetRaw ? parseTargetFilter(targetRaw) : undefined;
 
       if (statusFilter && !VALID_STATUSES.includes(statusFilter)) {
-        throw new Error(`Invalid --status "${statusFilter}" (expected one of: ${VALID_STATUSES.join(", ")})`);
+        throw new Error(
+          `Invalid --status "${statusFilter}" (expected one of: ${VALID_STATUSES.join(", ")})`,
+        );
       }
       if (severityFilter && !VALID_SEVERITIES.includes(severityFilter)) {
-        throw new Error(`Invalid --severity "${severityFilter}" (expected one of: ${VALID_SEVERITIES.join(", ")})`);
+        throw new Error(
+          `Invalid --severity "${severityFilter}" (expected one of: ${VALID_SEVERITIES.join(", ")})`,
+        );
       }
       if (targetFilter && !VALID_TARGET_TYPES.includes(targetFilter.targetType)) {
         throw new Error(
-          `Invalid --target "${targetRaw}" (expected one of: ${VALID_TARGET_TYPES.join(", ")}, H-..., T-..., A-...).`
+          `Invalid --target "${targetRaw}" (expected one of: ${VALID_TARGET_TYPES.join(", ")}, H-..., T-..., A-...).`,
         );
       }
 
@@ -3794,7 +4039,10 @@ ${JSON.stringify(delta, null, 2)}
       } else if (severityFilter && !statusFilter && !targetFilter) {
         critiques = await storage.getCritiquesBySeverity(severityFilter);
       } else if (targetFilter && !statusFilter && !severityFilter) {
-        critiques = await storage.getCritiquesForTarget(targetFilter.targetType, targetFilter.targetId);
+        critiques = await storage.getCritiquesForTarget(
+          targetFilter.targetType,
+          targetFilter.targetId,
+        );
       } else {
         critiques = await storage.getAllCritiques();
       }
@@ -3803,7 +4051,9 @@ ${JSON.stringify(delta, null, 2)}
       if (severityFilter) critiques = critiques.filter((c) => c.severity === severityFilter);
       if (targetFilter) {
         critiques = critiques.filter(
-          (c) => c.targetType === targetFilter.targetType && (targetFilter.targetId === undefined || c.targetId === targetFilter.targetId)
+          (c) =>
+            c.targetType === targetFilter.targetType &&
+            (targetFilter.targetId === undefined || c.targetId === targetFilter.targetId),
         );
       }
 
@@ -3842,7 +4092,9 @@ ${JSON.stringify(delta, null, 2)}
         stdoutLine(`Session:    ${critique.sessionId}`);
         stdoutLine(`Status:     ${critique.status}`);
         stdoutLine(`Severity:   ${critique.severity}`);
-        stdoutLine(`Target:     ${critique.targetType}${critique.targetId ? ` (${critique.targetId})` : ""}`);
+        stdoutLine(
+          `Target:     ${critique.targetType}${critique.targetId ? ` (${critique.targetId})` : ""}`,
+        );
         if (critique.raisedBy) stdoutLine(`Raised by:  ${critique.raisedBy}`);
         if (critique.anchors?.length) stdoutLine(`Anchors:    ${critique.anchors.join(", ")}`);
         stdoutLine(`Attack:     ${critique.attack}`);
@@ -3864,7 +4116,8 @@ ${JSON.stringify(delta, null, 2)}
           stdoutLine(`  ${critique.response.text}`);
           if (critique.response.respondedBy) stdoutLine(`  By: ${critique.response.respondedBy}`);
           stdoutLine(`  At: ${critique.response.respondedAt}`);
-          if (critique.response.actionTaken) stdoutLine(`  Action: ${critique.response.actionTaken}`);
+          if (critique.response.actionTaken)
+            stdoutLine(`  Action: ${critique.response.actionTaken}`);
           if (critique.response.newTestId) stdoutLine(`  New test: ${critique.response.newTestId}`);
         }
         if (critique.tags?.length) stdoutLine(`Tags:       ${critique.tags.join(", ")}`);
@@ -3881,7 +4134,9 @@ ${JSON.stringify(delta, null, 2)}
       const attack = asStringFlag(flags, "attack");
       const evidenceToConfirm = asStringFlag(flags, "evidence-to-confirm");
       const severityRaw = asStringFlag(flags, "severity") ?? "moderate";
-      const sessionId = asStringFlag(flags, "session-id") ?? `RS${new Date().toISOString().slice(0, 10).replace(/-/g, "")}`;
+      const sessionId =
+        asStringFlag(flags, "session-id") ??
+        `RS${new Date().toISOString().slice(0, 10).replace(/-/g, "")}`;
       const raisedBy = asStringFlag(flags, "by");
       const anchorsRaw = asStringFlag(flags, "anchors");
       const tagsRaw = asStringFlag(flags, "tags");
@@ -3893,13 +4148,18 @@ ${JSON.stringify(delta, null, 2)}
 
       const severity = severityRaw as CritiqueSeverity;
       if (!VALID_SEVERITIES.includes(severity)) {
-        throw new Error(`Invalid --severity "${severityRaw}" (expected one of: ${VALID_SEVERITIES.join(", ")})`);
+        throw new Error(
+          `Invalid --severity "${severityRaw}" (expected one of: ${VALID_SEVERITIES.join(", ")})`,
+        );
       }
 
       const target = parseTargetFilter(targetRaw);
 
       const existing = await storage.loadSessionCritiques(sessionId);
-      const newId = generateCritiqueId(sessionId, existing.map((c) => c.id));
+      const newId = generateCritiqueId(
+        sessionId,
+        existing.map((c) => c.id),
+      );
 
       const critique = createCritique({
         id: newId,
@@ -3933,12 +4193,15 @@ ${JSON.stringify(delta, null, 2)}
       const actionRaw = asStringFlag(flags, "action") ?? "none";
       const newTestId = asStringFlag(flags, "new-test-id");
 
-      if (!critiqueId) throw new Error("Missing critique ID. Usage: critique respond <id> --response <s>");
+      if (!critiqueId)
+        throw new Error("Missing critique ID. Usage: critique respond <id> --response <s>");
       if (!response) throw new Error("Missing --response.");
 
       const actionTaken = actionRaw as CritiqueAction;
       if (!VALID_ACTIONS.includes(actionTaken)) {
-        throw new Error(`Invalid --action "${actionRaw}" (expected one of: ${VALID_ACTIONS.join(", ")})`);
+        throw new Error(
+          `Invalid --action "${actionRaw}" (expected one of: ${VALID_ACTIONS.join(", ")})`,
+        );
       }
       if (actionTaken === "new_test" && !newTestId) {
         throw new Error('Missing --new-test-id (required when --action is "new_test").');
@@ -3973,7 +4236,8 @@ ${JSON.stringify(delta, null, 2)}
       const reason = asStringFlag(flags, "reason");
       const respondedBy = asStringFlag(flags, "by");
 
-      if (!critiqueId) throw new Error("Missing critique ID. Usage: critique dismiss <id> --reason <s>");
+      if (!critiqueId)
+        throw new Error("Missing critique ID. Usage: critique dismiss <id> --reason <s>");
       if (!reason) throw new Error("Missing --reason.");
 
       const critique = await storage.getCritiqueById(critiqueId);
@@ -3998,13 +4262,18 @@ ${JSON.stringify(delta, null, 2)}
       const actionRaw = asStringFlag(flags, "action");
       const newTestId = asStringFlag(flags, "new-test-id");
 
-      if (!critiqueId) throw new Error("Missing critique ID. Usage: critique accept <id> --action <...> --response <s>");
+      if (!critiqueId)
+        throw new Error(
+          "Missing critique ID. Usage: critique accept <id> --action <...> --response <s>",
+        );
       if (!actionRaw) throw new Error("Missing --action.");
       if (!response) throw new Error("Missing --response.");
 
       const actionTaken = actionRaw as CritiqueAction;
       if (!VALID_ACTIONS.includes(actionTaken)) {
-        throw new Error(`Invalid --action "${actionRaw}" (expected one of: ${VALID_ACTIONS.join(", ")})`);
+        throw new Error(
+          `Invalid --action "${actionRaw}" (expected one of: ${VALID_ACTIONS.join(", ")})`,
+        );
       }
       if (actionTaken === "new_test" && !newTestId) {
         throw new Error('Missing --new-test-id (required when --action is "new_test").');
@@ -4021,7 +4290,7 @@ ${JSON.stringify(delta, null, 2)}
         actionTaken,
         response,
         respondedBy || undefined,
-        actionTaken === "new_test" ? newTestId : undefined
+        actionTaken === "new_test" ? newTestId : undefined,
       );
 
       await storage.saveCritique(accepted);
@@ -4045,7 +4314,12 @@ ${JSON.stringify(delta, null, 2)}
     const projectKey = asStringFlag(flags, "project-key") ?? runtimeConfig.defaults.projectKey;
     const storage = new AssumptionStorage({ baseDir: projectKey });
 
-    const VALID_TYPES: AssumptionType[] = ["background", "methodological", "boundary", "scale_physics"];
+    const VALID_TYPES: AssumptionType[] = [
+      "background",
+      "methodological",
+      "boundary",
+      "scale_physics",
+    ];
     const VALID_STATUSES: AssumptionStatus[] = ["unchecked", "challenged", "verified", "falsified"];
 
     // Subcommand: list
@@ -4055,10 +4329,14 @@ ${JSON.stringify(delta, null, 2)}
       const typeFilter = asStringFlag(flags, "type") as AssumptionType | undefined;
 
       if (statusFilter && !VALID_STATUSES.includes(statusFilter)) {
-        throw new Error(`Invalid --status "${statusFilter}" (expected one of: ${VALID_STATUSES.join(", ")})`);
+        throw new Error(
+          `Invalid --status "${statusFilter}" (expected one of: ${VALID_STATUSES.join(", ")})`,
+        );
       }
       if (typeFilter && !VALID_TYPES.includes(typeFilter)) {
-        throw new Error(`Invalid --type "${typeFilter}" (expected one of: ${VALID_TYPES.join(", ")})`);
+        throw new Error(
+          `Invalid --type "${typeFilter}" (expected one of: ${VALID_TYPES.join(", ")})`,
+        );
       }
 
       let assumptions: Assumption[];
@@ -4084,7 +4362,9 @@ ${JSON.stringify(delta, null, 2)}
           for (const a of assumptions) {
             const status = a.status.padEnd(10);
             const type = a.type.padEnd(14);
-            stdoutLine(`[${status}] [${type}] ${a.id}: ${a.statement.slice(0, 80)}${a.statement.length > 80 ? "…" : ""}`);
+            stdoutLine(
+              `[${status}] [${type}] ${a.id}: ${a.statement.slice(0, 80)}${a.statement.length > 80 ? "…" : ""}`,
+            );
           }
         }
       }
@@ -4118,7 +4398,8 @@ ${JSON.stringify(delta, null, 2)}
           stdoutLine(`  Result:      ${assumption.calculation.result}`);
           stdoutLine(`  Units:       ${assumption.calculation.units}`);
           stdoutLine(`  Implication: ${assumption.calculation.implication}`);
-          if (assumption.calculation.whatItRulesOut) stdoutLine(`  Rules out:   ${assumption.calculation.whatItRulesOut}`);
+          if (assumption.calculation.whatItRulesOut)
+            stdoutLine(`  Rules out:   ${assumption.calculation.whatItRulesOut}`);
         }
         if (assumption.anchors?.length) stdoutLine(`Anchors:   ${assumption.anchors.join(", ")}`);
         if (assumption.recordedBy) stdoutLine(`Recorded:  ${assumption.recordedBy}`);
@@ -4133,7 +4414,9 @@ ${JSON.stringify(delta, null, 2)}
     if (sub === "create") {
       const statement = asStringFlag(flags, "statement");
       const type = asStringFlag(flags, "type") as AssumptionType | undefined;
-      const sessionId = asStringFlag(flags, "session-id") ?? `RS${new Date().toISOString().slice(0, 10).replace(/-/g, "")}`;
+      const sessionId =
+        asStringFlag(flags, "session-id") ??
+        `RS${new Date().toISOString().slice(0, 10).replace(/-/g, "")}`;
       const loadDescription = asStringFlag(flags, "load-description");
       const affectedHypotheses = splitCsv(asStringFlag(flags, "affects-hypotheses"));
       const affectedTests = splitCsv(asStringFlag(flags, "affects-tests"));
@@ -4145,7 +4428,8 @@ ${JSON.stringify(delta, null, 2)}
 
       if (!statement) throw new Error("Missing --statement.");
       if (!type) throw new Error(`Missing --type (expected one of: ${VALID_TYPES.join(", ")})`);
-      if (!VALID_TYPES.includes(type)) throw new Error(`Invalid --type "${type}" (expected one of: ${VALID_TYPES.join(", ")})`);
+      if (!VALID_TYPES.includes(type))
+        throw new Error(`Invalid --type "${type}" (expected one of: ${VALID_TYPES.join(", ")})`);
       if (!loadDescription) throw new Error("Missing --load-description.");
 
       let calculation: ScaleCalculation | undefined;
@@ -4154,11 +4438,15 @@ ${JSON.stringify(delta, null, 2)}
         try {
           parsed = JSON.parse(calculationRaw) as unknown;
         } catch {
-          throw new Error("Invalid --calculation: expected JSON (keys: quantities,result,units,implication,whatItRulesOut?)");
+          throw new Error(
+            "Invalid --calculation: expected JSON (keys: quantities,result,units,implication,whatItRulesOut?)",
+          );
         }
         const validated = ScaleCalculationSchema.safeParse(parsed);
         if (!validated.success) {
-          throw new Error(`Invalid --calculation: ${validated.error.issues[0]?.message ?? "validation failed"}`);
+          throw new Error(
+            `Invalid --calculation: ${validated.error.issues[0]?.message ?? "validation failed"}`,
+          );
         }
         calculation = validated.data;
       }
@@ -4168,7 +4456,10 @@ ${JSON.stringify(delta, null, 2)}
       }
 
       const existing = await storage.loadSessionAssumptions(sessionId);
-      const newId = generateAssumptionId(sessionId, existing.map((a) => a.id));
+      const newId = generateAssumptionId(
+        sessionId,
+        existing.map((a) => a.id),
+      );
 
       const assumption = createAssumption({
         id: newId,
@@ -4204,7 +4495,8 @@ ${JSON.stringify(delta, null, 2)}
       const evidence = asStringFlag(flags, "evidence");
       const by = asStringFlag(flags, "by");
 
-      if (!assumptionId) throw new Error("Missing assumption ID. Usage: assumption challenge <id> --reason <s>");
+      if (!assumptionId)
+        throw new Error("Missing assumption ID. Usage: assumption challenge <id> --reason <s>");
       if (!reason) throw new Error("Missing --reason.");
 
       const assumption = await storage.getAssumptionById(assumptionId);
@@ -4236,7 +4528,8 @@ ${JSON.stringify(delta, null, 2)}
       const reason = asStringFlag(flags, "reason");
       const by = asStringFlag(flags, "by");
 
-      if (!assumptionId) throw new Error("Missing assumption ID. Usage: assumption verify <id> --evidence <s>");
+      if (!assumptionId)
+        throw new Error("Missing assumption ID. Usage: assumption verify <id> --evidence <s>");
       if (!evidence) throw new Error("Missing --evidence.");
 
       const assumption = await storage.getAssumptionById(assumptionId);
@@ -4268,7 +4561,8 @@ ${JSON.stringify(delta, null, 2)}
       const reason = asStringFlag(flags, "reason");
       const by = asStringFlag(flags, "by");
 
-      if (!assumptionId) throw new Error("Missing assumption ID. Usage: assumption falsify <id> --evidence <s>");
+      if (!assumptionId)
+        throw new Error("Missing assumption ID. Usage: assumption falsify <id> --evidence <s>");
       if (!evidence) throw new Error("Missing --evidence.");
 
       const assumption = await storage.getAssumptionById(assumptionId);
@@ -4301,7 +4595,9 @@ ${JSON.stringify(delta, null, 2)}
       const loadDescription = asStringFlag(flags, "load-description");
 
       if (!assumptionId || !targetRaw) {
-        throw new Error("Usage: assumption link <assumption-id> <hypothesis-id|test-id> [--load-description <s>]");
+        throw new Error(
+          "Usage: assumption link <assumption-id> <hypothesis-id|test-id> [--load-description <s>]",
+        );
       }
 
       const assumption = await storage.getAssumptionById(assumptionId);
@@ -4322,7 +4618,9 @@ ${JSON.stringify(delta, null, 2)}
           nextTests.add(id);
           continue;
         }
-        throw new Error(`Invalid target ID "${id}" (expected hypothesis H-... or test T-... / T{n})`);
+        throw new Error(
+          `Invalid target ID "${id}" (expected hypothesis H-... or test T-... / T{n})`,
+        );
       }
 
       const updated: Assumption = {
@@ -4377,45 +4675,67 @@ ${JSON.stringify(delta, null, 2)}
   // ============================================================================
   // Hypothesis Command
   // ============================================================================
-	  if (top === "hypothesis") {
-	    const jsonMode = asBoolFlag(flags, "json");
-	    const projectKey = asStringFlag(flags, "project-key") ?? runtimeConfig.defaults.projectKey;
-	    const storage = new HypothesisStorage({ baseDir: projectKey });
+  if (top === "hypothesis") {
+    const jsonMode = asBoolFlag(flags, "json");
+    const projectKey = asStringFlag(flags, "project-key") ?? runtimeConfig.defaults.projectKey;
+    const storage = new HypothesisStorage({ baseDir: projectKey });
 
-	    const VALID_STATES: HypothesisState[] = ["proposed", "active", "confirmed", "refuted", "superseded", "deferred"];
-	    const VALID_CATEGORIES: HypothesisCategory[] = ["mechanistic", "phenomenological", "boundary", "auxiliary", "third_alternative"];
-	    const VALID_ORIGINS: HypothesisOrigin[] = ["proposed", "third_alternative", "refinement", "anomaly_spawned"];
-	    const VALID_CONFIDENCES: HypothesisConfidence[] = ["high", "medium", "low", "speculative"];
+    const VALID_STATES: HypothesisState[] = [
+      "proposed",
+      "active",
+      "confirmed",
+      "refuted",
+      "superseded",
+      "deferred",
+    ];
+    const VALID_CATEGORIES: HypothesisCategory[] = [
+      "mechanistic",
+      "phenomenological",
+      "boundary",
+      "auxiliary",
+      "third_alternative",
+    ];
+    const VALID_ORIGINS: HypothesisOrigin[] = [
+      "proposed",
+      "third_alternative",
+      "refinement",
+      "anomaly_spawned",
+    ];
+    const VALID_CONFIDENCES: HypothesisConfidence[] = ["high", "medium", "low", "speculative"];
 
-	    // Subcommand: list
-	    if (sub === "list") {
-	      const sessionFilter = asStringFlag(flags, "session-id") ?? asStringFlag(flags, "session");
-	      const stateFilterRaw = asStringFlag(flags, "state");
+    // Subcommand: list
+    if (sub === "list") {
+      const sessionFilter = asStringFlag(flags, "session-id") ?? asStringFlag(flags, "session");
+      const stateFilterRaw = asStringFlag(flags, "state");
       const stateFilter =
         stateFilterRaw === "killed"
           ? ("refuted" as HypothesisState)
           : (stateFilterRaw as HypothesisState | undefined);
-	      const categoryFilter = asStringFlag(flags, "category") as HypothesisCategory | undefined;
+      const categoryFilter = asStringFlag(flags, "category") as HypothesisCategory | undefined;
 
-	      if (stateFilter && !VALID_STATES.includes(stateFilter)) {
-	        throw new Error(`Invalid --state "${stateFilter}" (expected one of: ${VALID_STATES.join(", ")})`);
-	      }
+      if (stateFilter && !VALID_STATES.includes(stateFilter)) {
+        throw new Error(
+          `Invalid --state "${stateFilter}" (expected one of: ${VALID_STATES.join(", ")})`,
+        );
+      }
       if (categoryFilter && !VALID_CATEGORIES.includes(categoryFilter)) {
-        throw new Error(`Invalid --category "${categoryFilter}" (expected one of: ${VALID_CATEGORIES.join(", ")})`);
+        throw new Error(
+          `Invalid --category "${categoryFilter}" (expected one of: ${VALID_CATEGORIES.join(", ")})`,
+        );
       }
 
       let hypotheses: Hypothesis[];
 
-	      if (sessionFilter) hypotheses = await storage.loadSessionHypotheses(sessionFilter);
-	      else if (stateFilter) hypotheses = await storage.getHypothesesByState(stateFilter);
-	      else hypotheses = await storage.getAllHypotheses();
+      if (sessionFilter) hypotheses = await storage.loadSessionHypotheses(sessionFilter);
+      else if (stateFilter) hypotheses = await storage.getHypothesesByState(stateFilter);
+      else hypotheses = await storage.getAllHypotheses();
 
-	      if (stateFilter) hypotheses = hypotheses.filter((h) => h.state === stateFilter);
+      if (stateFilter) hypotheses = hypotheses.filter((h) => h.state === stateFilter);
 
-	      // Apply category filter if provided
-	      if (categoryFilter) {
-	        hypotheses = hypotheses.filter((h) => h.category === categoryFilter);
-	      }
+      // Apply category filter if provided
+      if (categoryFilter) {
+        hypotheses = hypotheses.filter((h) => h.category === categoryFilter);
+      }
 
       if (jsonMode) {
         stdoutLine(JSON.stringify({ ok: true, count: hypotheses.length, hypotheses }, null, 2));
@@ -4426,74 +4746,75 @@ ${JSON.stringify(delta, null, 2)}
           for (const h of hypotheses) {
             const state = h.state.padEnd(12);
             const category = h.category.padEnd(16);
-            const stmt = h.statement.length > 60 ? h.statement.substring(0, 57) + "..." : h.statement;
+            const stmt =
+              h.statement.length > 60 ? h.statement.substring(0, 57) + "..." : h.statement;
             stdoutLine(`[${state}] ${h.id} (${category}): ${stmt}`);
           }
         }
       }
       process.exit(0);
-	    }
+    }
 
-	    // Subcommand: show
-	    if (sub === "show") {
-	      const hypothesisId = action;
-	      if (!hypothesisId) throw new Error("Missing hypothesis ID. Usage: hypothesis show <id>");
+    // Subcommand: show
+    if (sub === "show") {
+      const hypothesisId = action;
+      if (!hypothesisId) throw new Error("Missing hypothesis ID. Usage: hypothesis show <id>");
 
-	      const hypothesis = await storage.getHypothesisById(hypothesisId);
-	      if (!hypothesis) {
-	        throw new Error(`Hypothesis not found: ${hypothesisId}`);
-	      }
+      const hypothesis = await storage.getHypothesisById(hypothesisId);
+      if (!hypothesis) {
+        throw new Error(`Hypothesis not found: ${hypothesisId}`);
+      }
 
-	      const children = (await storage.getAllHypotheses())
-	        .filter((h) => h.parentId === hypothesis.id)
-	        .map((h) => h.id)
-	        .sort();
+      const children = (await storage.getAllHypotheses())
+        .filter((h) => h.parentId === hypothesis.id)
+        .map((h) => h.id)
+        .sort();
 
-	      if (jsonMode) {
-	        stdoutLine(JSON.stringify({ ok: true, hypothesis, children }, null, 2));
-	      } else {
-	        stdoutLine(`ID:             ${hypothesis.id}`);
-	        stdoutLine(`Session:        ${hypothesis.sessionId}`);
-	        stdoutLine(`State:          ${hypothesis.state}`);
-	        stdoutLine(`Category:       ${hypothesis.category}`);
-	        stdoutLine(`Confidence:     ${hypothesis.confidence}`);
-	        stdoutLine(`Origin:         ${hypothesis.origin}`);
-	        stdoutLine(`Statement:      ${hypothesis.statement}`);
-	        if (hypothesis.mechanism) {
-	          stdoutLine(`Mechanism:      ${hypothesis.mechanism}`);
-	        }
-	        if (hypothesis.parentId) {
-	          stdoutLine(`Parent:         ${hypothesis.parentId}`);
-	        }
-	        if (hypothesis.spawnedFromAnomaly) {
-	          stdoutLine(`From anomaly:   ${hypothesis.spawnedFromAnomaly}`);
-	        }
-	        if (hypothesis.anchors?.length) {
-	          stdoutLine(`Anchors:        ${hypothesis.anchors.join(", ")}`);
-	        }
-	        if (hypothesis.tags && hypothesis.tags.length > 0) {
-	          stdoutLine(`Tags:           ${hypothesis.tags.join(", ")}`);
-	        }
-	        stdoutLine(`Critiques:      ${hypothesis.unresolvedCritiqueCount} unresolved`);
-	        if (hypothesis.proposedBy) {
-	          stdoutLine(`Proposed by:    ${hypothesis.proposedBy}`);
-	        }
-	        if (children.length > 0) {
-	          stdoutLine(`Children:       ${children.join(", ")}`);
-	        }
-	        if (hypothesis.notes) {
-	          stdoutLine(`Notes:          ${hypothesis.notes}`);
-	        }
-	        stdoutLine(`Created:        ${hypothesis.createdAt}`);
+      if (jsonMode) {
+        stdoutLine(JSON.stringify({ ok: true, hypothesis, children }, null, 2));
+      } else {
+        stdoutLine(`ID:             ${hypothesis.id}`);
+        stdoutLine(`Session:        ${hypothesis.sessionId}`);
+        stdoutLine(`State:          ${hypothesis.state}`);
+        stdoutLine(`Category:       ${hypothesis.category}`);
+        stdoutLine(`Confidence:     ${hypothesis.confidence}`);
+        stdoutLine(`Origin:         ${hypothesis.origin}`);
+        stdoutLine(`Statement:      ${hypothesis.statement}`);
+        if (hypothesis.mechanism) {
+          stdoutLine(`Mechanism:      ${hypothesis.mechanism}`);
+        }
+        if (hypothesis.parentId) {
+          stdoutLine(`Parent:         ${hypothesis.parentId}`);
+        }
+        if (hypothesis.spawnedFromAnomaly) {
+          stdoutLine(`From anomaly:   ${hypothesis.spawnedFromAnomaly}`);
+        }
+        if (hypothesis.anchors?.length) {
+          stdoutLine(`Anchors:        ${hypothesis.anchors.join(", ")}`);
+        }
+        if (hypothesis.tags && hypothesis.tags.length > 0) {
+          stdoutLine(`Tags:           ${hypothesis.tags.join(", ")}`);
+        }
+        stdoutLine(`Critiques:      ${hypothesis.unresolvedCritiqueCount} unresolved`);
+        if (hypothesis.proposedBy) {
+          stdoutLine(`Proposed by:    ${hypothesis.proposedBy}`);
+        }
+        if (children.length > 0) {
+          stdoutLine(`Children:       ${children.join(", ")}`);
+        }
+        if (hypothesis.notes) {
+          stdoutLine(`Notes:          ${hypothesis.notes}`);
+        }
+        stdoutLine(`Created:        ${hypothesis.createdAt}`);
         stdoutLine(`Updated:        ${hypothesis.updatedAt}`);
       }
       process.exit(0);
-	    }
+    }
 
-	    // Subcommand: create
-	    if (sub === "create") {
-	      const statement = asStringFlag(flags, "statement");
-	      const categoryStr = asStringFlag(flags, "category") as HypothesisCategory | undefined;
+    // Subcommand: create
+    if (sub === "create") {
+      const statement = asStringFlag(flags, "statement");
+      const categoryStr = asStringFlag(flags, "category") as HypothesisCategory | undefined;
 
       if (!statement) {
         throw new Error("--statement is required");
@@ -4502,11 +4823,14 @@ ${JSON.stringify(delta, null, 2)}
         throw new Error("--category is required");
       }
       if (!VALID_CATEGORIES.includes(categoryStr)) {
-        throw new Error(`Invalid --category "${categoryStr}" (expected one of: ${VALID_CATEGORIES.join(", ")})`);
+        throw new Error(
+          `Invalid --category "${categoryStr}" (expected one of: ${VALID_CATEGORIES.join(", ")})`,
+        );
       }
 
       const sessionIdFromFlag = asStringFlag(flags, "session-id");
-      let sessionId = sessionIdFromFlag ?? `RS-${new Date().toISOString().slice(0, 10).replace(/-/g, "")}`;
+      let sessionId =
+        sessionIdFromFlag ?? `RS-${new Date().toISOString().slice(0, 10).replace(/-/g, "")}`;
       const mechanism = asStringFlag(flags, "mechanism");
       const originStr = asStringFlag(flags, "origin") as HypothesisOrigin | undefined;
       const confidenceStr = asStringFlag(flags, "confidence") as HypothesisConfidence | undefined;
@@ -4517,23 +4841,27 @@ ${JSON.stringify(delta, null, 2)}
       const notes = asStringFlag(flags, "notes");
 
       if (originStr && !VALID_ORIGINS.includes(originStr)) {
-        throw new Error(`Invalid --origin "${originStr}" (expected one of: ${VALID_ORIGINS.join(", ")})`);
+        throw new Error(
+          `Invalid --origin "${originStr}" (expected one of: ${VALID_ORIGINS.join(", ")})`,
+        );
       }
-	      if (confidenceStr && !VALID_CONFIDENCES.includes(confidenceStr)) {
-	        throw new Error(`Invalid --confidence "${confidenceStr}" (expected one of: ${VALID_CONFIDENCES.join(", ")})`);
-	      }
+      if (confidenceStr && !VALID_CONFIDENCES.includes(confidenceStr)) {
+        throw new Error(
+          `Invalid --confidence "${confidenceStr}" (expected one of: ${VALID_CONFIDENCES.join(", ")})`,
+        );
+      }
 
-	      if (originStr === "refinement" && !parentId) {
-	        throw new Error('Missing --parent (required when --origin is "refinement").');
-	      }
+      if (originStr === "refinement" && !parentId) {
+        throw new Error('Missing --parent (required when --origin is "refinement").');
+      }
 
-	      if (parentId) {
-	        const parent = await storage.getHypothesisById(parentId);
-	        if (!parent) throw new Error(`Parent hypothesis not found: ${parentId}`);
-	      }
+      if (parentId) {
+        const parent = await storage.getHypothesisById(parentId);
+        if (!parent) throw new Error(`Parent hypothesis not found: ${parentId}`);
+      }
 
-	      const anchors = splitCsv(anchorsStr);
-	      const tags = splitCsv(tagsStr);
+      const anchors = splitCsv(anchorsStr);
+      const tags = splitCsv(tagsStr);
 
       const idOverride = asStringFlag(flags, "id");
       let id = idOverride;
@@ -4542,58 +4870,65 @@ ${JSON.stringify(delta, null, 2)}
         if (!match) throw new Error(`Invalid --id "${id}" (expected H-{session}-{seq})`);
         const idSessionId = match[1];
         if (sessionIdFromFlag && sessionIdFromFlag !== idSessionId) {
-          throw new Error(`--session-id "${sessionIdFromFlag}" does not match --id session "${idSessionId}"`);
+          throw new Error(
+            `--session-id "${sessionIdFromFlag}" does not match --id session "${idSessionId}"`,
+          );
         }
         sessionId = idSessionId;
         const existing = await storage.getHypothesisById(id);
         if (existing) throw new Error(`Hypothesis already exists: ${id}`);
       } else {
         const existingHypotheses = await storage.loadSessionHypotheses(sessionId);
-        id = generateHypothesisId(sessionId, existingHypotheses.map((h) => h.id));
-	      }
+        id = generateHypothesisId(
+          sessionId,
+          existingHypotheses.map((h) => h.id),
+        );
+      }
 
-	      const hypothesisBase = createHypothesis({
-	        id,
-	        sessionId,
-	        statement,
-	        category: categoryStr,
-	        mechanism,
-	        origin: originStr ?? "proposed",
-	        confidence: confidenceStr ?? "medium",
-	        proposedBy,
-	        anchors: anchors.length > 0 ? anchors : undefined,
-	      });
+      const hypothesisBase = createHypothesis({
+        id,
+        sessionId,
+        statement,
+        category: categoryStr,
+        mechanism,
+        origin: originStr ?? "proposed",
+        confidence: confidenceStr ?? "medium",
+        proposedBy,
+        anchors: anchors.length > 0 ? anchors : undefined,
+      });
 
-	      const hypothesis = HypothesisSchema.parse({
-	        ...hypothesisBase,
-	        parentId: parentId || undefined,
-	        tags: tags.length > 0 ? tags : undefined,
-	        notes: notes || undefined,
-	      });
+      const hypothesis = HypothesisSchema.parse({
+        ...hypothesisBase,
+        parentId: parentId || undefined,
+        tags: tags.length > 0 ? tags : undefined,
+        notes: notes || undefined,
+      });
 
-	      await storage.saveHypothesis(hypothesis);
+      await storage.saveHypothesis(hypothesis);
 
-	      if (jsonMode) {
-	        stdoutLine(JSON.stringify({ ok: true, hypothesis }, null, 2));
-	      } else {
+      if (jsonMode) {
+        stdoutLine(JSON.stringify({ ok: true, hypothesis }, null, 2));
+      } else {
         stdoutLine(`Created hypothesis: ${hypothesis.id}`);
         stdoutLine(`  Category:   ${hypothesis.category}`);
         stdoutLine(`  Statement:  ${hypothesis.statement}`);
       }
       process.exit(0);
-	    }
+    }
 
-	    // Subcommand: search
-	    if (sub === "search") {
-	      const query = positional.slice(2).join(" ").trim();
-	      if (!query) {
-	        throw new Error("Usage: hypothesis search <query>");
-	      }
+    // Subcommand: search
+    if (sub === "search") {
+      const query = positional.slice(2).join(" ").trim();
+      if (!query) {
+        throw new Error("Usage: hypothesis search <query>");
+      }
 
       const results = await storage.searchHypotheses(query);
 
       if (jsonMode) {
-        stdoutLine(JSON.stringify({ ok: true, count: results.length, hypotheses: results }, null, 2));
+        stdoutLine(
+          JSON.stringify({ ok: true, count: results.length, hypotheses: results }, null, 2),
+        );
       } else {
         if (results.length === 0) {
           stdoutLine(`No hypotheses matching "${query}"`);
@@ -4601,24 +4936,25 @@ ${JSON.stringify(delta, null, 2)}
           stdoutLine(`Found ${results.length} hypothesis(es):`);
           for (const h of results) {
             const state = h.state.padEnd(12);
-            const stmt = h.statement.length > 50 ? h.statement.substring(0, 47) + "..." : h.statement;
+            const stmt =
+              h.statement.length > 50 ? h.statement.substring(0, 47) + "..." : h.statement;
             stdoutLine(`  [${state}] ${h.id}: ${stmt}`);
           }
         }
       }
       process.exit(0);
-	    }
+    }
 
-	    // Subcommand: link
-	    if (sub === "link") {
-	      const childId = action;
-	      const parentId = positional[3];
-	      if (!childId || !parentId) {
-	        throw new Error("Usage: hypothesis link <child-id> <parent-id>");
-	      }
-	      if (childId === parentId) {
-	        throw new Error("Cannot link a hypothesis to itself.");
-	      }
+    // Subcommand: link
+    if (sub === "link") {
+      const childId = action;
+      const parentId = positional[3];
+      if (!childId || !parentId) {
+        throw new Error("Usage: hypothesis link <child-id> <parent-id>");
+      }
+      if (childId === parentId) {
+        throw new Error("Cannot link a hypothesis to itself.");
+      }
 
       const child = await storage.getHypothesisById(childId);
       if (!child) {
@@ -4644,11 +4980,11 @@ ${JSON.stringify(delta, null, 2)}
         stdoutLine(`Linked ${childId} → ${parentId}`);
       }
       process.exit(0);
-	    }
+    }
 
-	    // Subcommand: stats
-	    if (sub === "stats") {
-	      const hypotheses = await storage.getAllHypotheses();
+    // Subcommand: stats
+    if (sub === "stats") {
+      const hypotheses = await storage.getAllHypotheses();
 
       const byState: Record<HypothesisState, number> = {
         proposed: 0,
@@ -4690,17 +5026,23 @@ ${JSON.stringify(delta, null, 2)}
       const sessions = new Set(hypotheses.map((h) => h.sessionId)).size;
 
       if (jsonMode) {
-        stdoutLine(JSON.stringify({
-          ok: true,
-          total: hypotheses.length,
-          byState,
-          byCategory,
-          byConfidence,
-          withMechanism,
-          withParent,
-          totalUnresolvedCritiques,
-          sessions,
-        }, null, 2));
+        stdoutLine(
+          JSON.stringify(
+            {
+              ok: true,
+              total: hypotheses.length,
+              byState,
+              byCategory,
+              byConfidence,
+              withMechanism,
+              withParent,
+              totalUnresolvedCritiques,
+              sessions,
+            },
+            null,
+            2,
+          ),
+        );
       } else {
         stdoutLine("Hypothesis Statistics:");
         stdoutLine(`  Total:                 ${hypotheses.length}`);
@@ -4753,7 +5095,9 @@ ${JSON.stringify(delta, null, 2)}
       const hypothesisToSave = result.hypothesis;
       const transition = result.transition;
       if (!hypothesisToSave || !transition) {
-        throw new Error("Invariant violation: activateHypothesis succeeded without returning hypothesis/transition");
+        throw new Error(
+          "Invariant violation: activateHypothesis succeeded without returning hypothesis/transition",
+        );
       }
 
       await storage.saveHypothesis(hypothesisToSave);
@@ -4762,7 +5106,13 @@ ${JSON.stringify(delta, null, 2)}
       appendHypothesisTransition(projectKey, transition);
 
       if (jsonMode) {
-        stdoutLine(JSON.stringify({ ok: true, hypothesis: result.hypothesis, transition: result.transition }, null, 2));
+        stdoutLine(
+          JSON.stringify(
+            { ok: true, hypothesis: result.hypothesis, transition: result.transition },
+            null,
+            2,
+          ),
+        );
       } else {
         stdoutLine(`✓ Activated hypothesis ${hypothesisId}`);
         stdoutLine(`  State: ${transition.fromState} → ${transition.toState}`);
@@ -4773,14 +5123,19 @@ ${JSON.stringify(delta, null, 2)}
     // Subcommand: kill (alias for refute)
     if (sub === "kill" || sub === "refute") {
       const hypothesisId = action;
-      if (!hypothesisId) throw new Error(`Missing hypothesis ID. Usage: hypothesis ${sub} <id> --test=<test-id> [--reason="..."]`);
+      if (!hypothesisId)
+        throw new Error(
+          `Missing hypothesis ID. Usage: hypothesis ${sub} <id> --test=<test-id> [--reason="..."]`,
+        );
 
       const testId = asStringFlag(flags, "test");
       const reason = asStringFlag(flags, "reason");
       const assumeYes = asBoolFlag(flags, "yes");
 
       if (!testId) {
-        throw new Error(`--test=<test-id> is required.\nHypotheses should be killed by specific test results, not arbitrary decisions.`);
+        throw new Error(
+          `--test=<test-id> is required.\nHypotheses should be killed by specific test results, not arbitrary decisions.`,
+        );
       }
 
       const hypothesis = await storage.getHypothesisById(hypothesisId);
@@ -4807,7 +5162,9 @@ ${JSON.stringify(delta, null, 2)}
       const hypothesisToSave = result.hypothesis;
       const transition = result.transition;
       if (!hypothesisToSave || !transition) {
-        throw new Error("Invariant violation: refuteHypothesis succeeded without returning hypothesis/transition");
+        throw new Error(
+          "Invariant violation: refuteHypothesis succeeded without returning hypothesis/transition",
+        );
       }
 
       await storage.saveHypothesis(hypothesisToSave);
@@ -4815,7 +5172,13 @@ ${JSON.stringify(delta, null, 2)}
       appendHypothesisTransition(projectKey, transition);
 
       if (jsonMode) {
-        stdoutLine(JSON.stringify({ ok: true, hypothesis: result.hypothesis, transition: result.transition }, null, 2));
+        stdoutLine(
+          JSON.stringify(
+            { ok: true, hypothesis: result.hypothesis, transition: result.transition },
+            null,
+            2,
+          ),
+        );
       } else {
         stdoutLine(`✓ Killed hypothesis ${hypothesisId}`);
         stdoutLine(`  State: ${transition.fromState} → ${transition.toState}`);
@@ -4828,11 +5191,14 @@ ${JSON.stringify(delta, null, 2)}
     // Subcommand: refine (alias for supersede)
     if (sub === "refine" || sub === "supersede") {
       const hypothesisId = action;
-      if (!hypothesisId) throw new Error(`Missing hypothesis ID. Usage: hypothesis ${sub} <id> --child=<new-id>`);
+      if (!hypothesisId)
+        throw new Error(`Missing hypothesis ID. Usage: hypothesis ${sub} <id> --child=<new-id>`);
 
       const childId = asStringFlag(flags, "child");
       if (!childId) {
-        throw new Error("--child=<new-id> is required. Must link to the refined/superseding hypothesis.");
+        throw new Error(
+          "--child=<new-id> is required. Must link to the refined/superseding hypothesis.",
+        );
       }
 
       const hypothesis = await storage.getHypothesisById(hypothesisId);
@@ -4859,7 +5225,9 @@ ${JSON.stringify(delta, null, 2)}
       const hypothesisToSave = result.hypothesis;
       const transition = result.transition;
       if (!hypothesisToSave || !transition) {
-        throw new Error("Invariant violation: supersedeHypothesis succeeded without returning hypothesis/transition");
+        throw new Error(
+          "Invariant violation: supersedeHypothesis succeeded without returning hypothesis/transition",
+        );
       }
 
       await storage.saveHypothesis(hypothesisToSave);
@@ -4867,7 +5235,13 @@ ${JSON.stringify(delta, null, 2)}
       appendHypothesisTransition(projectKey, transition);
 
       if (jsonMode) {
-        stdoutLine(JSON.stringify({ ok: true, hypothesis: result.hypothesis, transition: result.transition }, null, 2));
+        stdoutLine(
+          JSON.stringify(
+            { ok: true, hypothesis: result.hypothesis, transition: result.transition },
+            null,
+            2,
+          ),
+        );
       } else {
         stdoutLine(`✓ Refined hypothesis ${hypothesisId}`);
         stdoutLine(`  State: ${transition.fromState} → ${transition.toState}`);
@@ -4879,11 +5253,14 @@ ${JSON.stringify(delta, null, 2)}
     // Subcommand: validate (alias for confirm)
     if (sub === "validate" || sub === "confirm") {
       const hypothesisId = action;
-      if (!hypothesisId) throw new Error(`Missing hypothesis ID. Usage: hypothesis ${sub} <id> --test=<test-id>`);
+      if (!hypothesisId)
+        throw new Error(`Missing hypothesis ID. Usage: hypothesis ${sub} <id> --test=<test-id>`);
 
       const testId = asStringFlag(flags, "test");
       if (!testId) {
-        throw new Error("--test=<test-id> is required. Validation must be linked to a test result.");
+        throw new Error(
+          "--test=<test-id> is required. Validation must be linked to a test result.",
+        );
       }
 
       const hypothesis = await storage.getHypothesisById(hypothesisId);
@@ -4905,7 +5282,9 @@ ${JSON.stringify(delta, null, 2)}
       const hypothesisToSave = result.hypothesis;
       const transition = result.transition;
       if (!hypothesisToSave || !transition) {
-        throw new Error("Invariant violation: confirmHypothesis succeeded without returning hypothesis/transition");
+        throw new Error(
+          "Invariant violation: confirmHypothesis succeeded without returning hypothesis/transition",
+        );
       }
 
       await storage.saveHypothesis(hypothesisToSave);
@@ -4913,12 +5292,20 @@ ${JSON.stringify(delta, null, 2)}
       appendHypothesisTransition(projectKey, transition);
 
       if (jsonMode) {
-        stdoutLine(JSON.stringify({ ok: true, hypothesis: result.hypothesis, transition: result.transition }, null, 2));
+        stdoutLine(
+          JSON.stringify(
+            { ok: true, hypothesis: result.hypothesis, transition: result.transition },
+            null,
+            2,
+          ),
+        );
       } else {
         stdoutLine(`✓ Validated hypothesis ${hypothesisId}`);
         stdoutLine(`  State: ${transition.fromState} → ${transition.toState}`);
         stdoutLine(`  Validated by: ${testId}`);
-        stdoutLine(`  ⚠️  Note: Validation is provisional. New tests may still refute this hypothesis.`);
+        stdoutLine(
+          `  ⚠️  Note: Validation is provisional. New tests may still refute this hypothesis.`,
+        );
       }
       process.exit(0);
     }
@@ -4926,7 +5313,8 @@ ${JSON.stringify(delta, null, 2)}
     // Subcommand: park (alias for defer)
     if (sub === "park" || sub === "defer") {
       const hypothesisId = action;
-      if (!hypothesisId) throw new Error(`Missing hypothesis ID. Usage: hypothesis ${sub} <id> [--reason="..."]`);
+      if (!hypothesisId)
+        throw new Error(`Missing hypothesis ID. Usage: hypothesis ${sub} <id> [--reason="..."]`);
 
       const reason = asStringFlag(flags, "reason");
 
@@ -4949,7 +5337,9 @@ ${JSON.stringify(delta, null, 2)}
       const hypothesisToSave = result.hypothesis;
       const transition = result.transition;
       if (!hypothesisToSave || !transition) {
-        throw new Error("Invariant violation: deferHypothesis succeeded without returning hypothesis/transition");
+        throw new Error(
+          "Invariant violation: deferHypothesis succeeded without returning hypothesis/transition",
+        );
       }
 
       await storage.saveHypothesis(hypothesisToSave);
@@ -4957,7 +5347,13 @@ ${JSON.stringify(delta, null, 2)}
       appendHypothesisTransition(projectKey, transition);
 
       if (jsonMode) {
-        stdoutLine(JSON.stringify({ ok: true, hypothesis: result.hypothesis, transition: result.transition }, null, 2));
+        stdoutLine(
+          JSON.stringify(
+            { ok: true, hypothesis: result.hypothesis, transition: result.transition },
+            null,
+            2,
+          ),
+        );
       } else {
         stdoutLine(`✓ Parked hypothesis ${hypothesisId}`);
         stdoutLine(`  State: ${transition.fromState} → ${transition.toState}`);
@@ -4969,7 +5365,8 @@ ${JSON.stringify(delta, null, 2)}
     // Subcommand: reactivate
     if (sub === "reactivate") {
       const hypothesisId = action;
-      if (!hypothesisId) throw new Error("Missing hypothesis ID. Usage: hypothesis reactivate <id>");
+      if (!hypothesisId)
+        throw new Error("Missing hypothesis ID. Usage: hypothesis reactivate <id>");
 
       const hypothesis = await storage.getHypothesisById(hypothesisId);
       if (!hypothesis) {
@@ -4990,7 +5387,9 @@ ${JSON.stringify(delta, null, 2)}
       const hypothesisToSave = result.hypothesis;
       const transition = result.transition;
       if (!hypothesisToSave || !transition) {
-        throw new Error("Invariant violation: reactivateHypothesis succeeded without returning hypothesis/transition");
+        throw new Error(
+          "Invariant violation: reactivateHypothesis succeeded without returning hypothesis/transition",
+        );
       }
 
       await storage.saveHypothesis(hypothesisToSave);
@@ -4998,7 +5397,13 @@ ${JSON.stringify(delta, null, 2)}
       appendHypothesisTransition(projectKey, transition);
 
       if (jsonMode) {
-        stdoutLine(JSON.stringify({ ok: true, hypothesis: result.hypothesis, transition: result.transition }, null, 2));
+        stdoutLine(
+          JSON.stringify(
+            { ok: true, hypothesis: result.hypothesis, transition: result.transition },
+            null,
+            2,
+          ),
+        );
       } else {
         stdoutLine(`✓ Reactivated hypothesis ${hypothesisId}`);
         stdoutLine(`  State: ${transition.fromState} → ${transition.toState}`);
@@ -5019,17 +5424,25 @@ ${JSON.stringify(delta, null, 2)}
       const history = loadHypothesisTransitionHistory(projectKey, hypothesisId);
 
       if (jsonMode) {
-        stdoutLine(JSON.stringify({
-          ok: true,
-          hypothesisId,
-          currentState: hypothesis.state,
-          isTerminal: isTerminalState(hypothesis.state),
-          transitionCount: history.length,
-          transitions: history,
-        }, null, 2));
+        stdoutLine(
+          JSON.stringify(
+            {
+              ok: true,
+              hypothesisId,
+              currentState: hypothesis.state,
+              isTerminal: isTerminalState(hypothesis.state),
+              transitionCount: history.length,
+              transitions: history,
+            },
+            null,
+            2,
+          ),
+        );
       } else {
         stdoutLine(`Timeline for ${hypothesisId}:`);
-        stdoutLine(`  ${hypothesis.createdAt}  created (${history.length > 0 ? history[0]?.fromState ?? "proposed" : hypothesis.state})`);
+        stdoutLine(
+          `  ${hypothesis.createdAt}  created (${history.length > 0 ? (history[0]?.fromState ?? "proposed") : hypothesis.state})`,
+        );
 
         for (const t of history) {
           stdoutLine(`  ${t.timestamp}  ${t.trigger}`);
@@ -5060,7 +5473,14 @@ ${JSON.stringify(delta, null, 2)}
     const testStorage = new TestStorage({ baseDir: projectKey });
     const hypothesisStorage = new HypothesisStorage({ baseDir: projectKey });
 
-    const VALID_STATUSES: TestStatus[] = ["designed", "ready", "in_progress", "completed", "blocked", "abandoned"];
+    const VALID_STATUSES: TestStatus[] = [
+      "designed",
+      "ready",
+      "in_progress",
+      "completed",
+      "blocked",
+      "abandoned",
+    ];
     const VALID_CONFIDENCES: HypothesisConfidence[] = ["high", "medium", "low", "speculative"];
 
     function buildSyntheticPrediction(test: TestRecord): Prediction {
@@ -5082,9 +5502,7 @@ ${JSON.stringify(delta, null, 2)}
     }
 
     async function loadHypothesesForTest(test: TestRecord): Promise<Hypothesis[]> {
-      const ids = [
-        ...new Set(test.expectedOutcomes.map((o) => o.hypothesisId)),
-      ];
+      const ids = [...new Set(test.expectedOutcomes.map((o) => o.hypothesisId))];
       const out: Hypothesis[] = [];
       for (const id of ids) {
         const h = await hypothesisStorage.getHypothesisById(id);
@@ -5104,7 +5522,9 @@ ${JSON.stringify(delta, null, 2)}
       const statusFilterRaw = asStringFlag(flags, "status") as TestStatus | undefined;
 
       if (statusFilterRaw && !VALID_STATUSES.includes(statusFilterRaw)) {
-        throw new Error(`Invalid --status "${statusFilterRaw}" (expected one of: ${VALID_STATUSES.join(", ")})`);
+        throw new Error(
+          `Invalid --status "${statusFilterRaw}" (expected one of: ${VALID_STATUSES.join(", ")})`,
+        );
       }
 
       let tests: TestRecord[];
@@ -5158,17 +5578,24 @@ ${JSON.stringify(delta, null, 2)}
           const rt = o.resultType ? ` (${o.resultType})` : "";
           stdoutLine(`  - ${o.hypothesisId}:${rt} ${o.outcome}`);
         }
-        if (test.addressesPredictions?.length) stdoutLine(`Addresses predictions: ${test.addressesPredictions.join(", ")}`);
+        if (test.addressesPredictions?.length)
+          stdoutLine(`Addresses predictions: ${test.addressesPredictions.join(", ")}`);
         stdoutLine(`Potency check:`);
         stdoutLine(`  Positive control: ${test.potencyCheck.positiveControl}`);
-        if (test.potencyCheck.sensitivityVerification) stdoutLine(`  Sensitivity:      ${test.potencyCheck.sensitivityVerification}`);
-        if (test.potencyCheck.timingValidation) stdoutLine(`  Timing:           ${test.potencyCheck.timingValidation}`);
-        stdoutLine(`Evidence/week score: LR=${test.evidencePerWeekScore.likelihoodRatio} cost=${test.evidencePerWeekScore.cost} speed=${test.evidencePerWeekScore.speed} ambiguity=${test.evidencePerWeekScore.ambiguity}`);
+        if (test.potencyCheck.sensitivityVerification)
+          stdoutLine(`  Sensitivity:      ${test.potencyCheck.sensitivityVerification}`);
+        if (test.potencyCheck.timingValidation)
+          stdoutLine(`  Timing:           ${test.potencyCheck.timingValidation}`);
+        stdoutLine(
+          `Evidence/week score: LR=${test.evidencePerWeekScore.likelihoodRatio} cost=${test.evidencePerWeekScore.cost} speed=${test.evidencePerWeekScore.speed} ambiguity=${test.evidencePerWeekScore.ambiguity}`,
+        );
         stdoutLine(`Feasibility:`);
         stdoutLine(`  Requirements: ${test.feasibility.requirements}`);
         stdoutLine(`  Difficulty:   ${test.feasibility.difficulty}`);
-        if (test.feasibility.blockers?.length) stdoutLine(`  Blockers:     ${test.feasibility.blockers.join(", ")}`);
-        if (test.requiredAssumptions?.length) stdoutLine(`Required assumptions: ${test.requiredAssumptions.join(", ")}`);
+        if (test.feasibility.blockers?.length)
+          stdoutLine(`  Blockers:     ${test.feasibility.blockers.join(", ")}`);
+        if (test.requiredAssumptions?.length)
+          stdoutLine(`Required assumptions: ${test.requiredAssumptions.join(", ")}`);
         if (test.anchors?.length) stdoutLine(`Anchors:     ${test.anchors.join(", ")}`);
         if (test.tags?.length) stdoutLine(`Tags:        ${test.tags.join(", ")}`);
         if (test.notes) stdoutLine(`Notes:       ${test.notes}`);
@@ -5178,11 +5605,13 @@ ${JSON.stringify(delta, null, 2)}
         if (test.execution) {
           stdoutLine(`Execution:`);
           stdoutLine(`  Started:      ${test.execution.startedAt}`);
-          if (test.execution.completedAt) stdoutLine(`  Completed:    ${test.execution.completedAt}`);
+          if (test.execution.completedAt)
+            stdoutLine(`  Completed:    ${test.execution.completedAt}`);
           if (test.execution.executedBy) stdoutLine(`  Executed by:  ${test.execution.executedBy}`);
           stdoutLine(`  Outcome:      ${test.execution.observedOutcome}`);
           stdoutLine(`  Potency pass: ${test.execution.potencyCheckPassed ? "yes" : "no"}`);
-          if (test.execution.potencyCheckNotes) stdoutLine(`  Potency note: ${test.execution.potencyCheckNotes}`);
+          if (test.execution.potencyCheckNotes)
+            stdoutLine(`  Potency note: ${test.execution.potencyCheckNotes}`);
           if (test.execution.notes) stdoutLine(`  Notes:        ${test.execution.notes}`);
         }
       }
@@ -5192,7 +5621,10 @@ ${JSON.stringify(delta, null, 2)}
     // Subcommand: execute
     if (sub === "execute") {
       const testId = action;
-      if (!testId) throw new Error("Missing test ID. Usage: test execute <id> [--interactive] --result <s> (--potency-pass|--potency-fail)");
+      if (!testId)
+        throw new Error(
+          "Missing test ID. Usage: test execute <id> [--interactive] --result <s> (--potency-pass|--potency-fail)",
+        );
 
       const forceInteractive = asBoolFlag(flags, "interactive");
       const noInteractive = asBoolFlag(flags, "no-interactive");
@@ -5200,7 +5632,9 @@ ${JSON.stringify(delta, null, 2)}
         throw new Error("Use only one of: --interactive or --no-interactive");
       }
 
-      const allowPrompts = forceInteractive || (process.stdin.isTTY === true && process.stdout.isTTY === true && !noInteractive);
+      const allowPrompts =
+        forceInteractive ||
+        (process.stdin.isTTY === true && process.stdout.isTTY === true && !noInteractive);
 
       const test = await testStorage.getTestById(testId);
       if (!test) throw new Error(`Test not found: ${testId}`);
@@ -5210,16 +5644,18 @@ ${JSON.stringify(delta, null, 2)}
 
       const potencyPassFlag = asBoolFlag(flags, "potency-pass");
       const potencyFailFlag = asBoolFlag(flags, "potency-fail");
-      let potencyCheckPassed: boolean | null = potencyPassFlag !== potencyFailFlag ? potencyPassFlag : null;
+      let potencyCheckPassed: boolean | null =
+        potencyPassFlag !== potencyFailFlag ? potencyPassFlag : null;
 
       const shouldPrompt =
-        allowPrompts &&
-        (forceInteractive || resultText === null || potencyCheckPassed === null);
+        allowPrompts && (forceInteractive || resultText === null || potencyCheckPassed === null);
 
       if (!shouldPrompt) {
         if (!resultText) throw new Error("Missing --result. (Tip: pass --interactive to prompt.)");
         if (potencyCheckPassed === null) {
-          throw new Error("Pass exactly one of: --potency-pass or --potency-fail. (Tip: pass --interactive to prompt.)");
+          throw new Error(
+            "Pass exactly one of: --potency-pass or --potency-fail. (Tip: pass --interactive to prompt.)",
+          );
         }
       }
 
@@ -5239,13 +5675,16 @@ ${JSON.stringify(delta, null, 2)}
             while (true) {
               const suffix = current ? ` [${current}]` : "";
               const answer = (await ask(`${label}${suffix}: `)).trim();
-              const value = answer.length > 0 ? answer : current ?? "";
+              const value = answer.length > 0 ? answer : (current ?? "");
               if (value.trim().length > 0) return value;
               promptOut.write("Value is required.\n");
             }
           };
 
-          const promptOptional = async (label: string, current: string | null): Promise<string | null> => {
+          const promptOptional = async (
+            label: string,
+            current: string | null,
+          ): Promise<string | null> => {
             const suffix = current ? ` [${current}]` : " (optional)";
             const answer = (await ask(`${label}${suffix}: `)).trim();
             if (answer.length > 0) return answer;
@@ -5274,7 +5713,10 @@ ${JSON.stringify(delta, null, 2)}
           resultText = await promptRequired("Observed result / observation", resultText);
 
           if (potencyCheckPassed === null || forceInteractive) {
-            const potency = await promptChoice("Potency check", { choices: ["pass", "fail"], required: true });
+            const potency = await promptChoice("Potency check", {
+              choices: ["pass", "fail"],
+              required: true,
+            });
             potencyCheckPassed = potency === "pass";
           }
 
@@ -5299,15 +5741,21 @@ ${JSON.stringify(delta, null, 2)}
       }
 
       if (!VALID_CONFIDENCES.includes(confidenceRaw)) {
-        throw new Error(`Invalid --confidence "${confidenceRaw}" (expected one of: ${VALID_CONFIDENCES.join(", ")})`);
+        throw new Error(
+          `Invalid --confidence "${confidenceRaw}" (expected one of: ${VALID_CONFIDENCES.join(", ")})`,
+        );
       }
 
       const apply = asBoolFlag(flags, "apply");
       const killsOnly = asBoolFlag(flags, "kills-only");
 
-      const minConfidenceRaw = asStringFlag(flags, "min-confidence") as HypothesisConfidence | undefined;
+      const minConfidenceRaw = asStringFlag(flags, "min-confidence") as
+        | HypothesisConfidence
+        | undefined;
       if (minConfidenceRaw && !VALID_CONFIDENCES.includes(minConfidenceRaw)) {
-        throw new Error(`Invalid --min-confidence "${minConfidenceRaw}" (expected one of: ${VALID_CONFIDENCES.join(", ")})`);
+        throw new Error(
+          `Invalid --min-confidence "${minConfidenceRaw}" (expected one of: ${VALID_CONFIDENCES.join(", ")})`,
+        );
       }
 
       const prediction = buildSyntheticPrediction(test);
@@ -5325,7 +5773,9 @@ ${JSON.stringify(delta, null, 2)}
 
       const record = recordTestExecution(input, test, [prediction]);
       if (!record.success || !record.execution) {
-        throw new Error(record.errors.length > 0 ? record.errors.join("; ") : "Failed to record execution.");
+        throw new Error(
+          record.errors.length > 0 ? record.errors.join("; ") : "Failed to record execution.",
+        );
       }
 
       const updatedTest = TestRecordSchema.parse({
@@ -5341,7 +5791,10 @@ ${JSON.stringify(delta, null, 2)}
 
       const warnings = [...record.warnings, ...suggest.warnings];
 
-      let applied: { applied: Array<{ hypothesisId: string; ok: boolean; transition?: unknown; error?: string }>; saved: number } | null = null;
+      let applied: {
+        applied: Array<{ hypothesisId: string; ok: boolean; transition?: unknown; error?: string }>;
+        saved: number;
+      } | null = null;
       let applyNow = apply;
 
       const actionableSuggestions = suggest.suggestions.filter((s) => s.suggestedAction !== "none");
@@ -5359,7 +5812,12 @@ ${JSON.stringify(delta, null, 2)}
 
       if (applyNow) {
         const hypothesisMap = new Map(hypotheses.map((h) => [h.id, h]));
-        const appliedResults: Array<{ hypothesisId: string; ok: boolean; transition?: unknown; error?: string }> = [];
+        const appliedResults: Array<{
+          hypothesisId: string;
+          ok: boolean;
+          transition?: unknown;
+          error?: string;
+        }> = [];
 
         for (const s of suggest.suggestions) {
           if (s.suggestedAction === "none") continue;
@@ -5368,7 +5826,11 @@ ${JSON.stringify(delta, null, 2)}
 
           const hypothesis = hypothesisMap.get(s.hypothesisId);
           if (!hypothesis) {
-            appliedResults.push({ hypothesisId: s.hypothesisId, ok: false, error: "Hypothesis not loaded." });
+            appliedResults.push({
+              hypothesisId: s.hypothesisId,
+              ok: false,
+              error: "Hypothesis not loaded.",
+            });
             continue;
           }
 
@@ -5384,9 +5846,17 @@ ${JSON.stringify(delta, null, 2)}
 
           if (result.success) {
             hypothesisMap.set(s.hypothesisId, result.hypothesis);
-            appliedResults.push({ hypothesisId: s.hypothesisId, ok: true, transition: result.transition });
+            appliedResults.push({
+              hypothesisId: s.hypothesisId,
+              ok: true,
+              transition: result.transition,
+            });
           } else {
-            appliedResults.push({ hypothesisId: s.hypothesisId, ok: false, error: result.error.message });
+            appliedResults.push({
+              hypothesisId: s.hypothesisId,
+              ok: false,
+              error: result.error.message,
+            });
           }
         }
 
@@ -5400,13 +5870,19 @@ ${JSON.stringify(delta, null, 2)}
       }
 
       if (jsonMode) {
-        stdoutLine(JSON.stringify({
-          ok: true,
-          test: updatedTest,
-          warnings,
-          suggestions: suggest.suggestions,
-          applied,
-        }, null, 2));
+        stdoutLine(
+          JSON.stringify(
+            {
+              ok: true,
+              test: updatedTest,
+              warnings,
+              suggestions: suggest.suggestions,
+              applied,
+            },
+            null,
+            2,
+          ),
+        );
       } else {
         stdoutLine(`Recorded execution for ${updatedTest.id}`);
         if (warnings.length > 0) {
@@ -5419,7 +5895,9 @@ ${JSON.stringify(delta, null, 2)}
         } else {
           stdoutLine("Suggested transitions:");
           for (const s of actionable) {
-            stdoutLine(`  ${s.hypothesisId}: ${s.currentState} → ${s.suggestedAction} (${s.confidence})`);
+            stdoutLine(
+              `  ${s.hypothesisId}: ${s.currentState} → ${s.suggestedAction} (${s.confidence})`,
+            );
           }
         }
         if (applied) {
@@ -5437,7 +5915,9 @@ ${JSON.stringify(delta, null, 2)}
 
       const confidenceRaw = (asStringFlag(flags, "confidence") ?? "medium") as HypothesisConfidence;
       if (!VALID_CONFIDENCES.includes(confidenceRaw)) {
-        throw new Error(`Invalid --confidence "${confidenceRaw}" (expected one of: ${VALID_CONFIDENCES.join(", ")})`);
+        throw new Error(
+          `Invalid --confidence "${confidenceRaw}" (expected one of: ${VALID_CONFIDENCES.join(", ")})`,
+        );
       }
 
       const test = await testStorage.getTestById(testId);
@@ -5462,7 +5942,13 @@ ${JSON.stringify(delta, null, 2)}
       const kills = suggest.suggestions.filter((s) => s.suggestedAction === "kill");
 
       if (jsonMode) {
-        stdoutLine(JSON.stringify({ ok: true, count: kills.length, kills, warnings: suggest.warnings }, null, 2));
+        stdoutLine(
+          JSON.stringify(
+            { ok: true, count: kills.length, kills, warnings: suggest.warnings },
+            null,
+            2,
+          ),
+        );
       } else {
         if (kills.length === 0) {
           stdoutLine(`No kill suggestions for ${testId}.`);
@@ -5484,7 +5970,8 @@ ${JSON.stringify(delta, null, 2)}
     if (sub === "bind") {
       const testId = action;
       const hypothesisId = positional[3];
-      if (!testId || !hypothesisId) throw new Error("Usage: test bind <test-id> <hypothesis-id> (--matched|--violated)");
+      if (!testId || !hypothesisId)
+        throw new Error("Usage: test bind <test-id> <hypothesis-id> (--matched|--violated)");
 
       const matched = asBoolFlag(flags, "matched");
       const violated = asBoolFlag(flags, "violated");
@@ -5517,9 +6004,17 @@ ${JSON.stringify(delta, null, 2)}
       await hypothesisStorage.saveHypothesis(result.hypothesis);
 
       if (jsonMode) {
-        stdoutLine(JSON.stringify({ ok: true, hypothesis: result.hypothesis, transition: result.transition }, null, 2));
+        stdoutLine(
+          JSON.stringify(
+            { ok: true, hypothesis: result.hypothesis, transition: result.transition },
+            null,
+            2,
+          ),
+        );
       } else {
-        stdoutLine(`Applied ${trigger} to ${hypothesisId} (from ${hypothesis.state} → ${result.hypothesis.state})`);
+        stdoutLine(
+          `Applied ${trigger} to ${hypothesisId} (from ${hypothesis.state} → ${result.hypothesis.state})`,
+        );
       }
       process.exit(0);
     }
@@ -5542,7 +6037,9 @@ ${JSON.stringify(delta, null, 2)}
       const statusFilter = asStringFlag(flags, "status") as ProgramStatus | undefined;
 
       if (statusFilter && !VALID_PROGRAM_STATUSES.includes(statusFilter)) {
-        throw new Error(`Invalid --status "${statusFilter}" (expected one of: ${VALID_PROGRAM_STATUSES.join(", ")})`);
+        throw new Error(
+          `Invalid --status "${statusFilter}" (expected one of: ${VALID_PROGRAM_STATUSES.join(", ")})`,
+        );
       }
 
       let programs: ResearchProgram[];
@@ -5561,7 +6058,9 @@ ${JSON.stringify(delta, null, 2)}
           for (const p of programs) {
             const status = p.status.padEnd(10);
             const sessions = p.sessions.length;
-            stdoutLine(`[${status}] ${p.id}: ${p.name} (${sessions} session${sessions !== 1 ? "s" : ""})`);
+            stdoutLine(
+              `[${status}] ${p.id}: ${p.name} (${sessions} session${sessions !== 1 ? "s" : ""})`,
+            );
           }
         }
       }
@@ -5583,7 +6082,9 @@ ${JSON.stringify(delta, null, 2)}
         stdoutLine(`Name:        ${program.name}`);
         stdoutLine(`Status:      ${program.status}`);
         stdoutLine(`Description: ${program.description}`);
-        stdoutLine(`Sessions:    ${program.sessions.length > 0 ? program.sessions.join(", ") : "(none)"}`);
+        stdoutLine(
+          `Sessions:    ${program.sessions.length > 0 ? program.sessions.join(", ") : "(none)"}`,
+        );
         if (program.notes) stdoutLine(`Notes:       ${program.notes}`);
         if (program.abandonedReason) stdoutLine(`Abandoned:   ${program.abandonedReason}`);
         stdoutLine(`Created:     ${program.createdAt}`);
@@ -5603,7 +6104,10 @@ ${JSON.stringify(delta, null, 2)}
       if (!description) throw new Error("Missing --description.");
 
       // Generate slug from name
-      const slug = name.toUpperCase().replace(/[^A-Z0-9]+/g, "-").replace(/^-|-$/g, "");
+      const slug = name
+        .toUpperCase()
+        .replace(/[^A-Z0-9]+/g, "-")
+        .replace(/^-|-$/g, "");
       const existingPrograms = await storage.loadPrograms();
       const existingIds = existingPrograms.map((p) => p.id);
       const newId = generateProgramId(slug, existingIds);
@@ -5636,7 +6140,10 @@ ${JSON.stringify(delta, null, 2)}
       const programId = action;
       const sessionId = asStringFlag(flags, "session") ?? positional[3];
 
-      if (!programId) throw new Error("Missing program ID. Usage: program add-session <program-id> --session <session-id>");
+      if (!programId)
+        throw new Error(
+          "Missing program ID. Usage: program add-session <program-id> --session <session-id>",
+        );
       if (!sessionId) throw new Error("Missing --session <session-id>.");
 
       const program = await storage.getProgramById(programId);
@@ -5659,7 +6166,10 @@ ${JSON.stringify(delta, null, 2)}
       const programId = action;
       const sessionId = asStringFlag(flags, "session") ?? positional[3];
 
-      if (!programId) throw new Error("Missing program ID. Usage: program remove-session <program-id> --session <session-id>");
+      if (!programId)
+        throw new Error(
+          "Missing program ID. Usage: program remove-session <program-id> --session <session-id>",
+        );
       if (!sessionId) throw new Error("Missing --session <session-id>.");
 
       const program = await storage.getProgramById(programId);
@@ -5682,7 +6192,8 @@ ${JSON.stringify(delta, null, 2)}
       const programId = action;
       const reason = asStringFlag(flags, "reason");
 
-      if (!programId) throw new Error("Missing program ID. Usage: program pause <id> [--reason <s>]");
+      if (!programId)
+        throw new Error("Missing program ID. Usage: program pause <id> [--reason <s>]");
 
       const program = await storage.getProgramById(programId);
       if (!program) throw new Error(`Program not found: ${programId}`);
@@ -5724,7 +6235,8 @@ ${JSON.stringify(delta, null, 2)}
       const programId = action;
       const summary = asStringFlag(flags, "summary");
 
-      if (!programId) throw new Error("Missing program ID. Usage: program complete <id> [--summary <s>]");
+      if (!programId)
+        throw new Error("Missing program ID. Usage: program complete <id> [--summary <s>]");
 
       const program = await storage.getProgramById(programId);
       if (!program) throw new Error(`Program not found: ${programId}`);
@@ -5746,7 +6258,8 @@ ${JSON.stringify(delta, null, 2)}
       const programId = action;
       const reason = asStringFlag(flags, "reason");
 
-      if (!programId) throw new Error("Missing program ID. Usage: program abandon <id> --reason <s>");
+      if (!programId)
+        throw new Error("Missing program ID. Usage: program abandon <id> --reason <s>");
       if (!reason) throw new Error("Missing --reason (required for abandonment).");
 
       const program = await storage.getProgramById(programId);
@@ -5797,7 +6310,13 @@ ${JSON.stringify(delta, null, 2)}
       const dashboard = await aggregator.generateDashboard(program);
 
       if (jsonMode) {
-        stdoutLine(JSON.stringify({ ok: true, program: { id: program.id, name: program.name }, dashboard }, null, 2));
+        stdoutLine(
+          JSON.stringify(
+            { ok: true, program: { id: program.id, name: program.name }, dashboard },
+            null,
+            2,
+          ),
+        );
       } else {
         stdoutLine(`Dashboard for ${program.name} (${program.id})`);
         stdoutLine(`Generated at: ${dashboard.generatedAt}`);
@@ -5815,8 +6334,12 @@ ${JSON.stringify(delta, null, 2)}
         stdoutLine(`  Refined:               ${dashboard.hypothesisFunnel.refined}`);
         stdoutLine(`  By Origin:`);
         stdoutLine(`    Original:            ${dashboard.hypothesisFunnel.byOrigin.original}`);
-        stdoutLine(`    Third Alternative:   ${dashboard.hypothesisFunnel.byOrigin.thirdAlternative}`);
-        stdoutLine(`    Anomaly Spawned:     ${dashboard.hypothesisFunnel.byOrigin.anomalySpawned}`);
+        stdoutLine(
+          `    Third Alternative:   ${dashboard.hypothesisFunnel.byOrigin.thirdAlternative}`,
+        );
+        stdoutLine(
+          `    Anomaly Spawned:     ${dashboard.hypothesisFunnel.byOrigin.anomalySpawned}`,
+        );
         stdoutLine(``);
 
         // Registry health
@@ -5833,7 +6356,9 @@ ${JSON.stringify(delta, null, 2)}
         stdoutLine(`  In Progress:           ${dashboard.testExecution.inProgress}`);
         stdoutLine(`  Completed:             ${dashboard.testExecution.completed}`);
         stdoutLine(`  Blocked:               ${dashboard.testExecution.blocked}`);
-        stdoutLine(`  Potency Coverage:      ${(dashboard.testExecution.potencyCoverage * 100).toFixed(0)}%`);
+        stdoutLine(
+          `  Potency Coverage:      ${(dashboard.testExecution.potencyCoverage * 100).toFixed(0)}%`,
+        );
         if (dashboard.testExecution.avgEvidenceScore !== undefined) {
           stdoutLine(`  Avg Evidence Score:    ${dashboard.testExecution.avgEvidenceScore}/12`);
         }
@@ -5876,7 +6401,8 @@ ${JSON.stringify(delta, null, 2)}
       // Prefer the FastAPI health endpoint when reachable; fall back to MCP tool.
       const baseUrl = runtimeConfig.agentMail.baseUrl;
       const headers: Record<string, string> = {};
-      if (runtimeConfig.agentMail.bearerToken) headers.Authorization = `Bearer ${runtimeConfig.agentMail.bearerToken}`;
+      if (runtimeConfig.agentMail.bearerToken)
+        headers.Authorization = `Bearer ${runtimeConfig.agentMail.bearerToken}`;
       try {
         const res = await fetch(`${baseUrl}/health/readiness`, { headers });
         const json = await res.json().catch(() => ({}));
@@ -5897,7 +6423,9 @@ ${JSON.stringify(delta, null, 2)}
 
     if (sub === "agents") {
       const projectSlug = isAbsolute(projectKey)
-        ? parseEnsureProjectSlug(await client.toolsCall("ensure_project", { human_key: projectKey }))
+        ? parseEnsureProjectSlug(
+            await client.toolsCall("ensure_project", { human_key: projectKey }),
+          )
         : projectKey;
       if (!projectSlug) throw new Error("Agent Mail ensure_project did not return a project slug.");
       const result = await client.resourcesRead(`resource://agents/${projectSlug}`);
@@ -5934,7 +6462,9 @@ ${JSON.stringify(delta, null, 2)}
           name: sender,
           program: "brenner-cli",
           model: "orchestrator",
-          task_description: threadId ? `Brenner CLI mail send: ${threadId}` : "Brenner CLI mail send",
+          task_description: threadId
+            ? `Brenner CLI mail send: ${threadId}`
+            : "Brenner CLI mail send",
         });
         const actualName = parseAgentNameFromToolResult(registerResult);
         if (actualName && actualName !== sender) {
@@ -6025,7 +6555,8 @@ ${JSON.stringify(delta, null, 2)}
         > = {};
 
         for (const m of messages) {
-          const threadId = typeof m.thread_id === "string" && m.thread_id.length > 0 ? m.thread_id : "(no-thread)";
+          const threadId =
+            typeof m.thread_id === "string" && m.thread_id.length > 0 ? m.thread_id : "(no-thread)";
           const messageId = typeof m.id === "number" ? m.id : null;
           const createdTs = typeof m.created_ts === "string" ? m.created_ts : null;
           const ackRequired = m.ack_required === true;
@@ -6038,11 +6569,14 @@ ${JSON.stringify(delta, null, 2)}
           });
 
           if (messageId !== null) existing.message_ids.push(messageId);
-          if (createdTs && (!existing.latest_ts || createdTs > existing.latest_ts)) existing.latest_ts = createdTs;
+          if (createdTs && (!existing.latest_ts || createdTs > existing.latest_ts))
+            existing.latest_ts = createdTs;
           if (ackRequired) existing.ack_required_message_count++;
         }
 
-        const baseThreads = Object.values(threads).sort((a, b) => (b.latest_ts ?? "").localeCompare(a.latest_ts ?? ""));
+        const baseThreads = Object.values(threads).sort((a, b) =>
+          (b.latest_ts ?? "").localeCompare(a.latest_ts ?? ""),
+        );
 
         if (!includeSummaries) {
           const out = { agent: agentName, threads: baseThreads };
@@ -6079,10 +6613,16 @@ ${JSON.stringify(delta, null, 2)}
           }
 
           try {
-            const thread = await client.readThread({ projectKey, threadId: threadMeta.thread_id, includeBodies: false });
+            const thread = await client.readThread({
+              projectKey,
+              threadId: threadMeta.thread_id,
+              includeBodies: false,
+            });
             const status = computeThreadStatusFromThread(thread);
             const totalRoleCount = Object.keys(status.roles).length;
-            const respondedRoleCount = Object.values(status.roles).filter((r) => r.completed).length;
+            const respondedRoleCount = Object.values(status.roles).filter(
+              (r) => r.completed,
+            ).length;
             let artifactLabel: string | null = null;
             if (status.latestArtifact) {
               if (status.latestArtifact.version) {
@@ -6117,7 +6657,10 @@ ${JSON.stringify(delta, null, 2)}
                     }
                   : null,
                 roleContributors: Object.fromEntries(
-                  Object.entries(status.roles).map(([role, roleStatus]) => [role, roleStatus.contributors])
+                  Object.entries(status.roles).map(([role, roleStatus]) => [
+                    role,
+                    roleStatus.contributors,
+                  ]),
                 ),
                 summary: summaryParts.join(" | "),
               },
@@ -6233,7 +6776,9 @@ ${JSON.stringify(delta, null, 2)}
   }
 
   if (top === "toolchain" && sub === "plan") {
-    const manifestPath = resolve(asStringFlag(flags, "manifest") ?? "specs/toolchain.manifest.json");
+    const manifestPath = resolve(
+      asStringFlag(flags, "manifest") ?? "specs/toolchain.manifest.json",
+    );
     const jsonMode = asBoolFlag(flags, "json");
     const platformOverride = asStringFlag(flags, "platform") as PlatformString | undefined;
 
@@ -6258,7 +6803,7 @@ ${JSON.stringify(delta, null, 2)}
     if (!platform) {
       stderrLine(
         `Unsupported platform: ${process.platform}/${process.arch}\n` +
-          `Supported: linux-x64, linux-arm64, darwin-arm64, darwin-x64, win-x64`
+          `Supported: linux-x64, linux-arm64, darwin-arm64, darwin-x64, win-x64`,
       );
       process.exit(1);
     }
@@ -6266,7 +6811,9 @@ ${JSON.stringify(delta, null, 2)}
     // Validate platform override if provided
     const validPlatforms = ["linux-x64", "linux-arm64", "darwin-arm64", "darwin-x64", "win-x64"];
     if (platformOverride && !validPlatforms.includes(platformOverride)) {
-      stderrLine(`Invalid --platform: ${platformOverride}\nSupported: ${validPlatforms.join(", ")}`);
+      stderrLine(
+        `Invalid --platform: ${platformOverride}\nSupported: ${validPlatforms.join(", ")}`,
+      );
       process.exit(1);
     }
 
@@ -6290,7 +6837,9 @@ ${JSON.stringify(delta, null, 2)}
     const artifact = parseArtifactFromJsonFile(artifactPath);
     const report = lintArtifact(artifact);
 
-    const artifactName = artifact.metadata?.session_id ? artifact.metadata.session_id : artifactPath;
+    const artifactName = artifact.metadata?.session_id
+      ? artifact.metadata.session_id
+      : artifactPath;
     if (jsonMode) {
       stdoutLine(formatLintReportJson(report, artifactName));
     } else {
@@ -6303,19 +6852,24 @@ ${JSON.stringify(delta, null, 2)}
   if (top === "excerpt" && sub === "build") {
     const jsonMode = asBoolFlag(flags, "json");
 
-    const transcriptSelectionRaw = asStringFlag(flags, "sections") ?? asStringFlag(flags, "anchors");
+    const transcriptSelectionRaw =
+      asStringFlag(flags, "sections") ?? asStringFlag(flags, "anchors");
     const tagsSelectionRaw = asStringFlag(flags, "tags") ?? asStringFlag(flags, "tag");
     if (!transcriptSelectionRaw && !tagsSelectionRaw) {
       throw new Error("Missing selection. Provide --sections/--anchors or --tags/--tag.");
     }
     if (transcriptSelectionRaw && tagsSelectionRaw) {
-      throw new Error("Ambiguous selection. Provide either --sections/--anchors or --tags/--tag (not both).");
+      throw new Error(
+        "Ambiguous selection. Provide either --sections/--anchors or --tags/--tag (not both).",
+      );
     }
 
     const orderingRaw = asStringFlag(flags, "ordering");
     const ordering = orderingRaw ? (orderingRaw as "relevance" | "chronological") : undefined;
     if (orderingRaw && ordering !== "relevance" && ordering !== "chronological") {
-      throw new Error(`Invalid --ordering: expected "relevance" or "chronological", got "${orderingRaw}"`);
+      throw new Error(
+        `Invalid --ordering: expected "relevance" or "chronological", got "${orderingRaw}"`,
+      );
     }
 
     const theme = asStringFlag(flags, "theme");
@@ -6325,7 +6879,9 @@ ${JSON.stringify(delta, null, 2)}
     let composed: ComposedExcerpt;
 
     if (transcriptSelectionRaw) {
-      const transcriptPath = resolve(asStringFlag(flags, "transcript-file") ?? "complete_brenner_transcript.md");
+      const transcriptPath = resolve(
+        asStringFlag(flags, "transcript-file") ?? "complete_brenner_transcript.md",
+      );
       const transcript = parseTranscript(readTextFile(transcriptPath));
       const sections = splitCsv(transcriptSelectionRaw);
       if (sections.length === 0) throw new Error("Missing --sections/--anchors values.");
@@ -6337,7 +6893,9 @@ ${JSON.stringify(delta, null, 2)}
         maxQuoteWords: maxQuoteWords ?? undefined,
       });
     } else {
-      const quoteBankPath = resolve(asStringFlag(flags, "quote-bank-file") ?? "quote_bank_restored_primitives.md");
+      const quoteBankPath = resolve(
+        asStringFlag(flags, "quote-bank-file") ?? "quote_bank_restored_primitives.md",
+      );
       const tags = splitCsv(tagsSelectionRaw);
       if (tags.length === 0) throw new Error("Missing --tags/--tag values.");
 
@@ -6395,7 +6953,8 @@ ${JSON.stringify(delta, null, 2)}
 
     const positionalQuery = positional.slice(2).join(" ").trim();
     const query = positionalQuery || asStringFlag(flags, "query");
-    if (!query) throw new Error("Missing query. Usage: ./brenner.ts corpus search \"...\" (or --query \"...\").");
+    if (!query)
+      throw new Error('Missing query. Usage: ./brenner.ts corpus search "..." (or --query "...").');
 
     const limit = asIntFlag(flags, "limit") ?? 20;
     if (limit <= 0) throw new Error(`Invalid --limit: expected > 0, got ${limit}`);
@@ -6408,7 +6967,7 @@ ${JSON.stringify(delta, null, 2)}
         throw new Error(
           `Unknown doc id(s): ${unknown.join(", ")}\n` +
             `Known docs:\n` +
-            CORPUS_DOCS.map((d) => `- ${d.id}${d.title ? `: ${d.title}` : ""}`).join("\n")
+            CORPUS_DOCS.map((d) => `- ${d.id}${d.title ? `: ${d.title}` : ""}`).join("\n"),
         );
       }
     }
@@ -6424,7 +6983,9 @@ ${JSON.stringify(delta, null, 2)}
     ];
     const category = (categoryRaw ?? "all") as SearchCategory;
     if (categoryRaw && !allowedCategories.includes(category)) {
-      throw new Error(`Invalid --category: expected one of ${allowedCategories.join(", ")}, got "${categoryRaw}"`);
+      throw new Error(
+        `Invalid --category: expected one of ${allowedCategories.join(", ")}, got "${categoryRaw}"`,
+      );
     }
 
     const modelRaw = asStringFlag(flags, "model");
@@ -6433,7 +6994,9 @@ ${JSON.stringify(delta, null, 2)}
       throw new Error(`Invalid --model: expected "gpt", "opus", or "gemini", got "${modelRaw}"`);
     }
 
-    const projectKey = resolve(asStringFlag(flags, "project-key") ?? runtimeConfig.defaults.projectKey);
+    const projectKey = resolve(
+      asStringFlag(flags, "project-key") ?? runtimeConfig.defaults.projectKey,
+    );
 
     const runSearch = () =>
       globalSearch(query, {
@@ -6467,8 +7030,8 @@ ${JSON.stringify(delta, null, 2)}
             publicBaseUrl,
           },
           null,
-          2
-        )
+          2,
+        ),
       );
       process.exit(0);
     }
@@ -6478,7 +7041,9 @@ ${JSON.stringify(delta, null, 2)}
     if (docIds.length > 0) lines.push(`Docs: ${docIds.join(", ")}`);
     if (category !== "all") lines.push(`Category: ${category}`);
     if (model) lines.push(`Model: ${model}`);
-    lines.push(`Matches: ${result.totalMatches} (showing ${result.hits.length}) in ${result.searchTimeMs}ms`);
+    lines.push(
+      `Matches: ${result.totalMatches} (showing ${result.hits.length}) in ${result.searchTimeMs}ms`,
+    );
 
     for (const [i, hit] of result.hits.entries()) {
       lines.push("");
@@ -6493,11 +7058,15 @@ ${JSON.stringify(delta, null, 2)}
   }
 
   if (top === "corpus") {
-    throw new Error(`Unknown corpus command: ${[sub, action].filter(Boolean).join(" ") || "(missing subcommand)"}`);
+    throw new Error(
+      `Unknown corpus command: ${[sub, action].filter(Boolean).join(" ") || "(missing subcommand)"}`,
+    );
   }
 
   if (top === "prompt" && sub === "compose") {
-    const templatePath = resolve(asStringFlag(flags, "template") ?? runtimeConfig.defaults.template);
+    const templatePath = resolve(
+      asStringFlag(flags, "template") ?? runtimeConfig.defaults.template,
+    );
     const excerptFile = asStringFlag(flags, "excerpt-file");
     if (!excerptFile) throw new Error("Missing --excerpt-file.");
     const excerpt = readTextFile(resolve(excerptFile));
@@ -6516,7 +7085,8 @@ ${JSON.stringify(delta, null, 2)}
   if (top === "memory" && sub === "context") {
     const positionalTask = positional.slice(2).join(" ").trim();
     const task = positionalTask || asStringFlag(flags, "task");
-    if (!task) throw new Error("Missing task. Usage: ./brenner.ts memory context \"...\" (or --task \"...\").");
+    if (!task)
+      throw new Error('Missing task. Usage: ./brenner.ts memory context "..." (or --task "...").');
 
     const result = await getCassMemoryContext(task, {
       workspace: asStringFlag(flags, "workspace"),
@@ -6538,7 +7108,9 @@ ${JSON.stringify(delta, null, 2)}
     const skipBroadcast = asBoolFlag(flags, "skip-broadcast");
     const ntmArgsRaw = asStringFlag(flags, "ntm-args") ?? "--cc=1 --cod=1 --agy=1";
 
-    const projectKey = resolve(asStringFlag(flags, "project-key") ?? runtimeConfig.defaults.projectKey);
+    const projectKey = resolve(
+      asStringFlag(flags, "project-key") ?? runtimeConfig.defaults.projectKey,
+    );
     const threadId = asStringFlag(flags, "thread-id");
     if (!threadId) throw new Error("Missing --thread-id.");
 
@@ -6563,7 +7135,7 @@ ${JSON.stringify(delta, null, 2)}
     if (!roleMapRaw) {
       throw new Error(
         "Missing --role-map. Cockpit sessions require an explicit roster mapping. " +
-          'Example: --role-map "BlueLake=hypothesis_generator,PurpleMountain=test_designer,RedForest=adversarial_critic"'
+          'Example: --role-map "BlueLake=hypothesis_generator,PurpleMountain=test_designer,RedForest=adversarial_critic"',
       );
     }
 
@@ -6592,7 +7164,11 @@ ${JSON.stringify(delta, null, 2)}
     };
 
     if (withMemory) {
-      const memoryResult = await getCassMemoryContext(question, { workspace: projectKey, top: 5, history: 0 });
+      const memoryResult = await getCassMemoryContext(question, {
+        workspace: projectKey,
+        top: 5,
+        history: 0,
+      });
       const memoryContext = formatCassMemoryContextForKickoff(memoryResult);
       memoryAudit = {
         enabled: true,
@@ -6607,7 +7183,8 @@ ${JSON.stringify(delta, null, 2)}
     }
 
     const broadcastMessage =
-      asStringFlag(flags, "broadcast-message") ?? `Please check your Agent Mail inbox for thread: ${threadId}`;
+      asStringFlag(flags, "broadcast-message") ??
+      `Please check your Agent Mail inbox for thread: ${threadId}`;
 
     const ntmSpawnArgv = ["ntm", "spawn", threadId, ...splitCommand(ntmArgsRaw)];
     const ntmSendArgv = ["ntm", "send", threadId, "--all", broadcastMessage];
@@ -6638,8 +7215,8 @@ ${JSON.stringify(delta, null, 2)}
               kickoff: kickoffPreview,
             },
             null,
-            2
-          )
+            2,
+          ),
         );
       } else {
         const lines: string[] = [];
@@ -6743,8 +7320,8 @@ ${JSON.stringify(delta, null, 2)}
           messages: sendResults,
         },
         null,
-        2
-      )
+        2,
+      ),
     );
     process.exit(0);
   }
@@ -6753,7 +7330,9 @@ ${JSON.stringify(delta, null, 2)}
 
   if (normalizedTop === "session" && sub === "start") {
     const client = new AgentMailClient(runtimeConfig.agentMail);
-    const projectKey = resolve(asStringFlag(flags, "project-key") ?? runtimeConfig.defaults.projectKey);
+    const projectKey = resolve(
+      asStringFlag(flags, "project-key") ?? runtimeConfig.defaults.projectKey,
+    );
     let sender = asStringFlag(flags, "sender") ?? process.env.AGENT_NAME;
     if (!sender) throw new Error("Missing --sender (or set AGENT_NAME).");
     const to = splitCsv(asStringFlag(flags, "to"));
@@ -6806,7 +7385,11 @@ ${JSON.stringify(delta, null, 2)}
     };
 
     if (withMemory) {
-      const memoryResult = await getCassMemoryContext(question, { workspace: projectKey, top: 5, history: 0 });
+      const memoryResult = await getCassMemoryContext(question, {
+        workspace: projectKey,
+        top: 5,
+        history: 0,
+      });
       const memoryContext = formatCassMemoryContextForKickoff(memoryResult);
       memoryAudit = {
         enabled: true,
@@ -6821,7 +7404,7 @@ ${JSON.stringify(delta, null, 2)}
       } else {
         const details = memoryResult.provenance.errors.join("; ");
         stderrLine(
-          `No MEMORY CONTEXT injected (cass-memory ${memoryResult.provenance.mode}${details ? `: ${details}` : ""}).`
+          `No MEMORY CONTEXT injected (cass-memory ${memoryResult.provenance.mode}${details ? `: ${details}` : ""}).`,
         );
       }
     }
@@ -6843,7 +7426,9 @@ ${JSON.stringify(delta, null, 2)}
 
     if (unified) {
       // Legacy mode: send same message to all recipients
-      const templatePath = resolve(asStringFlag(flags, "template") ?? runtimeConfig.defaults.template);
+      const templatePath = resolve(
+        asStringFlag(flags, "template") ?? runtimeConfig.defaults.template,
+      );
       const body = composePrompt({
         templatePath,
         excerpt,
@@ -6852,7 +7437,8 @@ ${JSON.stringify(delta, null, 2)}
         domain: asStringFlag(flags, "domain"),
         question,
       });
-      const subject = asStringFlag(flags, "subject") ?? `KICKOFF: [${threadId}] ${question.slice(0, 50)}...`;
+      const subject =
+        asStringFlag(flags, "subject") ?? `KICKOFF: [${threadId}] ${question.slice(0, 50)}...`;
 
       const result = await client.toolsCall("send_message", {
         project_key: projectKey,
@@ -6863,7 +7449,9 @@ ${JSON.stringify(delta, null, 2)}
         thread_id: threadId,
         ack_required: true,
       });
-      const payload = isRecord(result) ? { ...result, memory: memoryAudit } : { memory: memoryAudit, send: result };
+      const payload = isRecord(result)
+        ? { ...result, memory: memoryAudit }
+        : { memory: memoryAudit, send: result };
       stdoutLine(JSON.stringify(payload, null, 2));
     } else {
       // Role-specific mode: each agent gets their role prompt
@@ -6886,10 +7474,15 @@ ${JSON.stringify(delta, null, 2)}
 
       stdoutLine(
         JSON.stringify(
-          { memory: memoryAudit, roster: kickoffConfig.recipientRoles ?? null, sent: results.length, messages: results },
+          {
+            memory: memoryAudit,
+            roster: kickoffConfig.recipientRoles ?? null,
+            sent: results.length,
+            messages: results,
+          },
           null,
-          2
-        )
+          2,
+        ),
       );
     }
 
@@ -6898,7 +7491,9 @@ ${JSON.stringify(delta, null, 2)}
 
   if (normalizedTop === "session" && sub === "compile") {
     const client = new AgentMailClient(runtimeConfig.agentMail);
-    const projectKey = resolve(asStringFlag(flags, "project-key") ?? runtimeConfig.defaults.projectKey);
+    const projectKey = resolve(
+      asStringFlag(flags, "project-key") ?? runtimeConfig.defaults.projectKey,
+    );
     const threadId = asStringFlag(flags, "thread-id");
     if (!threadId) throw new Error("Missing --thread-id.");
 
@@ -6914,7 +7509,7 @@ ${JSON.stringify(delta, null, 2)}
         stderrLine(`Failed to compile artifact for thread ${threadId}.`);
         if (result.deltas.total_blocks > 0) {
           stderrLine(
-            `Delta blocks: ${result.deltas.valid} valid, ${result.deltas.invalid} invalid (total ${result.deltas.total_blocks}).`
+            `Delta blocks: ${result.deltas.valid} valid, ${result.deltas.invalid} invalid (total ${result.deltas.total_blocks}).`,
           );
         }
         stderrLine(JSON.stringify({ errors: result.errors, warnings: result.warnings }, null, 2));
@@ -6945,7 +7540,7 @@ ${JSON.stringify(delta, null, 2)}
 
     if (result.deltas.total_blocks > 0) {
       stderrLine(
-        `Delta blocks: ${result.deltas.valid} valid, ${result.deltas.invalid} invalid (total ${result.deltas.total_blocks}).`
+        `Delta blocks: ${result.deltas.valid} valid, ${result.deltas.invalid} invalid (total ${result.deltas.total_blocks}).`,
       );
     }
     if (result.invalid_deltas.length > 0) {
@@ -6963,7 +7558,9 @@ ${JSON.stringify(delta, null, 2)}
 
   if (normalizedTop === "session" && sub === "write") {
     const client = new AgentMailClient(runtimeConfig.agentMail);
-    const projectKey = resolve(asStringFlag(flags, "project-key") ?? runtimeConfig.defaults.projectKey);
+    const projectKey = resolve(
+      asStringFlag(flags, "project-key") ?? runtimeConfig.defaults.projectKey,
+    );
     const threadId = asStringFlag(flags, "thread-id");
     if (!threadId) throw new Error("Missing --thread-id.");
 
@@ -6973,7 +7570,9 @@ ${JSON.stringify(delta, null, 2)}
     const outFile = resolve(outFileRaw ?? join(projectKey, "artifacts", `${safeThreadId}.md`));
 
     if (!outFileRaw && safeThreadId !== threadId) {
-      stderrLine(`Warning: sanitized thread id for artifact filename: "${threadId}" -> "${safeThreadId}"`);
+      stderrLine(
+        `Warning: sanitized thread id for artifact filename: "${threadId}" -> "${safeThreadId}"`,
+      );
     }
 
     const result = await compileSessionArtifact({ client, projectKey, threadId });
@@ -6987,12 +7586,22 @@ ${JSON.stringify(delta, null, 2)}
 
     if (jsonMode) {
       stdoutLine(
-        JSON.stringify({ ...result, out_file: outFile, operator_recommendations: deriveOperatorRecommendations(result.lint) }, null, 2)
+        JSON.stringify(
+          {
+            ...result,
+            out_file: outFile,
+            operator_recommendations: deriveOperatorRecommendations(result.lint),
+          },
+          null,
+          2,
+        ),
       );
     } else {
       stderrLine(`Wrote artifact to ${outFile}.`);
       stderrLine(formatLintReportHuman(result.lint, `artifact v${result.version}`));
-      const recText = formatOperatorRecommendationsHuman(deriveOperatorRecommendations(result.lint));
+      const recText = formatOperatorRecommendationsHuman(
+        deriveOperatorRecommendations(result.lint),
+      );
       if (recText) stderrLine(recText);
     }
 
@@ -7001,7 +7610,9 @@ ${JSON.stringify(delta, null, 2)}
 
   if (normalizedTop === "session" && sub === "publish") {
     const client = new AgentMailClient(runtimeConfig.agentMail);
-    const projectKey = resolve(asStringFlag(flags, "project-key") ?? runtimeConfig.defaults.projectKey);
+    const projectKey = resolve(
+      asStringFlag(flags, "project-key") ?? runtimeConfig.defaults.projectKey,
+    );
     const threadId = asStringFlag(flags, "thread-id");
     if (!threadId) throw new Error("Missing --thread-id.");
 
@@ -7044,13 +7655,19 @@ ${JSON.stringify(delta, null, 2)}
       ack_required: ackRequired,
     });
 
-    const payload = { compiled, send: sendResult, operator_recommendations: deriveOperatorRecommendations(compiled.lint) };
+    const payload = {
+      compiled,
+      send: sendResult,
+      operator_recommendations: deriveOperatorRecommendations(compiled.lint),
+    };
     if (jsonMode) {
       stdoutLine(JSON.stringify(payload, null, 2));
     } else {
       stdoutLine(JSON.stringify(sendResult, null, 2));
       stderrLine(formatLintReportHuman(compiled.lint, `artifact v${compiled.version}`));
-      const recText = formatOperatorRecommendationsHuman(deriveOperatorRecommendations(compiled.lint));
+      const recText = formatOperatorRecommendationsHuman(
+        deriveOperatorRecommendations(compiled.lint),
+      );
       if (recText) stderrLine(recText);
     }
 
@@ -7059,7 +7676,9 @@ ${JSON.stringify(delta, null, 2)}
 
   if (normalizedTop === "session" && sub === "nudge") {
     const client = new AgentMailClient(runtimeConfig.agentMail);
-    const projectKey = resolve(asStringFlag(flags, "project-key") ?? runtimeConfig.defaults.projectKey);
+    const projectKey = resolve(
+      asStringFlag(flags, "project-key") ?? runtimeConfig.defaults.projectKey,
+    );
     const threadId = asStringFlag(flags, "thread-id");
     if (!threadId) throw new Error("Missing --thread-id.");
 
@@ -7099,7 +7718,8 @@ ${JSON.stringify(delta, null, 2)}
     const topGap = pickTopLintGap(compiled.lint);
 
     const operatorQuery =
-      operatorQueryRaw ?? (operatorRecommendations[0]?.operators[0] ? operatorRecommendations[0].operators[0] : null);
+      operatorQueryRaw ??
+      (operatorRecommendations[0]?.operators[0] ? operatorRecommendations[0].operators[0] : null);
 
     if (!operatorQuery) {
       throw new Error(
@@ -7116,7 +7736,12 @@ ${JSON.stringify(delta, null, 2)}
     }
 
     const matchingRecommendation = operatorRecommendations.find((rec) =>
-      rec.operators.some((op) => op === operatorQuery || op.startsWith(`${operatorCard.symbol} `) || op === operatorCard.symbol),
+      rec.operators.some(
+        (op) =>
+          op === operatorQuery ||
+          op.startsWith(`${operatorCard.symbol} `) ||
+          op === operatorCard.symbol,
+      ),
     );
 
     const suggestedRole = matchingRecommendation?.suggested_role ?? null;
@@ -7126,7 +7751,9 @@ ${JSON.stringify(delta, null, 2)}
     bodyLines.push(`# Nudge: Apply ${operatorCard.symbol} ${operatorCard.title}`);
     bodyLines.push("");
     bodyLines.push(`Thread: ${threadId}`);
-    bodyLines.push(`Compiled artifact: v${compiled.version} (${compiled.lint.valid ? "lint VALID" : "lint INVALID"})`);
+    bodyLines.push(
+      `Compiled artifact: v${compiled.version} (${compiled.lint.valid ? "lint VALID" : "lint INVALID"})`,
+    );
     bodyLines.push("");
 
     if (topGap) {
@@ -7150,11 +7777,17 @@ ${JSON.stringify(delta, null, 2)}
 
     bodyLines.push("## Instructions");
     if (suggestedRole && suggestedDeltaTag) {
-      bodyLines.push(`- Suggested role: ${suggestedRole} (reply with subject \`DELTA[${suggestedDeltaTag}]: <description>\`).`);
+      bodyLines.push(
+        `- Suggested role: ${suggestedRole} (reply with subject \`DELTA[${suggestedDeltaTag}]: <description>\`).`,
+      );
     } else {
-      bodyLines.push("- Reply in-thread with subject `DELTA[role]: <description>` and include your delta blocks.");
+      bodyLines.push(
+        "- Reply in-thread with subject `DELTA[role]: <description>` and include your delta blocks.",
+      );
     }
-    bodyLines.push("- Close the lint gap directly; say which operator you applied and what changed.");
+    bodyLines.push(
+      "- Close the lint gap directly; say which operator you applied and what changed.",
+    );
     bodyLines.push("");
 
     const subject = `NUDGE: [${threadId}] ${operatorCard.symbol} ${operatorCard.title}`;
@@ -7231,13 +7864,16 @@ ${JSON.stringify(delta, null, 2)}
 
   if (normalizedTop === "session" && sub === "status") {
     const client = new AgentMailClient(runtimeConfig.agentMail);
-    const projectKey = resolve(asStringFlag(flags, "project-key") ?? runtimeConfig.defaults.projectKey);
+    const projectKey = resolve(
+      asStringFlag(flags, "project-key") ?? runtimeConfig.defaults.projectKey,
+    );
     const threadId = asStringFlag(flags, "thread-id");
     if (!threadId) throw new Error("Missing --thread-id.");
 
     const watch = asBoolFlag(flags, "watch");
     const timeoutSeconds = asIntFlag(flags, "timeout") ?? 900;
-    if (timeoutSeconds <= 0) throw new Error(`Invalid --timeout: expected > 0 seconds, got ${timeoutSeconds}`);
+    if (timeoutSeconds <= 0)
+      throw new Error(`Invalid --timeout: expected > 0 seconds, got ${timeoutSeconds}`);
 
     const timeoutMs = timeoutSeconds * 1000;
     const startMs = Date.now();
@@ -7257,14 +7893,18 @@ ${JSON.stringify(delta, null, 2)}
     let delayMs = 2000;
     let lastPrintedKey = JSON.stringify({
       phase: status.phase,
-      roles: Object.fromEntries(Object.entries(status.roles).map(([role, s]) => [role, s.completed])),
+      roles: Object.fromEntries(
+        Object.entries(status.roles).map(([role, s]) => [role, s.completed]),
+      ),
       pendingAcks: status.acks.pendingCount,
       artifactVersion: status.latestArtifact?.version ?? null,
     });
 
     while (!status.isComplete) {
       if (Date.now() - startMs > timeoutMs) {
-        stderrLine(`Timed out after ${timeoutSeconds}s waiting for roles to complete in thread ${threadId}.`);
+        stderrLine(
+          `Timed out after ${timeoutSeconds}s waiting for roles to complete in thread ${threadId}.`,
+        );
         process.exit(2);
       }
 
@@ -7274,7 +7914,9 @@ ${JSON.stringify(delta, null, 2)}
       status = await fetchStatus();
       const key = JSON.stringify({
         phase: status.phase,
-        roles: Object.fromEntries(Object.entries(status.roles).map(([role, s]) => [role, s.completed])),
+        roles: Object.fromEntries(
+          Object.entries(status.roles).map(([role, s]) => [role, s.completed]),
+        ),
         pendingAcks: status.acks.pendingCount,
         artifactVersion: status.latestArtifact?.version ?? null,
       });
@@ -7293,12 +7935,16 @@ ${JSON.stringify(delta, null, 2)}
   // ----------------------------------------------------------------------------
   if (normalizedTop === "session" && sub === "diagnose") {
     const client = new AgentMailClient(runtimeConfig.agentMail);
-    const projectKey = resolve(asStringFlag(flags, "project-key") ?? runtimeConfig.defaults.projectKey);
+    const projectKey = resolve(
+      asStringFlag(flags, "project-key") ?? runtimeConfig.defaults.projectKey,
+    );
     const threadId = asStringFlag(flags, "thread-id");
     const jsonMode = asBoolFlag(flags, "json");
 
     if (!threadId) {
-      throw new Error("Missing required --thread-id flag. Usage: brenner session diagnose --thread-id <id>");
+      throw new Error(
+        "Missing required --thread-id flag. Usage: brenner session diagnose --thread-id <id>",
+      );
     }
 
     const result = await diagnoseSessionDeltas({ client, projectKey, threadId });
@@ -7311,7 +7957,9 @@ ${JSON.stringify(delta, null, 2)}
       stdoutLine(`═══════════════════════════════════════════════════════════\n`);
 
       stdoutLine(`Messages: ${result.messageCount} total, ${result.deltaMessageCount} DELTA`);
-      stdoutLine(`Summary:  ${result.summary.healthy} healthy, ${result.summary.issues} with issues`);
+      stdoutLine(
+        `Summary:  ${result.summary.healthy} healthy, ${result.summary.issues} with issues`,
+      );
       stdoutLine(`Deltas:   ${result.deltas.valid}/${result.deltas.total_blocks} valid blocks\n`);
 
       if (result.messages.length > 0) {
@@ -7320,7 +7968,9 @@ ${JSON.stringify(delta, null, 2)}
         for (const msg of result.messages) {
           const statusIcon = msg.status === "ok" ? "✓" : msg.status === "error" ? "✗" : "⚠";
           const statusColor = msg.status === "ok" ? "32" : msg.status === "error" ? "31" : "33";
-          stdoutLine(`\x1b[${statusColor}m${statusIcon}\x1b[0m [${msg.id}] ${msg.from}: ${msg.subject}`);
+          stdoutLine(
+            `\x1b[${statusColor}m${statusIcon}\x1b[0m [${msg.id}] ${msg.from}: ${msg.subject}`,
+          );
           stdoutLine(`  Blocks: ${msg.valid_blocks}/${msg.delta_blocks} valid`);
           if (msg.issues.length > 0) {
             for (const issue of msg.issues) {
@@ -7353,7 +8003,8 @@ ${JSON.stringify(delta, null, 2)}
 
     // Helper to format dimension score for human output
     function formatDimensionScore(d: DimensionScore): string {
-      const bar = "█".repeat(Math.round(d.percentage / 10)) + "░".repeat(10 - Math.round(d.percentage / 10));
+      const bar =
+        "█".repeat(Math.round(d.percentage / 10)) + "░".repeat(10 - Math.round(d.percentage / 10));
       return `${d.dimension.padEnd(28)} ${bar} ${d.points}/${d.maxPoints} (${d.percentage}%)`;
     }
 
@@ -7399,7 +8050,9 @@ ${JSON.stringify(delta, null, 2)}
 
       if (allSessionIds.length === 0) {
         if (jsonMode) {
-          stdoutLine(JSON.stringify({ ok: true, sessions: [], message: "No sessions found" }, null, 2));
+          stdoutLine(
+            JSON.stringify({ ok: true, sessions: [], message: "No sessions found" }, null, 2),
+          );
         } else {
           stdoutLine("No sessions found in storage.");
         }
@@ -7418,17 +8071,25 @@ ${JSON.stringify(delta, null, 2)}
       results.sort((a, b) => b.score.totalScore - a.score.totalScore);
 
       if (jsonMode) {
-        stdoutLine(JSON.stringify({
-          ok: true,
-          count: results.length,
-          sessions: results,
-        }, null, 2));
+        stdoutLine(
+          JSON.stringify(
+            {
+              ok: true,
+              count: results.length,
+              sessions: results,
+            },
+            null,
+            2,
+          ),
+        );
       } else {
         stdoutLine(`\n═══════════════════════════════════════════════════════════`);
         stdoutLine(`  ALL SESSIONS SCORECARD`);
         stdoutLine(`═══════════════════════════════════════════════════════════\n`);
 
-        stdoutLine(`${"Rank".padEnd(6)} ${"Session".padEnd(30)} ${"Grade".padEnd(6)} ${"Score".padEnd(10)}`);
+        stdoutLine(
+          `${"Rank".padEnd(6)} ${"Session".padEnd(30)} ${"Grade".padEnd(6)} ${"Score".padEnd(10)}`,
+        );
         stdoutLine(`───────────────────────────────────────────────────────────`);
 
         results.forEach((r, idx) => {
@@ -7441,7 +8102,9 @@ ${JSON.stringify(delta, null, 2)}
 
         stdoutLine(`───────────────────────────────────────────────────────────`);
         const avgScore = results.reduce((sum, r) => sum + r.score.totalScore, 0) / results.length;
-        stdoutLine(`\nAverage score: ${avgScore.toFixed(1)} points across ${results.length} sessions`);
+        stdoutLine(
+          `\nAverage score: ${avgScore.toFixed(1)} points across ${results.length} sessions`,
+        );
       }
       process.exit(0);
     }
@@ -7478,25 +8141,57 @@ ${JSON.stringify(delta, null, 2)}
     // Check each dimension and generate feedback for low scores
     const dimensions = [
       { key: "paradoxGrounding", name: "Paradox Grounding", threshold: 10 },
-      { key: "hypothesisKillRate", name: "Hypothesis Kill Rate", threshold: 10, quoteKey: "theoryKillJustification" },
-      { key: "testDiscriminability", name: "Test Discriminability", threshold: 10, quoteKey: "discriminativePower" },
-      { key: "assumptionTracking", name: "Assumption Tracking", threshold: 8, quoteKey: "scaleCheckRigor" },
-      { key: "thirdAlternativeDiscovery", name: "Third Alternative Discovery", threshold: 8, quoteKey: "thirdAlternativePresence" },
+      {
+        key: "hypothesisKillRate",
+        name: "Hypothesis Kill Rate",
+        threshold: 10,
+        quoteKey: "theoryKillJustification",
+      },
+      {
+        key: "testDiscriminability",
+        name: "Test Discriminability",
+        threshold: 10,
+        quoteKey: "discriminativePower",
+      },
+      {
+        key: "assumptionTracking",
+        name: "Assumption Tracking",
+        threshold: 8,
+        quoteKey: "scaleCheckRigor",
+      },
+      {
+        key: "thirdAlternativeDiscovery",
+        name: "Third Alternative Discovery",
+        threshold: 8,
+        quoteKey: "thirdAlternativePresence",
+      },
       { key: "experimentalFeasibility", name: "Experimental Feasibility", threshold: 5 },
-      { key: "adversarialPressure", name: "Adversarial Pressure", threshold: 10, quoteKey: "anomalyQuarantineDiscipline" },
+      {
+        key: "adversarialPressure",
+        name: "Adversarial Pressure",
+        threshold: 10,
+        quoteKey: "anomalyQuarantineDiscipline",
+      },
     ] as const;
 
     for (const dim of dimensions) {
       const d = result.dimensions[dim.key];
       if (d.points < dim.threshold) {
         const suggestions: Record<string, string> = {
-          paradoxGrounding: "Start with a genuine puzzle or paradox. Identify surprising observations that challenge existing paradigm.",
-          hypothesisKillRate: "Actively try to refute hypotheses. Link kills to specific test results with documented reasoning.",
-          testDiscriminability: "Design tests that produce different outcomes for different hypotheses. Include potency checks for all tests.",
-          assumptionTracking: "Record assumptions explicitly. Link them to hypotheses and include scale/physics checks with calculations.",
-          thirdAlternativeDiscovery: "Add a genuine third alternative that proposes a different causal structure, not a blend.",
-          experimentalFeasibility: "Add feasibility assessments to tests. Execute tests to move from design to results.",
-          adversarialPressure: "Log critiques with evidence. Propose real third alternatives from critique.",
+          paradoxGrounding:
+            "Start with a genuine puzzle or paradox. Identify surprising observations that challenge existing paradigm.",
+          hypothesisKillRate:
+            "Actively try to refute hypotheses. Link kills to specific test results with documented reasoning.",
+          testDiscriminability:
+            "Design tests that produce different outcomes for different hypotheses. Include potency checks for all tests.",
+          assumptionTracking:
+            "Record assumptions explicitly. Link them to hypotheses and include scale/physics checks with calculations.",
+          thirdAlternativeDiscovery:
+            "Add a genuine third alternative that proposes a different causal structure, not a blend.",
+          experimentalFeasibility:
+            "Add feasibility assessments to tests. Execute tests to move from design to results.",
+          adversarialPressure:
+            "Log critiques with evidence. Propose real third alternatives from critique.",
         };
 
         feedback.push({
@@ -7510,14 +8205,20 @@ ${JSON.stringify(delta, null, 2)}
     }
 
     if (jsonMode) {
-      stdoutLine(JSON.stringify({
-        ok: true,
-        sessionId,
-        grade: result.grade,
-        totalScore: result.totalScore,
-        maxScore: result.maxScore,
-        feedback,
-      }, null, 2));
+      stdoutLine(
+        JSON.stringify(
+          {
+            ok: true,
+            sessionId,
+            grade: result.grade,
+            totalScore: result.totalScore,
+            maxScore: result.maxScore,
+            feedback,
+          },
+          null,
+          2,
+        ),
+      );
     } else {
       stdoutLine(`\n═══════════════════════════════════════════════════════════`);
       stdoutLine(`  IMPROVEMENT FEEDBACK: ${sessionId}`);
@@ -7561,7 +8262,9 @@ ${JSON.stringify(delta, null, 2)}
 
     if (allSessionIds.length === 0) {
       if (jsonMode) {
-        stdoutLine(JSON.stringify({ ok: true, leaderboard: [], message: "No sessions found" }, null, 2));
+        stdoutLine(
+          JSON.stringify({ ok: true, leaderboard: [], message: "No sessions found" }, null, 2),
+        );
       } else {
         stdoutLine("No sessions found in storage.");
       }
@@ -7587,29 +8290,40 @@ ${JSON.stringify(delta, null, 2)}
         grade: score.grade,
         totalScore: score.totalScore,
         maxScore: score.maxScore,
-        percentage: score.maxScore === 0 ? 0 : Math.round((score.totalScore / score.maxScore) * 100),
+        percentage:
+          score.maxScore === 0 ? 0 : Math.round((score.totalScore / score.maxScore) * 100),
       });
     }
 
     // Sort by score descending and assign ranks
     results.sort((a, b) => b.totalScore - a.totalScore);
-    results.forEach((r, idx) => { r.rank = idx + 1; });
+    results.forEach((r, idx) => {
+      r.rank = idx + 1;
+    });
 
     const topResults = results.slice(0, limit);
 
     if (jsonMode) {
-      stdoutLine(JSON.stringify({
-        ok: true,
-        totalSessions: results.length,
-        showing: topResults.length,
-        leaderboard: topResults,
-      }, null, 2));
+      stdoutLine(
+        JSON.stringify(
+          {
+            ok: true,
+            totalSessions: results.length,
+            showing: topResults.length,
+            leaderboard: topResults,
+          },
+          null,
+          2,
+        ),
+      );
     } else {
       stdoutLine(`\n═══════════════════════════════════════════════════════════`);
       stdoutLine(`  🏆 SESSION LEADERBOARD`);
       stdoutLine(`═══════════════════════════════════════════════════════════\n`);
 
-      stdoutLine(`${"Rank".padEnd(6)} ${"Session".padEnd(30)} ${"Grade".padEnd(6)} ${"Score".padEnd(12)} ${"Pct"}`);
+      stdoutLine(
+        `${"Rank".padEnd(6)} ${"Session".padEnd(30)} ${"Grade".padEnd(6)} ${"Score".padEnd(12)} ${"Pct"}`,
+      );
       stdoutLine(`───────────────────────────────────────────────────────────`);
 
       for (const r of topResults) {
@@ -7659,28 +8373,28 @@ ${JSON.stringify(delta, null, 2)}
     if (!existsSync(contextFile)) {
       throw new Error(
         `Missing context file: ${contextFile}\n\n` +
-        `context.md grounds agents in your specific research question.\n\n` +
-        `Create it:\n` +
-        `  cat > ${contextFile} << 'EOF'\n` +
-        `  ## Research Question\n` +
-        `  <what are you trying to decide or understand?>\n\n` +
-        `  ## Background\n` +
-        `  <essential context the agents need>\n\n` +
-        `  ## Evaluation Criteria\n` +
-        `  <what does a good answer look like?>\n` +
-        `  EOF`
+          `context.md grounds agents in your specific research question.\n\n` +
+          `Create it:\n` +
+          `  cat > ${contextFile} << 'EOF'\n` +
+          `  ## Research Question\n` +
+          `  <what are you trying to decide or understand?>\n\n` +
+          `  ## Background\n` +
+          `  <essential context the agents need>\n\n` +
+          `  ## Evaluation Criteria\n` +
+          `  <what does a good answer look like?>\n` +
+          `  EOF`,
       );
     }
 
     if (!existsSync(excerptFile)) {
       throw new Error(
         `Missing excerpt file: ${excerptFile}\n\n` +
-        `excerpt.md grounds agents in Brenner's reasoning style.\n\n` +
-        `Build one:\n` +
-        `  brenner corpus search "your topic" --limit 5\n` +
-        `  brenner excerpt build --sections 58,78 > ${excerptFile}\n\n` +
-        `Or create an empty file to skip:\n` +
-        `  touch ${excerptFile}`
+          `excerpt.md grounds agents in Brenner's reasoning style.\n\n` +
+          `Build one:\n` +
+          `  brenner corpus search "your topic" --limit 5\n` +
+          `  brenner excerpt build --sections 58,78 > ${excerptFile}\n\n` +
+          `Or create an empty file to skip:\n` +
+          `  touch ${excerptFile}`,
       );
     }
 
@@ -7692,12 +8406,14 @@ ${JSON.stringify(delta, null, 2)}
       return asStringFlag(flags, flagKey) ?? process.env[envKey] ?? fallback;
     }
     const claudeBin = resolveAgentBin("claude-bin", "BRENNER_CLAUDE_BIN", "claude");
-    const codexBin  = resolveAgentBin("codex-bin",  "BRENNER_CODEX_BIN",  "codex");
+    const codexBin = resolveAgentBin("codex-bin", "BRENNER_CODEX_BIN", "codex");
     const geminiBin = resolveAgentBin("gemini-bin", "BRENNER_GEMINI_BIN", "gemini");
 
     // Augment PATH for agent binaries in common locations
     const localBin = join(homedir(), ".local", "bin");
-    const robotPath = [localBin, "/usr/local/bin", process.env.PATH ?? ""].filter(Boolean).join(":");
+    const robotPath = [localBin, "/usr/local/bin", process.env.PATH ?? ""]
+      .filter(Boolean)
+      .join(":");
 
     // Agent roster: three agents with incompatible mandates
     interface RobotAgent {
@@ -7717,7 +8433,11 @@ ${JSON.stringify(delta, null, 2)}
         role: AGENT_ROLES["Claude"] ?? AGENT_ROLES["Opus"],
         bin: claudeBin,
         buildArgs: (prompt: string) => [
-          "--dangerously-skip-permissions", "--output-format", "text", "-p", prompt,
+          "--dangerously-skip-permissions",
+          "--output-format",
+          "text",
+          "-p",
+          prompt,
         ],
         buildEnv: () => ({
           ...process.env,
@@ -7735,7 +8455,11 @@ ${JSON.stringify(delta, null, 2)}
         role: AGENT_ROLES["Codex"] ?? AGENT_ROLES["codex-cli"],
         bin: codexBin,
         buildArgs: (prompt: string, outFile: string) => [
-          "exec", "--full-auto", "--output-last-message", outFile, prompt,
+          "exec",
+          "--full-auto",
+          "--output-last-message",
+          outFile,
+          prompt,
         ],
         buildEnv: () => ({
           ...process.env,
@@ -7750,9 +8474,7 @@ ${JSON.stringify(delta, null, 2)}
         slug: "greenmountain",
         role: AGENT_ROLES["Gemini"] ?? AGENT_ROLES["gemini-cli"],
         bin: geminiBin,
-        buildArgs: (prompt: string) => [
-          "--yolo", "--output-format", "text", "-p", prompt,
-        ],
+        buildArgs: (prompt: string) => ["--yolo", "--output-format", "text", "-p", prompt],
         buildEnv: () => ({
           ...process.env,
           PATH: robotPath,
@@ -7770,7 +8492,9 @@ ${JSON.stringify(delta, null, 2)}
       const roleSection = getRolePromptMarkdown(agent.role.role);
 
       const parts: string[] = [];
-      parts.push(`You are ${agent.name} (${agent.role.displayName}) in a Brenner Protocol session.\n`);
+      parts.push(
+        `You are ${agent.name} (${agent.role.displayName}) in a Brenner Protocol session.\n`,
+      );
 
       if (kernel) {
         parts.push(`## Triangulated Brenner Kernel\n\n${kernel}\n`);
@@ -7800,13 +8524,20 @@ ${JSON.stringify(delta, null, 2)}
     // -------------------------------------------------------------------
     // Build Round 2+ prompt for an agent given current artifact
     // -------------------------------------------------------------------
-    function buildRoundNPrompt(agent: RobotAgent, artifact: Artifact, round: number, opNotes?: string): string {
+    function buildRoundNPrompt(
+      agent: RobotAgent,
+      artifact: Artifact,
+      round: number,
+      opNotes?: string,
+    ): string {
       const kernel = getTriangulatedBrennerKernelMarkdown();
       const roleSection = getRolePromptMarkdown(agent.role.role);
       const artifactMd = renderArtifactMarkdown(artifact);
 
       const parts: string[] = [];
-      parts.push(`You are ${agent.name} (${agent.role.displayName}) in a Brenner Protocol session.\n`);
+      parts.push(
+        `You are ${agent.name} (${agent.role.displayName}) in a Brenner Protocol session.\n`,
+      );
 
       // Re-inject kernel + role every round since each subprocess is a fresh context window
       if (kernel) {
@@ -7821,18 +8552,26 @@ ${JSON.stringify(delta, null, 2)}
       // Round-specific instructions
       if (round === 2) {
         parts.push(`## Round ${round} Instructions\n`);
-        parts.push(`Review other agents' findings from the previous round (in the artifact below).`);
-        parts.push(`Make your first kill attempts — identify weak hypotheses and KILL them with explicit reasons.`);
+        parts.push(
+          `Review other agents' findings from the previous round (in the artifact below).`,
+        );
+        parts.push(
+          `Make your first kill attempts — identify weak hypotheses and KILL them with explicit reasons.`,
+        );
         parts.push(`You may ADD refinements, but kills are the priority.\n`);
       } else {
         parts.push(`## Round ${round} Instructions (Convergence)\n`);
         parts.push(`KILLS MUST EXCEED ADDS. Provide final verdicts on all surviving hypotheses.`);
-        parts.push(`Kill any hypothesis that cannot withstand scrutiny. Fewer strong beats more weak.\n`);
+        parts.push(
+          `Kill any hypothesis that cannot withstand scrutiny. Fewer strong beats more weak.\n`,
+        );
       }
 
       if (opNotes) {
         parts.push(`## Operator Corrections (CRITICAL — Read Carefully)\n\n${opNotes}\n`);
-        parts.push(`Integrate the operator's corrections above into your analysis. They override prior assumptions.\n`);
+        parts.push(
+          `Integrate the operator's corrections above into your analysis. They override prior assumptions.\n`,
+        );
       }
 
       parts.push(`## Current Artifact (v${artifact.metadata.version})\n\n${artifactMd}\n`);
@@ -7938,7 +8677,9 @@ Example KILL:
         let killTimer: ReturnType<typeof setTimeout> | undefined;
         const timer = setTimeout(() => {
           child.kill("SIGTERM");
-          stderrLine(`  [!] ${agent.name} timed out after ${AGENT_TIMEOUT_MS / 1000}s, sending SIGTERM`);
+          stderrLine(
+            `  [!] ${agent.name} timed out after ${AGENT_TIMEOUT_MS / 1000}s, sending SIGTERM`,
+          );
           // Escalate to SIGKILL if process doesn't exit within 10 seconds
           killTimer = setTimeout(() => {
             child.kill("SIGKILL");
@@ -8011,8 +8752,9 @@ Example KILL:
       }
 
       // Count active hypotheses
-      const activeHypotheses = (artifact.sections.hypothesis_slate as any[])
-        .filter((h: any) => !h.killed).length;
+      const activeHypotheses = (artifact.sections.hypothesis_slate as any[]).filter(
+        (h: any) => !h.killed,
+      ).length;
 
       // Convergence: kills >= adds (adversarial pressure exceeds generation)
       // Require at least one kill to avoid premature convergence on pure-EDIT rounds
@@ -8041,9 +8783,10 @@ Example KILL:
     if (operatorNotesFile && !existsSync(operatorNotesFile)) {
       stderrLine(`  [!] Operator notes file not found: ${operatorNotesFile}`);
     }
-    const operatorNotes = operatorNotesFile && existsSync(operatorNotesFile)
-      ? readFileSync(operatorNotesFile, "utf8").trim()
-      : undefined;
+    const operatorNotes =
+      operatorNotesFile && existsSync(operatorNotesFile)
+        ? readFileSync(operatorNotesFile, "utf8").trim()
+        : undefined;
 
     stderrLine(`\n========================================`);
     stderrLine(`  Brenner Robot Mode${stepMode ? " (STEP)" : ""}`);
@@ -8051,9 +8794,14 @@ Example KILL:
     stderrLine(`Session:    ${sessionId}`);
     stderrLine(`Question:   ${question.slice(0, 80)}${question.length > 80 ? "..." : ""}`);
     stderrLine(`Max rounds: ${stepMode ? "1 (step mode)" : String(maxRounds)}`);
-    stderrLine(`Agents:     BlueLake (${claudeBin}), RedForest (${codexBin}), GreenMountain (${geminiBin})`);
-    stderrLine(`Mode:       ${sequential ? "sequential" : "parallel"}${stepMode ? " | HITL step" : ""}`);
-    if (operatorNotes) stderrLine(`Operator:   ${operatorNotes.length} chars of corrections injected`);
+    stderrLine(
+      `Agents:     BlueLake (${claudeBin}), RedForest (${codexBin}), GreenMountain (${geminiBin})`,
+    );
+    stderrLine(
+      `Mode:       ${sequential ? "sequential" : "parallel"}${stepMode ? " | HITL step" : ""}`,
+    );
+    if (operatorNotes)
+      stderrLine(`Operator:   ${operatorNotes.length} chars of corrections injected`);
     stderrLine(`========================================\n`);
 
     // In step mode, resume from prior state if it exists
@@ -8067,7 +8815,9 @@ Example KILL:
         artifact = JSON.parse(readFileSync(stateFile, "utf8"));
         const priorState = JSON.parse(readFileSync(robotFile, "utf8"));
         startRound = (priorState.rounds?.length ?? 0) + 1;
-        stderrLine(`  Resuming from round ${startRound} (artifact v${artifact.metadata.version})\n`);
+        stderrLine(
+          `  Resuming from round ${startRound} (artifact v${artifact.metadata.version})\n`,
+        );
       } catch {
         stderrLine(`  [!] Could not parse prior state, starting fresh\n`);
       }
@@ -8099,7 +8849,9 @@ Example KILL:
       try {
         const priorState = JSON.parse(readFileSync(robotFile, "utf8"));
         sessionState.rounds = priorState.rounds ?? [];
-      } catch { /* start fresh */ }
+      } catch {
+        /* start fresh */
+      }
     }
 
     const effectiveMaxRounds = stepMode ? startRound : maxRounds;
@@ -8112,9 +8864,10 @@ Example KILL:
       // Build prompts
       const prompts = new Map<RobotAgent, string>();
       for (const agent of agents) {
-        const prompt = round === 1
-          ? buildRound1Prompt(agent)
-          : buildRoundNPrompt(agent, artifact, round, operatorNotes);
+        const prompt =
+          round === 1
+            ? buildRound1Prompt(agent)
+            : buildRoundNPrompt(agent, artifact, round, operatorNotes);
         prompts.set(agent, prompt);
       }
 
@@ -8132,7 +8885,7 @@ Example KILL:
             const prompt = prompts.get(agent)!;
             const output = await invokeAgent(agent, prompt, roundDir);
             return { agent, output };
-          })
+          }),
         );
         for (const result of results) {
           if (result.status === "fulfilled") {
@@ -8161,10 +8914,7 @@ Example KILL:
       }
 
       // Save raw deltas for this round
-      writeFileSync(
-        join(roundDir, "deltas.json"),
-        JSON.stringify(allRoundDeltas, null, 2),
-      );
+      writeFileSync(join(roundDir, "deltas.json"), JSON.stringify(allRoundDeltas, null, 2));
 
       // Merge deltas into artifact
       const mergeResult = mergeArtifactWithTimestamps(artifact, allRoundDeltas);
@@ -8173,7 +8923,9 @@ Example KILL:
       artifact = mergeResult.artifact;
       if (!mergeResult.ok) {
         mergeErrors = mergeResult.errors.length;
-        stderrLine(`  Merge: ${mergeErrors} errors (${mergeResult.applied_count} deltas applied successfully)`);
+        stderrLine(
+          `  Merge: ${mergeErrors} errors (${mergeResult.applied_count} deltas applied successfully)`,
+        );
         for (const err of mergeResult.errors.slice(0, 5)) {
           stderrLine(`    - ${err.message}`);
         }
@@ -8190,14 +8942,8 @@ Example KILL:
       }
 
       // Persist artifact markdown and state after each round
-      writeFileSync(
-        join(sessionDir, "artifact.md"),
-        renderArtifactMarkdown(artifact),
-      );
-      writeFileSync(
-        join(sessionDir, "session_state.json"),
-        JSON.stringify(artifact, null, 2),
-      );
+      writeFileSync(join(sessionDir, "artifact.md"), renderArtifactMarkdown(artifact));
+      writeFileSync(join(sessionDir, "session_state.json"), JSON.stringify(artifact, null, 2));
 
       // Count operations
       const adds = allRoundDeltas.filter((d) => d.operation === "ADD").length;
@@ -8231,16 +8977,15 @@ Example KILL:
     }
 
     // Final summary
-    const activeHypotheses = (artifact.sections.hypothesis_slate as any[])
-      .filter((h: any) => !h.killed);
-    const killedHypotheses = (artifact.sections.hypothesis_slate as any[])
-      .filter((h: any) => h.killed);
+    const activeHypotheses = (artifact.sections.hypothesis_slate as any[]).filter(
+      (h: any) => !h.killed,
+    );
+    const killedHypotheses = (artifact.sections.hypothesis_slate as any[]).filter(
+      (h: any) => h.killed,
+    );
 
     // Save final session report
-    writeFileSync(
-      join(sessionDir, "robot_session.json"),
-      JSON.stringify(sessionState, null, 2),
-    );
+    writeFileSync(join(sessionDir, "robot_session.json"), JSON.stringify(sessionState, null, 2));
 
     stderrLine(`========================================`);
     stderrLine(`  Session Complete`);
@@ -8253,18 +8998,24 @@ Example KILL:
     stderrLine(`========================================\n`);
 
     if (jsonMode) {
-      stdoutLine(JSON.stringify({
-        ok: true,
-        sessionId,
-        sessionDir,
-        roundsCompleted: sessionState.rounds.length,
-        artifactVersion: artifact.metadata.version,
-        activeHypotheses: activeHypotheses.length,
-        killedHypotheses: killedHypotheses.length,
-        rounds: sessionState.rounds,
-        artifactFile: join(sessionDir, "artifact.md"),
-        stateFile: join(sessionDir, "session_state.json"),
-      }, null, 2));
+      stdoutLine(
+        JSON.stringify(
+          {
+            ok: true,
+            sessionId,
+            sessionDir,
+            roundsCompleted: sessionState.rounds.length,
+            artifactVersion: artifact.metadata.version,
+            activeHypotheses: activeHypotheses.length,
+            killedHypotheses: killedHypotheses.length,
+            rounds: sessionState.rounds,
+            artifactFile: join(sessionDir, "artifact.md"),
+            stateFile: join(sessionDir, "session_state.json"),
+          },
+          null,
+          2,
+        ),
+      );
     } else {
       // Print the final artifact to stdout for easy piping
       stdoutLine(renderArtifactMarkdown(artifact));
@@ -8311,11 +9062,13 @@ Example KILL:
       return asStringFlag(flags, flagKey) ?? process.env[envKey] ?? fallback;
     }
     const claudeBin = resolveAgentBin("claude-bin", "BRENNER_CLAUDE_BIN", "claude");
-    const codexBin  = resolveAgentBin("codex-bin",  "BRENNER_CODEX_BIN",  "codex");
+    const codexBin = resolveAgentBin("codex-bin", "BRENNER_CODEX_BIN", "codex");
     const geminiBin = resolveAgentBin("gemini-bin", "BRENNER_GEMINI_BIN", "gemini");
 
     const localBin = join(homedir(), ".local", "bin");
-    const robotPath = [localBin, "/usr/local/bin", process.env.PATH ?? ""].filter(Boolean).join(":");
+    const robotPath = [localBin, "/usr/local/bin", process.env.PATH ?? ""]
+      .filter(Boolean)
+      .join(":");
 
     const AGENT_TIMEOUT_MS = 300_000;
 
@@ -8359,20 +9112,48 @@ For KILL:
     if (!existsSync(stressDir)) mkdirSync(stressDir, { recursive: true });
 
     // Run all 3 agents with the stress prompt in parallel
-    type StressAgent = { name: string; slug: string; bin: string; args: (p: string) => string[]; env: () => Record<string, string | undefined>; read: (s: string, f: string) => string };
+    type StressAgent = {
+      name: string;
+      slug: string;
+      bin: string;
+      args: (p: string) => string[];
+      env: () => Record<string, string | undefined>;
+      read: (s: string, f: string) => string;
+    };
     const stressAgents: StressAgent[] = [
-      { name: "BlueLake", slug: "bluelake", bin: claudeBin,
+      {
+        name: "BlueLake",
+        slug: "bluelake",
+        bin: claudeBin,
         args: (p: string) => ["--dangerously-skip-permissions", "--output-format", "text", "-p", p],
-        env: () => ({ ...process.env, PATH: robotPath, CLAUDECODE: "", CLAUDE_CODE_ENTRYPOINT: "", AGENT_NAME: "BlueLake" }),
-        read: (s: string) => s },
-      { name: "RedForest", slug: "redforest", bin: codexBin,
-        args: (p: string) => { const f = join(stressDir, "redforest_out.md"); return ["exec", "--full-auto", "--output-last-message", f, p]; },
+        env: () => ({
+          ...process.env,
+          PATH: robotPath,
+          CLAUDECODE: "",
+          CLAUDE_CODE_ENTRYPOINT: "",
+          AGENT_NAME: "BlueLake",
+        }),
+        read: (s: string) => s,
+      },
+      {
+        name: "RedForest",
+        slug: "redforest",
+        bin: codexBin,
+        args: (p: string) => {
+          const f = join(stressDir, "redforest_out.md");
+          return ["exec", "--full-auto", "--output-last-message", f, p];
+        },
         env: () => ({ ...process.env, PATH: robotPath, AGENT_NAME: "RedForest" }),
-        read: (_s: string, f: string) => existsSync(f) ? readFileSync(f, "utf8") : "" },
-      { name: "GreenMountain", slug: "greenmountain", bin: geminiBin,
+        read: (_s: string, f: string) => (existsSync(f) ? readFileSync(f, "utf8") : ""),
+      },
+      {
+        name: "GreenMountain",
+        slug: "greenmountain",
+        bin: geminiBin,
         args: (p: string) => ["--yolo", "--output-format", "text", "-p", p],
         env: () => ({ ...process.env, PATH: robotPath, AGENT_NAME: "GreenMountain" }),
-        read: (s: string) => s },
+        read: (s: string) => s,
+      },
     ];
 
     const agentHealth: Record<string, { status: string; deltas: number; error?: string }> = {};
@@ -8415,7 +9196,7 @@ For KILL:
             res({ name: sa.name, output });
           });
         });
-      })
+      }),
     );
 
     for (const r of results) {
@@ -8425,7 +9206,11 @@ For KILL:
           agentHealth[name] = { status: "error", deltas: 0, error: "no output" };
           continue;
         }
-        const deltas = extractValidDeltas(output).map((d) => ({ ...d, timestamp: ts, agent: name }));
+        const deltas = extractValidDeltas(output).map((d) => ({
+          ...d,
+          timestamp: ts,
+          agent: name,
+        }));
         agentHealth[name] = { status: "ok", deltas: deltas.length };
         allDeltas.push(...deltas);
       } else {
@@ -8442,20 +9227,32 @@ For KILL:
     writeFileSync(stateFile, JSON.stringify(updatedArtifact, null, 2));
 
     const kills = allDeltas.filter((d) => d.operation === "KILL").length;
-    const postSurvivors = (updatedArtifact.sections.hypothesis_slate as any[]).filter((h: any) => !h.killed).length;
+    const postSurvivors = (updatedArtifact.sections.hypothesis_slate as any[]).filter(
+      (h: any) => !h.killed,
+    ).length;
 
     stderrLine(`\n  Stress test: ${kills} kills, ${postSurvivors} survivors remain`);
-    stderrLine(`  Per-agent: ${Object.entries(agentHealth).map(([n, h]) => `${n}=${h.status}(${h.deltas})`).join(", ")}`);
+    stderrLine(
+      `  Per-agent: ${Object.entries(agentHealth)
+        .map(([n, h]) => `${n}=${h.status}(${h.deltas})`)
+        .join(", ")}`,
+    );
 
     if (jsonMode) {
-      stdoutLine(JSON.stringify({
-        ok: true,
-        preSurvivors: survivors.length,
-        kills,
-        postSurvivors,
-        agents: agentHealth,
-        mergeErrors: mergeResult.ok ? 0 : mergeResult.errors.length,
-      }, null, 2));
+      stdoutLine(
+        JSON.stringify(
+          {
+            ok: true,
+            preSurvivors: survivors.length,
+            kills,
+            postSurvivors,
+            agents: agentHealth,
+            mergeErrors: mergeResult.ok ? 0 : mergeResult.errors.length,
+          },
+          null,
+          2,
+        ),
+      );
     } else {
       stdoutLine(renderArtifactMarkdown(updatedArtifact));
     }
@@ -8527,8 +9324,18 @@ For KILL:
         record.inputs.agent_roster.push({
           agent_name: agentName,
           role: role as "hypothesis_generator" | "test_designer" | "adversarial_critic",
-          program: agentName.toLowerCase() === "bluelake" ? "claude-code" : agentName.toLowerCase() === "redforest" ? "codex-cli" : "gemini-cli",
-          model: agentName.toLowerCase() === "bluelake" ? "opus-4.5" : agentName.toLowerCase() === "redforest" ? "gpt-5.2" : "gemini-3",
+          program:
+            agentName.toLowerCase() === "bluelake"
+              ? "claude-code"
+              : agentName.toLowerCase() === "redforest"
+                ? "codex-cli"
+                : "gemini-cli",
+          model:
+            agentName.toLowerCase() === "bluelake"
+              ? "opus-4.5"
+              : agentName.toLowerCase() === "redforest"
+                ? "gpt-5.2"
+                : "gemini-3",
         });
       }
     }
@@ -8551,12 +9358,9 @@ For KILL:
           continue;
         }
 
-        const traceMsg = await createTraceMessage(
-          agentName,
-          "DELTA",
-          body,
-          { subject: `DELTA[${agentName}]: Round ${round.round}` },
-        );
+        const traceMsg = await createTraceMessage(agentName, "DELTA", body, {
+          subject: `DELTA[${agentName}]: Round ${round.round}`,
+        });
         traceMessages.push(traceMsg);
       }
 
@@ -8599,16 +9403,22 @@ For KILL:
     }
 
     if (jsonMode || !outFile) {
-      stdoutLine(JSON.stringify({
-        ok: true,
-        recordId: record.id,
-        sessionId: record.session_id,
-        rounds: record.trace.rounds.length,
-        messages: record.trace.rounds.reduce((s, r) => s + r.messages.length, 0),
-        replayable: isReplayable(record),
-        valid: validation.valid,
-        ...(outFile ? { file: outFile } : {}),
-      }, null, 2));
+      stdoutLine(
+        JSON.stringify(
+          {
+            ok: true,
+            recordId: record.id,
+            sessionId: record.session_id,
+            rounds: record.trace.rounds.length,
+            messages: record.trace.rounds.reduce((s, r) => s + r.messages.length, 0),
+            replayable: isReplayable(record),
+            valid: validation.valid,
+            ...(outFile ? { file: outFile } : {}),
+          },
+          null,
+          2,
+        ),
+      );
     }
 
     process.exit(0);
@@ -8621,7 +9431,10 @@ For KILL:
     const recordFile = asStringFlag(flags, "record-file");
     if (!recordFile) throw new Error("Missing --record-file.");
     const jsonMode = asBoolFlag(flags, "json");
-    const mode = (asStringFlag(flags, "mode") ?? "trace") as "verification" | "comparison" | "trace";
+    const mode = (asStringFlag(flags, "mode") ?? "trace") as
+      | "verification"
+      | "comparison"
+      | "trace";
 
     let recordRaw: string;
     try {
@@ -8681,7 +9494,9 @@ For KILL:
 
         stdoutLine(`Record ID: ${record.id}`);
         stdoutLine(`Created: ${record.created_at}`);
-        stdoutLine(`Roster: ${record.inputs.agent_roster.map((a) => `${a.agent_name} (${a.role})`).join(", ")}`);
+        stdoutLine(
+          `Roster: ${record.inputs.agent_roster.map((a) => `${a.agent_name} (${a.role})`).join(", ")}`,
+        );
         if (record.inputs.kickoff.question) {
           stdoutLine(`Question: ${record.inputs.kickoff.question}`);
         }
@@ -8694,7 +9509,9 @@ For KILL:
 
           for (const msg of round.messages) {
             const hashShort = msg.content_hash.slice(0, 8);
-            stdoutLine(`  [${msg.type}] ${msg.from}: ${msg.subject ?? "(no subject)"} (${msg.content_length} bytes, hash:${hashShort})`);
+            stdoutLine(
+              `  [${msg.type}] ${msg.from}: ${msg.subject ?? "(no subject)"} (${msg.content_length} bytes, hash:${hashShort})`,
+            );
           }
 
           if (round.compiled_artifact_hash) {
@@ -8712,7 +9529,9 @@ For KILL:
         stdoutLine(`Anomalies: ${record.outputs.anomaly_count ?? 0}`);
         stdoutLine(`Critiques: ${record.outputs.critique_count ?? 0}`);
         if (record.outputs.scorecard_grade) {
-          stdoutLine(`Grade: ${record.outputs.scorecard_grade} (${record.outputs.scorecard_points} pts)`);
+          stdoutLine(
+            `Grade: ${record.outputs.scorecard_grade} (${record.outputs.scorecard_points} pts)`,
+          );
         }
         stdoutLine(`Artifact hash: ${record.outputs.final_artifact_hash.slice(0, 16)}...`);
         if (record.trace.interventions.length > 0) {
@@ -8725,7 +9544,9 @@ For KILL:
     }
 
     // Verification and comparison modes require re-running agents — not yet implemented
-    throw new Error(`Replay mode "${mode}" is not yet implemented. Use --mode trace for step-through replay.`);
+    throw new Error(
+      `Replay mode "${mode}" is not yet implemented. Use --mode trace for step-through replay.`,
+    );
   }
 
   throw new Error(`Unknown command: ${[top, sub, action].filter(Boolean).join(" ")}`);

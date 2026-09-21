@@ -20,34 +20,33 @@
  * @see brenner_bot-ukd1.4 - FEATURE: Domain Templates
  */
 
-// Re-export types
-export type {
-  DomainId,
-  DomainTemplate,
-  DomainConfound,
-  ResearchDesign,
-  EffectSizeNorms,
-  LiteratureSource,
-  CommonLevelSplits,
-  GlossaryEntry,
-  SessionDomainContext,
-  DomainOption,
-  ConfoundLookupResult,
-} from "./types";
-
 // Re-export templates and utilities
 export {
-  DOMAIN_TEMPLATES,
-  getDomainTemplate,
-  listDomainOptions,
-  getDomainConfounds,
-  getDomainQuoteTags,
-  psychologyTemplate,
-  epidemiologyTemplate,
-  economicsTemplate,
   biologyMedicineTemplate,
   computerScienceTemplate,
+  customDomainTemplate,
+  DOMAIN_TEMPLATES,
+  economicsTemplate,
+  epidemiologyTemplate,
+  getDomainConfounds,
+  getDomainQuoteTags,
+  getDomainTemplate,
+  listDomainOptions,
   neuroscienceTemplate,
   physicsTemplate,
-  customDomainTemplate,
+  psychologyTemplate,
 } from "./templates";
+// Re-export types
+export type {
+  CommonLevelSplits,
+  ConfoundLookupResult,
+  DomainConfound,
+  DomainId,
+  DomainOption,
+  DomainTemplate,
+  EffectSizeNorms,
+  GlossaryEntry,
+  LiteratureSource,
+  ResearchDesign,
+  SessionDomainContext,
+} from "./types";

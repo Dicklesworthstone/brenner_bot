@@ -77,7 +77,7 @@ export function createMockRequest(options: MockRequestOptions = {}): NextRequest
  * ```
  */
 export function createAuthenticatedRequest(
-  options: Omit<MockRequestOptions, "headers"> & { headers?: Record<string, string> }
+  options: Omit<MockRequestOptions, "headers"> & { headers?: Record<string, string> },
 ): NextRequest {
   const testSecret = process.env.BRENNER_LAB_SECRET || "test-lab-secret";
   return createMockRequest({

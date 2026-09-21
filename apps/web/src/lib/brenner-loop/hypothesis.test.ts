@@ -14,7 +14,9 @@ import {
   validateHypothesisCard,
 } from "./hypothesis";
 
-function makeValidHypothesis(overrides: Partial<Parameters<typeof createHypothesisCard>[0]> = {}): HypothesisCard {
+function makeValidHypothesis(
+  overrides: Partial<Parameters<typeof createHypothesisCard>[0]> = {},
+): HypothesisCard {
   const sessionId = overrides.sessionId ?? "RS20260105";
   const id = overrides.id ?? generateHypothesisCardId(sessionId, 1, 1);
 
@@ -79,8 +81,19 @@ describe("confound validation + type guards", () => {
 
   it("rejects malformed confound-like objects", () => {
     expect(isIdentifiedConfound({})).toBe(false);
-    expect(isIdentifiedConfound({ id: "x", name: "n", description: "d", likelihood: NaN, domain: "x" })).toBe(false);
-    expect(isIdentifiedConfound({ id: "x", name: "n", description: "d", likelihood: 0.1, domain: "x", addressedAt: 123 })).toBe(false);
+    expect(
+      isIdentifiedConfound({ id: "x", name: "n", description: "d", likelihood: NaN, domain: "x" }),
+    ).toBe(false);
+    expect(
+      isIdentifiedConfound({
+        id: "x",
+        name: "n",
+        description: "d",
+        likelihood: 0.1,
+        domain: "x",
+        addressedAt: 123,
+      }),
+    ).toBe(false);
   });
 });
 
@@ -90,19 +103,29 @@ describe("hypothesis validation", () => {
 
     const missingId = validateHypothesisCard({ ...base, id: "" });
     expect(missingId.valid).toBe(false);
-    expect(missingId.errors.some((e) => e.code === "MISSING_REQUIRED" && e.field === "id")).toBe(true);
+    expect(missingId.errors.some((e) => e.code === "MISSING_REQUIRED" && e.field === "id")).toBe(
+      true,
+    );
 
     const invalidId = validateHypothesisCard({ ...base, id: "HC-BAD" });
-    expect(invalidId.errors.some((e) => e.code === "INVALID_FORMAT" && e.field === "id")).toBe(true);
+    expect(invalidId.errors.some((e) => e.code === "INVALID_FORMAT" && e.field === "id")).toBe(
+      true,
+    );
 
     const tooShort = validateHypothesisCard({ ...base, statement: "short" });
-    expect(tooShort.errors.some((e) => e.code === "TOO_SHORT" && e.field === "statement")).toBe(true);
+    expect(tooShort.errors.some((e) => e.code === "TOO_SHORT" && e.field === "statement")).toBe(
+      true,
+    );
 
     const tooLongStatement = validateHypothesisCard({ ...base, statement: "x".repeat(1200) });
-    expect(tooLongStatement.errors.some((e) => e.code === "TOO_LONG" && e.field === "statement")).toBe(true);
+    expect(
+      tooLongStatement.errors.some((e) => e.code === "TOO_LONG" && e.field === "statement"),
+    ).toBe(true);
 
     const tooShortMechanism = validateHypothesisCard({ ...base, mechanism: "too short" });
-    expect(tooShortMechanism.errors.some((e) => e.code === "TOO_SHORT" && e.field === "mechanism")).toBe(true);
+    expect(
+      tooShortMechanism.errors.some((e) => e.code === "TOO_SHORT" && e.field === "mechanism"),
+    ).toBe(true);
   });
 
   it("validates discriminative structure and emits quality warnings", () => {
@@ -130,20 +153,30 @@ describe("hypothesis validation", () => {
 
     const noPredictions = validateHypothesisCard({ ...base, predictionsIfTrue: [] });
     expect(noPredictions.valid).toBe(false);
-    expect(noPredictions.errors.some((e) => e.code === "EMPTY_ARRAY" && e.field === "predictionsIfTrue")).toBe(true);
+    expect(
+      noPredictions.errors.some((e) => e.code === "EMPTY_ARRAY" && e.field === "predictionsIfTrue"),
+    ).toBe(true);
 
     const badEntries = validateHypothesisCard({ ...base, predictionsIfTrue: ["", "   "] });
     expect(badEntries.errors.some((e) => e.code === "INVALID_FORMAT")).toBe(true);
 
     const noFalsification = validateHypothesisCard({ ...base, impossibleIfTrue: [] });
     expect(noFalsification.valid).toBe(false);
-    expect(noFalsification.errors.some((e) => e.code === "EMPTY_ARRAY" && e.field === "impossibleIfTrue")).toBe(true);
+    expect(
+      noFalsification.errors.some(
+        (e) => e.code === "EMPTY_ARRAY" && e.field === "impossibleIfTrue",
+      ),
+    ).toBe(true);
 
     const badType = validateHypothesisCard({ ...base, confidence: "high" as never });
-    expect(badType.errors.some((e) => e.code === "INVALID_TYPE" && e.field === "confidence")).toBe(true);
+    expect(badType.errors.some((e) => e.code === "INVALID_TYPE" && e.field === "confidence")).toBe(
+      true,
+    );
 
     const outOfRange = validateHypothesisCard({ ...base, confidence: 200 });
-    expect(outOfRange.errors.some((e) => e.code === "INVALID_RANGE" && e.field === "confidence")).toBe(true);
+    expect(
+      outOfRange.errors.some((e) => e.code === "INVALID_RANGE" && e.field === "confidence"),
+    ).toBe(true);
   });
 
   it("validates confound structures inside hypothesis", () => {
@@ -173,12 +206,19 @@ describe("type guards + evolution + scoring helpers", () => {
     expect(isHypothesisCard(card)).toBe(true);
     expect(isHypothesisCard({})).toBe(false);
 
-    const evolved = evolveHypothesisCard(card, { confidence: 75 }, "Adjusted after evidence", "BlueLake");
+    const evolved = evolveHypothesisCard(
+      card,
+      { confidence: 75 },
+      "Adjusted after evidence",
+      "BlueLake",
+    );
     expect(evolved.parentVersion).toBe(card.id);
     expect(evolved.version).toBe(card.version + 1);
     expect(evolved.id).not.toBe(card.id);
 
-    expect(() => evolveHypothesisCard({ ...card, id: "BAD" }, {}, "reason")).toThrow(/Invalid hypothesis ID format/);
+    expect(() => evolveHypothesisCard({ ...card, id: "BAD" }, {}, "reason")).toThrow(
+      /Invalid hypothesis ID format/,
+    );
   });
 
   it("throws when creating invalid hypothesis cards", () => {
@@ -189,7 +229,7 @@ describe("type guards + evolution + scoring helpers", () => {
         mechanism: "too short",
         predictionsIfTrue: [],
         impossibleIfTrue: [],
-      })
+      }),
     ).toThrow(/Invalid HypothesisCard/);
   });
 
@@ -205,7 +245,13 @@ describe("type guards + evolution + scoring helpers", () => {
         "If adenosine receptor blockade is absent, the effect should vanish",
       ],
       confounds: [
-        { id: "CF-1", name: "Stress", description: "Confound", likelihood: 0.2, domain: "psychology" },
+        {
+          id: "CF-1",
+          name: "Stress",
+          description: "Confound",
+          likelihood: 0.2,
+          domain: "psychology",
+        },
       ],
     });
 

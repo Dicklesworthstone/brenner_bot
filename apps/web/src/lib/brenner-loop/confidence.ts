@@ -12,7 +12,7 @@
  * @module brenner-loop/confidence
  */
 
-import { isDiscriminativePower, type DiscriminativePower, type EvidenceResult } from "./evidence";
+import { type DiscriminativePower, type EvidenceResult, isDiscriminativePower } from "./evidence";
 
 // ============================================================================
 // Types
@@ -93,22 +93,22 @@ export interface ConfidenceUpdateConfig {
  * the asymmetry between confirmation and disconfirmation.
  */
 export const DEFAULT_CONFIG: ConfidenceUpdateConfig = {
-  supportMultiplier: 0.15,      // Supporting evidence has moderate impact
-  challengeMultiplier: 0.3,     // Challenging evidence has 2x impact (asymmetry)
-  minConfidence: 1,             // Never be 100% sure it's false
-  maxConfidence: 99,            // Never be 100% sure it's true
-  significanceThreshold: 5,     // >5% change is significant
+  supportMultiplier: 0.15, // Supporting evidence has moderate impact
+  challengeMultiplier: 0.3, // Challenging evidence has 2x impact (asymmetry)
+  minConfidence: 1, // Never be 100% sure it's false
+  maxConfidence: 99, // Never be 100% sure it's true
+  significanceThreshold: 5, // >5% change is significant
 };
 
 /**
  * Star emoji representations for discriminative power
  */
 const STAR_RATINGS: Record<DiscriminativePower, string> = {
-  1: "\u2606\u2606\u2606\u2606\u2606",  // All empty stars
-  2: "\u2605\u2606\u2606\u2606\u2606",  // 1 filled
-  3: "\u2605\u2605\u2606\u2606\u2606",  // 2 filled
-  4: "\u2605\u2605\u2605\u2606\u2606",  // 3 filled
-  5: "\u2605\u2605\u2605\u2605\u2605",  // All filled
+  1: "\u2606\u2606\u2606\u2606\u2606", // All empty stars
+  2: "\u2605\u2606\u2606\u2606\u2606", // 1 filled
+  3: "\u2605\u2605\u2606\u2606\u2606", // 2 filled
+  4: "\u2605\u2605\u2605\u2606\u2606", // 3 filled
+  5: "\u2605\u2605\u2605\u2605\u2605", // All filled
 };
 
 /**
@@ -157,16 +157,20 @@ export function computeConfidenceUpdate(
   currentConfidence: number,
   test: TestInput,
   result: EvidenceResult,
-  config: Partial<ConfidenceUpdateConfig> = {}
+  config: Partial<ConfidenceUpdateConfig> = {},
 ): ConfidenceUpdateResult {
   const cfg: ConfidenceUpdateConfig = { ...DEFAULT_CONFIG, ...config };
 
   // Validate inputs
   if (!Number.isFinite(currentConfidence)) {
-    throw new Error(`Invalid currentConfidence: must be a finite number (got ${currentConfidence})`);
+    throw new Error(
+      `Invalid currentConfidence: must be a finite number (got ${currentConfidence})`,
+    );
   }
   if (currentConfidence < 0 || currentConfidence > 100) {
-    throw new Error(`Invalid currentConfidence: must be between 0 and 100 (got ${currentConfidence})`);
+    throw new Error(
+      `Invalid currentConfidence: must be between 0 and 100 (got ${currentConfidence})`,
+    );
   }
   if (!isDiscriminativePower(test.discriminativePower)) {
     throw new Error(`Invalid discriminativePower: must be 1-5 (got ${test.discriminativePower})`);
@@ -200,7 +204,8 @@ export function computeConfidenceUpdate(
     newConfidence = Math.min(currentConfidence + rawDelta, cfg.maxConfidence);
     delta = newConfidence - currentConfidence;
 
-    explanation = `${stars} ${powerLabel} test supports hypothesis. ` +
+    explanation =
+      `${stars} ${powerLabel} test supports hypothesis. ` +
       `Confidence ${currentConfidence.toFixed(1)}% \u2192 ${newConfidence.toFixed(1)}% ` +
       `(+${delta.toFixed(1)}%).`;
   } else {
@@ -212,7 +217,8 @@ export function computeConfidenceUpdate(
     newConfidence = Math.max(currentConfidence + rawDelta, cfg.minConfidence);
     delta = newConfidence - currentConfidence;
 
-    explanation = `${stars} ${powerLabel} test challenges hypothesis. ` +
+    explanation =
+      `${stars} ${powerLabel} test challenges hypothesis. ` +
       `Confidence ${currentConfidence.toFixed(1)}% \u2192 ${newConfidence.toFixed(1)}% ` +
       `(${delta.toFixed(1)}%).`;
   }
@@ -286,7 +292,7 @@ export interface BatchUpdateResult {
 export function computeBatchConfidenceUpdate(
   initialConfidence: number,
   evidenceItems: BatchEvidenceItem[],
-  config: Partial<ConfidenceUpdateConfig> = {}
+  config: Partial<ConfidenceUpdateConfig> = {},
 ): BatchUpdateResult {
   let currentConfidence = initialConfidence;
   const updates: ConfidenceUpdateResult[] = [];
@@ -361,17 +367,14 @@ export interface WhatIfAnalysis {
 export function analyzeWhatIf(
   currentConfidence: number,
   test: TestInput,
-  config: Partial<ConfidenceUpdateConfig> = {}
+  config: Partial<ConfidenceUpdateConfig> = {},
 ): WhatIfAnalysis {
   const ifSupports = computeConfidenceUpdate(currentConfidence, test, "supports", config);
   const ifChallenges = computeConfidenceUpdate(currentConfidence, test, "challenges", config);
   const ifInconclusive = computeConfidenceUpdate(currentConfidence, test, "inconclusive", config);
 
   // Calculate maximum potential impact
-  const maxImpact = Math.max(
-    Math.abs(ifSupports.delta),
-    Math.abs(ifChallenges.delta)
-  );
+  const maxImpact = Math.max(Math.abs(ifSupports.delta), Math.abs(ifChallenges.delta));
 
   // Information value is the range of possible confidence outcomes
   // Higher range = more informative test
@@ -449,9 +452,9 @@ export function formatConfidence(confidence: number): string {
  */
 export function formatDelta(delta: number): string {
   if (delta === 0) {
-    return "\u00b10%";  // ±0%
+    return "\u00b10%"; // ±0%
   }
-  const arrow = delta > 0 ? "\u2191" : "\u2193";  // ↑ or ↓
+  const arrow = delta > 0 ? "\u2191" : "\u2193"; // ↑ or ↓
   const sign = delta > 0 ? "+" : "";
   return `${arrow} ${sign}${delta.toFixed(1)}%`;
 }

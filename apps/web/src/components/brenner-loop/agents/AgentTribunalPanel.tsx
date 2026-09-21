@@ -12,24 +12,10 @@
 import * as React from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { cn } from "@/lib/utils";
-import type { AgentMailMessage } from "@/lib/agentMail";
-import {
-  DEFAULT_DISPATCH_ROLES,
-  TRIBUNAL_AGENTS,
-  isTribunalAgentRole,
-  synthesizeResponses,
-  type TribunalAgentRole,
-} from "@/lib/brenner-loop/agents";
-import { extractTribunalObjections, OBJECTION_REGISTER_UPDATED_EVENT } from "@/lib/brenner-loop/agents/objections";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  Collapsible,
-  CollapsibleTrigger,
-  CollapsibleContent,
-} from "@/components/ui/collapsible";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import {
   Dialog,
   DialogBody,
@@ -38,6 +24,19 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import type { AgentMailMessage } from "@/lib/agentMail";
+import {
+  DEFAULT_DISPATCH_ROLES,
+  isTribunalAgentRole,
+  synthesizeResponses,
+  TRIBUNAL_AGENTS,
+  type TribunalAgentRole,
+} from "@/lib/brenner-loop/agents";
+import {
+  extractTribunalObjections,
+  OBJECTION_REGISTER_UPDATED_EVENT,
+} from "@/lib/brenner-loop/agents/objections";
+import { cn } from "@/lib/utils";
 
 type AgentCardStatus = "pending" | "analyzing" | "complete" | "error";
 
@@ -57,13 +56,7 @@ export interface AgentTribunalPanelProps {
   className?: string;
 }
 
-type ObjectionStatus =
-  | "open"
-  | "acknowledged"
-  | "testing"
-  | "addressed"
-  | "accepted"
-  | "dismissed";
+type ObjectionStatus = "open" | "acknowledged" | "testing" | "addressed" | "accepted" | "dismissed";
 
 const UNRESOLVED_OBJECTION_STATUSES = new Set<ObjectionStatus>(["open", "acknowledged", "testing"]);
 const KNOWN_OBJECTION_STATUSES = new Set<ObjectionStatus>([
@@ -158,7 +151,10 @@ function badgeForStatus(status: AgentCardStatus): { label: string; className: st
   const map: Record<AgentCardStatus, { label: string; className: string }> = {
     complete: { label: "Complete", className: "border-success/20 bg-success/15 text-success" },
     analyzing: { label: "Analyzing", className: "border-primary/20 bg-primary/10 text-primary" },
-    error: { label: "Error", className: "border-destructive/20 bg-destructive/10 text-destructive" },
+    error: {
+      label: "Error",
+      className: "border-destructive/20 bg-destructive/10 text-destructive",
+    },
     pending: { label: "Pending", className: "border-border bg-muted/40 text-muted-foreground" },
   };
 
@@ -191,7 +187,9 @@ function deriveCardsFromMessages(params: {
   }
 
   const responseByRole = new Map<TribunalAgentRole, AgentMailMessage>();
-  const sortedNewestFirst = [...params.messages].sort((a, b) => timeMs(b.created_ts) - timeMs(a.created_ts));
+  const sortedNewestFirst = [...params.messages].sort(
+    (a, b) => timeMs(b.created_ts) - timeMs(a.created_ts),
+  );
 
   for (const msg of sortedNewestFirst) {
     if (!msg.body_md) continue;
@@ -217,8 +215,11 @@ function deriveCardsFromMessages(params: {
     const responseMsg = responseByRole.get(role) ?? null;
     const content = responseMsg?.body_md ?? null;
 
-    const status: AgentCardStatus =
-      responseMsg ? "complete" : dispatchMsg ? "analyzing" : "pending";
+    const status: AgentCardStatus = responseMsg
+      ? "complete"
+      : dispatchMsg
+        ? "analyzing"
+        : "pending";
 
     return {
       role,
@@ -237,9 +238,14 @@ export function AgentTribunalPanel({
   roles = DEFAULT_DISPATCH_ROLES,
   className,
 }: AgentTribunalPanelProps) {
-  const cards = React.useMemo(() => deriveCardsFromMessages({ messages, roles }), [messages, roles]);
+  const cards = React.useMemo(
+    () => deriveCardsFromMessages({ messages, roles }),
+    [messages, roles],
+  );
   const objections = React.useMemo(() => extractTribunalObjections(messages), [messages]);
-  const [objectionStatuses, setObjectionStatuses] = React.useState<Record<string, ObjectionStatus>>({});
+  const [objectionStatuses, setObjectionStatuses] = React.useState<Record<string, ObjectionStatus>>(
+    {},
+  );
 
   React.useEffect(() => {
     setObjectionStatuses(threadId ? loadObjectionStatuses(threadId) : Object.create(null));
@@ -280,19 +286,26 @@ export function AgentTribunalPanel({
 
   const [openRole, setOpenRole] = React.useState<TribunalAgentRole | null>(null);
   // Mobile accordion state - only one expanded at a time
-  const [mobileExpandedRole, setMobileExpandedRole] = React.useState<TribunalAgentRole | null>(null);
-  const openCard = openRole ? cards.find((c) => c.role === openRole) ?? null : null;
+  const [mobileExpandedRole, setMobileExpandedRole] = React.useState<TribunalAgentRole | null>(
+    null,
+  );
+  const openCard = openRole ? (cards.find((c) => c.role === openRole) ?? null) : null;
   const openConfig = openCard ? TRIBUNAL_AGENTS[openCard.role] : null;
 
   const synthesisInput = React.useMemo(
     () =>
       cards
-        .filter((card) => card.status === "complete" && typeof card.content === "string" && card.content.length > 0)
+        .filter(
+          (card) =>
+            card.status === "complete" &&
+            typeof card.content === "string" &&
+            card.content.length > 0,
+        )
         .map((card) => ({
           agent: card.role,
           content: card.content as string,
         })),
-    [cards]
+    [cards],
   );
 
   const synthesis = React.useMemo(() => {
@@ -342,11 +355,18 @@ export function AgentTribunalPanel({
               <div className="space-y-1">
                 <div className="text-sm font-semibold text-warning">Completion blocked</div>
                 <div className="text-xs text-muted-foreground">
-                  Resolve all objections marked <span className="font-mono">Open</span>, <span className="font-mono">Acknowledged</span>, or{" "}
-                  <span className="font-mono">Testing</span> before considering the tribunal complete.
+                  Resolve all objections marked <span className="font-mono">Open</span>,{" "}
+                  <span className="font-mono">Acknowledged</span>, or{" "}
+                  <span className="font-mono">Testing</span> before considering the tribunal
+                  complete.
                 </div>
               </div>
-              <Button asChild size="sm" variant="outline" className="border-warning/30 text-warning hover:bg-warning/10">
+              <Button
+                asChild
+                size="sm"
+                variant="outline"
+                className="border-warning/30 text-warning hover:bg-warning/10"
+              >
                 <a href="#objections">Review objections</a>
               </Button>
             </div>
@@ -373,14 +393,18 @@ export function AgentTribunalPanel({
                       <div
                         className={cn(
                           "flex size-8 items-center justify-center rounded-lg border",
-                          card.status === "complete" ? "border-success/20 bg-success/10" : "border-border bg-muted/30"
+                          card.status === "complete"
+                            ? "border-success/20 bg-success/10"
+                            : "border-border bg-muted/30",
                         )}
                         aria-hidden="true"
                       >
                         <span className="text-base leading-none">{agent.icon}</span>
                       </div>
                       <div className="text-left">
-                        <div className="text-sm font-semibold text-foreground">{agent.displayName}</div>
+                        <div className="text-sm font-semibold text-foreground">
+                          {agent.displayName}
+                        </div>
                       </div>
                     </div>
                     <Badge variant="outline" className={cn("shrink-0 text-xs", badge.className)}>
@@ -412,7 +436,9 @@ export function AgentTribunalPanel({
                         )}
                         {card.agentName && card.receivedAt && <span className="mx-2">·</span>}
                         {card.receivedAt && (
-                          <span className="font-mono">{new Date(card.receivedAt).toLocaleString()}</span>
+                          <span className="font-mono">
+                            {new Date(card.receivedAt).toLocaleString()}
+                          </span>
                         )}
                       </div>
                     )}
@@ -444,20 +470,27 @@ export function AgentTribunalPanel({
             const showExpand = card.status === "complete" && Boolean(card.content);
 
             return (
-              <div key={card.role} className="rounded-xl border border-border bg-card p-4 shadow-sm">
+              <div
+                key={card.role}
+                className="rounded-xl border border-border bg-card p-4 shadow-sm"
+              >
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex items-start gap-3">
                     <div
                       className={cn(
                         "flex size-10 items-center justify-center rounded-xl border",
-                        card.status === "complete" ? "border-success/20 bg-success/10" : "border-border bg-muted/30"
+                        card.status === "complete"
+                          ? "border-success/20 bg-success/10"
+                          : "border-border bg-muted/30",
                       )}
                       aria-hidden="true"
                     >
                       <span className="text-lg leading-none">{agent.icon}</span>
                     </div>
                     <div className="space-y-1">
-                      <div className="text-sm font-semibold text-foreground">{agent.displayName}</div>
+                      <div className="text-sm font-semibold text-foreground">
+                        {agent.displayName}
+                      </div>
                       <div className="text-xs text-muted-foreground">{agent.description}</div>
                     </div>
                   </div>
@@ -485,18 +518,16 @@ export function AgentTribunalPanel({
                     )}
                     {card.agentName && card.receivedAt && <span className="mx-2">·</span>}
                     {card.receivedAt && (
-                      <span className="font-mono">{new Date(card.receivedAt).toLocaleString()}</span>
+                      <span className="font-mono">
+                        {new Date(card.receivedAt).toLocaleString()}
+                      </span>
                     )}
                   </div>
                 )}
 
                 <div className="mt-4 flex flex-wrap gap-2">
                   {showExpand && (
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => setOpenRole(card.role)}
-                    >
+                    <Button size="sm" variant="outline" onClick={() => setOpenRole(card.role)}>
                       Expand Full Response
                     </Button>
                   )}
@@ -522,9 +553,13 @@ export function AgentTribunalPanel({
 
             <div className="grid gap-4 lg:grid-cols-2">
               <div className="rounded-lg border border-border bg-card p-4">
-                <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Consensus</div>
+                <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  Consensus
+                </div>
                 {synthesis.consensusPoints.length === 0 ? (
-                  <div className="mt-2 text-sm text-muted-foreground">No consensus points detected yet.</div>
+                  <div className="mt-2 text-sm text-muted-foreground">
+                    No consensus points detected yet.
+                  </div>
                 ) : (
                   <ul className="mt-3 space-y-2 text-sm">
                     {synthesis.consensusPoints.map((p) => (
@@ -540,18 +575,27 @@ export function AgentTribunalPanel({
               </div>
 
               <div className="rounded-lg border border-border bg-card p-4">
-                <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Conflicts</div>
+                <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  Conflicts
+                </div>
                 {synthesis.conflictPoints.length === 0 ? (
                   <div className="mt-2 text-sm text-muted-foreground">No conflicts detected.</div>
                 ) : (
                   <div className="mt-3 space-y-3">
                     {synthesis.conflictPoints.map((c) => (
-                      <div key={`${c.topic}-${c.positions.map((p) => p.agent).join(",")}`} className="rounded-lg border border-warning/20 bg-warning/5 p-3">
+                      <div
+                        key={`${c.topic}-${c.positions.map((p) => p.agent).join(",")}`}
+                        className="rounded-lg border border-warning/20 bg-warning/5 p-3"
+                      >
                         <div className="text-sm font-medium text-foreground">{c.topic}</div>
                         <div className="mt-2 space-y-2">
                           {c.positions.map((p) => (
-                            <div key={`${c.topic}-${p.agent}`} className="text-xs text-muted-foreground">
-                              <span className="font-mono text-foreground/80">{p.agent}</span>: {p.position}
+                            <div
+                              key={`${c.topic}-${p.agent}`}
+                              className="text-xs text-muted-foreground"
+                            >
+                              <span className="font-mono text-foreground/80">{p.agent}</span>:{" "}
+                              {p.position}
                             </div>
                           ))}
                         </div>
@@ -564,9 +608,13 @@ export function AgentTribunalPanel({
 
             <div className="grid gap-4 lg:grid-cols-2">
               <div className="rounded-lg border border-border bg-card p-4">
-                <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Recommendations</div>
+                <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  Recommendations
+                </div>
                 {synthesis.recommendations.length === 0 ? (
-                  <div className="mt-2 text-sm text-muted-foreground">No recommendations extracted.</div>
+                  <div className="mt-2 text-sm text-muted-foreground">
+                    No recommendations extracted.
+                  </div>
                 ) : (
                   <ul className="mt-3 space-y-2 text-sm">
                     {synthesis.recommendations.slice(0, 6).map((r) => (
@@ -577,9 +625,12 @@ export function AgentTribunalPanel({
                             variant="outline"
                             className={cn(
                               "shrink-0",
-                              r.priority === "high" && "border-warning/20 bg-warning/10 text-warning",
-                              r.priority === "medium" && "border-primary/20 bg-primary/10 text-primary",
-                              r.priority === "low" && "border-border bg-muted/40 text-muted-foreground"
+                              r.priority === "high" &&
+                                "border-warning/20 bg-warning/10 text-warning",
+                              r.priority === "medium" &&
+                                "border-primary/20 bg-primary/10 text-primary",
+                              r.priority === "low" &&
+                                "border-border bg-muted/40 text-muted-foreground",
                             )}
                           >
                             {r.priority}
@@ -593,9 +644,13 @@ export function AgentTribunalPanel({
               </div>
 
               <div className="rounded-lg border border-border bg-card p-4">
-                <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Brenner Operators</div>
+                <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  Brenner Operators
+                </div>
                 {synthesis.brennerPrinciples.length === 0 ? (
-                  <div className="mt-2 text-sm text-muted-foreground">No operator hints detected.</div>
+                  <div className="mt-2 text-sm text-muted-foreground">
+                    No operator hints detected.
+                  </div>
                 ) : (
                   <ul className="mt-3 space-y-2 text-sm">
                     {synthesis.brennerPrinciples.map((p) => (

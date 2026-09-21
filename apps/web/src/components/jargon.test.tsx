@@ -7,10 +7,10 @@
  * Note: Some interaction tests are simplified due to portal/animation complexity in jsdom.
  */
 
-import { describe, expect, it, beforeEach, afterEach, vi } from "vitest";
-import { render, screen, fireEvent, waitFor, cleanup, act } from "@testing-library/react";
-import { Jargon, JargonInline } from "./jargon";
+import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { getJargon, jargonDictionary } from "@/lib/jargon";
+import { Jargon, JargonInline } from "./jargon";
 
 // Get a real term from the dictionary for testing
 const realTermKey = "level-split";
@@ -42,17 +42,17 @@ vi.mock("framer-motion", async () => {
   const MockDiv = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
     function MockDiv({ children, ...props }, ref) {
       return React.createElement("div", { ...props, ref }, children);
-    }
+    },
   );
   const MockSpan = React.forwardRef<HTMLSpanElement, React.HTMLAttributes<HTMLSpanElement>>(
     function MockSpan({ children, ...props }, ref) {
       return React.createElement("span", { ...props, ref }, children);
-    }
+    },
   );
   const MockP = React.forwardRef<HTMLParagraphElement, React.HTMLAttributes<HTMLParagraphElement>>(
     function MockP({ children, ...props }, ref) {
       return React.createElement("p", { ...props, ref }, children);
-    }
+    },
   );
   return {
     motion: {
@@ -244,9 +244,12 @@ describe("Jargon", () => {
       });
 
       // The portal should render the sheet content
-      await waitFor(() => {
-        expect(screen.getByText(realTerm.long)).toBeInTheDocument();
-      }, { timeout: 1000 });
+      await waitFor(
+        () => {
+          expect(screen.getByText(realTerm.long)).toBeInTheDocument();
+        },
+        { timeout: 1000 },
+      );
     });
 
     it("shows close button in sheet", async () => {
@@ -257,9 +260,12 @@ describe("Jargon", () => {
         fireEvent.click(button);
       });
 
-      await waitFor(() => {
-        expect(screen.getByRole("button", { name: /close/i })).toBeInTheDocument();
-      }, { timeout: 1000 });
+      await waitFor(
+        () => {
+          expect(screen.getByRole("button", { name: /close/i })).toBeInTheDocument();
+        },
+        { timeout: 1000 },
+      );
     });
 
     it("closes on escape key", async () => {

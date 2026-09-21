@@ -31,16 +31,16 @@ const OPERATOR_ROLE_AFFINITY: Record<string, "codex" | "opus" | "gemini"> = {
   "level-split": "codex",
   "cross-domain": "codex",
   "paradox-hunt": "codex",
-  "recode": "codex",
+  recode: "codex",
   "exclusion-test": "opus",
-  "materialize": "opus",
+  materialize: "opus",
   "object-transpose": "opus",
-  "amplify": "opus",
-  "diy": "opus",
+  amplify: "opus",
+  diy: "opus",
   "exception-quarantine": "gemini",
   "theory-kill": "gemini",
   "scale-check": "gemini",
-  "dephase": "gemini",
+  dephase: "gemini",
   "invariant-extract": "codex",
 };
 
@@ -93,15 +93,11 @@ ${failuresList}
 
 function generateRolePrompt(
   role: "codex" | "opus" | "gemini",
-  operators: BrennerOperatorPaletteEntry[]
+  operators: BrennerOperatorPaletteEntry[],
 ): string {
   const roleName = ROLE_NAMES[role];
-  const primaryOps = operators.filter(
-    (op) => OPERATOR_ROLE_AFFINITY[op.canonicalTag] === role
-  );
-  const supportingOps = operators.filter(
-    (op) => OPERATOR_ROLE_AFFINITY[op.canonicalTag] !== role
-  );
+  const primaryOps = operators.filter((op) => OPERATOR_ROLE_AFFINITY[op.canonicalTag] === role);
+  const supportingOps = operators.filter((op) => OPERATOR_ROLE_AFFINITY[op.canonicalTag] !== role);
 
   const roleIntros: Record<"codex" | "opus" | "gemini", string> = {
     codex: `You are a HYPOTHESIS GENERATOR in a Brenner Protocol research session.
@@ -126,7 +122,10 @@ You attack the current framing. You find what would make everything wrong. You c
   const operatorSections = (ops: BrennerOperatorPaletteEntry[], isPrimary: boolean) =>
     ops
       .map((op) => {
-        const triggers = op.whenToUseTriggers.slice(0, 2).map((t) => `- ${t}`).join("\n");
+        const triggers = op.whenToUseTriggers
+          .slice(0, 2)
+          .map((t) => `- ${t}`)
+          .join("\n");
         const failure = op.failureModes[0] || "None specified";
         return `### ${op.symbol} ${op.title}${isPrimary ? " (Primary)" : ""}
 
@@ -139,17 +138,19 @@ ${triggers}
       })
       .join("\n\n");
 
-  const primarySection = primaryOps.length > 0
-    ? `## Your Primary Operators
+  const primarySection =
+    primaryOps.length > 0
+      ? `## Your Primary Operators
 
 ${operatorSections(primaryOps, true)}`
-    : "";
+      : "";
 
-  const supportingSection = supportingOps.length > 0
-    ? `## Supporting Operators
+  const supportingSection =
+    supportingOps.length > 0
+      ? `## Supporting Operators
 
 ${operatorSections(supportingOps, false)}`
-    : "";
+      : "";
 
   const citationRules = `## Citation Rules
 
@@ -158,8 +159,9 @@ When you claim "Brenner said X" or reference his approach:
 - If you cannot find an anchor, mark the claim as [inference] not a Brenner quote
 - Example: "Brenner emphasized 'reduction to one dimension' (§58)"`;
 
-  const outputFormat = role === "codex"
-    ? `## Output Format
+  const outputFormat =
+    role === "codex"
+      ? `## Output Format
 
 All contributions MUST use the delta format:
 
@@ -177,8 +179,8 @@ All contributions MUST use the delta format:
   "rationale": "Why this hypothesis is worth considering"
 }
 \`\`\``
-    : role === "opus"
-    ? `## Output Format
+      : role === "opus"
+        ? `## Output Format
 
 All tests MUST use the delta format:
 
@@ -201,7 +203,7 @@ All tests MUST use the delta format:
   "rationale": "Why this test maximizes evidence per week"
 }
 \`\`\``
-    : `## Output Format
+        : `## Output Format
 
 All critiques MUST use the delta format:
 
@@ -256,7 +258,7 @@ Before sending any delta:
 // ============================================================================
 
 export function generatePromptBundle(
-  selectedOperators: BrennerOperatorPaletteEntry[]
+  selectedOperators: BrennerOperatorPaletteEntry[],
 ): PromptBundle {
   if (selectedOperators.length === 0) {
     return {

@@ -16,16 +16,16 @@
  * @module brenner-loop/what-if
  */
 
-import type { DiscriminativePower, EvidenceResult } from "./evidence";
-import type { TestQueueItem } from "./test-queue";
 import {
   analyzeWhatIf,
-  computeBatchConfidenceUpdate,
-  type WhatIfAnalysis,
-  type TestInput,
-  type ConfidenceUpdateConfig,
   type BatchEvidenceItem,
+  type ConfidenceUpdateConfig,
+  computeBatchConfidenceUpdate,
+  type TestInput,
+  type WhatIfAnalysis,
 } from "./confidence";
+import type { DiscriminativePower, EvidenceResult } from "./evidence";
+import type { TestQueueItem } from "./test-queue";
 
 // ============================================================================
 // Types
@@ -206,7 +206,7 @@ export const RECOMMENDATION_LABELS: Record<1 | 2 | 3 | 4 | 5, string> = {
 export function analyzeTestQueueItem(
   currentConfidence: number,
   item: TestQueueItem,
-  config?: Partial<ConfidenceUpdateConfig>
+  config?: Partial<ConfidenceUpdateConfig>,
 ): WhatIfAnalysis {
   const testInput: TestInput = {
     discriminativePower: item.discriminativePower,
@@ -217,9 +217,7 @@ export function analyzeTestQueueItem(
 /**
  * Calculate recommendation rating based on information value
  */
-export function calculateRecommendationRating(
-  informationValue: number
-): 1 | 2 | 3 | 4 | 5 {
+export function calculateRecommendationRating(informationValue: number): 1 | 2 | 3 | 4 | 5 {
   if (informationValue >= RECOMMENDATION_THRESHOLDS.FIVE_STAR) return 5;
   if (informationValue >= RECOMMENDATION_THRESHOLDS.FOUR_STAR) return 4;
   if (informationValue >= RECOMMENDATION_THRESHOLDS.THREE_STAR) return 3;
@@ -273,7 +271,7 @@ export function createScenario(input: {
  */
 export function addTestToScenario(
   scenario: WhatIfScenario,
-  test: AssumedTestResult
+  test: AssumedTestResult,
 ): WhatIfScenario {
   const updated: WhatIfScenario = {
     ...scenario,
@@ -290,10 +288,7 @@ export function addTestToScenario(
 /**
  * Remove a test from a scenario
  */
-export function removeTestFromScenario(
-  scenario: WhatIfScenario,
-  testId: string
-): WhatIfScenario {
+export function removeTestFromScenario(scenario: WhatIfScenario, testId: string): WhatIfScenario {
   const updated: WhatIfScenario = {
     ...scenario,
     assumedTests: scenario.assumedTests.filter((t) => t.testId !== testId),
@@ -312,12 +307,12 @@ export function removeTestFromScenario(
 export function updateTestInScenario(
   scenario: WhatIfScenario,
   testId: string,
-  newResult: EvidenceResult
+  newResult: EvidenceResult,
 ): WhatIfScenario {
   const updated: WhatIfScenario = {
     ...scenario,
     assumedTests: scenario.assumedTests.map((t) =>
-      t.testId === testId ? { ...t, assumedResult: newResult } : t
+      t.testId === testId ? { ...t, assumedResult: newResult } : t,
     ),
   };
 
@@ -333,7 +328,7 @@ export function updateTestInScenario(
  */
 export function calculateScenarioOutcome(
   scenario: WhatIfScenario,
-  config?: Partial<ConfidenceUpdateConfig>
+  config?: Partial<ConfidenceUpdateConfig>,
 ): { projectedConfidence: number; confidenceDelta: number } {
   if (scenario.assumedTests.length === 0) {
     return {
@@ -348,11 +343,7 @@ export function calculateScenarioOutcome(
     result: t.assumedResult,
   }));
 
-  const result = computeBatchConfidenceUpdate(
-    scenario.startingConfidence,
-    evidenceItems,
-    config
-  );
+  const result = computeBatchConfidenceUpdate(scenario.startingConfidence, evidenceItems, config);
 
   return {
     projectedConfidence: result.finalConfidence,
@@ -369,7 +360,7 @@ export function calculateScenarioOutcome(
  */
 export function analyzeScenario(
   scenario: WhatIfScenario,
-  config?: Partial<ConfidenceUpdateConfig>
+  config?: Partial<ConfidenceUpdateConfig>,
 ): ScenarioAnalysis {
   // Best case: all tests support
   const bestCaseItems: BatchEvidenceItem[] = scenario.assumedTests.map((t) => ({
@@ -377,9 +368,10 @@ export function analyzeScenario(
     result: "supports" as EvidenceResult,
   }));
 
-  const bestCaseResult = scenario.assumedTests.length > 0
-    ? computeBatchConfidenceUpdate(scenario.startingConfidence, bestCaseItems, config)
-    : { finalConfidence: scenario.startingConfidence, totalDelta: 0 };
+  const bestCaseResult =
+    scenario.assumedTests.length > 0
+      ? computeBatchConfidenceUpdate(scenario.startingConfidence, bestCaseItems, config)
+      : { finalConfidence: scenario.startingConfidence, totalDelta: 0 };
 
   // Worst case: all tests challenge
   const worstCaseItems: BatchEvidenceItem[] = scenario.assumedTests.map((t) => ({
@@ -387,9 +379,10 @@ export function analyzeScenario(
     result: "challenges" as EvidenceResult,
   }));
 
-  const worstCaseResult = scenario.assumedTests.length > 0
-    ? computeBatchConfidenceUpdate(scenario.startingConfidence, worstCaseItems, config)
-    : { finalConfidence: scenario.startingConfidence, totalDelta: 0 };
+  const worstCaseResult =
+    scenario.assumedTests.length > 0
+      ? computeBatchConfidenceUpdate(scenario.startingConfidence, worstCaseItems, config)
+      : { finalConfidence: scenario.startingConfidence, totalDelta: 0 };
 
   // Find most impactful test
   let mostImpactfulTest: ScenarioAnalysis["mostImpactfulTest"] = null;
@@ -400,7 +393,7 @@ export function analyzeScenario(
       const analysis = analyzeWhatIf(
         scenario.startingConfidence,
         { discriminativePower: test.discriminativePower },
-        config
+        config,
       );
 
       if (analysis.maxImpact > maxImpact) {
@@ -461,7 +454,7 @@ export function analyzeScenario(
 export function compareTests(
   currentConfidence: number,
   tests: TestQueueItem[],
-  config?: Partial<ConfidenceUpdateConfig>
+  config?: Partial<ConfidenceUpdateConfig>,
 ): TestComparisonResult {
   if (tests.length === 0) {
     return {
@@ -482,7 +475,7 @@ export function compareTests(
     const analysis = analyzeWhatIf(
       currentConfidence,
       { discriminativePower: item.discriminativePower },
-      config
+      config,
     );
 
     const asymmetryRatio =
@@ -503,9 +496,7 @@ export function compareTests(
   });
 
   // Sort by information value (highest first)
-  const rankedTests = [...comparisons].sort(
-    (a, b) => b.informationValue - a.informationValue
-  );
+  const rankedTests = [...comparisons].sort((a, b) => b.informationValue - a.informationValue);
 
   // Generate recommendation
   const topTest = rankedTests[0];
@@ -537,10 +528,7 @@ export function compareTests(
   }
 
   // Calculate summary stats
-  const totalInformationValue = comparisons.reduce(
-    (sum, t) => sum + t.informationValue,
-    0
-  );
+  const totalInformationValue = comparisons.reduce((sum, t) => sum + t.informationValue, 0);
   const highValueTests = comparisons.filter((t) => t.recommendationRating >= 4).length;
   const lowValueTests = comparisons.filter((t) => t.recommendationRating <= 2).length;
 
@@ -552,8 +540,7 @@ export function compareTests(
       totalTests: tests.length,
       highValueTests,
       lowValueTests,
-      averageInformationValue:
-        tests.length > 0 ? totalInformationValue / tests.length : 0,
+      averageInformationValue: tests.length > 0 ? totalInformationValue / tests.length : 0,
     },
   };
 }
@@ -569,7 +556,7 @@ export function createBestCaseScenario(
   sessionId: string,
   hypothesisId: string,
   currentConfidence: number,
-  tests: TestQueueItem[]
+  tests: TestQueueItem[],
 ): WhatIfScenario {
   const assumedTests: AssumedTestResult[] = tests.map((t) => ({
     testId: t.id,
@@ -594,7 +581,7 @@ export function createWorstCaseScenario(
   sessionId: string,
   hypothesisId: string,
   currentConfidence: number,
-  tests: TestQueueItem[]
+  tests: TestQueueItem[],
 ): WhatIfScenario {
   const assumedTests: AssumedTestResult[] = tests.map((t) => ({
     testId: t.id,
@@ -619,7 +606,7 @@ export function createMixedScenario(
   sessionId: string,
   hypothesisId: string,
   currentConfidence: number,
-  testsWithResults: Array<{ test: TestQueueItem; result: EvidenceResult }>
+  testsWithResults: Array<{ test: TestQueueItem; result: EvidenceResult }>,
 ): WhatIfScenario {
   const assumedTests: AssumedTestResult[] = testsWithResults.map(({ test, result }) => ({
     testId: test.id,
@@ -681,12 +668,8 @@ export function getRecommendationColor(rating: 1 | 2 | 3 | 4 | 5): string {
  */
 export function summarizeScenario(scenario: WhatIfScenario): string {
   const testCount = scenario.assumedTests.length;
-  const supports = scenario.assumedTests.filter(
-    (t) => t.assumedResult === "supports"
-  ).length;
-  const challenges = scenario.assumedTests.filter(
-    (t) => t.assumedResult === "challenges"
-  ).length;
+  const supports = scenario.assumedTests.filter((t) => t.assumedResult === "supports").length;
+  const challenges = scenario.assumedTests.filter((t) => t.assumedResult === "challenges").length;
   const inconclusive = testCount - supports - challenges;
 
   const parts: string[] = [];

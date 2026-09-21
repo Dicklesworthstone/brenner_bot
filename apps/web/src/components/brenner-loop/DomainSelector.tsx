@@ -13,35 +13,30 @@
  * @see brenner_bot-ukd1.4 - FEATURE: Domain Templates
  */
 
-import * as React from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import {
-  Brain,
-  HeartPulse,
-  TrendingUp,
-  Microscope,
-  Code,
-  Zap,
   Atom,
-  Settings,
-  ChevronRight,
+  Brain,
   Check,
+  ChevronRight,
+  Code,
+  HeartPulse,
   Info,
+  Microscope,
+  Settings,
+  TrendingUp,
+  Zap,
 } from "lucide-react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import * as React from "react";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import {
-  listDomainOptions,
-  getDomainTemplate,
   type DomainId,
   type DomainOption,
+  getDomainTemplate,
+  listDomainOptions,
 } from "@/lib/brenner-loop/domains";
 
 // ============================================================================
@@ -121,9 +116,10 @@ function DomainCard({ option, selected, onSelect, showDetails, disabled }: Domai
       <Card
         className={`
           relative cursor-pointer transition-all duration-200
-          ${selected
-            ? "ring-2 ring-primary border-primary bg-primary/5"
-            : "hover:border-muted-foreground/50"
+          ${
+            selected
+              ? "ring-2 ring-primary border-primary bg-primary/5"
+              : "hover:border-muted-foreground/50"
           }
           ${disabled ? "opacity-50 cursor-not-allowed" : ""}
         `}
@@ -163,7 +159,9 @@ function DomainCard({ option, selected, onSelect, showDetails, disabled }: Domai
                 {option.description}
               </CardDescription>
             </div>
-            <ChevronRight className={`h-5 w-5 text-muted-foreground transition-transform ${selected ? "rotate-90" : ""}`} />
+            <ChevronRight
+              className={`h-5 w-5 text-muted-foreground transition-transform ${selected ? "rotate-90" : ""}`}
+            />
           </div>
         </CardHeader>
 
@@ -217,7 +215,10 @@ function DomainCard({ option, selected, onSelect, showDetails, disabled }: Domai
                   <div>
                     <p className="font-medium text-muted-foreground mb-1">Key Resources</p>
                     <p className="text-foreground">
-                      {template.literatureSources.filter((s) => s.priority === "primary").map((s) => s.name).join(", ")}
+                      {template.literatureSources
+                        .filter((s) => s.priority === "primary")
+                        .map((s) => s.name)
+                        .join(", ")}
                     </p>
                   </div>
                 </div>
@@ -262,8 +263,8 @@ export function DomainSelector({
             </TooltipTrigger>
             <TooltipContent side="left" className="max-w-xs">
               <p>
-                Different fields have different common confounds and research norms.
-                Selecting your domain customizes the Brenner Loop to catch field-specific pitfalls.
+                Different fields have different common confounds and research norms. Selecting your
+                domain customizes the Brenner Loop to catch field-specific pitfalls.
               </p>
             </TooltipContent>
           </Tooltip>

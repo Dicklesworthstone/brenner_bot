@@ -62,9 +62,21 @@ const FIELD_CONFIG: Array<{
 }> = [
   { field: "statement", label: "Statement", accessor: (h) => h.statement },
   { field: "mechanism", label: "Mechanism", accessor: (h) => h.mechanism },
-  { field: "predictionsIfTrue", label: "Predictions if True", accessor: (h) => h.predictionsIfTrue },
-  { field: "predictionsIfFalse", label: "Predictions if False", accessor: (h) => h.predictionsIfFalse },
-  { field: "impossibleIfTrue", label: "Falsification Conditions", accessor: (h) => h.impossibleIfTrue },
+  {
+    field: "predictionsIfTrue",
+    label: "Predictions if True",
+    accessor: (h) => h.predictionsIfTrue,
+  },
+  {
+    field: "predictionsIfFalse",
+    label: "Predictions if False",
+    accessor: (h) => h.predictionsIfFalse,
+  },
+  {
+    field: "impossibleIfTrue",
+    label: "Falsification Conditions",
+    accessor: (h) => h.impossibleIfTrue,
+  },
   { field: "assumptions", label: "Assumptions", accessor: (h) => h.assumptions },
   { field: "confounds", label: "Confounds", accessor: (h) => h.confounds.map((c) => c.name) },
   { field: "confidence", label: "Confidence", accessor: (h) => h.confidence },
@@ -130,7 +142,7 @@ function computeSimilarity(a: string, b: string): number {
 export function buildComparisonResults(
   hypothesisA: HypothesisCard,
   hypothesisB: HypothesisCard,
-  fields: ComparisonField[] = FIELD_CONFIG.map((entry) => entry.field)
+  fields: ComparisonField[] = FIELD_CONFIG.map((entry) => entry.field),
 ): ComparisonResult[] {
   return fields.map((field) => {
     const config = FIELD_CONFIG.find((entry) => entry.field === field);
@@ -163,7 +175,7 @@ export function buildComparisonResults(
 export function buildPredictionConflictMatrix(
   matrix: ComparisonMatrix | null | undefined,
   hypothesisAId: string,
-  hypothesisBId: string
+  hypothesisBId: string,
 ): PredictionConflictRow[] {
   if (!matrix) return [];
 
@@ -175,10 +187,7 @@ export function buildPredictionConflictMatrix(
   return matrix.tests.map((test) => {
     const resultA = rowA.testResults[test.id] ?? "pending";
     const resultB = rowB.testResults[test.id] ?? "pending";
-    const discriminating =
-      resultA !== "pending" &&
-      resultB !== "pending" &&
-      resultA !== resultB;
+    const discriminating = resultA !== "pending" && resultB !== "pending" && resultA !== resultB;
 
     return {
       testId: test.id,

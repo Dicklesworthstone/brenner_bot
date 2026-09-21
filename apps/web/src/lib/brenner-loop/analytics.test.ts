@@ -1,14 +1,14 @@
 import { describe, expect, it } from "vitest";
 import { computePersonalAnalytics } from "./analytics";
-import { createSession } from "./types";
-import { createHypothesisCard, generateHypothesisCardId } from "./hypothesis";
 import type { HypothesisCard } from "./hypothesis";
+import { createHypothesisCard, generateHypothesisCardId } from "./hypothesis";
 import type { Session } from "./types";
+import { createSession } from "./types";
 
 function createTestHypothesis(
   sessionId: string,
   sequence: number,
-  overrides: Partial<Parameters<typeof createHypothesisCard>[0]> = {}
+  overrides: Partial<Parameters<typeof createHypothesisCard>[0]> = {},
 ): HypothesisCard {
   const id = generateHypothesisCardId(sessionId, sequence, 1);
   return createHypothesisCard({
@@ -24,7 +24,11 @@ function createTestHypothesis(
   });
 }
 
-function sessionWithPrimaryHypothesis(sessionId: string, createdAt: string, phase: Session["phase"]): Session {
+function sessionWithPrimaryHypothesis(
+  sessionId: string,
+  createdAt: string,
+  phase: Session["phase"],
+): Session {
   const session = createSession({ id: sessionId });
   session.createdAt = createdAt;
   session.updatedAt = createdAt;
@@ -41,12 +45,20 @@ describe("computePersonalAnalytics", () => {
   it("computes core counts and operator usage", () => {
     const now = new Date("2026-01-05T12:00:00.000Z");
 
-    const sessionA = sessionWithPrimaryHypothesis("SESSION-A", "2026-01-04T10:00:00.000Z", "complete");
+    const sessionA = sessionWithPrimaryHypothesis(
+      "SESSION-A",
+      "2026-01-04T10:00:00.000Z",
+      "complete",
+    );
     sessionA.testIds = ["T-1", "T-2"];
     sessionA.operatorApplications.levelSplit.push({} as never);
     sessionA.operatorApplications.exclusionTest.push({} as never);
 
-    const sessionB = sessionWithPrimaryHypothesis("SESSION-B", "2026-01-05T11:00:00.000Z", "intake");
+    const sessionB = sessionWithPrimaryHypothesis(
+      "SESSION-B",
+      "2026-01-05T11:00:00.000Z",
+      "intake",
+    );
     sessionB.testIds = [];
     sessionB.operatorApplications.objectTranspose.push({} as never);
     sessionB.alternativeHypothesisIds = ["ALT-1"];
@@ -89,7 +101,7 @@ describe("computePersonalAnalytics", () => {
     const sessionFalsified = sessionWithPrimaryHypothesis(
       "SESSION-FALSIFIED",
       "2026-01-04T10:00:00.000Z",
-      "complete"
+      "complete",
     );
     sessionFalsified.hypothesisCards[sessionFalsified.primaryHypothesisId].confidence = 10;
 
@@ -97,7 +109,7 @@ describe("computePersonalAnalytics", () => {
     const sessionRobust = sessionWithPrimaryHypothesis(
       "SESSION-ROBUST",
       "2026-01-04T11:00:00.000Z",
-      "complete"
+      "complete",
     );
     sessionRobust.hypothesisCards[sessionRobust.primaryHypothesisId].confidence = 90;
 
@@ -105,7 +117,7 @@ describe("computePersonalAnalytics", () => {
     const sessionAbandoned = sessionWithPrimaryHypothesis(
       "SESSION-ABANDONED",
       "2026-01-04T12:00:00.000Z",
-      "intake"
+      "intake",
     );
     const abandonedHypothesis = createTestHypothesis("SESSION-ABANDONED", 2, { confidence: 50 });
     sessionAbandoned.hypothesisCards[abandonedHypothesis.id] = abandonedHypothesis;
@@ -115,7 +127,7 @@ describe("computePersonalAnalytics", () => {
     const sessionInProgress = sessionWithPrimaryHypothesis(
       "SESSION-INPROGRESS",
       "2026-01-04T13:00:00.000Z",
-      "intake"
+      "intake",
     );
 
     const analytics = computePersonalAnalytics({
@@ -131,7 +143,11 @@ describe("computePersonalAnalytics", () => {
   it("counts revisions after evidence", () => {
     const now = new Date("2026-01-05T12:00:00.000Z");
 
-    const session = sessionWithPrimaryHypothesis("SESSION-REVISIONS", "2026-01-04T10:00:00.000Z", "revision");
+    const session = sessionWithPrimaryHypothesis(
+      "SESSION-REVISIONS",
+      "2026-01-04T10:00:00.000Z",
+      "revision",
+    );
     session.hypothesisEvolution = [
       {
         fromVersionId: "HC-SESSION-REVISIONS-001-v1",
@@ -163,7 +179,11 @@ describe("computePersonalAnalytics", () => {
 
   it("uses externally provided objection stats", () => {
     const now = new Date("2026-01-05T12:00:00.000Z");
-    const session = sessionWithPrimaryHypothesis("SESSION-OBJECTIONS", "2026-01-04T10:00:00.000Z", "synthesis");
+    const session = sessionWithPrimaryHypothesis(
+      "SESSION-OBJECTIONS",
+      "2026-01-04T10:00:00.000Z",
+      "synthesis",
+    );
 
     const analytics = computePersonalAnalytics({
       sessions: [session],
@@ -177,7 +197,11 @@ describe("computePersonalAnalytics", () => {
 
   it("defaults objection stats to zero when not provided", () => {
     const now = new Date("2026-01-05T12:00:00.000Z");
-    const session = sessionWithPrimaryHypothesis("SESSION-NO-OBJECTIONS", "2026-01-04T10:00:00.000Z", "intake");
+    const session = sessionWithPrimaryHypothesis(
+      "SESSION-NO-OBJECTIONS",
+      "2026-01-04T10:00:00.000Z",
+      "intake",
+    );
 
     const analytics = computePersonalAnalytics({ sessions: [session], now });
 
@@ -191,12 +215,20 @@ describe("computePersonalAnalytics", () => {
     // Create sessions with enough falsified and robust hypotheses to unlock achievements
     const sessions: Session[] = [];
     for (let i = 0; i < 5; i++) {
-      const session = sessionWithPrimaryHypothesis(`SESSION-FALSIFIED-${i}`, "2026-01-04T10:00:00.000Z", "complete");
+      const session = sessionWithPrimaryHypothesis(
+        `SESSION-FALSIFIED-${i}`,
+        "2026-01-04T10:00:00.000Z",
+        "complete",
+      );
       session.hypothesisCards[session.primaryHypothesisId].confidence = 10;
       sessions.push(session);
     }
     for (let i = 0; i < 3; i++) {
-      const session = sessionWithPrimaryHypothesis(`SESSION-ROBUST-${i}`, "2026-01-04T10:00:00.000Z", "complete");
+      const session = sessionWithPrimaryHypothesis(
+        `SESSION-ROBUST-${i}`,
+        "2026-01-04T10:00:00.000Z",
+        "complete",
+      );
       session.hypothesisCards[session.primaryHypothesisId].confidence = 90;
       sessions.push(session);
     }
@@ -212,4 +244,3 @@ describe("computePersonalAnalytics", () => {
     expect(robustThinker?.unlocked).toBe(true);
   });
 });
-

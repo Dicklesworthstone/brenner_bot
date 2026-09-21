@@ -4,8 +4,8 @@
  * Tests the context provider that loads and provides section metadata.
  */
 
-import { describe, expect, it, beforeEach, afterEach, vi } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { SectionDataProvider, useSectionData } from "./section-data-provider";
 
 // Test consumer component
@@ -22,9 +22,7 @@ function TestConsumer({ sectionNum }: { sectionNum: number }) {
           <span data-testid="section-excerpt">{section.excerpt}</span>
         </>
       )}
-      {!section && isLoaded && (
-        <span data-testid="section-not-found">not found</span>
-      )}
+      {!section && isLoaded && <span data-testid="section-not-found">not found</span>}
     </div>
   );
 }
@@ -49,14 +47,14 @@ describe("SectionDataProvider", () => {
   it("provides isLoaded=false initially", async () => {
     // Slow response that doesn't resolve immediately
     const fetchMock = vi.fn().mockImplementation(
-      () => new Promise(() => {}) // Never resolves
+      () => new Promise(() => {}), // Never resolves
     );
     vi.stubGlobal("fetch", fetchMock);
 
     render(
       <SectionDataProvider>
         <TestConsumer sectionNum={1} />
-      </SectionDataProvider>
+      </SectionDataProvider>,
     );
 
     expect(screen.getByTestId("is-loaded")).toHaveTextContent("loading");
@@ -72,7 +70,7 @@ describe("SectionDataProvider", () => {
     render(
       <SectionDataProvider>
         <TestConsumer sectionNum={1} />
-      </SectionDataProvider>
+      </SectionDataProvider>,
     );
 
     // Wait for data to load
@@ -94,7 +92,7 @@ describe("SectionDataProvider", () => {
     render(
       <SectionDataProvider>
         <TestConsumer sectionNum={1} />
-      </SectionDataProvider>
+      </SectionDataProvider>,
     );
 
     await waitFor(() => {
@@ -112,7 +110,7 @@ describe("SectionDataProvider", () => {
     render(
       <SectionDataProvider>
         <TestConsumer sectionNum={999} />
-      </SectionDataProvider>
+      </SectionDataProvider>,
     );
 
     await waitFor(() => {
@@ -130,7 +128,7 @@ describe("SectionDataProvider", () => {
     render(
       <SectionDataProvider>
         <TestConsumer sectionNum={1} />
-      </SectionDataProvider>
+      </SectionDataProvider>,
     );
 
     // Should still become loaded (with empty data) after error
@@ -138,10 +136,7 @@ describe("SectionDataProvider", () => {
       expect(screen.getByTestId("is-loaded")).toHaveTextContent("loaded");
     });
 
-    expect(consoleWarnSpy).toHaveBeenCalledWith(
-      "Failed to load section data:",
-      expect.any(Error)
-    );
+    expect(consoleWarnSpy).toHaveBeenCalledWith("Failed to load section data:", expect.any(Error));
 
     consoleWarnSpy.mockRestore();
   });
@@ -157,7 +152,7 @@ describe("SectionDataProvider", () => {
     render(
       <SectionDataProvider>
         <TestConsumer sectionNum={1} />
-      </SectionDataProvider>
+      </SectionDataProvider>,
     );
 
     await waitFor(() => {
@@ -171,16 +166,17 @@ describe("SectionDataProvider", () => {
   it("converts string keys to numbers correctly", async () => {
     const fetchMock = vi.fn().mockResolvedValue({
       ok: true,
-      json: () => Promise.resolve({
-        "58": { t: "Section 58", e: "Famous section" },
-      }),
+      json: () =>
+        Promise.resolve({
+          "58": { t: "Section 58", e: "Famous section" },
+        }),
     });
     vi.stubGlobal("fetch", fetchMock);
 
     render(
       <SectionDataProvider>
         <TestConsumer sectionNum={58} />
-      </SectionDataProvider>
+      </SectionDataProvider>,
     );
 
     await waitFor(() => {
@@ -198,7 +194,7 @@ describe("SectionDataProvider", () => {
     const { rerender } = render(
       <SectionDataProvider>
         <TestConsumer sectionNum={1} />
-      </SectionDataProvider>
+      </SectionDataProvider>,
     );
 
     await waitFor(() => {
@@ -209,7 +205,7 @@ describe("SectionDataProvider", () => {
     rerender(
       <SectionDataProvider>
         <TestConsumer sectionNum={2} />
-      </SectionDataProvider>
+      </SectionDataProvider>,
     );
 
     // Should still only have fetched once

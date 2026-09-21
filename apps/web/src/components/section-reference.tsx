@@ -1,17 +1,17 @@
 "use client";
 
+import { AnimatePresence, motion } from "framer-motion";
+import Link from "next/link";
 import {
-  useState,
+  type CSSProperties,
+  Fragment,
   useCallback,
-  useRef,
   useEffect,
   useLayoutEffect,
-  Fragment,
-  type CSSProperties,
+  useRef,
+  useState,
 } from "react";
-import Link from "next/link";
 import { createPortal } from "react-dom";
-import { motion, AnimatePresence } from "framer-motion";
 import { useSectionData } from "./section-data-provider";
 
 // ============================================================================
@@ -19,8 +19,18 @@ import { useSectionData } from "./section-data-provider";
 // ============================================================================
 
 const DocumentIcon = ({ className = "size-4" }: { className?: string }) => (
-  <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+  <svg
+    className={className}
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+    strokeWidth={1.5}
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"
+    />
   </svg>
 );
 
@@ -80,7 +90,13 @@ interface SectionReferenceProps {
  * - Mobile: Shows bottom sheet on tap
  * - Styled with dotted underline to indicate interactivity
  */
-export function SectionReference({ sectionNumber, endNumber, title: propsTitle, preview: propsPreview, className }: SectionReferenceProps) {
+export function SectionReference({
+  sectionNumber,
+  endNumber,
+  title: propsTitle,
+  preview: propsPreview,
+  className,
+}: SectionReferenceProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [tooltipLayout, setTooltipLayout] = useState<{
@@ -142,12 +158,11 @@ export function SectionReference({ sectionNumber, endNumber, title: propsTitle, 
 
     const left = Math.min(
       Math.max(16, rect.left - 140 + offsetWidth / 2),
-      Math.max(16, window.innerWidth - 336)
+      Math.max(16, window.innerWidth - 336),
     );
 
-    const verticalStyle = position === "top"
-      ? { bottom: window.innerHeight - rect.top + 8 }
-      : { top: rect.bottom + 8 };
+    const verticalStyle =
+      position === "top" ? { bottom: window.innerHeight - rect.top + 8 } : { top: rect.bottom + 8 };
 
     setTooltipLayout({ position, style: { left, ...verticalStyle } });
   }, [isOpen, isMobile]);
@@ -220,19 +235,22 @@ export function SectionReference({ sectionNumber, endNumber, title: propsTitle, 
     setIsOpen(true);
   }, [isMobile]);
 
-  const handleBlur = useCallback((e: React.FocusEvent) => {
-    if (isMobile) return;
-    if (closeTimeoutRef.current) {
-      clearTimeout(closeTimeoutRef.current);
-    }
-    const relatedTarget = e.relatedTarget as Node | null;
-    if (relatedTarget && tooltipRef.current?.contains(relatedTarget)) {
-      return;
-    }
-    closeTimeoutRef.current = setTimeout(() => {
-      setIsOpen(false);
-    }, 150);
-  }, [isMobile]);
+  const handleBlur = useCallback(
+    (e: React.FocusEvent) => {
+      if (isMobile) return;
+      if (closeTimeoutRef.current) {
+        clearTimeout(closeTimeoutRef.current);
+      }
+      const relatedTarget = e.relatedTarget as Node | null;
+      if (relatedTarget && tooltipRef.current?.contains(relatedTarget)) {
+        return;
+      }
+      closeTimeoutRef.current = setTimeout(() => {
+        setIsOpen(false);
+      }, 150);
+    },
+    [isMobile],
+  );
 
   const handleClick = useCallback(() => {
     setIsOpen(true);
@@ -262,112 +280,118 @@ export function SectionReference({ sectionNumber, endNumber, title: propsTitle, 
           "hover:decoration-primary/60",
           "focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background rounded-sm",
           className,
-        ].filter(Boolean).join(" ")}
+        ]
+          .filter(Boolean)
+          .join(" ")}
         aria-label={`Go to transcript section ${sectionNumber}${title ? `: ${title}` : ""}`}
       >
         {displayText}
       </button>
 
       {/* Desktop Tooltip */}
-      {portalContainer && createPortal(
-        <AnimatePresence>
-          {isOpen && !isMobile && Object.keys(tooltipLayout.style).length > 0 && (
-            <motion.div
-              ref={tooltipRef}
-              initial={{ opacity: 0, y: tooltipLayout.position === "top" ? 8 : -8, scale: 0.95 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: tooltipLayout.position === "top" ? 8 : -8, scale: 0.95 }}
-              transition={springSnappy}
-              className={[
-                "fixed z-[9999] w-80 max-w-[calc(100vw-2rem)]",
-                "rounded-xl border border-border/50 bg-card/95 p-4 shadow-2xl backdrop-blur-xl",
-                "before:absolute before:inset-x-0 before:h-1 before:rounded-t-xl before:bg-gradient-to-r before:from-primary/50 before:via-amber-500/50 before:to-primary/50",
-                tooltipLayout.position === "top" ? "before:top-0" : "before:bottom-0 before:rounded-t-none before:rounded-b-xl",
-              ].join(" ")}
-              style={tooltipLayout.style}
-              onMouseEnter={handleMouseEnter}
-              onMouseLeave={handleMouseLeave}
-            >
-              <TooltipContent
-                sectionNumber={sectionNumber}
-                endNumber={endNumber}
-                title={title}
-                preview={preview}
-                transcriptUrl={transcriptUrl}
-              />
-            </motion.div>
-          )}
-        </AnimatePresence>,
-        portalContainer
-      )}
-
-      {/* Mobile Bottom Sheet */}
-      {portalContainer && createPortal(
-        <AnimatePresence>
-          {isOpen && isMobile && (
-            <motion.div
-              key="section-ref-sheet-container"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.2 }}
-            >
-              {/* Backdrop */}
-              <div
-                className="fixed inset-0 z-[9998] bg-black/60 backdrop-blur-sm"
-                style={{ touchAction: "none" }}
-                onClick={handleClose}
-                aria-hidden="true"
-              />
-
-              {/* Sheet */}
+      {portalContainer &&
+        createPortal(
+          <AnimatePresence>
+            {isOpen && !isMobile && Object.keys(tooltipLayout.style).length > 0 && (
               <motion.div
                 ref={tooltipRef}
-                role="dialog"
-                aria-modal="true"
-                aria-labelledby={`section-ref-sheet-title-${sectionNumber}`}
-                initial={{ y: "100%" }}
-                animate={{ y: 0 }}
-                exit={{ y: "100%" }}
-                transition={springSmooth}
-                className="fixed inset-x-0 bottom-0 z-[9999] flex max-h-[80vh] flex-col rounded-t-3xl border-t border-border/50 bg-card shadow-2xl"
-                style={{ touchAction: "pan-y" }}
+                initial={{ opacity: 0, y: tooltipLayout.position === "top" ? 8 : -8, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: tooltipLayout.position === "top" ? 8 : -8, scale: 0.95 }}
+                transition={springSnappy}
+                className={[
+                  "fixed z-[9999] w-80 max-w-[calc(100vw-2rem)]",
+                  "rounded-xl border border-border/50 bg-card/95 p-4 shadow-2xl backdrop-blur-xl",
+                  "before:absolute before:inset-x-0 before:h-1 before:rounded-t-xl before:bg-gradient-to-r before:from-primary/50 before:via-amber-500/50 before:to-primary/50",
+                  tooltipLayout.position === "top"
+                    ? "before:top-0"
+                    : "before:bottom-0 before:rounded-t-none before:rounded-b-xl",
+                ].join(" ")}
+                style={tooltipLayout.style}
+                onMouseEnter={handleMouseEnter}
+                onMouseLeave={handleMouseLeave}
               >
-                {/* Handle */}
-                <div className="flex shrink-0 justify-center pt-3 pb-1">
-                  <div className="h-1.5 w-12 rounded-full bg-muted-foreground/40" />
-                </div>
-
-                {/* Close button - z-10 ensures it's above scrollable content */}
-                <button
-                  type="button"
-                  onClick={handleClose}
-                  className="absolute right-4 top-4 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-muted text-muted-foreground transition-colors hover:bg-muted/80 active:bg-muted/60"
-                  aria-label="Close"
-                >
-                  <XIcon />
-                </button>
-
-                {/* Content */}
-                <div
-                  className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-6 pt-2 pb-[calc(2rem+env(safe-area-inset-bottom,0px))]"
-                  style={{ WebkitOverflowScrolling: "touch" }}
-                >
-                  <SheetContent
-                    sectionNumber={sectionNumber}
-                    endNumber={endNumber}
-                    title={title}
-                    preview={preview}
-                    transcriptUrl={transcriptUrl}
-                    onClose={handleClose}
-                  />
-                </div>
+                <TooltipContent
+                  sectionNumber={sectionNumber}
+                  endNumber={endNumber}
+                  title={title}
+                  preview={preview}
+                  transcriptUrl={transcriptUrl}
+                />
               </motion.div>
-            </motion.div>
-          )}
-        </AnimatePresence>,
-        portalContainer
-      )}
+            )}
+          </AnimatePresence>,
+          portalContainer,
+        )}
+
+      {/* Mobile Bottom Sheet */}
+      {portalContainer &&
+        createPortal(
+          <AnimatePresence>
+            {isOpen && isMobile && (
+              <motion.div
+                key="section-ref-sheet-container"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.2 }}
+              >
+                {/* Backdrop */}
+                <div
+                  className="fixed inset-0 z-[9998] bg-black/60 backdrop-blur-sm"
+                  style={{ touchAction: "none" }}
+                  onClick={handleClose}
+                  aria-hidden="true"
+                />
+
+                {/* Sheet */}
+                <motion.div
+                  ref={tooltipRef}
+                  role="dialog"
+                  aria-modal="true"
+                  aria-labelledby={`section-ref-sheet-title-${sectionNumber}`}
+                  initial={{ y: "100%" }}
+                  animate={{ y: 0 }}
+                  exit={{ y: "100%" }}
+                  transition={springSmooth}
+                  className="fixed inset-x-0 bottom-0 z-[9999] flex max-h-[80vh] flex-col rounded-t-3xl border-t border-border/50 bg-card shadow-2xl"
+                  style={{ touchAction: "pan-y" }}
+                >
+                  {/* Handle */}
+                  <div className="flex shrink-0 justify-center pt-3 pb-1">
+                    <div className="h-1.5 w-12 rounded-full bg-muted-foreground/40" />
+                  </div>
+
+                  {/* Close button - z-10 ensures it's above scrollable content */}
+                  <button
+                    type="button"
+                    onClick={handleClose}
+                    className="absolute right-4 top-4 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-muted text-muted-foreground transition-colors hover:bg-muted/80 active:bg-muted/60"
+                    aria-label="Close"
+                  >
+                    <XIcon />
+                  </button>
+
+                  {/* Content */}
+                  <div
+                    className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-6 pt-2 pb-[calc(2rem+env(safe-area-inset-bottom,0px))]"
+                    style={{ WebkitOverflowScrolling: "touch" }}
+                  >
+                    <SheetContent
+                      sectionNumber={sectionNumber}
+                      endNumber={endNumber}
+                      title={title}
+                      preview={preview}
+                      transcriptUrl={transcriptUrl}
+                      onClose={handleClose}
+                    />
+                  </div>
+                </motion.div>
+              </motion.div>
+            )}
+          </AnimatePresence>,
+          portalContainer,
+        )}
     </>
   );
 }
@@ -443,7 +467,14 @@ function TooltipContent({ sectionNumber, endNumber, title, preview, transcriptUr
 // Sheet Content (Mobile)
 // ============================================================================
 
-function SheetContent({ sectionNumber, endNumber, title, preview, transcriptUrl, onClose }: ContentProps) {
+function SheetContent({
+  sectionNumber,
+  endNumber,
+  title,
+  preview,
+  transcriptUrl,
+  onClose,
+}: ContentProps) {
   const displayRef = endNumber ? `§${sectionNumber}-${endNumber}` : `§${sectionNumber}`;
   const isRange = endNumber !== undefined && endNumber !== sectionNumber;
 
@@ -455,7 +486,10 @@ function SheetContent({ sectionNumber, endNumber, title, preview, transcriptUrl,
           <DocumentIcon className="h-7 w-7 text-primary" />
         </div>
         <div>
-          <h3 id={`section-ref-sheet-title-${sectionNumber}`} className="text-xl font-bold text-foreground">
+          <h3
+            id={`section-ref-sheet-title-${sectionNumber}`}
+            className="text-xl font-bold text-foreground"
+          >
             {displayRef}
           </h3>
           <p className="text-sm text-muted-foreground">
@@ -471,9 +505,7 @@ function SheetContent({ sectionNumber, endNumber, title, preview, transcriptUrl,
             <h4 className="mb-1.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground/70">
               Section Topic
             </h4>
-            <p className="text-base font-semibold leading-snug text-foreground">
-              {title}
-            </p>
+            <p className="text-base font-semibold leading-snug text-foreground">{title}</p>
           </div>
         )}
 
@@ -486,9 +518,7 @@ function SheetContent({ sectionNumber, endNumber, title, preview, transcriptUrl,
             >
               &ldquo;
             </div>
-            <p className="text-sm leading-relaxed text-foreground/85 italic pl-4">
-              {preview}
-            </p>
+            <p className="text-sm leading-relaxed text-foreground/85 italic pl-4">{preview}</p>
           </div>
         )}
 

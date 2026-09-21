@@ -1,9 +1,14 @@
 import { describe, expect, it, vi } from "vitest";
 
 import type { AgentMailMessage, AgentMailThread } from "../../agentMail";
-import type { AgentDispatch } from "./dispatch";
-import { buildAgentPrompt, createDispatch, FALLBACK_BRENNER_QUOTES, pollForResponses } from "./dispatch";
 import { createHypothesisCard } from "../hypothesis";
+import type { AgentDispatch } from "./dispatch";
+import {
+  buildAgentPrompt,
+  createDispatch,
+  FALLBACK_BRENNER_QUOTES,
+  pollForResponses,
+} from "./dispatch";
 
 function buildDispatch(args: {
   threadId: string;
@@ -156,7 +161,7 @@ describe("pollForResponses", () => {
 
     expect(updated.tasks.map((t) => t.status)).toEqual(["received", "received"]);
     expect(updated.responses.map((r) => r.role).sort()).toEqual(
-      ["devils_advocate", "experiment_designer"].sort()
+      ["devils_advocate", "experiment_designer"].sort(),
     );
     expect(updated.complete).toBe(true);
   });

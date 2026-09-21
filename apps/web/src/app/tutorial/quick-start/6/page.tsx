@@ -8,12 +8,11 @@
  * @see brenner_bot-s797 (Tutorial Path: Quick Start)
  */
 
-import * as React from "react";
 import { useRouter } from "next/navigation";
-import { TutorialStep } from "@/components/tutorial";
-import { TutorialCodeBlock, ProTip, Warning, Important } from "@/components/tutorial";
+import * as React from "react";
+import { Important, ProTip, TutorialCodeBlock, TutorialStep, Warning } from "@/components/tutorial";
 import { useTutorial } from "@/lib/tutorial-context";
-import type { TutorialStep as TutorialStepType, TroubleshootingItem } from "@/lib/tutorial-types";
+import type { TroubleshootingItem, TutorialStep as TutorialStepType } from "@/lib/tutorial-types";
 
 // ============================================================================
 // Step Data
@@ -23,17 +22,20 @@ const troubleshooting: TroubleshootingItem[] = [
   {
     problem: "Prompt file is too long for my AI",
     symptoms: ["Token limit exceeded", "Message too long"],
-    solution: "Trim your excerpt to fewer sections, or use a model with a larger context window (Claude, GPT-4).",
+    solution:
+      "Trim your excerpt to fewer sections, or use a model with a larger context window (Claude, GPT-4).",
   },
   {
     problem: "AI doesn't follow the format",
     symptoms: ["Output missing sections", "Unstructured response"],
-    solution: "Make sure you copied the ENTIRE prompt including all instructions. Some AIs need explicit formatting reminders.",
+    solution:
+      "Make sure you copied the ENTIRE prompt including all instructions. Some AIs need explicit formatting reminders.",
   },
   {
     problem: "Command not found",
     symptoms: ["brenner: command not found"],
-    solution: "Make sure you're in the brenner_bot directory and using ./brenner (with the dot-slash).",
+    solution:
+      "Make sure you're in the brenner_bot directory and using ./brenner (with the dot-slash).",
     commands: ["cd brenner_bot", "./brenner prompt compose --help"],
   },
 ];
@@ -84,8 +86,8 @@ export default function QuickStartStep6() {
     >
       <section className="space-y-6">
         <p className="text-muted-foreground leading-relaxed">
-          This is the big moment! You&apos;ll compose a structured prompt that encodes Brenner&apos;s
-          methodology, then run it through any AI chat interface.
+          This is the big moment! You&apos;ll compose a structured prompt that encodes
+          Brenner&apos;s methodology, then run it through any AI chat interface.
         </p>
 
         {/* Compose Prompt */}
@@ -122,17 +124,9 @@ export default function QuickStartStep6() {
             </span>
             View the Composed Prompt
           </h2>
-          <p className="text-sm text-muted-foreground">
-            Check what was generated:
-          </p>
-          <TutorialCodeBlock
-            code="cat my_prompt.md"
-            language="bash"
-            title="Terminal"
-          />
-          <p className="text-sm text-muted-foreground">
-            The prompt includes:
-          </p>
+          <p className="text-sm text-muted-foreground">Check what was generated:</p>
+          <TutorialCodeBlock code="cat my_prompt.md" language="bash" title="Terminal" />
+          <p className="text-sm text-muted-foreground">The prompt includes:</p>
           <ul className="text-sm text-muted-foreground space-y-1 ml-4">
             <li>• Your Brenner excerpt for grounding</li>
             <li>• Your research question</li>
@@ -143,8 +137,8 @@ export default function QuickStartStep6() {
 
         <Important>
           <strong>Don&apos;t modify the instructions!</strong> The prompt includes specific
-          formatting that encodes the Brenner methodology. Changing it might break the
-          structured output.
+          formatting that encodes the Brenner methodology. Changing it might break the structured
+          output.
         </Important>
 
         {/* Run Session */}
@@ -173,17 +167,25 @@ export default function QuickStartStep6() {
             </div>
           </div>
           <ol className="text-sm text-muted-foreground space-y-2 ml-4 mt-4">
-            <li><strong>1.</strong> Copy the contents of <code>my_prompt.md</code></li>
-            <li><strong>2.</strong> Paste into your AI chat interface</li>
-            <li><strong>3.</strong> Press Enter and wait for the response</li>
-            <li><strong>4.</strong> Save the AI&apos;s response (you&apos;ll analyze it next)</li>
+            <li>
+              <strong>1.</strong> Copy the contents of <code>my_prompt.md</code>
+            </li>
+            <li>
+              <strong>2.</strong> Paste into your AI chat interface
+            </li>
+            <li>
+              <strong>3.</strong> Press Enter and wait for the response
+            </li>
+            <li>
+              <strong>4.</strong> Save the AI&apos;s response (you&apos;ll analyze it next)
+            </li>
           </ol>
         </div>
 
         <ProTip>
-          Free tiers work fine! Claude Free, ChatGPT Free, or Gemini Free all produce
-          usable artifacts. Paid tiers give longer context windows and better reasoning,
-          but aren&apos;t required.
+          Free tiers work fine! Claude Free, ChatGPT Free, or Gemini Free all produce usable
+          artifacts. Paid tiers give longer context windows and better reasoning, but aren&apos;t
+          required.
         </ProTip>
 
         {/* Save Output */}
@@ -214,9 +216,9 @@ xclip -selection clipboard -o > my_artifact.md
         </div>
 
         <Warning>
-          <strong>AI responses vary!</strong> Your artifact might look different from the
-          examples. That&apos;s normal — each AI interprets prompts slightly differently.
-          The key sections (Hypothesis Slate, Tests, Assumptions) should still be present.
+          <strong>AI responses vary!</strong> Your artifact might look different from the examples.
+          That&apos;s normal — each AI interprets prompts slightly differently. The key sections
+          (Hypothesis Slate, Tests, Assumptions) should still be present.
         </Warning>
 
         {/* Next Step */}
@@ -224,8 +226,8 @@ xclip -selection clipboard -o > my_artifact.md
           <p className="text-sm">
             <strong className="text-[oklch(0.72_0.19_145)]">Got your artifact?</strong>{" "}
             <span className="text-muted-foreground">
-              In the final step, you&apos;ll learn to read and interpret each section of
-              your research artifact.
+              In the final step, you&apos;ll learn to read and interpret each section of your
+              research artifact.
             </span>
           </p>
         </div>

@@ -8,13 +8,9 @@
  * @see @/components/ui/animated-element.tsx
  */
 
-import { render, screen, act } from "@testing-library/react";
-import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
-import {
-  AnimatedElement,
-  StaggerContainer,
-  HeroBackground,
-} from "./animated-element";
+import { act, render, screen } from "@testing-library/react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { AnimatedElement, HeroBackground, StaggerContainer } from "./animated-element";
 
 // ============================================================================
 // Mock Setup
@@ -102,7 +98,7 @@ describe("AnimatedElement", () => {
       render(
         <AnimatedElement>
           <span data-testid="child">Test Content</span>
-        </AnimatedElement>
+        </AnimatedElement>,
       );
 
       expect(screen.getByTestId("child")).toBeInTheDocument();
@@ -110,24 +106,20 @@ describe("AnimatedElement", () => {
     });
 
     it("renders as div by default", () => {
-      const { container } = render(
-        <AnimatedElement>Content</AnimatedElement>
-      );
+      const { container } = render(<AnimatedElement>Content</AnimatedElement>);
 
       expect(container.firstChild?.nodeName).toBe("DIV");
     });
 
     it("renders as custom element via 'as' prop", () => {
-      const { container } = render(
-        <AnimatedElement as="section">Content</AnimatedElement>
-      );
+      const { container } = render(<AnimatedElement as="section">Content</AnimatedElement>);
 
       expect(container.firstChild?.nodeName).toBe("SECTION");
     });
 
     it("applies custom className", () => {
       const { container } = render(
-        <AnimatedElement className="custom-class">Content</AnimatedElement>
+        <AnimatedElement className="custom-class">Content</AnimatedElement>,
       );
 
       expect(container.firstChild).toHaveClass("custom-class");
@@ -137,7 +129,7 @@ describe("AnimatedElement", () => {
   describe("animation states", () => {
     it("starts with opacity-0 class before intersection", () => {
       const { container } = render(
-        <AnimatedElement animation="reveal-up">Content</AnimatedElement>
+        <AnimatedElement animation="reveal-up">Content</AnimatedElement>,
       );
 
       expect(container.firstChild).toHaveClass("opacity-0");
@@ -145,7 +137,7 @@ describe("AnimatedElement", () => {
 
     it("applies animation class after intersection", async () => {
       const { container } = render(
-        <AnimatedElement animation="reveal-up">Content</AnimatedElement>
+        <AnimatedElement animation="reveal-up">Content</AnimatedElement>,
       );
 
       // Initially hidden
@@ -174,7 +166,7 @@ describe("AnimatedElement", () => {
 
       for (const animation of animations) {
         const { container, unmount } = render(
-          <AnimatedElement animation={animation}>Content</AnimatedElement>
+          <AnimatedElement animation={animation}>Content</AnimatedElement>,
         );
 
         await act(async () => {
@@ -194,7 +186,7 @@ describe("AnimatedElement", () => {
       const { container } = render(
         <AnimatedElement animation="reveal-up" delay={200}>
           Content
-        </AnimatedElement>
+        </AnimatedElement>,
       );
 
       expect(container.firstChild).toHaveStyle({ animationDelay: "200ms" });
@@ -204,7 +196,7 @@ describe("AnimatedElement", () => {
       const { container } = render(
         <AnimatedElement animation="reveal-up" delay={0}>
           Content
-        </AnimatedElement>
+        </AnimatedElement>,
       );
 
       expect(container.firstChild).not.toHaveStyle({ animationDelay: "0ms" });
@@ -214,7 +206,7 @@ describe("AnimatedElement", () => {
       const { container } = render(
         <AnimatedElement animation="reveal-up" duration={500}>
           Content
-        </AnimatedElement>
+        </AnimatedElement>,
       );
 
       expect(container.firstChild).toHaveStyle({ animationDuration: "500ms" });
@@ -226,7 +218,7 @@ describe("AnimatedElement", () => {
       vi.stubGlobal("matchMedia", mockMatchMedia(true));
 
       const { container } = render(
-        <AnimatedElement animation="reveal-up">Content</AnimatedElement>
+        <AnimatedElement animation="reveal-up">Content</AnimatedElement>,
       );
 
       // Should not have opacity-0 or animation classes
@@ -238,7 +230,7 @@ describe("AnimatedElement", () => {
       const { container } = render(
         <AnimatedElement animation="reveal-up" disabled>
           Content
-        </AnimatedElement>
+        </AnimatedElement>,
       );
 
       expect(container.firstChild).not.toHaveClass("opacity-0");
@@ -248,9 +240,7 @@ describe("AnimatedElement", () => {
 
   describe("intersection options", () => {
     it("renders with threshold prop without error", () => {
-      render(
-        <AnimatedElement threshold={0.5}>Content</AnimatedElement>
-      );
+      render(<AnimatedElement threshold={0.5}>Content</AnimatedElement>);
 
       // Component renders and observer is created
       expect(observedElements.length).toBe(1);
@@ -276,7 +266,7 @@ describe("StaggerContainer", () => {
           <div data-testid="child-1">First</div>
           <div data-testid="child-2">Second</div>
           <div data-testid="child-3">Third</div>
-        </StaggerContainer>
+        </StaggerContainer>,
       );
 
       expect(screen.getByTestId("child-1")).toBeInTheDocument();
@@ -288,7 +278,7 @@ describe("StaggerContainer", () => {
       const { container } = render(
         <StaggerContainer className="stagger-container">
           <div>Child</div>
-        </StaggerContainer>
+        </StaggerContainer>,
       );
 
       expect(container.firstChild).toHaveClass("stagger-container");
@@ -302,7 +292,7 @@ describe("StaggerContainer", () => {
           <div>First</div>
           <div>Second</div>
           <div>Third</div>
-        </StaggerContainer>
+        </StaggerContainer>,
       );
 
       // Each AnimatedElement wrapper should have increasing delays
@@ -315,7 +305,7 @@ describe("StaggerContainer", () => {
         <StaggerContainer>
           <div>First</div>
           <div>Second</div>
-        </StaggerContainer>
+        </StaggerContainer>,
       );
 
       // Component renders without error with defaults
@@ -327,7 +317,7 @@ describe("StaggerContainer", () => {
       render(
         <StaggerContainer baseDelay={200}>
           <div>First</div>
-        </StaggerContainer>
+        </StaggerContainer>,
       );
 
       expect(screen.getByText("First")).toBeInTheDocument();
@@ -339,7 +329,7 @@ describe("StaggerContainer", () => {
       render(
         <StaggerContainer>
           <div>Child</div>
-        </StaggerContainer>
+        </StaggerContainer>,
       );
 
       expect(screen.getByText("Child")).toBeInTheDocument();
@@ -349,7 +339,7 @@ describe("StaggerContainer", () => {
       render(
         <StaggerContainer animation="fade-in-scale">
           <div>Child</div>
-        </StaggerContainer>
+        </StaggerContainer>,
       );
 
       expect(screen.getByText("Child")).toBeInTheDocument();
@@ -367,7 +357,7 @@ describe("HeroBackground", () => {
       render(
         <HeroBackground>
           <h1 data-testid="hero-content">Hero Title</h1>
-        </HeroBackground>
+        </HeroBackground>,
       );
 
       expect(screen.getByTestId("hero-content")).toBeInTheDocument();
@@ -378,7 +368,7 @@ describe("HeroBackground", () => {
       const { container } = render(
         <HeroBackground className="hero-custom">
           <div>Content</div>
-        </HeroBackground>
+        </HeroBackground>,
       );
 
       expect(container.firstChild).toHaveClass("hero-custom");
@@ -388,7 +378,7 @@ describe("HeroBackground", () => {
       const { container } = render(
         <HeroBackground>
           <div>Content</div>
-        </HeroBackground>
+        </HeroBackground>,
       );
 
       expect(container.firstChild).toHaveClass("relative", "overflow-hidden");
@@ -400,7 +390,7 @@ describe("HeroBackground", () => {
       const { container } = render(
         <HeroBackground>
           <div>Content</div>
-        </HeroBackground>
+        </HeroBackground>,
       );
 
       // Should have orb elements (divs with blur and rounded-full classes)
@@ -412,7 +402,7 @@ describe("HeroBackground", () => {
       const { container } = render(
         <HeroBackground showOrbs={false}>
           <div>Content</div>
-        </HeroBackground>
+        </HeroBackground>,
       );
 
       const orbs = container.querySelectorAll(".blur-3xl");
@@ -423,7 +413,7 @@ describe("HeroBackground", () => {
       const { container } = render(
         <HeroBackground primaryOrbClass="bg-blue-500/30">
           <div>Content</div>
-        </HeroBackground>
+        </HeroBackground>,
       );
 
       const primaryOrbs = container.querySelectorAll(".bg-blue-500\\/30");
@@ -434,7 +424,7 @@ describe("HeroBackground", () => {
       const { container } = render(
         <HeroBackground accentOrbClass="bg-purple-500/20">
           <div>Content</div>
-        </HeroBackground>
+        </HeroBackground>,
       );
 
       const accentOrb = container.querySelector(".bg-purple-500\\/20");
@@ -447,7 +437,7 @@ describe("HeroBackground", () => {
       const { container } = render(
         <HeroBackground>
           <div>Content</div>
-        </HeroBackground>
+        </HeroBackground>,
       );
 
       // Should have grid pattern element with opacity-[0.03] class
@@ -459,7 +449,7 @@ describe("HeroBackground", () => {
       const { container } = render(
         <HeroBackground showGrid={false}>
           <div>Content</div>
-        </HeroBackground>
+        </HeroBackground>,
       );
 
       const gridElements = container.querySelectorAll("[style*='linear-gradient']");
@@ -472,7 +462,7 @@ describe("HeroBackground", () => {
       const { container } = render(
         <HeroBackground>
           <div>Content</div>
-        </HeroBackground>
+        </HeroBackground>,
       );
 
       const backgroundElements = container.querySelectorAll(".-z-10");
@@ -483,7 +473,7 @@ describe("HeroBackground", () => {
       const { container } = render(
         <HeroBackground>
           <div>Content</div>
-        </HeroBackground>
+        </HeroBackground>,
       );
 
       const pointerNoneElements = container.querySelectorAll(".pointer-events-none");

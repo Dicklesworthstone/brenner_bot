@@ -81,12 +81,7 @@ export type CritiqueTargetType = z.infer<typeof CritiqueTargetTypeSchema>;
  * - dismissed: Rejected as invalid
  * - accepted: Critique accepted, changes made
  */
-export const CritiqueStatusSchema = z.enum([
-  "active",
-  "addressed",
-  "dismissed",
-  "accepted",
-]);
+export const CritiqueStatusSchema = z.enum(["active", "addressed", "dismissed", "accepted"]);
 
 export type CritiqueStatus = z.infer<typeof CritiqueStatusSchema>;
 
@@ -98,12 +93,7 @@ export type CritiqueStatus = z.infer<typeof CritiqueStatusSchema>;
  * - serious: Major problem requiring attention
  * - critical: Potentially fatal flaw
  */
-export const CritiqueSeveritySchema = z.enum([
-  "minor",
-  "moderate",
-  "serious",
-  "critical",
-]);
+export const CritiqueSeveritySchema = z.enum(["minor", "moderate", "serious", "critical"]);
 
 export type CritiqueSeverity = z.infer<typeof CritiqueSeveritySchema>;
 
@@ -111,10 +101,10 @@ export type CritiqueSeverity = z.infer<typeof CritiqueSeveritySchema>;
  * Actions that can be taken in response to a critique.
  */
 export const CritiqueActionSchema = z.enum([
-  "none",      // No action taken
-  "modified",  // Target was modified
-  "killed",    // Target was killed/removed
-  "new_test",  // New test designed to address critique
+  "none", // No action taken
+  "modified", // Target was modified
+  "killed", // Target was killed/removed
+  "new_test", // New test designed to address critique
 ]);
 
 export type CritiqueAction = z.infer<typeof CritiqueActionSchema>;
@@ -334,7 +324,7 @@ export const CritiqueSchema = z
     },
     {
       message: "targetId is required and must match the format for the target type",
-    }
+    },
   );
 
 // Note: dismissalReason enforcement is handled by dismissCritique() function
@@ -428,7 +418,7 @@ export function evaluateThirdAlternative(critique: Critique): {
     return {
       score: 0,
       issues: ["No alternative proposed - pure skepticism"],
-      explanation: "Pure skepticism (\"we don't know\")",
+      explanation: 'Pure skepticism ("we don\'t know")',
     };
   }
 
@@ -467,7 +457,7 @@ export function evaluateThirdAlternative(critique: Critique): {
   }
 
   const explanations = [
-    "Pure skepticism (\"we don't know\")",
+    'Pure skepticism ("we don\'t know")',
     "Alternative is vague",
     "Specific alternative but not fully developed",
     "Concrete alternative with mechanism and testable predictions",
@@ -496,13 +486,13 @@ export function requiresResponse(critique: Critique): boolean {
 export function countUnaddressedCritiques(
   critiques: Critique[],
   targetType: CritiqueTargetType,
-  targetId?: string
+  targetId?: string,
 ): number {
   return critiques.filter(
     (c) =>
       c.status === "active" &&
       c.targetType === targetType &&
-      (targetId === undefined || c.targetId === targetId)
+      (targetId === undefined || c.targetId === targetId),
   ).length;
 }
 
@@ -535,7 +525,7 @@ export function generateCritiqueId(sessionId: string, existingIds: string[]): st
 
   if (nextSeq > MAX_CRITIQUE_SEQUENCE) {
     throw new Error(
-      `Critique sequence overflow for session "${sessionId}": maximum ${MAX_CRITIQUE_SEQUENCE} critiques per session exceeded`
+      `Critique sequence overflow for session "${sessionId}": maximum ${MAX_CRITIQUE_SEQUENCE} critiques per session exceeded`,
     );
   }
 
@@ -665,10 +655,12 @@ export function createFramingCritique(input: {
  */
 export function addressCritique(
   critique: Critique,
-  response: Omit<CritiqueResponse, "respondedAt">
+  response: Omit<CritiqueResponse, "respondedAt">,
 ): Critique {
   if (critique.status !== "active") {
-    throw new Error(`Cannot address critique ${critique.id} - current status is ${critique.status}`);
+    throw new Error(
+      `Cannot address critique ${critique.id} - current status is ${critique.status}`,
+    );
   }
 
   const now = new Date().toISOString();
@@ -691,10 +683,12 @@ export function addressCritique(
 export function dismissCritique(
   critique: Critique,
   reason: string,
-  respondedBy?: string
+  respondedBy?: string,
 ): Critique {
   if (critique.status !== "active") {
-    throw new Error(`Cannot dismiss critique ${critique.id} - current status is ${critique.status}`);
+    throw new Error(
+      `Cannot dismiss critique ${critique.id} - current status is ${critique.status}`,
+    );
   }
 
   const now = new Date().toISOString();
@@ -721,7 +715,7 @@ export function acceptCritique(
   action: CritiqueAction,
   responseText: string,
   respondedBy?: string,
-  newTestId?: string
+  newTestId?: string,
 ): Critique {
   if (critique.status !== "active") {
     throw new Error(`Cannot accept critique ${critique.id} - current status is ${critique.status}`);

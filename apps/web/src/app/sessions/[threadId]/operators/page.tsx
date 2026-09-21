@@ -10,56 +10,84 @@
  * @see brenner_bot-pts6 (routes bead)
  */
 
-import * as React from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { motion, AnimatePresence } from "framer-motion";
-import { cn } from "@/lib/utils";
+import * as React from "react";
+import { BrennerQuoteSidebar } from "@/components/brenner-loop/operators/BrennerQuoteSidebar";
 import { DemoFeaturePreview } from "@/components/sessions/DemoFeaturePreview";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Textarea } from "@/components/ui/textarea";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import type { Quote } from "@/lib/quotebank-parser";
-import { BrennerQuoteSidebar } from "@/components/brenner-loop/operators/BrennerQuoteSidebar";
-import {
-  loadEmbeddings,
-  type EmbeddingEntry,
-} from "@/lib/brenner-loop/search/embeddings";
+import { Textarea } from "@/components/ui/textarea";
+import { recordSessionResumeEntry } from "@/lib/brenner-loop";
+import { type EmbeddingEntry, loadEmbeddings } from "@/lib/brenner-loop/search/embeddings";
 import {
   buildQuoteQueryText,
   filterQuoteEntriesByTags,
   findSimilarQuotes,
 } from "@/lib/brenner-loop/search/quote-matcher";
-import { recordSessionResumeEntry } from "@/lib/brenner-loop";
 import { isDemoThreadId, normalizeThreadId } from "@/lib/demo-mode";
+import type { Quote } from "@/lib/quotebank-parser";
+import { cn } from "@/lib/utils";
 
 // ============================================================================
 // Icons
 // ============================================================================
 
 const ChevronLeftIcon = ({ className }: { className?: string }) => (
-  <svg className={cn("size-4", className)} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+  <svg
+    className={cn("size-4", className)}
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+    strokeWidth={2}
+  >
     <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
   </svg>
 );
 
 const CheckIcon = ({ className }: { className?: string }) => (
-  <svg className={cn("size-4", className)} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+  <svg
+    className={cn("size-4", className)}
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+    strokeWidth={2}
+  >
     <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
   </svg>
 );
 
-
 const LightBulbIcon = ({ className }: { className?: string }) => (
-  <svg className={cn("size-4", className)} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M12 18v-5.25m0 0a6.01 6.01 0 001.5-.189m-1.5.189a6.01 6.01 0 01-1.5-.189m3.75 7.478a12.06 12.06 0 01-4.5 0m3.75 2.383a14.406 14.406 0 01-3 0M14.25 18v-.192c0-.983.658-1.823 1.508-2.316a7.5 7.5 0 10-7.517 0c.85.493 1.509 1.333 1.509 2.316V18" />
+  <svg
+    className={cn("size-4", className)}
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+    strokeWidth={1.5}
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M12 18v-5.25m0 0a6.01 6.01 0 001.5-.189m-1.5.189a6.01 6.01 0 01-1.5-.189m3.75 7.478a12.06 12.06 0 01-4.5 0m3.75 2.383a14.406 14.406 0 01-3 0M14.25 18v-.192c0-.983.658-1.823 1.508-2.316a7.5 7.5 0 10-7.517 0c.85.493 1.509 1.333 1.509 2.316V18"
+    />
   </svg>
 );
 
 const BeakerIcon = ({ className }: { className?: string }) => (
-  <svg className={cn("size-5", className)} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M9.75 3.104v5.714a2.25 2.25 0 01-.659 1.591L5 14.5M9.75 3.104c-.251.023-.501.05-.75.082m.75-.082a24.301 24.301 0 014.5 0m0 0v5.714c0 .597.237 1.17.659 1.591L19.8 15.3M14.25 3.104c.251.023.501.05.75.082M19.8 15.3l-1.57.393A9.065 9.065 0 0112 15a9.065 9.065 0 00-6.23.693L5 14.5m14.8.8l1.402 5.07a1.125 1.125 0 01-1.135 1.416H3.933a1.125 1.125 0 01-1.135-1.416L5 14.5" />
+  <svg
+    className={cn("size-5", className)}
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+    strokeWidth={1.5}
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M9.75 3.104v5.714a2.25 2.25 0 01-.659 1.591L5 14.5M9.75 3.104c-.251.023-.501.05-.75.082m.75-.082a24.301 24.301 0 014.5 0m0 0v5.714c0 .597.237 1.17.659 1.591L19.8 15.3M14.25 3.104c.251.023.501.05.75.082M19.8 15.3l-1.57.393A9.065 9.065 0 0112 15a9.065 9.065 0 00-6.23.693L5 14.5m14.8.8l1.402 5.07a1.125 1.125 0 01-1.135 1.416H3.933a1.125 1.125 0 01-1.135-1.416L5 14.5"
+    />
   </svg>
 );
 
@@ -106,7 +134,8 @@ const OPERATORS: OperatorConfig[] = [
     symbol: "⊘",
     name: "Level Split",
     shortName: "Levels",
-    description: "Identify different levels of explanation that might be conflated in your hypothesis.",
+    description:
+      "Identify different levels of explanation that might be conflated in your hypothesis.",
     color: "text-blue-500",
     bgColor: "bg-blue-500/10",
     borderColor: "border-blue-500/30",
@@ -116,9 +145,25 @@ const OPERATORS: OperatorConfig[] = [
       anchor: "\u00A7147",
     },
     inputFields: [
-      { id: "current_level", label: "Current Level of Explanation", placeholder: "What level is your hypothesis currently operating at?", type: "textarea" },
-      { id: "levels_identified", label: "Other Possible Levels", placeholder: "What other levels might be relevant? (molecular, cellular, organismal, ecological...)", type: "textarea" },
-      { id: "confounds", label: "Potential Confounds", placeholder: "What confounds arise from level confusion?", type: "textarea" },
+      {
+        id: "current_level",
+        label: "Current Level of Explanation",
+        placeholder: "What level is your hypothesis currently operating at?",
+        type: "textarea",
+      },
+      {
+        id: "levels_identified",
+        label: "Other Possible Levels",
+        placeholder:
+          "What other levels might be relevant? (molecular, cellular, organismal, ecological...)",
+        type: "textarea",
+      },
+      {
+        id: "confounds",
+        label: "Potential Confounds",
+        placeholder: "What confounds arise from level confusion?",
+        type: "textarea",
+      },
     ],
   },
   {
@@ -136,9 +181,24 @@ const OPERATORS: OperatorConfig[] = [
       anchor: "\u00A789",
     },
     inputFields: [
-      { id: "test_design", label: "Exclusion Test Design", placeholder: "Describe a test that would definitively exclude your hypothesis", type: "textarea" },
-      { id: "expected_null", label: "Expected Result (If Hypothesis False)", placeholder: "What specific result would falsify your hypothesis?", type: "textarea" },
-      { id: "feasibility", label: "Feasibility Assessment", placeholder: "How feasible is this test? What resources are needed?", type: "textarea" },
+      {
+        id: "test_design",
+        label: "Exclusion Test Design",
+        placeholder: "Describe a test that would definitively exclude your hypothesis",
+        type: "textarea",
+      },
+      {
+        id: "expected_null",
+        label: "Expected Result (If Hypothesis False)",
+        placeholder: "What specific result would falsify your hypothesis?",
+        type: "textarea",
+      },
+      {
+        id: "feasibility",
+        label: "Feasibility Assessment",
+        placeholder: "How feasible is this test? What resources are needed?",
+        type: "textarea",
+      },
     ],
   },
   {
@@ -146,7 +206,8 @@ const OPERATORS: OperatorConfig[] = [
     symbol: "⟂",
     name: "Object Transpose",
     shortName: "Transpose",
-    description: "Consider alternative experimental systems or reference frames where the problem is cleaner.",
+    description:
+      "Consider alternative experimental systems or reference frames where the problem is cleaner.",
     color: "text-purple-500",
     bgColor: "bg-purple-500/10",
     borderColor: "border-purple-500/30",
@@ -156,9 +217,24 @@ const OPERATORS: OperatorConfig[] = [
       anchor: "\u00A7112",
     },
     inputFields: [
-      { id: "current_system", label: "Current Experimental System", placeholder: "What system/context are you currently using?", type: "textarea" },
-      { id: "alternative_systems", label: "Alternative Systems", placeholder: "What alternative systems might offer cleaner tests?", type: "textarea" },
-      { id: "tradeoffs", label: "Trade-offs", placeholder: "What are the trade-offs of switching systems?", type: "textarea" },
+      {
+        id: "current_system",
+        label: "Current Experimental System",
+        placeholder: "What system/context are you currently using?",
+        type: "textarea",
+      },
+      {
+        id: "alternative_systems",
+        label: "Alternative Systems",
+        placeholder: "What alternative systems might offer cleaner tests?",
+        type: "textarea",
+      },
+      {
+        id: "tradeoffs",
+        label: "Trade-offs",
+        placeholder: "What are the trade-offs of switching systems?",
+        type: "textarea",
+      },
     ],
   },
   {
@@ -176,9 +252,24 @@ const OPERATORS: OperatorConfig[] = [
       anchor: "\u00A758",
     },
     inputFields: [
-      { id: "key_quantities", label: "Key Quantities", placeholder: "What are the key quantities involved? (concentrations, rates, distances...)", type: "textarea" },
-      { id: "calculations", label: "Order of Magnitude Calculations", placeholder: "Show your back-of-envelope calculations", type: "textarea" },
-      { id: "plausibility", label: "Plausibility Assessment", placeholder: "Based on your calculations, is the hypothesis plausible?", type: "textarea" },
+      {
+        id: "key_quantities",
+        label: "Key Quantities",
+        placeholder: "What are the key quantities involved? (concentrations, rates, distances...)",
+        type: "textarea",
+      },
+      {
+        id: "calculations",
+        label: "Order of Magnitude Calculations",
+        placeholder: "Show your back-of-envelope calculations",
+        type: "textarea",
+      },
+      {
+        id: "plausibility",
+        label: "Plausibility Assessment",
+        placeholder: "Based on your calculations, is the hypothesis plausible?",
+        type: "textarea",
+      },
     ],
   },
 ];
@@ -204,8 +295,8 @@ function OperatorCard({ operator, isActive, isCompleted, onClick }: OperatorCard
         isActive
           ? `${operator.borderColor} ${operator.bgColor} shadow-lg`
           : isCompleted
-          ? "border-green-500/30 bg-green-500/5"
-          : "border-border bg-card hover:border-primary/30"
+            ? "border-green-500/30 bg-green-500/5"
+            : "border-border bg-card hover:border-primary/30",
       )}
       whileHover={{ scale: 1.02 }}
       whileTap={{ scale: 0.98 }}
@@ -218,10 +309,13 @@ function OperatorCard({ operator, isActive, isCompleted, onClick }: OperatorCard
       )}
 
       <div className="flex items-center gap-3">
-        <div className={cn(
-          "flex items-center justify-center size-12 rounded-xl text-2xl font-bold font-mono",
-          operator.bgColor, operator.color
-        )}>
+        <div
+          className={cn(
+            "flex items-center justify-center size-12 rounded-xl text-2xl font-bold font-mono",
+            operator.bgColor,
+            operator.color,
+          )}
+        >
           {operator.symbol}
         </div>
         <div className="flex-1 min-w-0">
@@ -245,9 +339,7 @@ interface OperatorWorkspaceProps {
 }
 
 function OperatorWorkspace({ operator, values, onChange, onComplete }: OperatorWorkspaceProps) {
-  const allFieldsFilled = operator.inputFields.every(
-    (field) => values[field.id]?.trim()
-  );
+  const allFieldsFilled = operator.inputFields.every((field) => values[field.id]?.trim());
 
   return (
     <motion.div
@@ -258,10 +350,13 @@ function OperatorWorkspace({ operator, values, onChange, onComplete }: OperatorW
     >
       {/* Header */}
       <div className="flex items-start gap-4">
-        <div className={cn(
-          "flex items-center justify-center size-16 rounded-2xl text-3xl font-bold font-mono shadow-lg",
-          operator.bgColor, operator.color
-        )}>
+        <div
+          className={cn(
+            "flex items-center justify-center size-16 rounded-2xl text-3xl font-bold font-mono shadow-lg",
+            operator.bgColor,
+            operator.color,
+          )}
+        >
           {operator.symbol}
         </div>
         <div className="flex-1">
@@ -300,9 +395,7 @@ function OperatorWorkspace({ operator, values, onChange, onComplete }: OperatorW
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.1 }}
           >
-            <label className="block text-sm font-medium text-foreground mb-2">
-              {field.label}
-            </label>
+            <label className="block text-sm font-medium text-foreground mb-2">{field.label}</label>
             {field.type === "textarea" ? (
               <Textarea
                 value={values[field.id] || ""}
@@ -323,11 +416,7 @@ function OperatorWorkspace({ operator, values, onChange, onComplete }: OperatorW
 
       {/* Complete Button */}
       <div className="flex justify-end pt-4 border-t">
-        <Button
-          onClick={onComplete}
-          disabled={!allFieldsFilled}
-          className="min-w-[140px]"
-        >
+        <Button onClick={onComplete} disabled={!allFieldsFilled} className="min-w-[140px]">
           <CheckIcon className="size-4 mr-2" />
           Mark Complete
         </Button>
@@ -364,7 +453,9 @@ function OperatorsPageContent({ threadId }: { threadId: string }) {
 
   const [activeOperator, setActiveOperator] = React.useState<string>("level_split");
   const [completedOperators, setCompletedOperators] = React.useState<Set<string>>(new Set());
-  const [operatorValues, setOperatorValues] = React.useState<Record<string, Record<string, string>>>({});
+  const [operatorValues, setOperatorValues] = React.useState<
+    Record<string, Record<string, string>>
+  >({});
   const [hypothesisStatement, setHypothesisStatement] = React.useState<string>("");
   const [hypothesisMechanism, setHypothesisMechanism] = React.useState<string>("");
 
@@ -444,7 +535,7 @@ function OperatorsPageContent({ threadId }: { threadId: string }) {
     // Move to next incomplete operator
     const currentIndex = OPERATORS.findIndex((op) => op.id === activeOperator);
     const nextOperator = OPERATORS.find(
-      (op, i) => i > currentIndex && !completedOperators.has(op.id)
+      (op, i) => i > currentIndex && !completedOperators.has(op.id),
     );
     if (nextOperator) {
       setActiveOperator(nextOperator.id);
@@ -461,7 +552,10 @@ function OperatorsPageContent({ threadId }: { threadId: string }) {
           Sessions
         </Link>
         <span>/</span>
-        <Link href={`/sessions/${threadId}`} className="hover:text-foreground transition-colors font-mono">
+        <Link
+          href={`/sessions/${threadId}`}
+          className="hover:text-foreground transition-colors font-mono"
+        >
           {threadId.slice(0, 12)}...
         </Link>
         <span>/</span>
@@ -497,7 +591,9 @@ function OperatorsPageContent({ threadId }: { threadId: string }) {
 
         <div className="text-right">
           <div className="text-sm text-muted-foreground mb-1">Progress</div>
-          <div className="text-lg font-bold text-foreground">{completedOperators.size}/{OPERATORS.length} Complete</div>
+          <div className="text-lg font-bold text-foreground">
+            {completedOperators.size}/{OPERATORS.length} Complete
+          </div>
         </div>
       </motion.header>
 
@@ -506,7 +602,8 @@ function OperatorsPageContent({ threadId }: { threadId: string }) {
         <CardHeader>
           <CardTitle className="text-lg">Hypothesis Context</CardTitle>
           <CardDescription>
-            Used to surface relevant Brenner quotes while you apply operators (local, not sent anywhere).
+            Used to surface relevant Brenner quotes while you apply operators (local, not sent
+            anywhere).
           </CardDescription>
         </CardHeader>
         <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -596,10 +693,7 @@ function OperatorsPageContent({ threadId }: { threadId: string }) {
                 {quoteError}
               </div>
             )}
-            <BrennerQuoteSidebar
-              quotes={semanticQuotes}
-              currentStepId={activeOperator}
-            />
+            <BrennerQuoteSidebar quotes={semanticQuotes} currentStepId={activeOperator} />
           </div>
         </aside>
       </div>
@@ -620,19 +714,14 @@ function OperatorsPageContent({ threadId }: { threadId: string }) {
 
       {/* Summary Section */}
       {completedOperators.size > 0 && (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-        >
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
           <Card>
             <CardHeader>
               <CardTitle className="text-lg flex items-center gap-2">
                 <CheckIcon className="size-5 text-green-500" />
                 Completed Operators
               </CardTitle>
-              <CardDescription>
-                Summary of your operator applications
-              </CardDescription>
+              <CardDescription>Summary of your operator applications</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -643,10 +732,7 @@ function OperatorsPageContent({ threadId }: { threadId: string }) {
                   return (
                     <div
                       key={opId}
-                      className={cn(
-                        "p-4 rounded-xl border",
-                        op.bgColor, op.borderColor
-                      )}
+                      className={cn("p-4 rounded-xl border", op.bgColor, op.borderColor)}
                     >
                       <div className="flex items-center gap-3">
                         <span className={cn("text-xl font-mono font-bold", op.color)}>

@@ -1,8 +1,8 @@
-import { describe, expect, it, beforeEach, afterEach } from "vitest";
-import { join } from "node:path";
+import { randomUUID } from "node:crypto";
 import { promises as fs } from "node:fs";
 import { tmpdir } from "node:os";
-import { randomUUID } from "node:crypto";
+import { join } from "node:path";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { createResearchProgram, ResearchProgramSchema } from "../schemas/research-program";
 import { ProgramStorage } from "./program-storage";
 
@@ -101,12 +101,18 @@ describe("ProgramStorage", () => {
     await storage.savePrograms([makeProgram({ id: "RP-CELL-FATE-001", name: "One" })]);
 
     const programsPath = join(baseDir, ".research", "programs", "programs.json");
-    const first = JSON.parse(await fs.readFile(programsPath, "utf-8")) as { createdAt: string; updatedAt: string };
+    const first = JSON.parse(await fs.readFile(programsPath, "utf-8")) as {
+      createdAt: string;
+      updatedAt: string;
+    };
 
     await new Promise((r) => setTimeout(r, 5));
     await storage.savePrograms([makeProgram({ id: "RP-CELL-FATE-001", name: "One updated" })]);
 
-    const second = JSON.parse(await fs.readFile(programsPath, "utf-8")) as { createdAt: string; updatedAt: string };
+    const second = JSON.parse(await fs.readFile(programsPath, "utf-8")) as {
+      createdAt: string;
+      updatedAt: string;
+    };
     expect(second.createdAt).toBe(first.createdAt);
     expect(second.updatedAt).not.toBe(second.createdAt);
   });
@@ -144,7 +150,9 @@ describe("ProgramStorage", () => {
     ]);
 
     expect((await storage.getActivePrograms()).map((p) => p.id)).toEqual(["RP-CELL-FATE-001"]);
-    expect((await storage.getProgramsByStatus("paused")).map((p) => p.id)).toEqual(["RP-CELL-FATE-002"]);
+    expect((await storage.getProgramsByStatus("paused")).map((p) => p.id)).toEqual([
+      "RP-CELL-FATE-002",
+    ]);
     expect((await storage.getProgramsForSession("RS-S2")).map((p) => p.id).sort()).toEqual([
       "RP-CELL-FATE-001",
       "RP-CELL-FATE-002",
@@ -173,7 +181,7 @@ describe("ProgramStorage", () => {
       makeProgram({
         id: `RP-CONCURRENT-${String(i + 1).padStart(3, "0")}`,
         name: `Program ${i + 1}`,
-      })
+      }),
     );
 
     await Promise.all(programs.map((p) => storage.saveProgram(p)));

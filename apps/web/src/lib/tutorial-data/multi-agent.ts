@@ -7,7 +7,13 @@
  * @module tutorial-data/multi-agent
  */
 
-import type { TutorialPath, TutorialStep, CodeBlockData, TroubleshootingItem, CheckpointData } from "../tutorial-types";
+import type {
+  CheckpointData,
+  CodeBlockData,
+  TroubleshootingItem,
+  TutorialPath,
+  TutorialStep,
+} from "../tutorial-types";
 
 // ============================================================================
 // Path Metadata
@@ -16,13 +22,15 @@ import type { TutorialPath, TutorialStep, CodeBlockData, TroubleshootingItem, Ch
 export const MULTI_AGENT_COCKPIT_PATH: TutorialPath = {
   id: "multi-agent-cockpit",
   title: "Multi-Agent Cockpit",
-  description: "Orchestrate a research group with Claude, GPT, and Gemini working in parallel via Agent Mail.",
+  description:
+    "Orchestrate a research group with Claude, GPT, and Gemini working in parallel via Agent Mail.",
   icon: "users",
   accent: "success",
   estimatedTime: "~2 hours",
   estimatedDuration: "~2 hours",
   difficulty: "advanced",
-  audience: "Researchers comfortable with terminal tools who want to run structured multi-agent research sessions.",
+  audience:
+    "Researchers comfortable with terminal tools who want to run structured multi-agent research sessions.",
   prerequisites: [
     "Claude Code (Claude Max subscription)",
     "Codex CLI (GPT Pro subscription)",
@@ -83,11 +91,7 @@ export const MAC_STEP_2: MultiAgentStepData = {
     "Verify Codex CLI is authenticated (GPT Pro)",
     "Verify Gemini CLI is authenticated (Gemini Ultra)",
   ],
-  cliCommands: [
-    "claude --version",
-    "codex --version",
-    "gemini --version",
-  ],
+  cliCommands: ["claude --version", "codex --version", "gemini --version"],
 };
 
 export const MAC_STEP_3: MultiAgentStepData = {
@@ -106,9 +110,7 @@ export const MAC_STEP_3: MultiAgentStepData = {
     "Map agents to Brenner roles",
     "Verify roster with `brenner mail agents`",
   ],
-  cliCommands: [
-    './brenner mail agents --project-key "$PWD"',
-  ],
+  cliCommands: ['./brenner mail agents --project-key "$PWD"'],
 };
 
 export const MAC_STEP_4: MultiAgentStepData = {
@@ -218,10 +220,7 @@ export const MAC_STEP_8: MultiAgentStepData = {
     "Review dimension-by-dimension breakdown",
     "Generate improvement feedback",
   ],
-  cliCommands: [
-    "./brenner score $SESSION_ID",
-    "./brenner feedback $SESSION_ID",
-  ],
+  cliCommands: ["./brenner score $SESSION_ID", "./brenner feedback $SESSION_ID"],
 };
 
 export const MAC_STEP_9: MultiAgentStepData = {
@@ -282,7 +281,7 @@ export const MAC_CODE_BLOCKS: Record<string, CodeBlockData> = {
   },
   startAgentMail: {
     id: "start-agent-mail",
-    code: 'cd /path/to/mcp_agent_mail\nbash scripts/run_server_with_token.sh\n# Verify: curl http://127.0.0.1:8765/health',
+    code: "cd /path/to/mcp_agent_mail\nbash scripts/run_server_with_token.sh\n# Verify: curl http://127.0.0.1:8765/health",
     language: "bash",
     title: "Start Agent Mail",
     description: "The coordination bus for multi-agent messaging.",
@@ -354,13 +353,14 @@ export const MAC_TROUBLESHOOTING: Record<string, TroubleshootingItem[]> = {
     {
       problem: "ntm not found after cargo install",
       symptoms: ["command not found: ntm"],
-      solution: "Add ~/.cargo/bin to your PATH: export PATH=\"$HOME/.cargo/bin:$PATH\"",
+      solution: 'Add ~/.cargo/bin to your PATH: export PATH="$HOME/.cargo/bin:$PATH"',
       commands: ['export PATH="$HOME/.cargo/bin:$PATH"', "ntm --version"],
     },
     {
       problem: "Agent Mail won't start",
       symptoms: ["Connection refused on port 8765"],
-      solution: "Check if another process is using port 8765, or set AGENT_MAIL_PORT to a different port.",
+      solution:
+        "Check if another process is using port 8765, or set AGENT_MAIL_PORT to a different port.",
       commands: ["lsof -i :8765", "AGENT_MAIL_PORT=9876 bash scripts/run_server_with_token.sh"],
     },
   ],
@@ -368,7 +368,8 @@ export const MAC_TROUBLESHOOTING: Record<string, TroubleshootingItem[]> = {
     {
       problem: "Claude Code not authenticated",
       symptoms: ["Please log in to Claude"],
-      solution: "Run `claude` in a terminal — it will prompt for authentication via your Claude Max subscription.",
+      solution:
+        "Run `claude` in a terminal — it will prompt for authentication via your Claude Max subscription.",
       commands: ["claude --version"],
     },
   ],
@@ -376,7 +377,8 @@ export const MAC_TROUBLESHOOTING: Record<string, TroubleshootingItem[]> = {
     {
       problem: "Agent Mail: from_agent not registered",
       symptoms: ["from_agent not registered"],
-      solution: "Register agents with the correct project_key: ./brenner mail agents --project-key \"$PWD\"",
+      solution:
+        'Register agents with the correct project_key: ./brenner mail agents --project-key "$PWD"',
       commands: ['./brenner mail agents --project-key "$PWD"'],
     },
   ],
@@ -384,7 +386,8 @@ export const MAC_TROUBLESHOOTING: Record<string, TroubleshootingItem[]> = {
     {
       problem: "Compile produces empty artifact",
       symptoms: ["No deltas found", "0 operations applied"],
-      solution: "Check that agents produced valid delta blocks. Run: ./brenner session diagnose --thread-id $THREAD_ID",
+      solution:
+        "Check that agents produced valid delta blocks. Run: ./brenner session diagnose --thread-id $THREAD_ID",
       commands: ['./brenner session diagnose --project-key "$PWD" --thread-id $THREAD_ID'],
     },
   ],
@@ -420,8 +423,16 @@ export const MAC_CHECKPOINTS: Record<string, CheckpointData> = {
 // ============================================================================
 
 const ALL_STEPS: MultiAgentStepData[] = [
-  MAC_STEP_1, MAC_STEP_2, MAC_STEP_3, MAC_STEP_4, MAC_STEP_5,
-  MAC_STEP_6, MAC_STEP_7, MAC_STEP_8, MAC_STEP_9, MAC_STEP_10,
+  MAC_STEP_1,
+  MAC_STEP_2,
+  MAC_STEP_3,
+  MAC_STEP_4,
+  MAC_STEP_5,
+  MAC_STEP_6,
+  MAC_STEP_7,
+  MAC_STEP_8,
+  MAC_STEP_9,
+  MAC_STEP_10,
 ];
 
 export function getAllMultiAgentSteps(): MultiAgentStepData[] {

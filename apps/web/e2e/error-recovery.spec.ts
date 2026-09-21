@@ -10,14 +10,7 @@
  * @see brenner_bot-hgig (bead)
  */
 
-import {
-  test,
-  expect,
-  navigateTo,
-  fillInput,
-  takeScreenshot,
-  waitForNetworkIdle,
-} from "./utils";
+import { expect, fillInput, navigateTo, takeScreenshot, test, waitForNetworkIdle } from "./utils";
 import { withStep } from "./utils/e2e-logging";
 
 // ============================================================================
@@ -126,9 +119,16 @@ test.describe("Error Recovery - API Retry", () => {
 
 test.describe("Error Recovery - Form Validation", () => {
   // Skip form validation tests on Safari - WebKit cookie handling differs
-  test.skip(({ browserName }) => browserName === "webkit", "WebKit cookie handling differs in tests");
+  test.skip(
+    ({ browserName }) => browserName === "webkit",
+    "WebKit cookie handling differs in tests",
+  );
 
-  test("recovers from validation error and resubmits successfully", async ({ page, logger, context }) => {
+  test("recovers from validation error and resubmits successfully", async ({
+    page,
+    logger,
+    context,
+  }) => {
     const labSecret = process.env.BRENNER_LAB_SECRET || "test-secret-for-e2e";
     await context.addCookies([
       {
@@ -168,7 +168,12 @@ test.describe("Error Recovery - Form Validation", () => {
       await fillInput(page, logger, 'input[name="threadId"]', "RECOVERY-TEST-001");
       await fillInput(page, logger, 'input[name="sender"]', "RecoveryTestAgent");
       await fillInput(page, logger, 'input[name="to"]', "TestRecipient");
-      await fillInput(page, logger, 'textarea[name="excerpt"]', "Test excerpt for validation recovery.");
+      await fillInput(
+        page,
+        logger,
+        'textarea[name="excerpt"]',
+        "Test excerpt for validation recovery.",
+      );
       await fillInput(page, logger, 'input[name="question"]', "Does validation recovery work?");
     });
 
@@ -241,7 +246,11 @@ test.describe("Error Recovery - Session Load", () => {
   // Skip route-based tests on Safari
   test.skip(({ browserName }) => browserName === "webkit", "WebKit route interception differs");
 
-  test("session page provides refresh button for manual retry", async ({ page, logger, context }) => {
+  test("session page provides refresh button for manual retry", async ({
+    page,
+    logger,
+    context,
+  }) => {
     const labSecret = process.env.BRENNER_LAB_SECRET || "test-secret-for-e2e";
     await context.addCookies([
       {
@@ -395,7 +404,10 @@ test.describe("Error Recovery - Network", () => {
 
 test.describe("Error Recovery - Authentication", () => {
   // Skip auth tests on Safari - WebKit cookie handling differs in test env
-  test.skip(({ browserName }) => browserName === "webkit", "WebKit cookie handling differs in tests");
+  test.skip(
+    ({ browserName }) => browserName === "webkit",
+    "WebKit cookie handling differs in tests",
+  );
 
   test("handles expired auth and allows re-authentication", async ({ page, logger, context }) => {
     await withStep(logger, page, "Start with valid auth cookie", async () => {

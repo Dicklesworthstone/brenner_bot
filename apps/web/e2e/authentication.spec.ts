@@ -20,12 +20,12 @@
  */
 
 import {
-  test,
+  assertPageHasContent,
   expect,
   navigateTo,
   takeScreenshot,
+  test,
   waitForNetworkIdle,
-  assertPageHasContent,
 } from "./utils";
 
 // All protected routes that require lab mode + auth
@@ -122,14 +122,18 @@ test.describe("Authentication Flows", () => {
         const response = await navigateTo(page, logger, route.path, { waitUntil: "networkidle" });
         const status = response?.status();
 
-        logger.info(`${route.name} response status: ${typeof status === "number" ? status : "n/a"}`);
+        logger.info(
+          `${route.name} response status: ${typeof status === "number" ? status : "n/a"}`,
+        );
 
         // Public routes should return 200 or 304 (Not Modified - cached).
         // Some navigations may not surface a Response object; in that case, rely on content checks.
         if (typeof status === "number") {
           expect([200, 304]).toContain(status);
         } else {
-          logger.warn(`${route.name} did not return a navigation Response; skipping status assertion`);
+          logger.warn(
+            `${route.name} did not return a navigation Response; skipping status assertion`,
+          );
         }
 
         // Should have actual content (not blank)
@@ -142,7 +146,12 @@ test.describe("Authentication Flows", () => {
   });
 
   test.describe("Session Cookie Authentication", () => {
-    test("lab secret cookie provides access when configured", async ({ page, logger, context, baseURL }) => {
+    test("lab secret cookie provides access when configured", async ({
+      page,
+      logger,
+      context,
+      baseURL,
+    }) => {
       // This test verifies that the cookie-based auth mechanism works
       // Note: Will only pass if BRENNER_LAB_SECRET is configured on the server
       const labSecret = process.env.BRENNER_LAB_SECRET || "test-secret-for-e2e";

@@ -137,7 +137,7 @@ const STOPWORDS = new Set(
     "without",
     "you",
     "your",
-  ].sort()
+  ].sort(),
 );
 
 const NEGATION_HINTS = [
@@ -272,12 +272,20 @@ function looksLikeRecommendation(text: string): boolean {
   const normalized = normalizeText(text);
   if (!normalized) return false;
 
-  if (/(^|\b)(recommend|should|need to|must|consider|try|design|run|measure|test|collect|control|preregister|pre register|randomi[sz]e|replicate)\b/i.test(text)) {
+  if (
+    /(^|\b)(recommend|should|need to|must|consider|try|design|run|measure|test|collect|control|preregister|pre register|randomi[sz]e|replicate)\b/i.test(
+      text,
+    )
+  ) {
     return true;
   }
 
   // Imperative-ish starts (rough heuristic).
-  if (/^(run|design|measure|collect|control|compare|add|include|remove|estimate|quantify|pre-?register|replicate)\b/i.test(text)) {
+  if (
+    /^(run|design|measure|collect|control|compare|add|include|remove|estimate|quantify|pre-?register|replicate)\b/i.test(
+      text,
+    )
+  ) {
     return true;
   }
 
@@ -431,7 +439,10 @@ const PRINCIPLES: Array<{
   },
 ];
 
-function extractPrinciples(responses: SynthesisInputResponse[], maxPrinciples: number): AppliedPrinciple[] {
+function extractPrinciples(
+  responses: SynthesisInputResponse[],
+  maxPrinciples: number,
+): AppliedPrinciple[] {
   const found: AppliedPrinciple[] = [];
 
   for (const p of PRINCIPLES) {
@@ -454,7 +465,7 @@ function extractPrinciples(responses: SynthesisInputResponse[], maxPrinciples: n
 
 export function synthesizeResponses(
   agentResponses: SynthesisInputResponse[],
-  options?: SynthesisOptions
+  options?: SynthesisOptions,
 ): SynthesisResult {
   const config = { ...DEFAULTS, ...(options ?? {}) };
 
@@ -515,13 +526,17 @@ export function synthesizeResponses(
 
   const consensusPoints = clusters
     .filter((c) => c.kind === "claim" && c.agents.size >= 2)
-    .sort((a, b) => b.agents.size - a.agents.size || a.representative.localeCompare(b.representative))
+    .sort(
+      (a, b) => b.agents.size - a.agents.size || a.representative.localeCompare(b.representative),
+    )
     .slice(0, config.maxConsensusPoints)
-    .map((cluster): ConsensusPoint => ({
-      claim: truncate(cluster.representative, 220),
-      supportingAgents: [...cluster.agents].sort(),
-      strength: strengthFromSupport(cluster.agents.size),
-    }));
+    .map(
+      (cluster): ConsensusPoint => ({
+        claim: truncate(cluster.representative, 220),
+        supportingAgents: [...cluster.agents].sort(),
+        strength: strengthFromSupport(cluster.agents.size),
+      }),
+    );
 
   const conflictPoints = clusters
     .filter((c) => c.kind === "claim" && c.agents.size >= 2)
@@ -551,15 +566,18 @@ export function synthesizeResponses(
 
   const recommendations = clusters
     .filter((c) => c.kind === "recommendation" && c.agents.size >= 1)
-    .sort((a, b) => b.agents.size - a.agents.size || a.representative.localeCompare(b.representative))
+    .sort(
+      (a, b) => b.agents.size - a.agents.size || a.representative.localeCompare(b.representative),
+    )
     .slice(0, config.maxRecommendations)
     .map((cluster): Recommendation => {
       const action = truncate(cluster.representative, 240);
       const priority = inferPriority(action);
       const suggestedBy = [...cluster.agents].sort();
-      const rationale = suggestedBy.length > 1
-        ? `Suggested by ${suggestedBy.join(", ")}`
-        : `Suggested by ${suggestedBy[0] ?? "agent"}`;
+      const rationale =
+        suggestedBy.length > 1
+          ? `Suggested by ${suggestedBy.join(", ")}`
+          : `Suggested by ${suggestedBy[0] ?? "agent"}`;
 
       return { action, priority, rationale, suggestedBy };
     });

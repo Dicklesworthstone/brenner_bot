@@ -17,48 +17,48 @@
  * @module components/brenner-loop/evidence/LiteratureSearch
  */
 
-import * as React from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import {
-  Search,
+  AlertCircle,
   BookOpen,
-  ExternalLink,
-  FileText,
-  Copy,
+  Calendar,
   Check,
   ChevronRight,
-  Calendar,
-  Users,
-  Quote,
-  AlertCircle,
-  Sparkles,
+  Copy,
+  ExternalLink,
+  FileText,
   Import,
   Plus,
+  Quote,
+  Search,
+  Sparkles,
+  Users,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import * as React from "react";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Badge } from "@/components/ui/badge";
+import { Textarea } from "@/components/ui/textarea";
+import type { DiscriminativePower, EvidenceResult } from "@/lib/brenner-loop/evidence";
 import type { HypothesisCard } from "@/lib/brenner-loop/hypothesis";
-import type { EvidenceResult, DiscriminativePower } from "@/lib/brenner-loop/evidence";
 import {
-  generateSearchQueries,
-  calculateRelevance,
-  parseBibTeX,
   bibTeXToPaperResult,
-  isValidDOI,
-  extractDOI,
+  calculateRelevance,
   doiToUrl,
+  extractDOI,
   formatCitation,
-  getRelevanceLabel,
-  getRelevanceColor,
-  summarizePaper,
+  generateSearchQueries,
   getPaperAgeCategory,
+  getRelevanceColor,
+  getRelevanceLabel,
+  isValidDOI,
   type PaperResult,
+  parseBibTeX,
   type SuggestedSearches,
+  summarizePaper,
 } from "@/lib/brenner-loop/literature";
+import { cn } from "@/lib/utils";
 
 // ============================================================================
 // Types
@@ -149,7 +149,7 @@ function PaperCard({
         "p-4 rounded-lg border transition-all cursor-pointer",
         isSelected
           ? "border-primary bg-primary/5"
-          : "border-border hover:border-primary/50 hover:bg-muted/50"
+          : "border-border hover:border-primary/50 hover:bg-muted/50",
       )}
       onClick={onSelect}
     >
@@ -168,9 +168,7 @@ function PaperCard({
       <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2">
         <Users className="size-3" />
         <span className="truncate">
-          {paper.authors.length > 2
-            ? `${paper.authors[0]} et al.`
-            : paper.authors.join(", ")}
+          {paper.authors.length > 2 ? `${paper.authors[0]} et al.` : paper.authors.join(", ")}
         </span>
         <Calendar className="size-3 ml-2" />
         <span>{paper.year}</span>
@@ -188,9 +186,7 @@ function PaperCard({
 
       {/* Venue and citations */}
       <div className="flex items-center gap-2 text-xs text-muted-foreground mb-3">
-        {paper.venue && (
-          <span className="truncate max-w-[200px]">{paper.venue}</span>
-        )}
+        {paper.venue && <span className="truncate max-w-[200px]">{paper.venue}</span>}
         {paper.citationCount > 0 && (
           <span className="flex items-center gap-1">
             <Quote className="size-3" />
@@ -223,17 +219,8 @@ function PaperCard({
             View
           </Button>
         )}
-        <Button
-          variant="ghost"
-          size="sm"
-          className="h-7 text-xs"
-          onClick={handleCopy}
-        >
-          {copied ? (
-            <Check className="size-3 mr-1" />
-          ) : (
-            <Copy className="size-3 mr-1" />
-          )}
+        <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={handleCopy}>
+          {copied ? <Check className="size-3 mr-1" /> : <Copy className="size-3 mr-1" />}
           {copied ? "Copied" : "Citation"}
         </Button>
         <Button
@@ -440,11 +427,7 @@ function ImportPanel({
       {importedPaper && (
         <div className="space-y-2">
           <h4 className="text-sm font-medium">Imported Paper</h4>
-          <PaperCard
-            paper={importedPaper}
-            onSelect={() => {}}
-            isSelected={false}
-          />
+          <PaperCard paper={importedPaper} onSelect={() => {}} isSelected={false} />
         </div>
       )}
     </div>
@@ -495,16 +478,16 @@ function RecordEvidencePanel({
 
       {/* Result selection */}
       <div className="space-y-2">
-        <label className="text-sm font-medium">How does this paper relate to your hypothesis?</label>
+        <label className="text-sm font-medium">
+          How does this paper relate to your hypothesis?
+        </label>
         <div className="flex flex-wrap gap-2">
           {RESULT_OPTIONS.map((option) => (
             <Button
               key={option.value}
               variant={recording.result === option.value ? "default" : "outline"}
               size="sm"
-              className={cn(
-                recording.result === option.value && option.color
-              )}
+              className={cn(recording.result === option.value && option.color)}
               onClick={() => onUpdate({ result: option.value })}
             >
               {option.label}
@@ -582,10 +565,7 @@ export function LiteratureSearch({
   const [recording, setRecording] = React.useState<RecordingState | null>(null);
 
   // Generate suggested searches from hypothesis
-  const suggestions = React.useMemo(
-    () => generateSearchQueries(hypothesis),
-    [hypothesis]
-  );
+  const suggestions = React.useMemo(() => generateSearchQueries(hypothesis), [hypothesis]);
 
   // Handle search (placeholder - actual search would need API)
   const handleSearch = React.useCallback((query: string) => {
@@ -689,8 +669,8 @@ export function LiteratureSearch({
           {/* Search info */}
           <div className="text-xs text-muted-foreground bg-muted/50 p-3 rounded">
             <AlertCircle className="size-3 inline mr-1" />
-            Literature search requires API integration with Google Scholar, PubMed, or Semantic Scholar.
-            For now, use the Import tab to add papers manually via BibTeX or DOI.
+            Literature search requires API integration with Google Scholar, PubMed, or Semantic
+            Scholar. For now, use the Import tab to add papers manually via BibTeX or DOI.
           </div>
         </TabsContent>
 
@@ -705,9 +685,7 @@ export function LiteratureSearch({
         {/* Paper list */}
         {papers.length > 0 && (
           <div className="space-y-3">
-            <h3 className="text-sm font-medium">
-              Papers ({papers.length})
-            </h3>
+            <h3 className="text-sm font-medium">Papers ({papers.length})</h3>
             <div className="space-y-3 max-h-[500px] overflow-y-auto pr-2">
               {papers.map((paper) => (
                 <PaperCard
@@ -726,7 +704,9 @@ export function LiteratureSearch({
           {recording && (
             <RecordEvidencePanel
               recording={recording}
-              onUpdate={(updates) => setRecording((prev) => prev ? { ...prev, ...updates } : null)}
+              onUpdate={(updates) =>
+                setRecording((prev) => (prev ? { ...prev, ...updates } : null))
+              }
               onSubmit={handleRecordEvidence}
               onCancel={() => {
                 setSelectedPaper(null);
@@ -742,9 +722,7 @@ export function LiteratureSearch({
         <div className="text-center py-8 text-muted-foreground">
           <BookOpen className="size-8 mx-auto mb-2 opacity-50" />
           <p className="text-sm">No papers yet</p>
-          <p className="text-xs mt-1">
-            Use the Import tab to add papers via BibTeX or DOI
-          </p>
+          <p className="text-xs mt-1">Use the Import tab to add papers via BibTeX or DOI</p>
         </div>
       )}
     </div>

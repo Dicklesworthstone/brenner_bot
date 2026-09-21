@@ -1,12 +1,12 @@
+import { dehydrate, HydrationBoundary, QueryClient } from "@tanstack/react-query";
+import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { QueryClient, HydrationBoundary, dehydrate } from "@tanstack/react-query";
-import { readCorpusDoc, CORPUS_DOCS } from "@/lib/corpus";
+import { Jargon } from "@/components/jargon";
 import { corpusDocKeys } from "@/hooks/queries/keys";
+import { CORPUS_DOCS, readCorpusDoc } from "@/lib/corpus";
 import { DocumentContentClient } from "./DocumentContentClient";
 import { DocumentSwipeNavClient } from "./DocumentSwipeNavClient";
-import { Jargon } from "@/components/jargon";
-import type { Metadata } from "next";
 
 export const runtime = "nodejs";
 
@@ -21,13 +21,21 @@ export async function generateMetadata({
 
   return {
     title: docInfo?.title || "Document",
-    description: docInfo?.description || `Read ${docInfo?.title || "this document"} from the Brenner Bot corpus.`,
+    description:
+      docInfo?.description ||
+      `Read ${docInfo?.title || "this document"} from the Brenner Bot corpus.`,
   };
 }
 
 // Icons
 const ChevronRightIcon = () => (
-  <svg className="size-4 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+  <svg
+    className="size-4 text-muted-foreground"
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+    strokeWidth={2}
+  >
     <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
   </svg>
 );
@@ -52,11 +60,7 @@ function getNavLinks(currentId: string) {
   return { prev, next };
 }
 
-export default async function CorpusDocPage({
-  params,
-}: {
-  params: Promise<{ doc: string }>;
-}) {
+export default async function CorpusDocPage({ params }: { params: Promise<{ doc: string }> }) {
   const { doc: docId } = await params;
   const doc = CORPUS_DOCS.find((d) => d.id === docId);
 
@@ -90,8 +94,14 @@ export default async function CorpusDocPage({
   return (
     <div className="w-full">
       {/* Breadcrumb */}
-      <nav className="flex items-center gap-1 text-sm text-muted-foreground mb-8 animate-fade-in" aria-label="Breadcrumb">
-        <Link href="/corpus" className="hover:text-foreground active:text-primary transition-colors link-underline touch-manipulation focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-sm">
+      <nav
+        className="flex items-center gap-1 text-sm text-muted-foreground mb-8 animate-fade-in"
+        aria-label="Breadcrumb"
+      >
+        <Link
+          href="/corpus"
+          className="hover:text-foreground active:text-primary transition-colors link-underline touch-manipulation focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-sm"
+        >
           Corpus
         </Link>
         <ChevronRightIcon />
@@ -99,7 +109,11 @@ export default async function CorpusDocPage({
       </nav>
 
       {/* Document Content - hydrated from server prefetch, cached for navigation */}
-      {queryClient ? <HydrationBoundary state={dehydrate(queryClient)}>{content}</HydrationBoundary> : content}
+      {queryClient ? (
+        <HydrationBoundary state={dehydrate(queryClient)}>{content}</HydrationBoundary>
+      ) : (
+        content
+      )}
 
       {/* Navigation */}
       <nav className="mt-20 pt-10 border-t border-border animate-fade-in-up">
@@ -113,7 +127,9 @@ export default async function CorpusDocPage({
                 <ArrowLeftIcon />
               </div>
               <div className="flex-1 min-w-0">
-                <span className="text-xs text-muted-foreground uppercase tracking-wider">Previous</span>
+                <span className="text-xs text-muted-foreground uppercase tracking-wider">
+                  Previous
+                </span>
                 <div className="font-semibold group-hover:text-primary transition-colors truncate">
                   {prev.title}
                 </div>
@@ -152,7 +168,9 @@ export default async function CorpusDocPage({
             Back to Corpus
           </Link>
           <p className="text-xs text-muted-foreground max-w-md mx-auto">
-            Browse more documents exploring the <Jargon term="brenner-method">Brenner method</Jargon> and <Jargon term="operators">operator algebra</Jargon>.
+            Browse more documents exploring the{" "}
+            <Jargon term="brenner-method">Brenner method</Jargon> and{" "}
+            <Jargon term="operators">operator algebra</Jargon>.
           </p>
         </div>
       </nav>

@@ -9,11 +9,11 @@
 
 import MiniSearch from "minisearch";
 import type {
-  SearchResult,
+  SearchDocCategory,
   SearchOptions,
+  SearchResult,
   SearchScope,
   StoredSearchEntry,
-  SearchDocCategory,
 } from "./types";
 
 // ============================================================================
@@ -125,8 +125,7 @@ class SearchEngine {
       // through the documentCount and iterate
       this.loadError = null;
     } catch (error) {
-      this.loadError =
-        error instanceof Error ? error : new Error("Failed to load search index");
+      this.loadError = error instanceof Error ? error : new Error("Failed to load search index");
       this.miniSearch = null;
       throw this.loadError;
     } finally {
@@ -153,8 +152,7 @@ class SearchEngine {
       prefix,
       fuzzy,
       ...(allowedCategories && {
-        filter: (result) =>
-          allowedCategories.includes(result.category as SearchDocCategory),
+        filter: (result) => allowedCategories.includes(result.category as SearchDocCategory),
       }),
     });
 
@@ -201,7 +199,7 @@ class SearchEngine {
    */
   private generateSnippet(
     stored: StoredSearchEntry,
-    query: string
+    query: string,
   ): { snippet: string; matchPositions: Array<[number, number]> } {
     const queryTerms = query.toLowerCase().split(/\s+/).filter(Boolean);
     const matchPositions: Array<[number, number]> = [];

@@ -187,7 +187,10 @@ export const BIOLOGY_CELL_FATE_EXAMPLE = {
     { anchor: "§58", note: "Do the sums / scale checks before you commit to an experiment." },
     { anchor: "§78", note: "Choose the right problem framing; define the decision point." },
     { anchor: "§89", note: "Exclusion: prioritize tests that can rule out hypotheses." },
-    { anchor: "§112", note: "Object transpose: pick a cleaner system where the question is cheaper." },
+    {
+      anchor: "§112",
+      note: "Object transpose: pick a cleaner system where the question is cheaper.",
+    },
     { anchor: "§147", note: "Level split: avoid confusing levels of explanation." },
     { anchor: "§161", note: "Mechanism over correlation; specify the causal machinery." },
   ],

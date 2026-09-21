@@ -8,23 +8,23 @@
  */
 
 import { describe, expect, it } from "vitest";
+import type { EvidenceEntry } from "./evidence";
+import type { HypothesisCard } from "./hypothesis";
 import {
-  computeSpecificityScore,
+  aggregateRobustness,
+  compareRobustness,
   computeFalsifiabilityScore,
   computeRobustness,
+  computeSpecificityScore,
+  DEFAULT_ROBUSTNESS_CONFIG,
+  formatRobustnessScore,
+  getRobustnessDisplay,
   isRobustnessInterpretation,
   isRobustnessScore,
-  getRobustnessDisplay,
-  formatRobustnessScore,
-  summarizeRobustness,
-  compareRobustness,
-  aggregateRobustness,
-  DEFAULT_ROBUSTNESS_CONFIG,
   ROBUSTNESS_LABELS,
   type RobustnessScore,
+  summarizeRobustness,
 } from "./robustness";
-import type { HypothesisCard } from "./hypothesis";
-import type { EvidenceEntry } from "./evidence";
 
 // ============================================================================
 // Test Fixtures
@@ -35,18 +35,15 @@ function createTestHypothesis(overrides: Partial<HypothesisCard> = {}): Hypothes
     id: "HC-TEST-001-v1",
     version: 1,
     statement: "Test hypothesis statement",
-    mechanism: "This is a detailed mechanism explaining how the effect occurs through specific pathways",
+    mechanism:
+      "This is a detailed mechanism explaining how the effect occurs through specific pathways",
     domain: ["testing"],
     predictionsIfTrue: [
       "If true, we would observe a 20% increase in metric X",
       "The effect should be measurable within 2 weeks",
     ],
-    predictionsIfFalse: [
-      "If false, metric X would remain unchanged",
-    ],
-    impossibleIfTrue: [
-      "Observation Y would be impossible if this hypothesis is true",
-    ],
+    predictionsIfFalse: ["If false, metric X would remain unchanged"],
+    impossibleIfTrue: ["Observation Y would be impossible if this hypothesis is true"],
     confounds: [],
     assumptions: ["Measurement accuracy is sufficient"],
     confidence: 60,
@@ -116,9 +113,7 @@ describe("computeSpecificityScore", () => {
 
   it("recognizes comparison terms", () => {
     const plain = computeSpecificityScore(["Effect observed"]);
-    const comparison = computeSpecificityScore([
-      "Effect more than baseline, higher than control",
-    ]);
+    const comparison = computeSpecificityScore(["Effect more than baseline, higher than control"]);
     expect(comparison).toBeGreaterThan(plain);
   });
 });
@@ -140,18 +135,9 @@ describe("computeFalsifiabilityScore", () => {
 
   it("gives high score for well-structured hypothesis", () => {
     const hypothesis = createTestHypothesis({
-      impossibleIfTrue: [
-        "Condition A would be impossible",
-        "Condition B would be impossible",
-      ],
-      predictionsIfFalse: [
-        "If false, we'd see X",
-        "If false, we'd see Y",
-      ],
-      predictionsIfTrue: [
-        "If true, we'd see Z",
-        "If true, we'd see W",
-      ],
+      impossibleIfTrue: ["Condition A would be impossible", "Condition B would be impossible"],
+      predictionsIfFalse: ["If false, we'd see X", "If false, we'd see Y"],
+      predictionsIfTrue: ["If true, we'd see Z", "If true, we'd see W"],
       mechanism: "Detailed mechanism explaining the causal pathway",
     });
     expect(computeFalsifiabilityScore(hypothesis)).toBeGreaterThan(70);
@@ -192,9 +178,7 @@ describe("computeRobustness", () => {
 
     it("filters evidence to correct hypothesis version", () => {
       const hypothesis = createTestHypothesis({ id: "HC-OTHER" });
-      const evidence = [
-        createTestEvidence({ hypothesisVersion: "HC-TEST-001-v1" }),
-      ];
+      const evidence = [createTestEvidence({ hypothesisVersion: "HC-TEST-001-v1" })];
       const result = computeRobustness(hypothesis, evidence);
 
       expect(result.interpretation).toBe("untested");
@@ -206,7 +190,10 @@ describe("computeRobustness", () => {
       const hypothesis = createTestHypothesis();
       const evidence = [
         createTestEvidence({ test: { ...createTestEvidence().test, discriminativePower: 5 } }),
-        createTestEvidence({ test: { ...createTestEvidence().test, discriminativePower: 4 }, id: "EV-002" }),
+        createTestEvidence({
+          test: { ...createTestEvidence().test, discriminativePower: 4 },
+          id: "EV-002",
+        }),
       ];
       const result = computeRobustness(hypothesis, evidence);
 
@@ -241,15 +228,13 @@ describe("computeRobustness", () => {
 
       // Both should be robust, but high power contributes more to survival
       expect(highResult.components.averageTestPower).toBeGreaterThan(
-        lowResult.components.averageTestPower
+        lowResult.components.averageTestPower,
       );
     });
 
     it("handles inconclusive tests with partial credit", () => {
       const hypothesis = createTestHypothesis();
-      const evidence = [
-        createTestEvidence({ result: "inconclusive" }),
-      ];
+      const evidence = [createTestEvidence({ result: "inconclusive" })];
       const result = computeRobustness(hypothesis, evidence);
 
       expect(result.components.testsInconclusive).toBe(1);
@@ -301,8 +286,15 @@ describe("computeRobustness", () => {
       const hypothesis = createTestHypothesis();
       // Create evidence with 50% survival (1 support, 1 inconclusive)
       const evidence = [
-        createTestEvidence({ result: "supports", test: { ...createTestEvidence().test, discriminativePower: 3 } }),
-        createTestEvidence({ result: "inconclusive", id: "EV-002", test: { ...createTestEvidence().test, discriminativePower: 3 } }),
+        createTestEvidence({
+          result: "supports",
+          test: { ...createTestEvidence().test, discriminativePower: 3 },
+        }),
+        createTestEvidence({
+          result: "inconclusive",
+          id: "EV-002",
+          test: { ...createTestEvidence().test, discriminativePower: 3 },
+        }),
       ];
 
       // With strict threshold (0.9), 75% survival (supports + half of inconclusive) is not enough
@@ -421,7 +413,10 @@ describe("compareRobustness", () => {
       createTestEvidence({ test: { ...createTestEvidence().test, discriminativePower: 5 } }),
     ];
     const shakyEvidence = [
-      createTestEvidence({ result: "inconclusive", test: { ...createTestEvidence().test, discriminativePower: 2 } }),
+      createTestEvidence({
+        result: "inconclusive",
+        test: { ...createTestEvidence().test, discriminativePower: 2 },
+      }),
     ];
 
     const robust = computeRobustness(hypothesis, robustEvidence);
@@ -553,7 +548,7 @@ describe("DEFAULT_ROBUSTNESS_CONFIG", () => {
     expect(DEFAULT_ROBUSTNESS_CONFIG.robustThreshold).toBeGreaterThan(0);
     expect(DEFAULT_ROBUSTNESS_CONFIG.robustThreshold).toBeLessThanOrEqual(1);
     expect(DEFAULT_ROBUSTNESS_CONFIG.shakyThreshold).toBeLessThan(
-      DEFAULT_ROBUSTNESS_CONFIG.robustThreshold
+      DEFAULT_ROBUSTNESS_CONFIG.robustThreshold,
     );
   });
 });

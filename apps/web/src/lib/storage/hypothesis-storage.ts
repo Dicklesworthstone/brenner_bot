@@ -2,10 +2,10 @@ import { promises as fs } from "fs";
 import { join } from "path";
 import {
   type Hypothesis,
-  type HypothesisState,
   type HypothesisCategory,
   type HypothesisConfidence,
   HypothesisSchema,
+  type HypothesisState,
 } from "../schemas/hypothesis";
 import { withFileLock } from "./file-lock";
 
@@ -46,7 +46,6 @@ export interface SessionHypothesisFile {
   updatedAt: string;
   hypotheses: Hypothesis[];
 }
-
 
 /**
  * Index entry for quick lookups.
@@ -160,12 +159,16 @@ export class HypothesisStorage {
       try {
         data = JSON.parse(content) as SessionHypothesisFile;
       } catch {
-        console.warn(`[HypothesisStorage] Corrupted JSON in ${filePath}; returning empty hypotheses.`);
+        console.warn(
+          `[HypothesisStorage] Corrupted JSON in ${filePath}; returning empty hypotheses.`,
+        );
         return [];
       }
 
       if (!Array.isArray(data.hypotheses)) {
-        console.warn(`[HypothesisStorage] Malformed session file ${filePath}; returning empty hypotheses.`);
+        console.warn(
+          `[HypothesisStorage] Malformed session file ${filePath}; returning empty hypotheses.`,
+        );
         return [];
       }
 
@@ -196,7 +199,10 @@ export class HypothesisStorage {
     });
   }
 
-  private async saveSessionHypothesesUnlocked(sessionId: string, hypotheses: Hypothesis[]): Promise<void> {
+  private async saveSessionHypothesesUnlocked(
+    sessionId: string,
+    hypotheses: Hypothesis[],
+  ): Promise<void> {
     await ensureStorageStructure(this.baseDir);
 
     const filePath = getSessionFilePath(this.baseDir, sessionId);
@@ -226,7 +232,10 @@ export class HypothesisStorage {
     }
   }
 
-  private async updateIndexForSessionUnlocked(sessionId: string, hypotheses: Hypothesis[]): Promise<void> {
+  private async updateIndexForSessionUnlocked(
+    sessionId: string,
+    hypotheses: Hypothesis[],
+  ): Promise<void> {
     const indexPath = getIndexPath(this.baseDir);
     let index: HypothesisIndex;
 
@@ -290,7 +299,7 @@ export class HypothesisStorage {
     // Fallback: simple ID (H1) or unknown session
     // Scan all sessions (slow path)
     const allHypotheses = await this.getAllHypotheses();
-    
+
     // Find first match (might be ambiguous if H1 exists in multiple sessions)
     // To resolve ambiguity, caller should provide sessionId
     return allHypotheses.find((h) => h.id === id) ?? null;
@@ -388,7 +397,10 @@ export class HypothesisStorage {
         }
 
         if (!Array.isArray(data.hypotheses)) {
-          warnings.push({ file: filePath, message: "Skipping malformed session file (missing hypotheses[])." });
+          warnings.push({
+            file: filePath,
+            message: "Skipping malformed session file (missing hypotheses[]).",
+          });
           continue;
         }
 

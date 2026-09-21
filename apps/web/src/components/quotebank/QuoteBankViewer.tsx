@@ -1,12 +1,12 @@
 "use client";
 
-import { useCallback, useEffect, useState, useMemo, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { JargonText } from "@/components/jargon-text";
+import { CopyButton, ReferenceCopyButton } from "@/components/ui/copy-button";
+import { useDebounce } from "@/hooks/useDebounce";
+import { quoteBankDomIdFromSectionId, quoteBankSectionIdFromDomId } from "@/lib/anchors";
 import type { ParsedQuoteBank, Quote } from "@/lib/quotebank-parser";
 import { filterQuotesByTag, searchQuotes } from "@/lib/quotebank-parser";
-import { quoteBankDomIdFromSectionId, quoteBankSectionIdFromDomId } from "@/lib/anchors";
-import { ReferenceCopyButton, CopyButton } from "@/components/ui/copy-button";
-import { useDebounce } from "@/hooks/useDebounce";
-import { JargonText } from "@/components/jargon-text";
 
 // ============================================================================
 // HERO
@@ -96,9 +96,8 @@ function TagCloud({ tags, selectedTag, onTagSelect, quoteCounts }: TagCloudProps
   const showExpandButton = hiddenCount > 0;
 
   // If selected tag is not in visible tags (but is meaningful), always show it
-  const selectedTagInHidden = selectedTag &&
-    !visibleTags.includes(selectedTag) &&
-    meaningfulTags.includes(selectedTag);
+  const selectedTagInHidden =
+    selectedTag && !visibleTags.includes(selectedTag) && meaningfulTags.includes(selectedTag);
 
   return (
     <div className="mb-6">
@@ -195,7 +194,13 @@ function TagCloud({ tags, selectedTag, onTagSelect, quoteCounts }: TagCloudProps
 
 function ChevronUpIcon({ className = "size-4" }: { className?: string }) {
   return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+    <svg
+      className={className}
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+      strokeWidth={2}
+    >
       <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 15.75l7.5-7.5 7.5 7.5" />
     </svg>
   );
@@ -203,7 +208,13 @@ function ChevronUpIcon({ className = "size-4" }: { className?: string }) {
 
 function ChevronDownIcon({ className = "size-4" }: { className?: string }) {
   return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+    <svg
+      className={className}
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+      strokeWidth={2}
+    >
       <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
     </svg>
   );
@@ -264,15 +275,16 @@ function QuoteCard({ quote, isHighlighted, onTagClick }: QuoteCardProps) {
       className={`
         group relative rounded-2xl border bg-card overflow-hidden
         transition-all duration-300 ease-out
-        ${isHighlighted 
-          ? "ring-2 ring-primary/50 bg-primary/5 border-primary/30 shadow-xl shadow-primary/10" 
-          : "border-border hover:border-primary/20 hover:shadow-lg hover:shadow-black/5 dark:hover:shadow-black/20"
+        ${
+          isHighlighted
+            ? "ring-2 ring-primary/50 bg-primary/5 border-primary/30 shadow-xl shadow-primary/10"
+            : "border-border hover:border-primary/20 hover:shadow-lg hover:shadow-black/5 dark:hover:shadow-black/20"
         }
       `}
     >
       {/* Accent gradient bar */}
       <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-amber-500 via-orange-500 to-amber-600 opacity-60 group-hover:opacity-100 transition-opacity" />
-      
+
       {/* Reference badge - clickable to copy */}
       <div className="absolute top-3 right-3 sm:top-4 sm:right-4 z-10">
         <ReferenceCopyButton
@@ -382,13 +394,13 @@ export function QuoteBankViewer({ data }: QuoteBankViewerProps) {
     const handleKeyDown = (e: KeyboardEvent) => {
       // Don't trigger if already in an input/textarea
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
-      
+
       if (e.key === "/") {
         e.preventDefault();
         searchInputRef.current?.focus();
       }
     };
-    
+
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, []);
@@ -420,7 +432,6 @@ export function QuoteBankViewer({ data }: QuoteBankViewerProps) {
     }
     return result;
   }, [data.quotes, selectedTag, debouncedQuery, forceUnfiltered]);
-
 
   const scheduleScrollToSectionId = useCallback((sectionId: string) => {
     pendingScrollSectionIdRef.current = sectionId;
@@ -539,7 +550,8 @@ export function QuoteBankViewer({ data }: QuoteBankViewerProps) {
         {/* Results count with actions */}
         <div className="mb-6 flex items-center justify-between gap-4">
           <div className="text-sm text-muted-foreground">
-            Showing <span className="font-medium text-foreground">{filteredQuotes.length}</span> of {data.quotes.length} quotes
+            Showing <span className="font-medium text-foreground">{filteredQuotes.length}</span> of{" "}
+            {data.quotes.length} quotes
             {selectedTag && (
               <span className="ml-1.5">
                 in{" "}
@@ -554,7 +566,7 @@ export function QuoteBankViewer({ data }: QuoteBankViewerProps) {
               </span>
             )}
           </div>
-          
+
           {/* Random quote button */}
           <button
             type="button"
@@ -578,13 +590,9 @@ export function QuoteBankViewer({ data }: QuoteBankViewerProps) {
             {filteredQuotes.map((quote) => {
               const domId = quoteBankDomIdFromSectionId(quote.sectionId);
               return (
-                <div
-                  key={quote.sectionId}
-                  id={domId}
-                  style={{ contain: "layout style" }}
-                >
-                  <QuoteCard 
-                    quote={quote} 
+                <div key={quote.sectionId} id={domId} style={{ contain: "layout style" }}>
+                  <QuoteCard
+                    quote={quote}
                     isHighlighted={highlightedSectionId === quote.sectionId}
                     onTagClick={setSelectedTag}
                   />
@@ -628,23 +636,49 @@ export function QuoteBankViewer({ data }: QuoteBankViewerProps) {
 
 function QuoteIcon({ className = "" }: { className?: string }) {
   return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.129.166 2.27.293 3.423.379.35.026.67.21.865.501L12 21l2.755-4.133a1.14 1.14 0 01.865-.501 48.172 48.172 0 003.423-.379c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0012 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018z" />
+    <svg
+      className={className}
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+      strokeWidth={1.5}
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.129.166 2.27.293 3.423.379.35.026.67.21.865.501L12 21l2.755-4.133a1.14 1.14 0 01.865-.501 48.172 48.172 0 003.423-.379c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0012 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018z"
+      />
     </svg>
   );
 }
 
 function SearchIcon({ className = "" }: { className?: string }) {
   return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+    <svg
+      className={className}
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+      strokeWidth={2}
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"
+      />
     </svg>
   );
 }
 
 function XIcon({ className = "size-4" }: { className?: string }) {
   return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+    <svg
+      className={className}
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+      strokeWidth={2}
+    >
       <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
     </svg>
   );
@@ -652,16 +686,36 @@ function XIcon({ className = "size-4" }: { className?: string }) {
 
 function LightbulbIcon({ className = "" }: { className?: string }) {
   return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M12 18v-5.25m0 0a6.01 6.01 0 001.5-.189m-1.5.189a6.01 6.01 0 01-1.5-.189m3.75 7.478a12.06 12.06 0 01-4.5 0m3.75 2.383a14.406 14.406 0 01-3 0M14.25 18v-.192c0-.983.658-1.823 1.508-2.316a7.5 7.5 0 10-7.517 0c.85.493 1.509 1.333 1.509 2.316V18" />
+    <svg
+      className={className}
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+      strokeWidth={2}
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M12 18v-5.25m0 0a6.01 6.01 0 001.5-.189m-1.5.189a6.01 6.01 0 01-1.5-.189m3.75 7.478a12.06 12.06 0 01-4.5 0m3.75 2.383a14.406 14.406 0 01-3 0M14.25 18v-.192c0-.983.658-1.823 1.508-2.316a7.5 7.5 0 10-7.517 0c.85.493 1.509 1.333 1.509 2.316V18"
+      />
     </svg>
   );
 }
 
 function ShuffleIcon({ className = "size-4" }: { className?: string }) {
   return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 12c0-1.232-.046-2.453-.138-3.662a4.006 4.006 0 00-3.7-3.7 48.678 48.678 0 00-7.324 0 4.006 4.006 0 00-3.7 3.7c-.017.22-.032.441-.046.662M19.5 12l3-3m-3 3l-3-3m-12 3c0 1.232.046 2.453.138 3.662a4.006 4.006 0 003.7 3.7 48.656 48.656 0 007.324 0 4.006 4.006 0 003.7-3.7c.017-.22.032-.441.046-.662M4.5 12l3 3m-3-3l-3 3" />
+    <svg
+      className={className}
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+      strokeWidth={2}
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M19.5 12c0-1.232-.046-2.453-.138-3.662a4.006 4.006 0 00-3.7-3.7 48.678 48.678 0 00-7.324 0 4.006 4.006 0 00-3.7 3.7c-.017.22-.032.441-.046.662M19.5 12l3-3m-3 3l-3-3m-12 3c0 1.232.046 2.453.138 3.662a4.006 4.006 0 003.7 3.7 48.656 48.656 0 007.324 0 4.006 4.006 0 003.7-3.7c.017-.22.032-.441.046-.662M4.5 12l3 3m-3-3l-3 3"
+      />
     </svg>
   );
 }

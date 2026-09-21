@@ -8,8 +8,11 @@
  */
 
 import * as React from "react";
+import type {
+  AgentRole,
+  OperatorSelection as SessionOperatorSelection,
+} from "@/lib/schemas/session";
 import { cn } from "@/lib/utils";
-import type { AgentRole, OperatorSelection as SessionOperatorSelection } from "@/lib/schemas/session";
 
 // ============================================================================
 // Types
@@ -121,8 +124,18 @@ const CheckIcon = ({ className = "size-4" }: { className?: string }) => (
 );
 
 const RefreshIcon = ({ className = "size-4" }: { className?: string }) => (
-  <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" />
+  <svg
+    className={className}
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+    strokeWidth={1.5}
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99"
+    />
   </svg>
 );
 
@@ -152,9 +165,12 @@ export function OperatorSelector({ value, onChange, disabled }: OperatorSelector
   const hasCustomizations = React.useMemo(() => {
     // Use spread to create copies before sorting to avoid mutating props/constants
     return (
-      JSON.stringify([...value.hypothesis_generator].sort()) !== JSON.stringify([...DEFAULT_OPERATORS.hypothesis_generator].sort()) ||
-      JSON.stringify([...value.test_designer].sort()) !== JSON.stringify([...DEFAULT_OPERATORS.test_designer].sort()) ||
-      JSON.stringify([...value.adversarial_critic].sort()) !== JSON.stringify([...DEFAULT_OPERATORS.adversarial_critic].sort())
+      JSON.stringify([...value.hypothesis_generator].sort()) !==
+        JSON.stringify([...DEFAULT_OPERATORS.hypothesis_generator].sort()) ||
+      JSON.stringify([...value.test_designer].sort()) !==
+        JSON.stringify([...DEFAULT_OPERATORS.test_designer].sort()) ||
+      JSON.stringify([...value.adversarial_critic].sort()) !==
+        JSON.stringify([...DEFAULT_OPERATORS.adversarial_critic].sort())
     );
   }, [value]);
 
@@ -170,7 +186,7 @@ export function OperatorSelector({ value, onChange, disabled }: OperatorSelector
           "border border-border bg-card hover:bg-muted/50 transition-all",
           "text-left touch-manipulation active:scale-[0.99]",
           "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
-          disabled && "opacity-50 cursor-not-allowed"
+          disabled && "opacity-50 cursor-not-allowed",
         )}
       >
         <div>
@@ -186,10 +202,12 @@ export function OperatorSelector({ value, onChange, disabled }: OperatorSelector
             {isExpanded ? "Customize operators per role" : "Click to customize role operators"}
           </div>
         </div>
-        <ChevronDownIcon className={cn(
-          "size-5 text-muted-foreground transition-transform",
-          isExpanded && "rotate-180"
-        )} />
+        <ChevronDownIcon
+          className={cn(
+            "size-5 text-muted-foreground transition-transform",
+            isExpanded && "rotate-180",
+          )}
+        />
       </button>
 
       {/* Expanded Content */}
@@ -243,11 +261,7 @@ function RoleCard({
   disabled?: boolean;
 }) {
   return (
-    <div className={cn(
-      "rounded-xl border p-4 space-y-3",
-      "bg-gradient-to-br",
-      config.color
-    )}>
+    <div className={cn("rounded-xl border p-4 space-y-3", "bg-gradient-to-br", config.color)}>
       <div>
         <div className="font-semibold text-foreground">{config.label}</div>
         <div className="text-xs text-muted-foreground">{config.description}</div>
@@ -271,7 +285,7 @@ function RoleCard({
                 isSelected
                   ? "bg-primary/10 border-primary/30 text-primary"
                   : "bg-background/50 border-border text-muted-foreground hover:border-primary/30 hover:text-foreground",
-                disabled && "opacity-50 cursor-not-allowed"
+                disabled && "opacity-50 cursor-not-allowed",
               )}
               title={isDefault ? `Default for ${config.label}` : undefined}
             >

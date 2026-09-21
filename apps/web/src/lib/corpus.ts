@@ -1,4 +1,4 @@
-import { readFile, access } from "node:fs/promises";
+import { access, readFile } from "node:fs/promises";
 import { resolve } from "node:path";
 
 /**
@@ -9,7 +9,12 @@ import { resolve } from "node:path";
  * The duplication exists because this file uses Node.js APIs and cannot be
  * imported in client components.
  */
-export type DocCategory = "transcript" | "quote-bank" | "distillation" | "metaprompt" | "raw-response";
+export type DocCategory =
+  | "transcript"
+  | "quote-bank"
+  | "distillation"
+  | "metaprompt"
+  | "raw-response";
 
 export type CorpusDoc = {
   id: string;
@@ -26,7 +31,8 @@ export const CORPUS_DOCS: CorpusDoc[] = [
     id: "transcript",
     title: "Complete Transcript Collection",
     filename: "complete_brenner_transcript.md",
-    description: "The full Web of Stories interview transcript with Sydney Brenner - 236 segments of wisdom.",
+    description:
+      "The full Web of Stories interview transcript with Sydney Brenner - 236 segments of wisdom.",
     category: "transcript",
   },
   {
@@ -104,7 +110,8 @@ export const CORPUS_DOCS: CorpusDoc[] = [
   {
     id: "raw-gpt-truncated",
     title: "GPT-5.2 Response (Previously Truncated)",
-    filename: "gpt_pro_extended_reasoning_responses/brenner_bot__gpt_pro_52__response_previously_truncated_batch.md",
+    filename:
+      "gpt_pro_extended_reasoning_responses/brenner_bot__gpt_pro_52__response_previously_truncated_batch.md",
     description: "Previously truncated GPT-5.2 responses, now complete.",
     category: "raw-response",
     model: "gpt",
@@ -214,7 +221,9 @@ async function fetchFromPublicUrl(filename: string): Promise<string> {
   // Warn about self-fetch in production (performance/reliability risk)
   if (process.env.VERCEL === "1" && !hasWarnedHttpFallback) {
     hasWarnedHttpFallback = true;
-    console.warn(`[Corpus] Warning: Falling back to HTTP fetch for ${safeFilename}. This suggests filesystem access failed.`);
+    console.warn(
+      `[Corpus] Warning: Falling back to HTTP fetch for ${safeFilename}. This suggests filesystem access failed.`,
+    );
   }
 
   const response = await fetch(url);

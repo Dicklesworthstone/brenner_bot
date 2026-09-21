@@ -8,8 +8,8 @@
  * @see brenner_bot-ik2s (bead)
  */
 
-import * as React from "react";
 import { CheckCircle2, Circle, Loader2 } from "lucide-react";
+import * as React from "react";
 import { cn } from "@/lib/utils";
 
 export interface AgentProgressProps {
@@ -41,42 +41,50 @@ export function AgentProgress({
   const effectiveStep = status === "complete" ? steps.length : normalizedStep;
   const progress = steps.length > 0 ? Math.min(1, effectiveStep / steps.length) : 0;
   const statusLabel =
-    status === "complete" ? "Complete" :
-    status === "error" ? "Error" :
-    status === "idle" ? "Idle" :
-    "In progress";
+    status === "complete"
+      ? "Complete"
+      : status === "error"
+        ? "Error"
+        : status === "idle"
+          ? "Idle"
+          : "In progress";
   const headline =
-    status === "complete" ? `${agent.replace(/_/g, " ")} completed` :
-    status === "error" ? `${agent.replace(/_/g, " ")} hit an error` :
-    status === "idle" ? `${agent.replace(/_/g, " ")} is idle` :
-    `${agent.replace(/_/g, " ")} is working`;
+    status === "complete"
+      ? `${agent.replace(/_/g, " ")} completed`
+      : status === "error"
+        ? `${agent.replace(/_/g, " ")} hit an error`
+        : status === "idle"
+          ? `${agent.replace(/_/g, " ")} is idle`
+          : `${agent.replace(/_/g, " ")} is working`;
 
   return (
     <div className={cn("rounded-xl border bg-card p-4 shadow-sm", className)}>
       <div className="flex items-center justify-between">
-        <div className="text-sm font-semibold text-foreground">
-          {headline}
-        </div>
-        <span className="text-xs text-muted-foreground">
-          {statusLabel}
-        </span>
+        <div className="text-sm font-semibold text-foreground">{headline}</div>
+        <span className="text-xs text-muted-foreground">{statusLabel}</span>
       </div>
 
       <div className="mt-3 h-2 w-full rounded-full bg-muted">
-        <div className="h-2 rounded-full bg-primary" style={{ width: `${Math.round(progress * 100)}%` }} />
+        <div
+          className="h-2 rounded-full bg-primary"
+          style={{ width: `${Math.round(progress * 100)}%` }}
+        />
       </div>
 
       <div className="mt-4 space-y-2">
         {steps.map((step, index) => {
-          const state = index < effectiveStep ? "complete" : index === effectiveStep ? "active" : "pending";
+          const state =
+            index < effectiveStep ? "complete" : index === effectiveStep ? "active" : "pending";
           return (
             <div key={`${step}-${index}`} className="flex items-center gap-2 text-sm">
               {stepIcon(state)}
-              <span className={cn(
-                "text-muted-foreground",
-                state === "active" && "text-foreground",
-                state === "complete" && "text-foreground"
-              )}>
+              <span
+                className={cn(
+                  "text-muted-foreground",
+                  state === "active" && "text-foreground",
+                  state === "complete" && "text-foreground",
+                )}
+              >
                 {step}
               </span>
             </div>

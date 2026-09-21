@@ -7,8 +7,8 @@
  * Run with: cd apps/web && bun run test -- src/components/quotebank/QuoteBankViewer.test.tsx
  */
 
-import { describe, it, expect, beforeEach, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { ParsedQuoteBank, Quote } from "@/lib/quotebank-parser";
 import { QuoteBankViewer } from "./QuoteBankViewer";
 
@@ -21,7 +21,7 @@ function createTestQuote(
   title: string,
   quote: string,
   context: string,
-  tags: string[] = []
+  tags: string[] = [],
 ): Quote {
   return { sectionId, title, quote, context, tags };
 }
@@ -38,7 +38,7 @@ const minimalQuoteBank: ParsedQuoteBank = {
       "Third Alternative",
       "You've forgotten there's a third alternative: both could be wrong.",
       "When analyzing competing theories, always consider that neither may be correct.",
-      ["third-alternative", "methodology"]
+      ["third-alternative", "methodology"],
     ),
   ],
   allTags: ["third-alternative", "methodology"],
@@ -56,35 +56,35 @@ const comprehensiveQuoteBank: ParsedQuoteBank = {
       "Model Organism Philosophy",
       "We chose the worm for its simplicity and its defined cell lineage.",
       "C. elegans was selected specifically because every cell can be traced.",
-      ["model-organism", "c-elegans", "methodology"]
+      ["model-organism", "c-elegans", "methodology"],
     ),
     createTestQuote(
       "§103",
       "Third Alternative",
       "You've forgotten there's a third alternative: both could be wrong.",
       "Anti-binary thinking is central to the Brenner approach.",
-      ["third-alternative", "methodology", "philosophy"]
+      ["third-alternative", "methodology", "philosophy"],
     ),
     createTestQuote(
       "§105",
       "Evidence Per Week",
       "Exclusion is always a tremendously good thing in science.",
       "Prioritize experiments that can rule out hypotheses quickly.",
-      ["evidence-per-week", "exclusion", "experiments"]
+      ["evidence-per-week", "exclusion", "experiments"],
     ),
     createTestQuote(
       "§107",
       "Discriminative Tests",
       "The experiment must be designed to exclude, not to confirm.",
       "Design tests that differentiate between competing hypotheses.",
-      ["discriminative-tests", "methodology", "experiments"]
+      ["discriminative-tests", "methodology", "experiments"],
     ),
     createTestQuote(
       "§110",
       "Reusable Platforms",
       "You need a system that you can come back to again and again.",
       "Build experimental systems that support multiple investigations.",
-      ["reusable-platform", "methodology"]
+      ["reusable-platform", "methodology"],
     ),
   ],
   allTags: [
@@ -411,15 +411,15 @@ describe("Tag Cloud Interaction", () => {
           `Quote ${tagIdx * 2 + 1}`,
           `Quote text ${tagIdx * 2 + 1}`,
           `Context ${tagIdx * 2 + 1}`,
-          [tag]
+          [tag],
         ),
         createTestQuote(
           `§${tagIdx * 2 + 2}`,
           `Quote ${tagIdx * 2 + 2}`,
           `Quote text ${tagIdx * 2 + 2}`,
           `Context ${tagIdx * 2 + 2}`,
-          [tag]
-        )
+          [tag],
+        ),
       );
     }
 

@@ -13,11 +13,11 @@
  */
 
 import {
-  test,
+  assertTextContent,
   expect,
   navigateTo,
   takeScreenshot,
-  assertTextContent,
+  test,
   waitForNetworkIdle,
 } from "./utils";
 import { withStep } from "./utils/e2e-logging";
@@ -61,17 +61,19 @@ async function setupLabAuth(context: import("@playwright/test").BrowserContext) 
 async function shouldSkipLabModeTest(
   page: import("@playwright/test").Page,
   logger: { info: (msg: string) => void; warn: (msg: string) => void },
-  testName: string
+  testName: string,
 ): Promise<boolean> {
   const pageText = await page.locator("body").textContent();
 
   // Check for 404 or "Not found" (lab mode disabled or page doesn't exist)
   const status = await page.evaluate(() => {
     // This runs in browser - check if we got a 404 page
-    return document.querySelector('title')?.textContent?.includes('404') ||
-           document.body.textContent?.includes('This page could not be found') ||
-           document.body.textContent?.includes('Not found') ||
-           document.body.textContent?.trim() === 'Not found';
+    return (
+      document.querySelector("title")?.textContent?.includes("404") ||
+      document.body.textContent?.includes("This page could not be found") ||
+      document.body.textContent?.includes("Not found") ||
+      document.body.textContent?.trim() === "Not found"
+    );
   });
 
   if (status) {
@@ -161,7 +163,10 @@ test.describe("Session List", () => {
       logger.step("Checking for refresh controls");
 
       // RefreshControls component should be visible
-      const refreshButton = page.locator('button').filter({ hasText: /refresh/i }).first();
+      const refreshButton = page
+        .locator("button")
+        .filter({ hasText: /refresh/i })
+        .first();
       const hasRefresh = await refreshButton.isVisible().catch(() => false);
 
       logger.info(`Refresh controls visible: ${hasRefresh}`);
@@ -226,7 +231,10 @@ test.describe("Session List", () => {
 // ============================================================================
 test.describe("Session Detail", () => {
   test.describe("Access Control", () => {
-    test("shows locked state for unauthenticated access to session detail", async ({ page, logger }) => {
+    test("shows locked state for unauthenticated access to session detail", async ({
+      page,
+      logger,
+    }) => {
       // Try to access a specific session without auth
       const response = await page.goto("/sessions/TEST-SESSION-ID");
       await waitForNetworkIdle(page, logger);
@@ -289,9 +297,10 @@ test.describe("Session Detail", () => {
       const pageText = await page.locator("body").textContent();
 
       // Should either show error message or empty thread state
-      const hasError = pageText?.includes("Failed to load") ||
-                       pageText?.includes("No messages found") ||
-                       pageText?.includes("error");
+      const hasError =
+        pageText?.includes("Failed to load") ||
+        pageText?.includes("No messages found") ||
+        pageText?.includes("error");
 
       logger.info(`Error state displayed: ${hasError}`);
       await takeScreenshot(page, logger, "session-detail-error");
@@ -312,10 +321,11 @@ test.describe("Session Detail", () => {
       const pageText = await page.locator("body").textContent();
 
       // Should show round information
-      const hasRoundInfo = pageText?.includes("Round") ||
-                           pageText?.includes("Initial Collection") ||
-                           pageText?.includes("First Compile") ||
-                           pageText?.includes("Iteration");
+      const hasRoundInfo =
+        pageText?.includes("Round") ||
+        pageText?.includes("Initial Collection") ||
+        pageText?.includes("First Compile") ||
+        pageText?.includes("Iteration");
 
       logger.info(`Round indicator visible: ${hasRoundInfo}`);
 
@@ -349,11 +359,11 @@ test.describe("Session Detail", () => {
         "awaiting compilation",
         "compiled",
         "in critique",
-        "closed"
+        "closed",
       ];
 
-      const hasPhase = phases.some(phase =>
-        pageText?.toLowerCase().includes(phase.toLowerCase())
+      const hasPhase = phases.some((phase) =>
+        pageText?.toLowerCase().includes(phase.toLowerCase()),
       );
 
       logger.info(`Phase label visible: ${hasPhase}`);
@@ -381,9 +391,7 @@ test.describe("Session Detail", () => {
 
       // Check for known role names
       const roles = ["hypothesis generator", "test designer", "adversarial critic"];
-      const hasRoles = roles.some(role =>
-        pageText?.toLowerCase().includes(role)
-      );
+      const hasRoles = roles.some((role) => pageText?.toLowerCase().includes(role));
 
       logger.info(`Role status grid visible: ${hasRoles}`);
 
@@ -409,16 +417,27 @@ test.describe("Session Detail", () => {
       logger.step("Checking for session action buttons");
 
       // Look for action buttons (Compile, Publish, Request Critique)
-      const compileButton = page.locator('button').filter({ hasText: /compile/i }).first();
+      const compileButton = page
+        .locator("button")
+        .filter({ hasText: /compile/i })
+        .first();
       const hasCompile = await compileButton.isVisible().catch(() => false);
 
-      const publishButton = page.locator('button').filter({ hasText: /publish/i }).first();
+      const publishButton = page
+        .locator("button")
+        .filter({ hasText: /publish/i })
+        .first();
       const hasPublish = await publishButton.isVisible().catch(() => false);
 
-      const critiqueButton = page.locator('button').filter({ hasText: /critique/i }).first();
+      const critiqueButton = page
+        .locator("button")
+        .filter({ hasText: /critique/i })
+        .first();
       const hasCritique = await critiqueButton.isVisible().catch(() => false);
 
-      logger.info(`Action buttons: Compile=${hasCompile}, Publish=${hasPublish}, Critique=${hasCritique}`);
+      logger.info(
+        `Action buttons: Compile=${hasCompile}, Publish=${hasPublish}, Critique=${hasCritique}`,
+      );
 
       await takeScreenshot(page, logger, "session-detail-actions");
     });
@@ -447,12 +466,13 @@ test.describe("Artifact Viewing", () => {
     const pageText = await page.locator("body").textContent();
 
     // Should show either artifact content or "no artifact yet" message
-    const hasArtifact = pageText?.includes("COMPILED:") ||
-                        pageText?.includes("hypothesis") ||
-                        pageText?.includes("H1") ||
-                        pageText?.includes("H2");
-    const noArtifact = pageText?.includes("No compiled artifact") ||
-                       pageText?.includes("will appear here");
+    const hasArtifact =
+      pageText?.includes("COMPILED:") ||
+      pageText?.includes("hypothesis") ||
+      pageText?.includes("H1") ||
+      pageText?.includes("H2");
+    const noArtifact =
+      pageText?.includes("No compiled artifact") || pageText?.includes("will appear here");
 
     logger.info(`Artifact display: hasArtifact=${hasArtifact}, noArtifact=${noArtifact}`);
     expect(hasArtifact || noArtifact).toBeTruthy();
@@ -475,17 +495,17 @@ test.describe("Artifact Viewing", () => {
     const pageText = await page.locator("body").textContent();
 
     // Should have lint report heading
-    const hasLintSection = pageText?.includes("Lint Report") ||
-                           pageText?.includes("lint");
+    const hasLintSection = pageText?.includes("Lint Report") || pageText?.includes("lint");
 
     logger.info(`Lint report section visible: ${hasLintSection}`);
 
     // If there's a compiled artifact, should show VALID/INVALID badge
     if (pageText?.includes("COMPILED:") || pageText?.includes("compiled v")) {
-      const hasValidation = pageText?.includes("VALID") ||
-                            pageText?.includes("INVALID") ||
-                            pageText?.includes("errors") ||
-                            pageText?.includes("warnings");
+      const hasValidation =
+        pageText?.includes("VALID") ||
+        pageText?.includes("INVALID") ||
+        pageText?.includes("errors") ||
+        pageText?.includes("warnings");
       logger.info(`Lint validation visible: ${hasValidation}`);
     }
 
@@ -505,7 +525,10 @@ test.describe("Artifact Viewing", () => {
     logger.step("Checking for expandable lint report");
 
     // Look for expandable details elements
-    const lintDetails = page.locator("details").filter({ hasText: /lint report/i }).first();
+    const lintDetails = page
+      .locator("details")
+      .filter({ hasText: /lint report/i })
+      .first();
     const hasLintDetails = await lintDetails.isVisible().catch(() => false);
 
     if (hasLintDetails) {
@@ -540,12 +563,12 @@ test.describe("Artifact Viewing", () => {
     const pageText = await page.locator("body").textContent();
 
     // Should show either delta messages or "no deltas" message
-    const hasDeltas = pageText?.includes("DELTA") ||
-                      pageText?.includes("valid") ||
-                      pageText?.includes("ADD") ||
-                      pageText?.includes("EDIT");
-    const noDeltas = pageText?.includes("No DELTA") ||
-                     pageText?.includes("No delta");
+    const hasDeltas =
+      pageText?.includes("DELTA") ||
+      pageText?.includes("valid") ||
+      pageText?.includes("ADD") ||
+      pageText?.includes("EDIT");
+    const noDeltas = pageText?.includes("No DELTA") || pageText?.includes("No delta");
 
     logger.info(`Deltas display: hasDeltas=${hasDeltas}, noDeltas=${noDeltas}`);
     expect(hasDeltas || noDeltas).toBeTruthy();
@@ -571,9 +594,8 @@ test.describe("Artifact Viewing", () => {
     const pageText = await page.locator("body").textContent();
 
     // Should show either messages or "no messages" indicator
-    const hasMessages = pageText?.includes("KICKOFF") ||
-                        pageText?.includes("DELTA") ||
-                        pageText?.includes("From:");
+    const hasMessages =
+      pageText?.includes("KICKOFF") || pageText?.includes("DELTA") || pageText?.includes("From:");
     const noMessages = pageText?.includes("No messages");
 
     logger.info(`Timeline display: hasMessages=${hasMessages}, noMessages=${noMessages}`);
@@ -606,8 +628,7 @@ test.describe("Artifact Viewing", () => {
       await page.waitForTimeout(300);
 
       const pageText = await page.locator("body").textContent();
-      const hasBody = pageText?.includes("No message body") ||
-                      (pageText?.length ?? 0) > 500; // Some content visible
+      const hasBody = pageText?.includes("No message body") || (pageText?.length ?? 0) > 500; // Some content visible
 
       logger.info(`Message expanded, has body: ${hasBody}`);
       await takeScreenshot(page, logger, "session-message-expanded");
@@ -638,7 +659,10 @@ test.describe("Navigation Flow", () => {
       let navigatedToDetail = false;
 
       await withStep(logger, page, "Click on a session card", async () => {
-        const sessionCard = page.locator('a[href^="/sessions/"]').filter({ hasNotText: /new/i }).first();
+        const sessionCard = page
+          .locator('a[href^="/sessions/"]')
+          .filter({ hasNotText: /new/i })
+          .first();
         const cardExists = await sessionCard.isVisible().catch(() => false);
 
         if (cardExists) {
@@ -657,7 +681,7 @@ test.describe("Navigation Flow", () => {
           logger.info("Session not found (404), skipping detail verification");
         } else {
           await withStep(logger, page, "Verify on session detail page", async () => {
-            await expect(page).toHaveURL(/\/sessions\/[^\/]+$/);
+            await expect(page).toHaveURL(/\/sessions\/[^/]+$/);
           });
 
           await withStep(logger, page, "Navigate back to list", async () => {

@@ -2,12 +2,12 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
 import rehypeHighlight from "rehype-highlight";
+import remarkGfm from "remark-gfm";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { getTutorialDomainExample } from "@/lib/tutorial-data";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { lintArtifact, renderArtifactMarkdown } from "@/lib/artifact-merge";
+import { getTutorialDomainExample } from "@/lib/tutorial-data";
 
 export const runtime = "nodejs";
 
@@ -72,7 +72,9 @@ export default function TutorialExamplePage({ params }: { params: { slug: string
       <Card>
         <CardHeader>
           <CardTitle>Research Question</CardTitle>
-          <CardDescription>One-paragraph framing (what we’re actually trying to explain).</CardDescription>
+          <CardDescription>
+            One-paragraph framing (what we’re actually trying to explain).
+          </CardDescription>
         </CardHeader>
         <CardContent className="text-sm text-muted-foreground leading-relaxed">
           {example.researchQuestion}
@@ -82,7 +84,9 @@ export default function TutorialExamplePage({ params }: { params: { slug: string
       <Card>
         <CardHeader>
           <CardTitle>Excerpt Anchors</CardTitle>
-          <CardDescription>Grounding references (Brenner §n anchors or domain evidence notes).</CardDescription>
+          <CardDescription>
+            Grounding references (Brenner §n anchors or domain evidence notes).
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <ul className="space-y-2 text-sm">
@@ -105,7 +109,10 @@ export default function TutorialExamplePage({ params }: { params: { slug: string
         </CardHeader>
         <CardContent className="space-y-3">
           {example.operatorAnnotations.map((ann) => (
-            <div key={ann.operator} className="rounded-xl border border-border bg-card p-4 space-y-2">
+            <div
+              key={ann.operator}
+              className="rounded-xl border border-border bg-card p-4 space-y-2"
+            >
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <div className="font-semibold">{ann.operator}</div>
                 <div className="flex flex-wrap gap-2">
@@ -125,7 +132,9 @@ export default function TutorialExamplePage({ params }: { params: { slug: string
       <Card>
         <CardHeader>
           <CardTitle>Complete Artifact</CardTitle>
-          <CardDescription>Rendered from the compiled artifact structure (this should lint cleanly).</CardDescription>
+          <CardDescription>
+            Rendered from the compiled artifact structure (this should lint cleanly).
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <MarkdownBody body={artifactMarkdown} />
@@ -135,7 +144,9 @@ export default function TutorialExamplePage({ params }: { params: { slug: string
       <Card>
         <CardHeader>
           <CardTitle>Commentary</CardTitle>
-          <CardDescription>Why this artifact is “good” (and what to copy into your own work).</CardDescription>
+          <CardDescription>
+            Why this artifact is “good” (and what to copy into your own work).
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <ul className="space-y-2 text-sm text-muted-foreground">
@@ -153,12 +164,16 @@ export default function TutorialExamplePage({ params }: { params: { slug: string
         <Card className="border-destructive/30 bg-destructive/5">
           <CardHeader>
             <CardTitle className="text-destructive">Lint Report</CardTitle>
-            <CardDescription>Fixes needed before this can be treated as a canonical example.</CardDescription>
+            <CardDescription>
+              Fixes needed before this can be treated as a canonical example.
+            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-2 text-sm">
             {lint.violations.map((v) => (
               <div key={v.id} className="rounded-lg border border-border bg-card p-3">
-                <div className="font-mono text-xs text-muted-foreground">{v.id} • {v.severity}</div>
+                <div className="font-mono text-xs text-muted-foreground">
+                  {v.id} • {v.severity}
+                </div>
                 <div className="text-foreground">{v.message}</div>
                 {v.fix && <div className="text-muted-foreground mt-1">Fix: {v.fix}</div>}
               </div>
@@ -169,4 +184,3 @@ export default function TutorialExamplePage({ params }: { params: { slug: string
     </div>
   );
 }
-

@@ -8,12 +8,11 @@
  * @see brenner_bot-nm89 (Tutorial Path: Multi-Agent Cockpit)
  */
 
-import * as React from "react";
 import { useRouter } from "next/navigation";
-import { TutorialStep } from "@/components/tutorial";
-import { TutorialCodeBlock, ProTip, Warning } from "@/components/tutorial";
+import * as React from "react";
+import { ProTip, TutorialCodeBlock, TutorialStep, Warning } from "@/components/tutorial";
 import { useTutorial } from "@/lib/tutorial-context";
-import type { TutorialStep as TutorialStepType, TroubleshootingItem } from "@/lib/tutorial-types";
+import type { TroubleshootingItem, TutorialStep as TutorialStepType } from "@/lib/tutorial-types";
 
 // ============================================================================
 // Step Data
@@ -22,11 +21,13 @@ import type { TutorialStep as TutorialStepType, TroubleshootingItem } from "@/li
 const troubleshooting: TroubleshootingItem[] = [
   {
     problem: "Prompt is too vague, agents produce generic output",
-    solution: "Add specific context: excerpt anchors, concrete examples, constraints on the hypothesis space.",
+    solution:
+      "Add specific context: excerpt anchors, concrete examples, constraints on the hypothesis space.",
   },
   {
     problem: "Agents all converge on the same hypothesis",
-    solution: "Explicitly ask for a 'third alternative' and emphasize that the obvious answer might be wrong.",
+    solution:
+      "Explicitly ask for a 'third alternative' and emphasize that the obvious answer might be wrong.",
   },
 ];
 
@@ -41,11 +42,7 @@ const stepData: TutorialStepType = {
     "How to seed productive disagreement",
     "Using corpus excerpts for grounding",
   ],
-  whatYouDo: [
-    "Choose a research question",
-    "Build a corpus excerpt",
-    "Write the kickoff prompt",
-  ],
+  whatYouDo: ["Choose a research question", "Build a corpus excerpt", "Write the kickoff prompt"],
   troubleshooting,
 };
 
@@ -80,8 +77,8 @@ export default function MultiAgentStep4() {
         <div className="space-y-4">
           <p className="text-muted-foreground leading-relaxed">
             The kickoff prompt is what seeds all three agents with your research question and
-            relevant context. A well-crafted kickoff leads to productive disagreement;
-            a vague one leads to generic convergence.
+            relevant context. A well-crafted kickoff leads to productive disagreement; a vague one
+            leads to generic convergence.
           </p>
         </div>
 
@@ -100,14 +97,25 @@ export default function MultiAgentStep4() {
 
           <div className="grid gap-3">
             <div className="p-4 rounded-xl border border-[oklch(0.72_0.19_145/0.3)] bg-[oklch(0.72_0.19_145/0.05)]">
-              <p className="text-xs font-medium text-[oklch(0.72_0.19_145)] uppercase tracking-wide mb-2">Good Example</p>
-              <p className="text-sm">&quot;What determines whether a cell becomes a neuron vs a muscle cell during development?&quot;</p>
-              <p className="text-xs text-muted-foreground mt-2">Different answers → different experiments</p>
+              <p className="text-xs font-medium text-[oklch(0.72_0.19_145)] uppercase tracking-wide mb-2">
+                Good Example
+              </p>
+              <p className="text-sm">
+                &quot;What determines whether a cell becomes a neuron vs a muscle cell during
+                development?&quot;
+              </p>
+              <p className="text-xs text-muted-foreground mt-2">
+                Different answers → different experiments
+              </p>
             </div>
             <div className="p-4 rounded-xl border border-destructive/30 bg-destructive/5">
-              <p className="text-xs font-medium text-destructive uppercase tracking-wide mb-2">Bad Example</p>
+              <p className="text-xs font-medium text-destructive uppercase tracking-wide mb-2">
+                Bad Example
+              </p>
               <p className="text-sm">&quot;What is the meaning of life?&quot;</p>
-              <p className="text-xs text-muted-foreground mt-2">Too vague, no discriminative power</p>
+              <p className="text-xs text-muted-foreground mt-2">
+                Too vague, no discriminative power
+              </p>
             </div>
           </div>
         </div>
@@ -227,15 +235,15 @@ EOF`}
         </div>
 
         <Warning>
-          <strong>Quality of input → quality of output:</strong> The agents can only be as good
-          as the kickoff you give them. Spend time on this step — a well-crafted kickoff saves
+          <strong>Quality of input → quality of output:</strong> The agents can only be as good as
+          the kickoff you give them. Spend time on this step — a well-crafted kickoff saves
           iteration time later.
         </Warning>
 
         <ProTip>
           Include at least one &quot;surprising constraint&quot; in your kickoff — something that
-          forces agents to think outside their default patterns. For example: &quot;Assume the
-          most obvious answer is wrong. What would that imply?&quot;
+          forces agents to think outside their default patterns. For example: &quot;Assume the most
+          obvious answer is wrong. What would that imply?&quot;
         </ProTip>
 
         {/* Ready Checkpoint */}

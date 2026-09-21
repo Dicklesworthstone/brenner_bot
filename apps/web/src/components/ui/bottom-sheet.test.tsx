@@ -9,8 +9,8 @@
 
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
-import { BottomSheet, useBottomSheet, BottomSheetActions } from "./bottom-sheet";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { BottomSheet, BottomSheetActions, useBottomSheet } from "./bottom-sheet";
 
 // Test component that uses the useBottomSheet hook
 function TestBottomSheetConsumer() {
@@ -81,7 +81,7 @@ describe("BottomSheet", () => {
       render(
         <BottomSheet open={false} onClose={vi.fn()}>
           <div>Content</div>
-        </BottomSheet>
+        </BottomSheet>,
       );
       expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
     });
@@ -90,7 +90,7 @@ describe("BottomSheet", () => {
       render(
         <BottomSheet open={true} onClose={vi.fn()}>
           <div>Content</div>
-        </BottomSheet>
+        </BottomSheet>,
       );
 
       await waitFor(() => {
@@ -102,7 +102,7 @@ describe("BottomSheet", () => {
       render(
         <BottomSheet open={true} onClose={vi.fn()}>
           <div data-testid="child">Child Content</div>
-        </BottomSheet>
+        </BottomSheet>,
       );
 
       await waitFor(() => {
@@ -115,7 +115,7 @@ describe("BottomSheet", () => {
       render(
         <BottomSheet open={true} onClose={vi.fn()} title="Sheet Title">
           <div>Content</div>
-        </BottomSheet>
+        </BottomSheet>,
       );
 
       await waitFor(() => {
@@ -127,7 +127,7 @@ describe("BottomSheet", () => {
       render(
         <BottomSheet open={true} onClose={vi.fn()}>
           <div>Content</div>
-        </BottomSheet>
+        </BottomSheet>,
       );
 
       await waitFor(() => {
@@ -145,7 +145,7 @@ describe("BottomSheet", () => {
       render(
         <BottomSheet open={true} onClose={handleClose}>
           <div>Content</div>
-        </BottomSheet>
+        </BottomSheet>,
       );
 
       await waitFor(() => {
@@ -169,7 +169,7 @@ describe("BottomSheet", () => {
       render(
         <BottomSheet open={true} onClose={handleClose}>
           <div>Content</div>
-        </BottomSheet>
+        </BottomSheet>,
       );
 
       await waitFor(() => {
@@ -187,7 +187,7 @@ describe("BottomSheet", () => {
       render(
         <BottomSheet open={true} onClose={handleClose} title="With Close Button">
           <div>Content</div>
-        </BottomSheet>
+        </BottomSheet>,
       );
 
       await waitFor(() => {
@@ -204,7 +204,7 @@ describe("BottomSheet", () => {
       render(
         <BottomSheet open={true} onClose={vi.fn()}>
           <div>Content</div>
-        </BottomSheet>
+        </BottomSheet>,
       );
 
       await waitFor(() => {
@@ -218,7 +218,7 @@ describe("BottomSheet", () => {
       const { rerender } = render(
         <BottomSheet open={true} onClose={vi.fn()}>
           <div>Content</div>
-        </BottomSheet>
+        </BottomSheet>,
       );
 
       await waitFor(() => {
@@ -228,7 +228,7 @@ describe("BottomSheet", () => {
       rerender(
         <BottomSheet open={false} onClose={vi.fn()}>
           <div>Content</div>
-        </BottomSheet>
+        </BottomSheet>,
       );
 
       await waitFor(() => {
@@ -240,7 +240,7 @@ describe("BottomSheet", () => {
       render(
         <BottomSheet open={true} onClose={vi.fn()} className="custom-class">
           <div>Content</div>
-        </BottomSheet>
+        </BottomSheet>,
       );
 
       await waitFor(() => {
@@ -253,7 +253,7 @@ describe("BottomSheet", () => {
       render(
         <BottomSheet open={true} onClose={vi.fn()} title="Accessible Sheet">
           <div>Content</div>
-        </BottomSheet>
+        </BottomSheet>,
       );
 
       await waitFor(() => {
@@ -267,7 +267,7 @@ describe("BottomSheet", () => {
       render(
         <BottomSheet open={true} onClose={vi.fn()}>
           <div>Content</div>
-        </BottomSheet>
+        </BottomSheet>,
       );
 
       await waitFor(() => {
@@ -306,9 +306,7 @@ describe("BottomSheet", () => {
     });
 
     it("applies destructive styling to destructive actions", () => {
-      const actions = [
-        { id: "delete", label: "Delete", onClick: vi.fn(), destructive: true },
-      ];
+      const actions = [{ id: "delete", label: "Delete", onClick: vi.fn(), destructive: true }];
 
       render(<BottomSheetActions actions={actions} onClose={vi.fn()} />);
 
@@ -318,9 +316,7 @@ describe("BottomSheet", () => {
 
     it("renders action icons when provided", () => {
       const TestIcon = () => <span data-testid="test-icon">Icon</span>;
-      const actions = [
-        { id: "edit", label: "Edit", onClick: vi.fn(), icon: <TestIcon /> },
-      ];
+      const actions = [{ id: "edit", label: "Edit", onClick: vi.fn(), icon: <TestIcon /> }];
 
       render(<BottomSheetActions actions={actions} onClose={vi.fn()} />);
 

@@ -235,7 +235,7 @@ export function createPredictionRecord(input: {
 export function resolvePrediction(
   record: PredictionRecord,
   outcome: "correct" | "incorrect",
-  notes?: string
+  notes?: string,
 ): PredictionRecord {
   return {
     ...record,
@@ -254,7 +254,7 @@ export function resolvePrediction(
  */
 export function binPredictions(
   predictions: PredictionRecord[],
-  boundaries: number[] = DEFAULT_BIN_BOUNDARIES
+  boundaries: number[] = DEFAULT_BIN_BOUNDARIES,
 ): CalibrationBin[] {
   const resolved = predictions.filter((p) => p.outcome !== "unresolved");
   const bins: CalibrationBin[] = [];
@@ -301,7 +301,7 @@ export function calculateBrierScore(predictions: PredictionRecord[]): number {
   const sumSquaredError = resolved.reduce((sum, p) => {
     const forecast = p.statedConfidence / 100; // Normalize to 0-1
     const outcome = p.outcome === "correct" ? 1 : 0;
-    return sum + Math.pow(forecast - outcome, 2);
+    return sum + (forecast - outcome) ** 2;
   }, 0);
 
   return sumSquaredError / resolved.length;
@@ -348,7 +348,7 @@ export function calculateSharpness(predictions: PredictionRecord[]): number {
 
   const confidences = predictions.map((p) => p.statedConfidence);
   const mean = confidences.reduce((sum, c) => sum + c, 0) / confidences.length;
-  const variance = confidences.reduce((sum, c) => sum + Math.pow(c - mean, 2), 0) / confidences.length;
+  const variance = confidences.reduce((sum, c) => sum + (c - mean) ** 2, 0) / confidences.length;
 
   return Math.sqrt(variance);
 }
@@ -357,7 +357,7 @@ export function calculateSharpness(predictions: PredictionRecord[]): number {
  * Calculate domain-specific accuracy.
  */
 export function calculateDomainAccuracy(
-  predictions: PredictionRecord[]
+  predictions: PredictionRecord[],
 ): Record<string, { total: number; correct: number; accuracy: number }> {
   const resolved = predictions.filter((p) => p.outcome !== "unresolved" && p.domain);
   const domains: Record<string, { total: number; correct: number; accuracy: number }> = {};
@@ -387,7 +387,7 @@ export function calculateDomainAccuracy(
  */
 export function calculateCalibrationMetrics(
   predictions: PredictionRecord[],
-  binBoundaries: number[] = DEFAULT_BIN_BOUNDARIES
+  binBoundaries: number[] = DEFAULT_BIN_BOUNDARIES,
 ): CalibrationMetrics {
   const resolved = predictions.filter((p) => p.outcome !== "unresolved");
   const correct = resolved.filter((p) => p.outcome === "correct").length;
@@ -433,16 +433,13 @@ export function calculateCalibrationMetrics(
 export function getCalibrationAtConfidence(
   predictions: PredictionRecord[],
   targetConfidence: number,
-  tolerance: number = 10
+  tolerance: number = 10,
 ): { actualAccuracy: number; sampleSize: number } {
   const lower = Math.max(0, targetConfidence - tolerance);
   const upper = Math.min(100, targetConfidence + tolerance);
 
   const resolved = predictions.filter(
-    (p) =>
-      p.outcome !== "unresolved" &&
-      p.statedConfidence >= lower &&
-      p.statedConfidence <= upper
+    (p) => p.outcome !== "unresolved" && p.statedConfidence >= lower && p.statedConfidence <= upper,
   );
 
   const correct = resolved.filter((p) => p.outcome === "correct").length;
@@ -458,7 +455,7 @@ export function getCalibrationAtConfidence(
  */
 export function generateResolutionFeedback(
   resolvedPrediction: PredictionRecord,
-  allPredictions: PredictionRecord[]
+  allPredictions: PredictionRecord[],
 ): ResolutionFeedback {
   const wasCorrect = resolvedPrediction.outcome === "correct";
   const confidence = resolvedPrediction.statedConfidence;
@@ -515,9 +512,7 @@ export function generateResolutionFeedback(
 /**
  * Track calibration progress over time by comparing early vs recent predictions.
  */
-export function trackCalibrationProgress(
-  predictions: PredictionRecord[]
-): CalibrationProgress {
+export function trackCalibrationProgress(predictions: PredictionRecord[]): CalibrationProgress {
   const resolved = predictions
     .filter((p) => p.outcome !== "unresolved")
     .sort((a, b) => new Date(a.predictedAt).getTime() - new Date(b.predictedAt).getTime());
@@ -549,7 +544,10 @@ export function trackCalibrationProgress(
 
   if (brierScoreChange < -improvementThreshold || calibrationErrorChange < -improvementThreshold) {
     assessment = "improving";
-  } else if (brierScoreChange > improvementThreshold || calibrationErrorChange > improvementThreshold) {
+  } else if (
+    brierScoreChange > improvementThreshold ||
+    calibrationErrorChange > improvementThreshold
+  ) {
     assessment = "declining";
   } else {
     assessment = "stable";
@@ -622,7 +620,7 @@ export function getCalibrationQualityAssessment(metrics: CalibrationMetrics): {
     };
   }
 
-  if (calibrationError <= 0.10 && brierScore <= 0.25) {
+  if (calibrationError <= 0.1 && brierScore <= 0.25) {
     return {
       quality: "good",
       description: "Your calibration is solid. You have a good sense of uncertainty.",
@@ -632,22 +630,25 @@ export function getCalibrationQualityAssessment(metrics: CalibrationMetrics): {
   if (calibrationError <= 0.15 || brierScore <= 0.35) {
     return {
       quality: "fair",
-      description: "Your calibration needs some work. Pay attention to the feedback after each prediction.",
+      description:
+        "Your calibration needs some work. Pay attention to the feedback after each prediction.",
     };
   }
 
   return {
     quality: "poor",
-    description: "Your confidence estimates are significantly off. Consider being more humble in your predictions.",
+    description:
+      "Your confidence estimates are significantly off. Consider being more humble in your predictions.",
   };
 }
 
 /**
  * Identify domains where the user is well-calibrated vs not.
  */
-export function identifyCalibrationStrengths(
-  metrics: CalibrationMetrics
-): { strengths: string[]; weaknesses: string[] } {
+export function identifyCalibrationStrengths(metrics: CalibrationMetrics): {
+  strengths: string[];
+  weaknesses: string[];
+} {
   const strengths: string[] = [];
   const weaknesses: string[] = [];
 

@@ -50,7 +50,9 @@ describe("anchors", () => {
 
   describe("makeDistillationSectionDomId", () => {
     it("uses slugified title when available", () => {
-      expect(makeDistillationSectionDomId({ title: "Some Heading", index: 5 })).toBe("some-heading");
+      expect(makeDistillationSectionDomId({ title: "Some Heading", index: 5 })).toBe(
+        "some-heading",
+      );
     });
 
     it("falls back to section-{index} when title has no slug", () => {
@@ -58,9 +60,12 @@ describe("anchors", () => {
     });
 
     it("prefixes with part number when provided", () => {
-      expect(makeDistillationSectionDomId({ title: "Intro", partNumber: 2, index: 0 })).toBe("part-2-intro");
-      expect(makeDistillationSectionDomId({ title: "   ---   ", partNumber: 3, index: 1 })).toBe("part-3-section-1");
+      expect(makeDistillationSectionDomId({ title: "Intro", partNumber: 2, index: 0 })).toBe(
+        "part-2-intro",
+      );
+      expect(makeDistillationSectionDomId({ title: "   ---   ", partNumber: 3, index: 1 })).toBe(
+        "part-3-section-1",
+      );
     });
   });
 });
-

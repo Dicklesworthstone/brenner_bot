@@ -1,8 +1,13 @@
-import * as React from "react";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import type * as React from "react";
 import { describe, expect, it, vi } from "vitest";
-import type { EvidenceEntry, DiscriminativePower, TestType, EvidenceResult } from "@/lib/brenner-loop/evidence";
+import type {
+  DiscriminativePower,
+  EvidenceEntry,
+  EvidenceResult,
+  TestType,
+} from "@/lib/brenner-loop/evidence";
 
 // Mock framer-motion for simpler testing
 vi.mock("framer-motion", () => ({
@@ -10,20 +15,14 @@ vi.mock("framer-motion", () => ({
     div: ({ children, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
       <div {...props}>{children}</div>
     ),
-    button: ({
-      children,
-      onClick,
-      ...props
-    }: React.ButtonHTMLAttributes<HTMLButtonElement>) => (
+    button: ({ children, onClick, ...props }: React.ButtonHTMLAttributes<HTMLButtonElement>) => (
       <button onClick={onClick} {...props}>
         {children}
       </button>
     ),
     circle: (props: React.SVGProps<SVGCircleElement>) => <circle {...props} />,
     path: (props: React.SVGProps<SVGPathElement>) => <path {...props} />,
-    g: ({ children, ...props }: React.SVGProps<SVGGElement>) => (
-      <g {...props}>{children}</g>
-    ),
+    g: ({ children, ...props }: React.SVGProps<SVGGElement>) => <g {...props}>{children}</g>,
   },
   AnimatePresence: ({ children }: { children: React.ReactNode }) => <>{children}</>,
 }));
@@ -60,9 +59,7 @@ describe("EvidenceTimeline", () => {
     render(<EvidenceTimeline entries={[]} />);
 
     expect(screen.getByText(/No Evidence Yet/i)).toBeInTheDocument();
-    expect(
-      screen.getByText(/Run tests and record evidence/i)
-    ).toBeInTheDocument();
+    expect(screen.getByText(/Run tests and record evidence/i)).toBeInTheDocument();
   });
 
   it("renders timeline with evidence entries", async () => {
@@ -101,9 +98,7 @@ describe("EvidenceTimeline", () => {
     });
 
     const { EvidenceTimeline } = await import("./EvidenceTimeline");
-    render(
-      <EvidenceTimeline entries={[entry]} onSelectEntry={onSelectEntry} />
-    );
+    render(<EvidenceTimeline entries={[entry]} onSelectEntry={onSelectEntry} />);
 
     // Click on the timeline card
     const card = screen.getByText(/Clickable observation/i).closest("button");
@@ -145,9 +140,7 @@ describe("EvidenceTimeline", () => {
     });
 
     const { EvidenceTimeline } = await import("./EvidenceTimeline");
-    const { container, rerender } = render(
-      <EvidenceTimeline entries={[entry]} compact={false} />
-    );
+    const { container, rerender } = render(<EvidenceTimeline entries={[entry]} compact={false} />);
 
     // Non-compact should show observation text
     expect(screen.getByText("Compact mode test")).toBeInTheDocument();
@@ -187,8 +180,6 @@ describe("EvidenceTimeline", () => {
     const newElement = screen.getByText(/New entry observation/i);
 
     // The "new" entry should appear before "old" in the DOM (since sorted newest-first)
-    expect(newElement.compareDocumentPosition(oldElement)).toBe(
-      Node.DOCUMENT_POSITION_FOLLOWING
-    );
+    expect(newElement.compareDocumentPosition(oldElement)).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
   });
 });

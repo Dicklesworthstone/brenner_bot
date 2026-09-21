@@ -8,12 +8,11 @@
  * @see brenner_bot-nm89 (Tutorial Path: Multi-Agent Cockpit)
  */
 
-import * as React from "react";
 import { useRouter } from "next/navigation";
-import { TutorialStep } from "@/components/tutorial";
-import { TutorialCodeBlock, ProTip, Warning } from "@/components/tutorial";
+import * as React from "react";
+import { ProTip, TutorialCodeBlock, TutorialStep, Warning } from "@/components/tutorial";
 import { useTutorial } from "@/lib/tutorial-context";
-import type { TutorialStep as TutorialStepType, TroubleshootingItem } from "@/lib/tutorial-types";
+import type { TroubleshootingItem, TutorialStep as TutorialStepType } from "@/lib/tutorial-types";
 
 // ============================================================================
 // Step Data
@@ -23,12 +22,14 @@ const troubleshooting: TroubleshootingItem[] = [
   {
     problem: "Compile fails with missing deltas",
     symptoms: ["Not all roles have responded"],
-    solution: "Check session status. If an agent hasn't responded, either wait or proceed with partial compilation.",
-    commands: ["brenner session status --thread-id \"$SESSION_ID\""],
+    solution:
+      "Check session status. If an agent hasn't responded, either wait or proceed with partial compilation.",
+    commands: ['brenner session status --thread-id "$SESSION_ID"'],
   },
   {
     problem: "Lint errors in compiled artifact",
-    solution: "Review the specific lint errors. Common issues: missing third alternative, tests without potency checks.",
+    solution:
+      "Review the specific lint errors. Common issues: missing third alternative, tests without potency checks.",
   },
 ];
 
@@ -196,7 +197,9 @@ brenner lint sessions/$SESSION_ID/artifact.json
               </ul>
             </div>
             <div className="p-3 rounded-lg border border-amber-500/30 bg-amber-500/5">
-              <p className="text-xs font-medium text-amber-600 dark:text-amber-400">Warnings (should fix)</p>
+              <p className="text-xs font-medium text-amber-600 dark:text-amber-400">
+                Warnings (should fix)
+              </p>
               <ul className="text-xs text-muted-foreground mt-1 space-y-1">
                 <li>• No third alternative marked</li>
                 <li>• Assumption without scale check</li>
@@ -221,7 +224,9 @@ brenner lint sessions/$SESSION_ID/artifact.json
           <div className="grid gap-3 sm:grid-cols-2">
             <div className="p-4 rounded-xl border border-border bg-card/50 space-y-2">
               <p className="font-medium text-sm">Option A: Request Revision</p>
-              <p className="text-xs text-muted-foreground">Send a message to the relevant agent asking for a fix.</p>
+              <p className="text-xs text-muted-foreground">
+                Send a message to the relevant agent asking for a fix.
+              </p>
               <TutorialCodeBlock
                 code={`brenner send \\
   --thread-id "$SESSION_ID" \\
@@ -235,7 +240,9 @@ brenner lint sessions/$SESSION_ID/artifact.json
             </div>
             <div className="p-4 rounded-xl border border-border bg-card/50 space-y-2">
               <p className="font-medium text-sm">Option B: Manual Edit</p>
-              <p className="text-xs text-muted-foreground">Edit the artifact directly for small fixes.</p>
+              <p className="text-xs text-muted-foreground">
+                Edit the artifact directly for small fixes.
+              </p>
               <TutorialCodeBlock
                 code={`# Edit the artifact
 vim sessions/$SESSION_ID/artifact.json
@@ -250,13 +257,16 @@ brenner lint sessions/$SESSION_ID/artifact.json`}
         </div>
 
         <Warning>
-          <strong>Don&apos;t skip linting:</strong> Lint errors often indicate gaps in discriminative
-          power. A test without a potency check might not actually discriminate between hypotheses.
+          <strong>Don&apos;t skip linting:</strong> Lint errors often indicate gaps in
+          discriminative power. A test without a potency check might not actually discriminate
+          between hypotheses.
         </Warning>
 
         <ProTip>
           Export the artifact as markdown for easier reading:
-          <code className="ml-2">brenner artifact render --file artifact.json --format markdown</code>
+          <code className="ml-2">
+            brenner artifact render --file artifact.json --format markdown
+          </code>
         </ProTip>
 
         {/* Ready Checkpoint */}
@@ -264,8 +274,8 @@ brenner lint sessions/$SESSION_ID/artifact.json`}
           <p className="text-sm">
             <strong className="text-[oklch(0.72_0.19_145)]">Artifact Clean?</strong>{" "}
             <span className="text-muted-foreground">
-              When the linter passes with no errors, you&apos;re ready to score the session
-              in the next step.
+              When the linter passes with no errors, you&apos;re ready to score the session in the
+              next step.
             </span>
           </p>
         </div>

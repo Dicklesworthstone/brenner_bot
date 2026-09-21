@@ -80,7 +80,8 @@ function formatEvidenceId(n: number): string {
 function inferAccessMethod(source: string): EvidenceRecord["access_method"] {
   if (source.startsWith("doi:") || source.startsWith("https://doi.org/")) return "doi";
   if (source.startsWith("http://") || source.startsWith("https://")) return "url";
-  if (source.startsWith("file://") || source.startsWith("/") || source.startsWith("./")) return "file";
+  if (source.startsWith("file://") || source.startsWith("/") || source.startsWith("./"))
+    return "file";
   if (source.startsWith("session://")) return "session";
   return "manual";
 }
@@ -112,15 +113,19 @@ function renderEvidenceMd(pack: EvidencePack): string {
     lines.push("| Field | Value |");
     lines.push("|-------|-------|");
     lines.push(`| Type | ${rec.type} |`);
-    if (rec.authors?.length) lines.push(`| Authors | ${escapeTableValue(rec.authors.join("; "))} |`);
+    if (rec.authors?.length)
+      lines.push(`| Authors | ${escapeTableValue(rec.authors.join("; "))} |`);
     if (rec.date) lines.push(`| Date | ${escapeTableValue(rec.date)} |`);
     lines.push(`| Source | ${escapeTableValue(rec.source)} |`);
     lines.push(
       `| Verified | ${rec.verified ? `Yes${rec.verification_notes ? ` (${escapeTableValue(rec.verification_notes)})` : ""}` : "No"} |`,
     );
-    if (rec.supports?.length) lines.push(`| Supports | ${escapeTableValue(rec.supports.join(", "))} |`);
-    if (rec.refutes?.length) lines.push(`| Refutes | ${escapeTableValue(rec.refutes.join(", "))} |`);
-    if (rec.informs?.length) lines.push(`| Informs | ${escapeTableValue(rec.informs.join(", "))} |`);
+    if (rec.supports?.length)
+      lines.push(`| Supports | ${escapeTableValue(rec.supports.join(", "))} |`);
+    if (rec.refutes?.length)
+      lines.push(`| Refutes | ${escapeTableValue(rec.refutes.join(", "))} |`);
+    if (rec.informs?.length)
+      lines.push(`| Informs | ${escapeTableValue(rec.informs.join(", "))} |`);
     lines.push("");
     lines.push(`**Relevance**: ${rec.relevance}`);
     lines.push("");

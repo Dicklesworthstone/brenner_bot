@@ -14,19 +14,25 @@
 import * as React from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { cn } from "@/lib/utils";
-import type { AgentMailMessage } from "@/lib/agentMail";
-import {
-  extractTribunalObjections,
-  OBJECTION_REGISTER_UPDATED_EVENT,
-  type ExtractedObjection,
-  type ObjectionSeverity,
-  type ObjectionType,
-} from "@/lib/brenner-loop/agents/objections";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import type { AgentMailMessage } from "@/lib/agentMail";
+import {
+  type ExtractedObjection,
+  extractTribunalObjections,
+  OBJECTION_REGISTER_UPDATED_EVENT,
+  type ObjectionSeverity,
+  type ObjectionType,
+} from "@/lib/brenner-loop/agents/objections";
+import { cn } from "@/lib/utils";
 
 export type ObjectionStatus =
   | "open"
@@ -107,7 +113,9 @@ function saveStatuses(threadId: string, statuses: Record<string, ObjectionStatus
 function notifyStatusUpdate(threadId: string): void {
   if (typeof window === "undefined") return;
   try {
-    window.dispatchEvent(new CustomEvent(OBJECTION_REGISTER_UPDATED_EVENT, { detail: { threadId } }));
+    window.dispatchEvent(
+      new CustomEvent(OBJECTION_REGISTER_UPDATED_EVENT, { detail: { threadId } }),
+    );
   } catch {
     // Best-effort: notifications should never break the UI.
   }
@@ -130,7 +138,10 @@ function formatTs(ts: string): string {
 
 function severityBadge(severity: ObjectionSeverity): { label: string; className: string } {
   const map: Record<ObjectionSeverity, { label: string; className: string }> = {
-    fatal: { label: "Fatal", className: "border-destructive/25 bg-destructive/10 text-destructive" },
+    fatal: {
+      label: "Fatal",
+      className: "border-destructive/25 bg-destructive/10 text-destructive",
+    },
     serious: { label: "Serious", className: "border-warning/30 bg-warning/10 text-warning" },
     moderate: { label: "Moderate", className: "border-info/25 bg-info/10 text-info" },
     minor: { label: "Minor", className: "border-border bg-muted/40 text-muted-foreground" },
@@ -214,7 +225,10 @@ function ObjectionCard({
         </div>
 
         <div className="min-w-[13rem]">
-          <Select value={status} onValueChange={(value) => onStatusChange(value as ObjectionStatus)}>
+          <Select
+            value={status}
+            onValueChange={(value) => onStatusChange(value as ObjectionStatus)}
+          >
             <SelectTrigger aria-label={`Objection status ${objection.id}`} className="h-10">
               <SelectValue />
             </SelectTrigger>
@@ -246,8 +260,15 @@ export interface ObjectionRegisterPanelProps {
   className?: string;
 }
 
-export function ObjectionRegisterPanel({ threadId, messages, className }: ObjectionRegisterPanelProps) {
-  const objections = React.useMemo(() => extractTribunalObjections(messages).sort(sortObjections), [messages]);
+export function ObjectionRegisterPanel({
+  threadId,
+  messages,
+  className,
+}: ObjectionRegisterPanelProps) {
+  const objections = React.useMemo(
+    () => extractTribunalObjections(messages).sort(sortObjections),
+    [messages],
+  );
 
   const [statusById, setStatusById] = React.useState<Record<string, ObjectionStatus>>({});
 
@@ -268,7 +289,7 @@ export function ObjectionRegisterPanel({ threadId, messages, className }: Object
         return next;
       });
     },
-    [threadId]
+    [threadId],
   );
 
   const counts = React.useMemo(() => {
@@ -314,7 +335,8 @@ export function ObjectionRegisterPanel({ threadId, messages, className }: Object
           <div className="space-y-1">
             <CardTitle>Objection Register</CardTitle>
             <p className="text-sm text-muted-foreground">
-              Track and explicitly resolve tribunal objections instead of letting them hide in prose.
+              Track and explicitly resolve tribunal objections instead of letting them hide in
+              prose.
             </p>
           </div>
           <Badge variant="outline" className="border-border bg-muted/40 text-muted-foreground">
@@ -326,8 +348,8 @@ export function ObjectionRegisterPanel({ threadId, messages, className }: Object
       <CardContent className="space-y-6">
         {objections.length === 0 ? (
           <div className="rounded-xl border border-border bg-card p-6 text-sm text-muted-foreground">
-            No objections extracted yet. Once tribunal agents respond using a <span className="font-mono">### Key Objection</span> section,
-            they will appear here.
+            No objections extracted yet. Once tribunal agents respond using a{" "}
+            <span className="font-mono">### Key Objection</span> section, they will appear here.
           </div>
         ) : (
           STATUS_ORDER.map((status) => {

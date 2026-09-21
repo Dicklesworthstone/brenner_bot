@@ -39,11 +39,12 @@ export default defineConfig({
     // Video: record on first retry by default (captures failures for debugging)
     // - Set RECORD_VIDEO=on to record all tests
     // - Set RECORD_VIDEO=off or NO_VIDEO=1 to disable
-    video: process.env.NO_VIDEO === "1" || process.env.RECORD_VIDEO === "off"
-      ? "off"
-      : process.env.RECORD_VIDEO === "on"
-        ? "on"
-        : "on-first-retry",
+    video:
+      process.env.NO_VIDEO === "1" || process.env.RECORD_VIDEO === "off"
+        ? "off"
+        : process.env.RECORD_VIDEO === "on"
+          ? "on"
+          : "on-first-retry",
     // Slow motion for debugging (set SLOW_MO=100 for 100ms delay)
     launchOptions: {
       slowMo: process.env.SLOW_MO ? parseInt(process.env.SLOW_MO, 10) : 0,

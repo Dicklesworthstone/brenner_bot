@@ -9,26 +9,22 @@
  */
 
 export {
+  ConfidenceChart,
+  type ConfidenceChartProps,
+} from "./ConfidenceChart";
+export {
   EvidenceRecorder,
   type EvidenceRecorderProps,
 } from "./EvidenceRecorder";
-
 export {
   EvidenceTimeline,
   type EvidenceTimelineProps,
 } from "./EvidenceTimeline";
-
-export {
-  ConfidenceChart,
-  type ConfidenceChartProps,
-} from "./ConfidenceChart";
-
-export {
-  WhatIfSimulator,
-  type WhatIfSimulatorProps,
-} from "./WhatIfSimulator";
-
 export {
   LiteratureSearch,
   type LiteratureSearchProps,
 } from "./LiteratureSearch";
+export {
+  WhatIfSimulator,
+  type WhatIfSimulatorProps,
+} from "./WhatIfSimulator";

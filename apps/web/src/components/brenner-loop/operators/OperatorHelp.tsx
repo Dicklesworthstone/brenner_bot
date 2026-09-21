@@ -11,40 +11,32 @@
  * @module components/brenner-loop/operators/OperatorHelp
  */
 
-import * as React from "react";
 import { motion } from "framer-motion";
 import {
-  HelpCircle,
-  BookOpen,
-  Lightbulb,
   AlertTriangle,
+  BookOpen,
   CheckCircle2,
-  Quote,
   ChevronRight,
+  HelpCircle,
+  Lightbulb,
+  Quote,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import * as React from "react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
+  DialogBody,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogDescription,
   DialogTrigger,
-  DialogBody,
 } from "@/components/ui/dialog";
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { getOperatorDocumentation, getStepTip } from "@/lib/brenner-loop/operators/docs";
 import type { OperatorType } from "@/lib/brenner-loop/operators/framework";
 import { OPERATOR_METADATA } from "@/lib/brenner-loop/operators/framework";
-import {
-  getOperatorDocumentation,
-  getStepTip,
-} from "@/lib/brenner-loop/operators/docs";
+import { cn } from "@/lib/utils";
 
 // ============================================================================
 // Types
@@ -154,9 +146,7 @@ export function OperatorHelpPanel({
                   <p className="text-xs font-medium text-red-600 dark:text-red-400 uppercase tracking-wide mb-1">
                     Avoid
                   </p>
-                  <p className="text-sm text-red-700 dark:text-red-300">
-                    {currentTip.antiPattern}
-                  </p>
+                  <p className="text-sm text-red-700 dark:text-red-300">{currentTip.antiPattern}</p>
                 </div>
               )}
             </div>
@@ -187,9 +177,7 @@ export function OperatorHelpPanel({
             title="What This Operator Does"
             icon={<BookOpen className="size-4 text-blue-500" />}
           >
-            <p className="text-sm text-muted-foreground leading-relaxed">
-              {docs.concept}
-            </p>
+            <p className="text-sm text-muted-foreground leading-relaxed">{docs.concept}</p>
           </HelpSection>
 
           {/* When to Use */}
@@ -224,12 +212,8 @@ export function OperatorHelpPanel({
                   key={index}
                   className="flex items-start gap-2 p-3 rounded-lg bg-red-50 dark:bg-red-950/20 border border-red-100 dark:border-red-900/50"
                 >
-                  <span className="text-red-500 font-medium text-sm">
-                    {index + 1}.
-                  </span>
-                  <p className="text-sm text-red-700 dark:text-red-300">
-                    {mistake}
-                  </p>
+                  <span className="text-red-500 font-medium text-sm">{index + 1}.</span>
+                  <p className="text-sm text-red-700 dark:text-red-300">{mistake}</p>
                 </div>
               ))}
             </div>
@@ -247,9 +231,7 @@ export function OperatorHelpPanel({
                   className="flex items-start gap-2 p-3 rounded-lg bg-green-50 dark:bg-green-950/20 border border-green-100 dark:border-green-900/50"
                 >
                   <CheckCircle2 className="size-4 text-green-500 flex-shrink-0 mt-0.5" />
-                  <p className="text-sm text-green-700 dark:text-green-300">
-                    {criterion}
-                  </p>
+                  <p className="text-sm text-green-700 dark:text-green-300">{criterion}</p>
                 </div>
               ))}
             </div>
@@ -266,9 +248,7 @@ export function OperatorHelpPanel({
               </div>
               <div>
                 <h3 className="font-medium text-sm">From Brenner&apos;s Work</h3>
-                <p className="text-xs text-muted-foreground">
-                  {docs.brennerExample.title}
-                </p>
+                <p className="text-xs text-muted-foreground">{docs.brennerExample.title}</p>
               </div>
             </div>
 
@@ -278,7 +258,8 @@ export function OperatorHelpPanel({
 
             {docs.brennerExample.quoteSection && (
               <p className="mt-3 text-xs text-muted-foreground">
-                See also: <span className="font-mono">{docs.brennerExample.quoteSection}</span> in the corpus
+                See also: <span className="font-mono">{docs.brennerExample.quoteSection}</span> in
+                the corpus
               </p>
             )}
           </div>
@@ -358,7 +339,7 @@ export function OperatorHelp({
             type="button"
             className={cn(
               "flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors",
-              className
+              className,
             )}
           >
             <HelpCircle className="size-4" />
@@ -380,7 +361,7 @@ export function OperatorHelp({
                 operatorType === "level_split" && "bg-blue-500/10 text-blue-500",
                 operatorType === "exclusion_test" && "bg-green-500/10 text-green-500",
                 operatorType === "object_transpose" && "bg-purple-500/10 text-purple-500",
-                operatorType === "scale_check" && "bg-orange-500/10 text-orange-500"
+                operatorType === "scale_check" && "bg-orange-500/10 text-orange-500",
               )}
             >
               {metadata.symbol}
@@ -393,10 +374,7 @@ export function OperatorHelp({
         </DialogHeader>
 
         <DialogBody scrollable>
-          <OperatorHelpPanel
-            operatorType={operatorType}
-            currentStepId={currentStepId}
-          />
+          <OperatorHelpPanel operatorType={operatorType} currentStepId={currentStepId} />
         </DialogBody>
       </DialogContent>
     </Dialog>

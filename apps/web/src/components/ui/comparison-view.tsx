@@ -6,7 +6,11 @@ import { cn } from "@/lib/utils";
 function SparkleIcon() {
   return (
     <svg className="size-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" />
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z"
+      />
     </svg>
   );
 }
@@ -25,11 +29,7 @@ interface ComparisonViewProps {
   syncScroll?: boolean;
 }
 
-export function ComparisonView({
-  panes,
-  className,
-  syncScroll = true,
-}: ComparisonViewProps) {
+export function ComparisonView({ panes, className, syncScroll = true }: ComparisonViewProps) {
   const [syncing, setSyncing] = React.useState(false);
   const contentRefs = React.useRef<(HTMLDivElement | null)[]>([]);
   const isScrolling = React.useRef(false);
@@ -99,21 +99,12 @@ export function ComparisonView({
           {/* Header */}
           <div
             className="comparison-header"
-            style={
-              pane.color
-                ? ({ "--pane-color": pane.color } as React.CSSProperties)
-                : undefined
-            }
+            style={pane.color ? ({ "--pane-color": pane.color } as React.CSSProperties) : undefined}
           >
-            {pane.icon && (
-              <span className="size-5 text-muted-foreground">{pane.icon}</span>
-            )}
+            {pane.icon && <span className="size-5 text-muted-foreground">{pane.icon}</span>}
             <h3 className="font-semibold">{pane.title}</h3>
             {pane.color && (
-              <span
-                className="ml-auto size-3 rounded-full"
-                style={{ background: pane.color }}
-              />
+              <span className="ml-auto size-3 rounded-full" style={{ background: pane.color }} />
             )}
           </div>
 
@@ -131,11 +122,7 @@ export function ComparisonView({
 
       {/* Sync indicator */}
       {syncScroll && (
-        <div
-          className={cn("comparison-sync-indicator", syncing && "visible")}
-        >
-          Syncing scroll
-        </div>
+        <div className={cn("comparison-sync-indicator", syncing && "visible")}>Syncing scroll</div>
       )}
     </div>
   );
@@ -171,7 +158,7 @@ export function ModelBadge({
       className={cn(
         "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium",
         badgeClass,
-        className
+        className,
       )}
     >
       {label}
@@ -256,9 +243,7 @@ export function ThreeModelComparison({
             style={{ background: "oklch(0.58 0.19 195)" }}
           />
         </div>
-        <div className="comparison-content prose prose-sm">
-          {gemini}
-        </div>
+        <div className="comparison-content prose prose-sm">{gemini}</div>
       </div>
     </div>
   );

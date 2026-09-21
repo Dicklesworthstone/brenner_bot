@@ -11,18 +11,18 @@
  * @see brenner_bot-oful (Test Logging: Structured Logging for Unit Tests)
  */
 
-import { describe, expect, it, beforeEach, afterEach, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
-  createTestLogger,
-  getLogBuffer,
-  getLogBufferByCategory,
   clearLogBuffer,
+  createLoggingFetch,
+  createTestLogger,
   formatLogBuffer,
   formatLogBufferAsJson,
+  getLogBuffer,
+  getLogBufferByCategory,
   getLogSummary,
-  createLoggingFetch,
-  withStep,
   LogCategories,
+  withStep,
 } from "./logging";
 
 describe("Test Logging Utilities", () => {
@@ -304,7 +304,9 @@ describe("Test Logging Utilities", () => {
       if (!errorEntry) {
         throw new Error("Expected error log entry to be present");
       }
-      const errorData = errorEntry.data as { error: { name: string; message: string; stack?: string } };
+      const errorData = errorEntry.data as {
+        error: { name: string; message: string; stack?: string };
+      };
       expect(errorData.error.name).toBe("TestError");
       expect(errorData.error.message).toBe("Serialization test");
       expect(errorData.error.stack).toBeDefined();
@@ -335,7 +337,7 @@ describe("Test Logging Utilities", () => {
       await expect(
         withStep(log, "Failing operation", async () => {
           throw new Error("Intentional failure");
-        })
+        }),
       ).rejects.toThrow("Intentional failure");
 
       const entries = getLogBuffer();
@@ -353,7 +355,7 @@ describe("Test Logging Utilities", () => {
       await expect(
         withStep(log, "Failing step", async () => {
           throw testError;
-        })
+        }),
       ).rejects.toThrow("Step failure");
 
       const entries = getLogBuffer();
@@ -364,7 +366,9 @@ describe("Test Logging Utilities", () => {
       if (!errorEntry) {
         throw new Error("Expected error log entry to be present");
       }
-      const errorData = errorEntry.data as { error: { name: string; message: string; stack?: string } };
+      const errorData = errorEntry.data as {
+        error: { name: string; message: string; stack?: string };
+      };
       expect(errorData.error.name).toBe("StepError");
       expect(errorData.error.message).toBe("Step failure");
       expect(errorData.error.stack).toBeDefined();

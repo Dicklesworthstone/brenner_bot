@@ -179,11 +179,26 @@ export const SOCIAL_COMMUNITY_TOXICITY_EXAMPLE = {
   researchQuestion:
     "Why do some online communities spiral into harassment and chronic conflict while others remain constructive? We want quasi-experimental tests that discriminate enforcement failure, selection/composition, and platform amplification mechanisms.",
   excerpt: [
-    { anchor: "§89", note: "Exclusion: prefer natural experiments and discriminative comparisons." },
-    { anchor: "§161", note: "Mechanism over correlation: specify causal pathways (payoffs, churn, exposure)." },
-    { anchor: "§147", note: "Level split: individual traits vs group norms vs platform incentives." },
-    { anchor: "domain", note: "Use interrupted time series, matched controls, and cross-platform comparisons." },
-    { anchor: "domain", note: "Separate production of toxic posts from exposure/visibility in the feed." },
+    {
+      anchor: "§89",
+      note: "Exclusion: prefer natural experiments and discriminative comparisons.",
+    },
+    {
+      anchor: "§161",
+      note: "Mechanism over correlation: specify causal pathways (payoffs, churn, exposure).",
+    },
+    {
+      anchor: "§147",
+      note: "Level split: individual traits vs group norms vs platform incentives.",
+    },
+    {
+      anchor: "domain",
+      note: "Use interrupted time series, matched controls, and cross-platform comparisons.",
+    },
+    {
+      anchor: "domain",
+      note: "Separate production of toxic posts from exposure/visibility in the feed.",
+    },
   ],
   artifact: SOCIAL_COMMUNITY_TOXICITY_ARTIFACT,
   operatorAnnotations: [
@@ -214,4 +229,3 @@ export const SOCIAL_COMMUNITY_TOXICITY_EXAMPLE = {
     "The critique insists on separating exposure from production — a common confound in online systems.",
   ],
 } satisfies TutorialDomainExample;
-

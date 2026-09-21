@@ -13,21 +13,21 @@
  * @see brenner_bot-an1n.7 (bead)
  */
 
+import { AnimatePresence, motion } from "framer-motion";
 import * as React from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import type { HypothesisCard } from "@/lib/brenner-loop/hypothesis";
 import type { EvidenceEntry } from "@/lib/brenner-loop/evidence";
 import {
-  type DeathType,
-  type FalsificationLearning,
-  DEATH_TYPE_LABELS,
   DEATH_TYPE_DESCRIPTIONS,
   DEATH_TYPE_ICONS,
+  DEATH_TYPE_LABELS,
+  type DeathType,
+  type FalsificationLearning,
   getRandomBrennerQuote,
 } from "@/lib/brenner-loop/graveyard";
+import type { HypothesisCard } from "@/lib/brenner-loop/hypothesis";
+import { cn } from "@/lib/utils";
 
 // ============================================================================
 // Types
@@ -63,8 +63,18 @@ type CeremonyStep = "acknowledge" | "classify" | "learn" | "epitaph" | "complete
 
 function GravestoneIcon({ className }: { className?: string }) {
   return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M12 2C8 2 5 5 5 8v14h14V8c0-3-3-6-7-6z" />
+    <svg
+      className={className}
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+      strokeWidth={1.5}
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M12 2C8 2 5 5 5 8v14h14V8c0-3-3-6-7-6z"
+      />
       <path strokeLinecap="round" strokeLinejoin="round" d="M9 9h6M9 12h6M9 15h4" />
     </svg>
   );
@@ -72,7 +82,13 @@ function GravestoneIcon({ className }: { className?: string }) {
 
 function ChevronRightIcon({ className }: { className?: string }) {
   return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+    <svg
+      className={className}
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+      strokeWidth={2}
+    >
       <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
     </svg>
   );
@@ -80,7 +96,13 @@ function ChevronRightIcon({ className }: { className?: string }) {
 
 function ChevronLeftIcon({ className }: { className?: string }) {
   return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+    <svg
+      className={className}
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+      strokeWidth={2}
+    >
       <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
     </svg>
   );
@@ -111,9 +133,7 @@ function StepAcknowledge({ hypothesis, killingBlow, onNext, onCancel }: StepAckn
           <GravestoneIcon className="size-8 text-destructive" />
         </div>
         <h2 className="text-xl font-semibold text-foreground">Hypothesis Falsified</h2>
-        <p className="text-muted-foreground mt-1">
-          This is not a failure. This is progress.
-        </p>
+        <p className="text-muted-foreground mt-1">This is not a failure. This is progress.</p>
       </div>
 
       {/* The hypothesis */}
@@ -129,9 +149,7 @@ function StepAcknowledge({ hypothesis, killingBlow, onNext, onCancel }: StepAckn
         <CardContent className="pt-6">
           <p className="text-sm text-muted-foreground mb-2">The Killing Blow</p>
           <p className="font-medium text-foreground">{killingBlow.observation}</p>
-          <p className="text-sm text-muted-foreground mt-2">
-            Test: {killingBlow.test.description}
-          </p>
+          <p className="text-sm text-muted-foreground mt-2">Test: {killingBlow.test.description}</p>
         </CardContent>
       </Card>
 
@@ -202,7 +220,7 @@ function StepClassify({
               "flex items-start gap-4 p-4 rounded-xl border text-left transition-all",
               deathType === type
                 ? "border-primary bg-primary/5 ring-2 ring-primary/20"
-                : "border-border hover:border-primary/30"
+                : "border-border hover:border-primary/30",
             )}
           >
             <span className="text-2xl">{DEATH_TYPE_ICONS[type]}</span>
@@ -307,9 +325,7 @@ function StepLearn({
     >
       <div>
         <h2 className="text-xl font-semibold text-foreground">What did we learn?</h2>
-        <p className="text-muted-foreground mt-1">
-          Extract maximum value from this falsification.
-        </p>
+        <p className="text-muted-foreground mt-1">Extract maximum value from this falsification.</p>
       </div>
 
       {/* Lessons Learned */}
@@ -558,9 +574,9 @@ export function FalsificationCeremony({
                 "size-3 rounded-full transition-colors",
                 step === s
                   ? "bg-primary"
-                  : (["acknowledge", "classify", "learn", "epitaph"].indexOf(step) > i)
+                  : ["acknowledge", "classify", "learn", "epitaph"].indexOf(step) > i
                     ? "bg-primary/50"
-                    : "bg-muted"
+                    : "bg-muted",
               )}
             />
             {i < 3 && <div className="w-8 h-0.5 bg-muted" />}

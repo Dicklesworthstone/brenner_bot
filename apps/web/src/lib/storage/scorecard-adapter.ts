@@ -12,19 +12,23 @@
  */
 
 import type {
-  SessionData,
-  HypothesisTransition,
-} from "../schemas/scorecard";
-import type { Artifact, AssumptionItem, AnomalyItem, CritiqueItem, HypothesisItem, TestItem } from "../artifact-merge";
-import type { Assumption } from "../schemas/assumption";
+  AnomalyItem,
+  Artifact,
+  AssumptionItem,
+  CritiqueItem,
+  HypothesisItem,
+  TestItem,
+} from "../artifact-merge";
 import type { Anomaly } from "../schemas/anomaly";
+import type { Assumption } from "../schemas/assumption";
 import type { Critique } from "../schemas/critique";
 import type { Hypothesis } from "../schemas/hypothesis";
+import type { HypothesisTransition, SessionData } from "../schemas/scorecard";
 import type { TestRecord } from "../schemas/test-record";
-import { HypothesisStorage } from "./hypothesis-storage";
-import { AssumptionStorage } from "./assumption-storage";
 import { AnomalyStorage } from "./anomaly-storage";
+import { AssumptionStorage } from "./assumption-storage";
 import { CritiqueStorage } from "./critique-storage";
+import { HypothesisStorage } from "./hypothesis-storage";
 import { TestStorage } from "./test-storage";
 
 // ============================================================================
@@ -56,7 +60,14 @@ export function assumptionToArtifactItem(a: Assumption): AssumptionItem {
     statement: a.statement,
     load: a.load.affectedHypotheses.join(", "),
     test: a.testMethod ?? "",
-    status: a.status === "unchecked" ? "unchecked" : a.status === "verified" ? "verified" : a.status === "falsified" ? "falsified" : undefined,
+    status:
+      a.status === "unchecked"
+        ? "unchecked"
+        : a.status === "verified"
+          ? "verified"
+          : a.status === "falsified"
+            ? "falsified"
+            : undefined,
     scale_check: a.type === "scale_physics",
     calculation: a.calculation?.result,
     implication: a.calculation?.implication,
@@ -90,10 +101,10 @@ export function anomalyToArtifactItem(a: Anomaly): AnomalyItem {
  */
 export function critiqueToArtifactItem(c: Critique): CritiqueItem {
   // Check if proposed alternative suggests a third alternative via category/origin indicators
-  const hasThirdAlt = c.proposedAlternative && (
-    c.proposedAlternative.description?.toLowerCase().includes("third alternative") ||
-    c.proposedAlternative.description?.toLowerCase().includes("orthogonal")
-  );
+  const hasThirdAlt =
+    c.proposedAlternative &&
+    (c.proposedAlternative.description?.toLowerCase().includes("third alternative") ||
+      c.proposedAlternative.description?.toLowerCase().includes("orthogonal"));
 
   return {
     id: c.id,
@@ -102,10 +113,16 @@ export function critiqueToArtifactItem(c: Critique): CritiqueItem {
     evidence: c.evidenceToConfirm ?? "",
     // Map critique status: active, addressed, dismissed, accepted
     // "accepted" means changes were made, so map to "addressed" (not "dismissed")
-    current_status: c.status === "active" ? "active" :
-                    (c.status === "addressed" || c.status === "accepted") ? "addressed" : "dismissed",
+    current_status:
+      c.status === "active"
+        ? "active"
+        : c.status === "addressed" || c.status === "accepted"
+          ? "addressed"
+          : "dismissed",
     ...(hasThirdAlt && { real_third_alternative: true }),
-    ...(c.proposedAlternative?.description && { proposed_alternative: c.proposedAlternative.description }),
+    ...(c.proposedAlternative?.description && {
+      proposed_alternative: c.proposedAlternative.description,
+    }),
   };
 }
 
@@ -139,7 +156,9 @@ export function testToArtifactItem(t: TestRecord): TestItem {
   // Map TestRecord status to artifact TestStatus
   // TestRecord: designed, ready, in_progress, completed, blocked, abandoned
   // TestItem: untested, passed, failed, blocked, error
-  const mapStatus = (s: string | undefined): "untested" | "passed" | "failed" | "blocked" | "error" | undefined => {
+  const mapStatus = (
+    s: string | undefined,
+  ): "untested" | "passed" | "failed" | "blocked" | "error" | undefined => {
     if (!s) return undefined;
     switch (s) {
       case "designed":
@@ -270,7 +289,7 @@ export class ScorecardAdapter {
       assumptions,
       anomalies,
       critiques,
-      tests
+      tests,
     );
 
     // Extract hypothesis transitions for kill rate scoring
@@ -296,7 +315,7 @@ export class ScorecardAdapter {
     anomalies: Anomaly[],
     critiques: Critique[],
     tests: TestRecord[],
-    researchQuestion?: string
+    researchQuestion?: string,
   ): SessionData {
     const artifact = this.buildArtifactFromStorage(
       sessionId,
@@ -304,7 +323,7 @@ export class ScorecardAdapter {
       assumptions,
       anomalies,
       critiques,
-      tests
+      tests,
     );
 
     const hypothesisTransitions = extractHypothesisTransitions(hypotheses);
@@ -326,7 +345,7 @@ export class ScorecardAdapter {
     assumptions: Assumption[],
     anomalies: Anomaly[],
     critiques: Critique[],
-    tests: TestRecord[]
+    tests: TestRecord[],
   ): Artifact {
     return {
       metadata: {
@@ -358,25 +377,24 @@ export class ScorecardAdapter {
    *
    * Useful for program-level scorecard dimensions.
    */
-  async buildProgramSessionData(sessionIds: string[], researchQuestion?: string): Promise<SessionData> {
+  async buildProgramSessionData(
+    sessionIds: string[],
+    researchQuestion?: string,
+  ): Promise<SessionData> {
     // Handle empty sessionIds gracefully
     if (sessionIds.length === 0) {
-      return this.buildSessionDataFromLoaded(
-        "program-empty",
-        [], [], [], [], [],
-        researchQuestion
-      );
+      return this.buildSessionDataFromLoaded("program-empty", [], [], [], [], [], researchQuestion);
     }
 
     // Load all sessions in parallel for efficiency
-    const sessionDataPromises = sessionIds.map(sessionId =>
+    const sessionDataPromises = sessionIds.map((sessionId) =>
       Promise.all([
         this.hypothesisStorage.loadSessionHypotheses(sessionId),
         this.assumptionStorage.loadSessionAssumptions(sessionId),
         this.anomalyStorage.loadSessionAnomalies(sessionId),
         this.critiqueStorage.loadSessionCritiques(sessionId),
         this.testStorage.loadSessionTests(sessionId),
-      ])
+      ]),
     );
 
     const allSessionData = await Promise.all(sessionDataPromises);
@@ -397,9 +415,8 @@ export class ScorecardAdapter {
     }
 
     // Use aggregated session ID
-    const aggregatedSessionId = sessionIds.length === 1
-      ? sessionIds[0]
-      : `program-${sessionIds[0]}-${sessionIds.length}`;
+    const aggregatedSessionId =
+      sessionIds.length === 1 ? sessionIds[0] : `program-${sessionIds[0]}-${sessionIds.length}`;
 
     return this.buildSessionDataFromLoaded(
       aggregatedSessionId,
@@ -408,7 +425,7 @@ export class ScorecardAdapter {
       allAnomalies,
       allCritiques,
       allTests,
-      researchQuestion
+      researchQuestion,
     );
   }
 }

@@ -1,12 +1,12 @@
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
 import {
-  composeExcerpt,
-  parseExcerpt,
-  extractAnchorsFromExcerpt,
-  parseSectionIds,
-  buildExcerptFromSections,
   buildExcerptFromSearchHits,
+  buildExcerptFromSections,
+  composeExcerpt,
   type ExcerptSection,
+  extractAnchorsFromExcerpt,
+  parseExcerpt,
+  parseSectionIds,
 } from "./excerpt-builder";
 import type { ParsedTranscript } from "./transcript-parser";
 
@@ -14,7 +14,8 @@ describe("composeExcerpt", () => {
   const testSections: ExcerptSection[] = [
     {
       anchor: "§42",
-      quote: "The question is not whether you can do the experiment, but whether it will tell you anything.",
+      quote:
+        "The question is not whether you can do the experiment, but whether it will tell you anything.",
       title: "On Discriminative Tests",
     },
     {
@@ -58,9 +59,7 @@ describe("composeExcerpt", () => {
     });
 
     expect(result.anchors).toEqual(["§42", "§100"]);
-    expect(result.markdown.indexOf("§42")).toBeLessThan(
-      result.markdown.indexOf("§100")
-    );
+    expect(result.markdown.indexOf("§42")).toBeLessThan(result.markdown.indexOf("§100"));
   });
 
   it("warns when fewer than 2 sections", () => {
@@ -68,9 +67,7 @@ describe("composeExcerpt", () => {
       sections: [{ anchor: "§42", quote: "Single quote." }],
     });
 
-    expect(result.warnings).toContain(
-      "Excerpt has fewer than 2 sections (has 1)"
-    );
+    expect(result.warnings).toContain("Excerpt has fewer than 2 sections (has 1)");
   });
 
   it("warns when more than 7 sections", () => {
@@ -81,9 +78,7 @@ describe("composeExcerpt", () => {
 
     const result = composeExcerpt({ sections: manySections });
 
-    expect(result.warnings).toContain(
-      "Excerpt has more than 7 sections (has 8)"
-    );
+    expect(result.warnings).toContain("Excerpt has more than 7 sections (has 8)");
   });
 
   it("warns on invalid anchor format", () => {
@@ -362,9 +357,7 @@ describe("buildExcerptFromSections", () => {
     });
 
     expect(result.anchors).toEqual(["§42", "§58"]);
-    expect(result.markdown.indexOf("§42")).toBeLessThan(
-      result.markdown.indexOf("§58")
-    );
+    expect(result.markdown.indexOf("§42")).toBeLessThan(result.markdown.indexOf("§58"));
   });
 });
 

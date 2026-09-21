@@ -8,8 +8,8 @@
  * @see @/components/ui/animated-counter.tsx
  */
 
-import { render, screen, act, waitFor } from "@testing-library/react";
-import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
+import { act, render, screen, waitFor } from "@testing-library/react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { AnimatedCounter } from "./animated-counter";
 
 // ============================================================================
@@ -272,9 +272,7 @@ describe("AnimatedCounter", () => {
 
   describe("value prop changes", () => {
     it("re-animates when value changes after initial animation", async () => {
-      const { rerender } = render(
-        <AnimatedCounter value={50} duration={50} />
-      );
+      const { rerender } = render(<AnimatedCounter value={50} duration={50} />);
 
       // Complete first animation
       await act(async () => {

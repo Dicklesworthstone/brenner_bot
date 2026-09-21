@@ -673,19 +673,11 @@ const genericTemplates: HypothesisTemplate[] = [
     template: {
       statement: "[Your hypothesis here]",
       mechanism: "[How would this work? What's the causal pathway?]",
-      predictionsIfTrue: [
-        "[What would you expect to observe if this is true?]",
-      ],
-      predictionsIfFalse: [
-        "[What would you expect if this is false?]",
-      ],
-      impossibleIfTrue: [
-        "[What observation would definitively rule this out?]",
-      ],
+      predictionsIfTrue: ["[What would you expect to observe if this is true?]"],
+      predictionsIfFalse: ["[What would you expect if this is false?]"],
+      impossibleIfTrue: ["[What observation would definitively rule this out?]"],
       confounds: [],
-      assumptions: [
-        "[What are you assuming is true?]",
-      ],
+      assumptions: ["[What are you assuming is true?]"],
       suggestedConfidence: 50,
     },
   },
@@ -765,7 +757,7 @@ export const HYPOTHESIS_TEMPLATES: HypothesisTemplate[] = [
  * Template lookup by ID.
  */
 export const TEMPLATE_BY_ID: Map<string, HypothesisTemplate> = new Map(
-  HYPOTHESIS_TEMPLATES.map((t) => [t.id, t])
+  HYPOTHESIS_TEMPLATES.map((t) => [t.id, t]),
 );
 
 /**
@@ -843,8 +835,8 @@ export function getTemplate(id: string): HypothesisTemplate | undefined {
  * @returns Array of templates in that domain
  */
 export function getTemplatesByDomain(domain: string): HypothesisTemplate[] {
-  return HYPOTHESIS_TEMPLATES.filter((t) =>
-    t.domains.includes(domain) || t.domains.includes("custom")
+  return HYPOTHESIS_TEMPLATES.filter(
+    (t) => t.domains.includes(domain) || t.domains.includes("custom"),
   );
 }
 
@@ -874,7 +866,7 @@ export function getTemplatesByTag(tag: string): HypothesisTemplate[] {
  * @returns Array of templates at that difficulty
  */
 export function getTemplatesByDifficulty(
-  difficulty: "beginner" | "intermediate" | "advanced"
+  difficulty: "beginner" | "intermediate" | "advanced",
 ): HypothesisTemplate[] {
   return HYPOTHESIS_TEMPLATES.filter((t) => t.difficulty === difficulty);
 }
@@ -892,7 +884,7 @@ export function searchTemplates(query: string): HypothesisTemplate[] {
       t.name.toLowerCase().includes(lowerQuery) ||
       t.description.toLowerCase().includes(lowerQuery) ||
       t.tags.some((tag) => tag.toLowerCase().includes(lowerQuery)) ||
-      t.template.statement.toLowerCase().includes(lowerQuery)
+      t.template.statement.toLowerCase().includes(lowerQuery),
   );
 }
 
@@ -902,9 +894,7 @@ export function searchTemplates(query: string): HypothesisTemplate[] {
  * @param template - The template to convert
  * @returns Partial HypothesisCard that can be passed to createHypothesisCard
  */
-export function templateToPartialCard(
-  template: HypothesisTemplate
-): Partial<HypothesisCard> {
+export function templateToPartialCard(template: HypothesisTemplate): Partial<HypothesisCard> {
   const content = template.template;
   return {
     statement: content.statement,

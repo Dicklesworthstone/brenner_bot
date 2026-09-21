@@ -21,7 +21,8 @@ describe("SessionActions", () => {
     const user = userEvent.setup();
 
     const fetchSpy = vi.fn(async (input: unknown, init?: RequestInit) => {
-      const url = typeof input === "string" ? input : String((input as { url?: unknown })?.url ?? "");
+      const url =
+        typeof input === "string" ? input : String((input as { url?: unknown })?.url ?? "");
       const bodyText = typeof init?.body === "string" ? init.body : "";
       const body = bodyText ? (JSON.parse(bodyText) as Record<string, unknown>) : {};
 
@@ -46,7 +47,7 @@ describe("SessionActions", () => {
             },
             resultFile: "/project/artifacts/TEST-1/experiments/T1/test.json",
           }),
-          { status: 200, headers: { "Content-Type": "application/json" } }
+          { status: 200, headers: { "Content-Type": "application/json" } },
         );
       }
 
@@ -58,13 +59,13 @@ describe("SessionActions", () => {
             threadId: body.threadId,
             messageId: 456,
           }),
-          { status: 200, headers: { "Content-Type": "application/json" } }
+          { status: 200, headers: { "Content-Type": "application/json" } },
         );
       }
 
       return new Response(
         JSON.stringify({ success: false, error: "Not found", code: "SERVER_ERROR" }),
-        { status: 404, headers: { "Content-Type": "application/json" } }
+        { status: 404, headers: { "Content-Type": "application/json" } },
       );
     });
 
@@ -76,7 +77,7 @@ describe("SessionActions", () => {
         projectKey="/project"
         defaultSender="Operator"
         defaultRecipients={["Claude"]}
-      />
+      />,
     );
 
     await user.click(screen.getByRole("button", { name: "Experiment panel" }));
@@ -105,7 +106,9 @@ describe("SessionActions", () => {
     expect(actionCall).toBeDefined();
 
     const actionBodyText = typeof actionCall?.[1]?.body === "string" ? actionCall[1].body : "";
-    const actionBody = actionBodyText ? (JSON.parse(actionBodyText) as Record<string, unknown>) : {};
+    const actionBody = actionBodyText
+      ? (JSON.parse(actionBodyText) as Record<string, unknown>)
+      : {};
     expect(actionBody).toMatchObject({
       action: "post_delta",
       threadId: "TEST-1",
@@ -120,7 +123,8 @@ describe("SessionActions", () => {
 
     let experimentCalls = 0;
     const fetchSpy = vi.fn(async (input: unknown, init?: RequestInit) => {
-      const url = typeof input === "string" ? input : String((input as { url?: unknown })?.url ?? "");
+      const url =
+        typeof input === "string" ? input : String((input as { url?: unknown })?.url ?? "");
       const bodyText = typeof init?.body === "string" ? init.body : "";
       const body = bodyText ? (JSON.parse(bodyText) as Record<string, unknown>) : {};
 
@@ -148,26 +152,31 @@ describe("SessionActions", () => {
               },
               resultFile: "/project/artifacts/TEST-1/experiments/T1/test.json",
             }),
-            { status: 200, headers: { "Content-Type": "application/json" } }
+            { status: 200, headers: { "Content-Type": "application/json" } },
           );
         }
 
         return new Response(
           JSON.stringify({ success: false, error: "Experiment failed", code: "SERVER_ERROR" }),
-          { status: 500, headers: { "Content-Type": "application/json" } }
+          { status: 500, headers: { "Content-Type": "application/json" } },
         );
       }
 
       if (url === "/api/sessions/actions") {
         return new Response(
-          JSON.stringify({ success: true, action: "post_delta", threadId: body.threadId, messageId: 1 }),
-          { status: 200, headers: { "Content-Type": "application/json" } }
+          JSON.stringify({
+            success: true,
+            action: "post_delta",
+            threadId: body.threadId,
+            messageId: 1,
+          }),
+          { status: 200, headers: { "Content-Type": "application/json" } },
         );
       }
 
       return new Response(
         JSON.stringify({ success: false, error: "Not found", code: "SERVER_ERROR" }),
-        { status: 404, headers: { "Content-Type": "application/json" } }
+        { status: 404, headers: { "Content-Type": "application/json" } },
       );
     });
 
@@ -179,7 +188,7 @@ describe("SessionActions", () => {
         projectKey="/project"
         defaultSender="Operator"
         defaultRecipients={["Claude"]}
-      />
+      />,
     );
 
     await user.click(screen.getByRole("button", { name: "Experiment panel" }));
@@ -215,7 +224,8 @@ describe("SessionActions", () => {
     const user = userEvent.setup();
 
     const fetchSpy = vi.fn(async (input: unknown, init?: RequestInit) => {
-      const url = typeof input === "string" ? input : String((input as { url?: unknown })?.url ?? "");
+      const url =
+        typeof input === "string" ? input : String((input as { url?: unknown })?.url ?? "");
       const bodyText = typeof init?.body === "string" ? init.body : "";
       const body = bodyText ? (JSON.parse(bodyText) as Record<string, unknown>) : {};
 
@@ -240,7 +250,7 @@ describe("SessionActions", () => {
             },
             resultFile: "/project/artifacts/TEST-1/experiments/T1/test.json",
           }),
-          { status: 200, headers: { "Content-Type": "application/json" } }
+          { status: 200, headers: { "Content-Type": "application/json" } },
         );
       }
 
@@ -248,19 +258,24 @@ describe("SessionActions", () => {
         if (body.action === "compile") {
           return new Response(
             JSON.stringify({ success: false, error: "Compile failed", code: "SERVER_ERROR" }),
-            { status: 500, headers: { "Content-Type": "application/json" } }
+            { status: 500, headers: { "Content-Type": "application/json" } },
           );
         }
 
         return new Response(
-          JSON.stringify({ success: true, action: "post_delta", threadId: body.threadId, messageId: 1 }),
-          { status: 200, headers: { "Content-Type": "application/json" } }
+          JSON.stringify({
+            success: true,
+            action: "post_delta",
+            threadId: body.threadId,
+            messageId: 1,
+          }),
+          { status: 200, headers: { "Content-Type": "application/json" } },
         );
       }
 
       return new Response(
         JSON.stringify({ success: false, error: "Not found", code: "SERVER_ERROR" }),
-        { status: 404, headers: { "Content-Type": "application/json" } }
+        { status: 404, headers: { "Content-Type": "application/json" } },
       );
     });
 
@@ -272,7 +287,7 @@ describe("SessionActions", () => {
         projectKey="/project"
         defaultSender="Operator"
         defaultRecipients={["Claude"]}
-      />
+      />,
     );
 
     await user.click(screen.getByRole("button", { name: "Experiment panel" }));

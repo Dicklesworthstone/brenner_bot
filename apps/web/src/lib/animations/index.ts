@@ -31,56 +31,47 @@
 // ============================================================================
 
 export {
-  // Timing constants
-  TIMING,
+  // Accordion
+  accordionContent,
+  // Modal/overlay animations
+  backdrop,
+  blurIn,
+  bottomSheet,
+  buttonHover,
+  buttonTap,
+  // Hover/tap states
+  cardHover,
   EASING,
-  transitions,
-
+  fadeIn,
+  // Exit animations
+  fadeOut,
   // Entry animations
   fadeUp,
-  fadeIn,
-  scaleIn,
+  iconHover,
+  modalContent,
+  // Page transitions
+  pageFade,
+  pageSlideUp,
   popIn,
-  slideInRight,
+  scaleIn,
+  scaleOut,
+  // Loading states
+  skeletonShimmer,
   slideInLeft,
-  blurIn,
-
+  slideInRight,
+  slideOutDown,
+  spinner,
   // Stagger containers
   staggerContainer,
   staggerFast,
   staggerNormal,
   staggerSlow,
-
-  // Hover/tap states
-  cardHover,
-  buttonHover,
-  buttonTap,
-  iconHover,
-
-  // Exit animations
-  fadeOut,
-  scaleOut,
-  slideOutDown,
-
-  // Page transitions
-  pageFade,
-  pageSlideUp,
-
-  // Modal/overlay animations
-  backdrop,
-  modalContent,
-  bottomSheet,
-
-  // Accordion
-  accordionContent,
-
-  // Loading states
-  skeletonShimmer,
-  spinner,
-
+  // Timing constants
+  TIMING,
+  transitions,
+  viewport,
   // Utilities
   withDelay,
-  viewport,
 } from "./motion-variants";
 
 // ============================================================================
@@ -88,24 +79,20 @@ export {
 // ============================================================================
 
 export {
-  // Reduced motion
-  useReducedMotion,
   useAnimationPreference,
-
-  // Parallax & scroll
-  useParallax,
-  useScrollProgress,
-  useScrollVisibility,
-  useScrollVelocity,
-
-  // Stagger
-  useStaggerDelays,
-
-  // Intersection
-  useIntersectionAnimation,
-
   // Hover
   useHoverState,
+  // Intersection
+  useIntersectionAnimation,
+  // Parallax & scroll
+  useParallax,
+  // Reduced motion
+  useReducedMotion,
+  useScrollProgress,
+  useScrollVelocity,
+  useScrollVisibility,
+  // Stagger
+  useStaggerDelays,
 } from "./hooks";
 
 // ============================================================================
@@ -115,22 +102,18 @@ export {
 export {
   // Scroll-reveal
   AnimateOnScroll,
-  StaggerChildren,
-
-  // Parallax
-  Parallax,
-
-  // Interactive elements
-  InteractiveCard,
-  InteractiveButton,
-  InteractiveIcon,
-
-  // Presence
-  PresenceAnimation,
-
   // Types
   type AnimateOnScrollProps,
-  type StaggerChildrenProps,
-  type ParallaxProps,
   type AnimationVariant,
+  InteractiveButton,
+  // Interactive elements
+  InteractiveCard,
+  InteractiveIcon,
+  // Parallax
+  Parallax,
+  type ParallaxProps,
+  // Presence
+  PresenceAnimation,
+  StaggerChildren,
+  type StaggerChildrenProps,
 } from "./components";

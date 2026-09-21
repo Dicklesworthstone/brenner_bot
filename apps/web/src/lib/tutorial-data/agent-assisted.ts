@@ -10,10 +10,10 @@
  */
 
 import type {
-  TutorialStep,
-  TroubleshootingItem,
   CheckpointData,
   CodeBlockData,
+  TroubleshootingItem,
+  TutorialStep,
 } from "@/lib/tutorial-types";
 
 // ============================================================================
@@ -494,8 +494,7 @@ export const AA_CHECKPOINTS: Record<string, CheckpointData> = {
       "Verified understanding of the four cognitive operators",
       "Confirmed agent can explain discriminative vs confirmation-seeking experiments",
     ],
-    nextPreview:
-      "Next, you'll define your research problem and have the agent help refine it.",
+    nextPreview: "Next, you'll define your research problem and have the agent help refine it.",
   },
 
   step8: {
@@ -574,10 +573,8 @@ export const REVIEW_CHECKLIST_GROUPS: ChecklistGroup[] = [
     items: [
       {
         id: "assumptions-complete",
-        label:
-          "Assumption ledger includes theoretical + methodological + background assumptions",
-        fixHint:
-          "Ask for three buckets and ensure at least 3–5 assumptions per hypothesis.",
+        label: "Assumption ledger includes theoretical + methodological + background assumptions",
+        fixHint: "Ask for three buckets and ensure at least 3–5 assumptions per hypothesis.",
       },
       {
         id: "scale-check",
@@ -593,8 +590,7 @@ export const REVIEW_CHECKLIST_GROUPS: ChecklistGroup[] = [
       {
         id: "critique-framing",
         label: "Adversarial critique attacks the framing (not just details)",
-        fixHint:
-          "Ask for 1–2 alternative framings and why your current framing might be wrong.",
+        fixHint: "Ask for 1–2 alternative framings and why your current framing might be wrong.",
       },
       {
         id: "next-steps",
@@ -609,9 +605,7 @@ export const REVIEW_CHECKLIST_GROUPS: ChecklistGroup[] = [
 /**
  * All checklist items flattened for iteration.
  */
-export const ALL_CHECKLIST_ITEMS: ChecklistItem[] = REVIEW_CHECKLIST_GROUPS.flatMap(
-  (g) => g.items
-);
+export const ALL_CHECKLIST_ITEMS: ChecklistItem[] = REVIEW_CHECKLIST_GROUPS.flatMap((g) => g.items);
 
 // ============================================================================
 // Verification Questions (Step 4)
@@ -926,16 +920,7 @@ export const AA_NEXT_STEPS = [
  * Get all Agent-Assisted steps in order.
  */
 export function getAllAgentAssistedSteps(): AgentAssistedStepData[] {
-  return [
-    AA_STEP_1,
-    AA_STEP_2,
-    AA_STEP_3,
-    AA_STEP_4,
-    AA_STEP_5,
-    AA_STEP_6,
-    AA_STEP_7,
-    AA_STEP_8,
-  ];
+  return [AA_STEP_1, AA_STEP_2, AA_STEP_3, AA_STEP_4, AA_STEP_5, AA_STEP_6, AA_STEP_7, AA_STEP_8];
 }
 
 /**

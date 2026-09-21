@@ -10,11 +10,7 @@
  *      bun run scripts/check-jargon-health.ts --fix      # Show fix suggestions
  */
 
-import {
-  jargonDictionary,
-  getMatchableTerms,
-  type JargonCategory,
-} from "../src/lib/jargon";
+import { getMatchableTerms, type JargonCategory, jargonDictionary } from "../src/lib/jargon";
 
 // ============================================================================
 // Configuration
@@ -74,7 +70,7 @@ function addIssue(
   category: string,
   key: string,
   message: string,
-  fix?: string
+  fix?: string,
 ) {
   issues.push({ severity, category, key, message, fix });
 }
@@ -117,7 +113,7 @@ for (const [term, keys] of termToKeys) {
       "duplicates",
       keys.join(", "),
       `Duplicate display term "${term}"`,
-      `Remove one entry or differentiate their term.term values`
+      `Remove one entry or differentiate their term.term values`,
     );
   }
 }
@@ -135,7 +131,7 @@ for (const [key, term] of allEntries) {
           "references",
           key,
           `Invalid related reference: "${ref}"`,
-          `Remove "${ref}" or add it to the dictionary`
+          `Remove "${ref}" or add it to the dictionary`,
         );
       }
     }
@@ -158,7 +154,7 @@ for (const [key, term] of allEntries) {
         "style",
         key,
         "Contains em-dash (—)",
-        "Replace with semicolon, colon, or recast sentence"
+        "Replace with semicolon, colon, or recast sentence",
       );
       break;
     }
@@ -176,7 +172,7 @@ for (const [key, term] of allEntries) {
       "style",
       key,
       'Analogy starts with "Think of it like"',
-      "Remove prefix; start directly with the analogy"
+      "Remove prefix; start directly with the analogy",
     );
   }
 
@@ -188,7 +184,7 @@ for (const [key, term] of allEntries) {
         "style",
         key,
         `Contains condescending pattern: ${pattern.source}`,
-        "Rephrase for a sophisticated audience"
+        "Rephrase for a sophisticated audience",
       );
       break;
     }
@@ -206,14 +202,14 @@ for (const [key, term] of allEntries) {
       "info",
       "length",
       key,
-      `Short description too brief (${shortLen} chars, min ${SHORT_DESCRIPTION_MIN})`
+      `Short description too brief (${shortLen} chars, min ${SHORT_DESCRIPTION_MIN})`,
     );
   } else if (shortLen > SHORT_DESCRIPTION_MAX) {
     addIssue(
       "info",
       "length",
       key,
-      `Short description too long (${shortLen} chars, max ${SHORT_DESCRIPTION_MAX})`
+      `Short description too long (${shortLen} chars, max ${SHORT_DESCRIPTION_MAX})`,
     );
   }
 
@@ -223,14 +219,14 @@ for (const [key, term] of allEntries) {
       "info",
       "length",
       key,
-      `Long description too brief (${longLen} chars, min ${LONG_DESCRIPTION_MIN})`
+      `Long description too brief (${longLen} chars, min ${LONG_DESCRIPTION_MIN})`,
     );
   } else if (longLen > LONG_DESCRIPTION_MAX) {
     addIssue(
       "info",
       "length",
       key,
-      `Long description very long (${longLen} chars, max ${LONG_DESCRIPTION_MAX})`
+      `Long description very long (${longLen} chars, max ${LONG_DESCRIPTION_MAX})`,
     );
   }
 }
@@ -249,7 +245,7 @@ for (const [key, term] of allEntries) {
         "warning",
         "references",
         key,
-        `Invalid section reference §${sectionNum} (valid: ${SECTION_REF_MIN}-${SECTION_REF_MAX})`
+        `Invalid section reference §${sectionNum} (valid: ${SECTION_REF_MIN}-${SECTION_REF_MAX})`,
       );
     }
   }
@@ -267,14 +263,14 @@ for (const [key, term] of allEntries) {
         "info",
         "structure",
         key,
-        `Few related terms (${count}, recommend ${RELATED_MIN}-${RELATED_MAX})`
+        `Few related terms (${count}, recommend ${RELATED_MIN}-${RELATED_MAX})`,
       );
     } else if (count > RELATED_MAX) {
       addIssue(
         "info",
         "structure",
         key,
-        `Many related terms (${count}, recommend ${RELATED_MIN}-${RELATED_MAX})`
+        `Many related terms (${count}, recommend ${RELATED_MIN}-${RELATED_MAX})`,
       );
     }
   } else {
@@ -292,7 +288,7 @@ for (const key of allKeys) {
       "info",
       "connectivity",
       key,
-      "Orphaned: not referenced by any other term's related array"
+      "Orphaned: not referenced by any other term's related array",
     );
   }
 }
@@ -302,15 +298,12 @@ for (const key of allKeys) {
 // --------------------------------------------------------------------------
 
 for (const [key, term] of allEntries) {
-  if (
-    CATEGORIES_REQUIRING_WHY.includes(term.category) &&
-    !term.why
-  ) {
+  if (CATEGORIES_REQUIRING_WHY.includes(term.category) && !term.why) {
     addIssue(
       "info",
       "completeness",
       key,
-      `Missing "why" field (recommended for ${term.category} category)`
+      `Missing "why" field (recommended for ${term.category} category)`,
     );
   }
 }
@@ -326,7 +319,7 @@ for (const [key, term] of allEntries) {
       "structure",
       key,
       `Invalid category: "${term.category}"`,
-      `Use one of: ${VALID_CATEGORIES.join(", ")}`
+      `Use one of: ${VALID_CATEGORIES.join(", ")}`,
     );
   }
 }
@@ -345,7 +338,7 @@ for (const [key, term] of allEntries) {
           "connectivity",
           key,
           `Asymmetric link: ${key} → ${ref}, but ${ref} doesn't link back`,
-          `Add "${key}" to ${ref}'s related array`
+          `Add "${key}" to ${ref}'s related array`,
         );
       }
     }
@@ -469,13 +462,13 @@ const withRelated = allEntries.filter((entry) => entry[1].related).length;
 
 console.log("\n   Field coverage:");
 console.log(
-  `      with 'why': ${withWhy}/${allKeys.size} (${((withWhy / allKeys.size) * 100).toFixed(0)}%)`
+  `      with 'why': ${withWhy}/${allKeys.size} (${((withWhy / allKeys.size) * 100).toFixed(0)}%)`,
 );
 console.log(
-  `      with 'analogy': ${withAnalogy}/${allKeys.size} (${((withAnalogy / allKeys.size) * 100).toFixed(0)}%)`
+  `      with 'analogy': ${withAnalogy}/${allKeys.size} (${((withAnalogy / allKeys.size) * 100).toFixed(0)}%)`,
 );
 console.log(
-  `      with 'related': ${withRelated}/${allKeys.size} (${((withRelated / allKeys.size) * 100).toFixed(0)}%)`
+  `      with 'related': ${withRelated}/${allKeys.size} (${((withRelated / allKeys.size) * 100).toFixed(0)}%)`,
 );
 
 // ============================================================================

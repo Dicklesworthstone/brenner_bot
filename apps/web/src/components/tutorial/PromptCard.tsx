@@ -13,12 +13,12 @@
  * @see brenner_bot-u38r (Tutorial Content: Prompt Templates Library)
  */
 
+import { AnimatePresence, motion } from "framer-motion";
+import { AlertCircle, CheckCircle2, ChevronDown, Info } from "lucide-react";
 import * as React from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { ChevronDown, Info, CheckCircle2, AlertCircle } from "lucide-react";
-import { cn } from "@/lib/utils";
 import { CopyButton } from "@/components/ui/copy-button";
 import type { PromptTemplate, PromptVariable } from "@/lib/tutorial-data/prompts";
+import { cn } from "@/lib/utils";
 
 // ============================================================================
 // Types
@@ -114,7 +114,7 @@ export function PromptCard({
       className={cn(
         "rounded-xl border border-border bg-card overflow-hidden",
         "shadow-md transition-all duration-300 hover:shadow-lg hover:border-primary/30",
-        className
+        className,
       )}
     >
       {/* Header */}
@@ -248,7 +248,7 @@ export function PromptCard({
           className={cn(
             "flex items-center justify-between w-full px-4 py-3",
             "text-left transition-colors",
-            "hover:bg-muted/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
+            "hover:bg-muted/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset",
           )}
         >
           <div className="flex items-center gap-2 text-muted-foreground">
@@ -336,7 +336,7 @@ export function PromptListItem({ prompt, onClick, className }: PromptListItemPro
         "rounded-xl border border-border bg-card",
         "hover:border-primary/30 hover:shadow-md transition-all",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-        className
+        className,
       )}
     >
       <div className="flex-1 min-w-0">

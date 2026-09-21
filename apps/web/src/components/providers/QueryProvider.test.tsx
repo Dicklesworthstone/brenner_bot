@@ -8,10 +8,10 @@
  * - Query options configuration
  */
 
-import { describe, expect, it, beforeEach, afterEach, vi } from "vitest";
-import { render, screen } from "@testing-library/react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { QueryProvider, getQueryClient } from "./QueryProvider";
+import { render, screen } from "@testing-library/react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { getQueryClient, QueryProvider } from "./QueryProvider";
 
 // ============================================================================
 // Test Consumer Components
@@ -27,8 +27,12 @@ function QueryClientInspector() {
       <span data-testid="stale-time">{String(defaultOptions.queries?.staleTime)}</span>
       <span data-testid="gc-time">{String(defaultOptions.queries?.gcTime)}</span>
       <span data-testid="retry">{String(defaultOptions.queries?.retry)}</span>
-      <span data-testid="refetch-on-focus">{String(defaultOptions.queries?.refetchOnWindowFocus)}</span>
-      <span data-testid="refetch-on-reconnect">{String(defaultOptions.queries?.refetchOnReconnect)}</span>
+      <span data-testid="refetch-on-focus">
+        {String(defaultOptions.queries?.refetchOnWindowFocus)}
+      </span>
+      <span data-testid="refetch-on-reconnect">
+        {String(defaultOptions.queries?.refetchOnReconnect)}
+      </span>
       <span data-testid="refetch-on-mount">{String(defaultOptions.queries?.refetchOnMount)}</span>
     </div>
   );
@@ -69,7 +73,7 @@ describe("QueryProvider", () => {
     render(
       <QueryProvider>
         <SimpleChild />
-      </QueryProvider>
+      </QueryProvider>,
     );
 
     expect(screen.getByTestId("child-rendered")).toHaveTextContent("Hello");
@@ -79,7 +83,7 @@ describe("QueryProvider", () => {
     render(
       <QueryProvider>
         <QueryClientInspector />
-      </QueryProvider>
+      </QueryProvider>,
     );
 
     expect(screen.getByTestId("has-client")).toHaveTextContent("true");
@@ -89,7 +93,7 @@ describe("QueryProvider", () => {
     render(
       <QueryProvider>
         <QueryClientInspector />
-      </QueryProvider>
+      </QueryProvider>,
     );
 
     // 5 minutes = 300000ms
@@ -100,7 +104,7 @@ describe("QueryProvider", () => {
     render(
       <QueryProvider>
         <QueryClientInspector />
-      </QueryProvider>
+      </QueryProvider>,
     );
 
     // 30 minutes = 1800000ms
@@ -111,7 +115,7 @@ describe("QueryProvider", () => {
     render(
       <QueryProvider>
         <QueryClientInspector />
-      </QueryProvider>
+      </QueryProvider>,
     );
 
     expect(screen.getByTestId("retry")).toHaveTextContent("3");
@@ -121,7 +125,7 @@ describe("QueryProvider", () => {
     render(
       <QueryProvider>
         <QueryClientInspector />
-      </QueryProvider>
+      </QueryProvider>,
     );
 
     expect(screen.getByTestId("refetch-on-focus")).toHaveTextContent("false");
@@ -131,7 +135,7 @@ describe("QueryProvider", () => {
     render(
       <QueryProvider>
         <QueryClientInspector />
-      </QueryProvider>
+      </QueryProvider>,
     );
 
     expect(screen.getByTestId("refetch-on-reconnect")).toHaveTextContent("false");
@@ -141,7 +145,7 @@ describe("QueryProvider", () => {
     render(
       <QueryProvider>
         <QueryClientInspector />
-      </QueryProvider>
+      </QueryProvider>,
     );
 
     expect(screen.getByTestId("refetch-on-mount")).toHaveTextContent("false");
@@ -151,7 +155,7 @@ describe("QueryProvider", () => {
     render(
       <QueryProvider>
         <QueryUser queryKey="test-key" />
-      </QueryProvider>
+      </QueryProvider>,
     );
 
     // Initially loading

@@ -1,101 +1,171 @@
 import Link from "next/link";
-import { FeatureCard } from "@/components/ui/card";
-import { CopyButton } from "@/components/ui/copy-button";
+import { StatsSection } from "@/components/home/stats-section";
 import { Jargon } from "@/components/jargon";
 import { WhatIsThis } from "@/components/onboarding/WhatIsThis";
 import { HeroBackground } from "@/components/ui/animated-element";
-import { StatsSection } from "@/components/home/stats-section";
+import { FeatureCard } from "@/components/ui/card";
+import { CopyButton } from "@/components/ui/copy-button";
 
 // Icons
 const BookIcon = () => (
   <svg className="size-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" />
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25"
+    />
   </svg>
 );
 
 const SparklesIcon = () => (
   <svg className="size-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 001.423 1.423l1.183.394-1.183.394a2.25 2.25 0 00-1.423 1.423z" />
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 001.423 1.423l1.183.394-1.183.394a2.25 2.25 0 00-1.423 1.423z"
+    />
   </svg>
 );
 
 const BeakerIcon = () => (
   <svg className="size-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M9.75 3.104v5.714a2.25 2.25 0 01-.659 1.591L5 14.5M9.75 3.104c-.251.023-.501.05-.75.082m.75-.082a24.301 24.301 0 014.5 0m0 0v5.714c0 .597.237 1.17.659 1.591L19.8 15.3M14.25 3.104c.251.023.501.05.75.082M19.8 15.3l-1.57.393A9.065 9.065 0 0112 15a9.065 9.065 0 00-6.23.693L5 14.5m14.8.8l1.402 5.07a1.125 1.125 0 01-1.135 1.416H3.933a1.125 1.125 0 01-1.135-1.416L5 14.5" />
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M9.75 3.104v5.714a2.25 2.25 0 01-.659 1.591L5 14.5M9.75 3.104c-.251.023-.501.05-.75.082m.75-.082a24.301 24.301 0 014.5 0m0 0v5.714c0 .597.237 1.17.659 1.591L19.8 15.3M14.25 3.104c.251.023.501.05.75.082M19.8 15.3l-1.57.393A9.065 9.065 0 0112 15a9.065 9.065 0 00-6.23.693L5 14.5m14.8.8l1.402 5.07a1.125 1.125 0 01-1.135 1.416H3.933a1.125 1.125 0 01-1.135-1.416L5 14.5"
+    />
   </svg>
 );
 
 const PlayIcon = () => (
   <svg className="size-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.348a1.125 1.125 0 010 1.971l-11.54 6.347a1.125 1.125 0 01-1.667-.985V5.653z" />
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.348a1.125 1.125 0 010 1.971l-11.54 6.347a1.125 1.125 0 01-1.667-.985V5.653z"
+    />
   </svg>
 );
 
 const ArrowRightIcon = () => (
-  <svg className="size-4 transition-transform group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+  <svg
+    className="size-4 transition-transform group-hover:translate-x-1"
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+    strokeWidth={2}
+  >
     <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
   </svg>
 );
 
 const AcademicCapIcon = () => (
   <svg className="size-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M4.26 10.147a60.436 60.436 0 00-.491 6.347A48.627 48.627 0 0112 20.904a48.627 48.627 0 018.232-4.41 60.46 60.46 0 00-.491-6.347m-15.482 0a50.57 50.57 0 00-2.658-.813A59.905 59.905 0 0112 3.493a59.902 59.902 0 0110.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.697 50.697 0 0112 13.489a50.702 50.702 0 017.74-3.342M6.75 15a.75.75 0 100-1.5.75.75 0 000 1.5zm0 0v-3.675A55.378 55.378 0 0112 8.443m-7.007 11.55A5.981 5.981 0 006.75 15.75v-1.5" />
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M4.26 10.147a60.436 60.436 0 00-.491 6.347A48.627 48.627 0 0112 20.904a48.627 48.627 0 018.232-4.41 60.46 60.46 0 00-.491-6.347m-15.482 0a50.57 50.57 0 00-2.658-.813A59.905 59.905 0 0112 3.493a59.902 59.902 0 0110.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.697 50.697 0 0112 13.489a50.702 50.702 0 017.74-3.342M6.75 15a.75.75 0 100-1.5.75.75 0 000 1.5zm0 0v-3.675A55.378 55.378 0 0112 8.443m-7.007 11.55A5.981 5.981 0 006.75 15.75v-1.5"
+    />
   </svg>
 );
 
 const LightbulbIcon = () => (
   <svg className="size-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M12 18a1.5 1.5 0 01-1.5-1.5v-.6a6 6 0 10-3-5.2v.35A3.75 3.75 0 009.25 15h5.5A3.75 3.75 0 0019 11.05v-.35a6 6 0 10-7 5.2v.6A1.5 1.5 0 0112 18zm-3 3h6" />
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M12 18a1.5 1.5 0 01-1.5-1.5v-.6a6 6 0 10-3-5.2v.35A3.75 3.75 0 009.25 15h5.5A3.75 3.75 0 0019 11.05v-.35a6 6 0 10-7 5.2v.6A1.5 1.5 0 0112 18zm-3 3h6"
+    />
   </svg>
 );
 
 const ShieldIcon = () => (
   <svg className="size-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M12 3.75l7.5 3v5.57c0 4.418-3.24 8.415-7.5 9.93-4.26-1.515-7.5-5.512-7.5-9.93V6.75l7.5-3z" />
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M12 3.75l7.5 3v5.57c0 4.418-3.24 8.415-7.5 9.93-4.26-1.515-7.5-5.512-7.5-9.93V6.75l7.5-3z"
+    />
   </svg>
 );
 
 const LockIcon = () => (
   <svg className="size-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V8.25a4.5 4.5 0 00-9 0v2.25m-1.5 0h12a1.5 1.5 0 011.5 1.5v7.5a1.5 1.5 0 01-1.5 1.5h-12a1.5 1.5 0 01-1.5-1.5v-7.5a1.5 1.5 0 011.5-1.5z" />
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M16.5 10.5V8.25a4.5 4.5 0 00-9 0v2.25m-1.5 0h12a1.5 1.5 0 011.5 1.5v7.5a1.5 1.5 0 01-1.5 1.5h-12a1.5 1.5 0 01-1.5-1.5v-7.5a1.5 1.5 0 011.5-1.5z"
+    />
   </svg>
 );
 
 const GaugeIcon = () => (
   <svg className="size-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5a8.25 8.25 0 018.25 8.25v1.5a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25v-1.5A8.25 8.25 0 0112 4.5z" />
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M12 4.5a8.25 8.25 0 018.25 8.25v1.5a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25v-1.5A8.25 8.25 0 0112 4.5z"
+    />
     <path strokeLinecap="round" strokeLinejoin="round" d="M12 12l3-3" />
   </svg>
 );
 
 const SearchIcon = () => (
   <svg className="size-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35m1.1-4.4a6.75 6.75 0 11-13.5 0 6.75 6.75 0 0113.5 0z" />
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M21 21l-4.35-4.35m1.1-4.4a6.75 6.75 0 11-13.5 0 6.75 6.75 0 0113.5 0z"
+    />
   </svg>
 );
 
 const ChecklistIcon = () => (
   <svg className="size-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
     <path strokeLinecap="round" strokeLinejoin="round" d="M9 6.75h9M9 12h9M9 17.25h9" />
-    <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 6.75l1.5 1.5 2.5-2.5M4.5 12l1.5 1.5 2.5-2.5M4.5 17.25l1.5 1.5 2.5-2.5" />
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M4.5 6.75l1.5 1.5 2.5-2.5M4.5 12l1.5 1.5 2.5-2.5M4.5 17.25l1.5 1.5 2.5-2.5"
+    />
   </svg>
 );
 
 const AlertIcon = () => (
   <svg className="size-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v4m0 4h.01M10.29 3.86l-8 13.86a1.5 1.5 0 001.3 2.28h16.82a1.5 1.5 0 001.3-2.28l-8-13.86a1.5 1.5 0 00-2.62 0z" />
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M12 9v4m0 4h.01M10.29 3.86l-8 13.86a1.5 1.5 0 001.3 2.28h16.82a1.5 1.5 0 001.3-2.28l-8-13.86a1.5 1.5 0 00-2.62 0z"
+    />
   </svg>
 );
 
 const FlowArrowIcon = () => (
-  <svg className="size-5 text-muted-foreground/70" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
+  <svg
+    className="size-5 text-muted-foreground/70"
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+    strokeWidth={1.75}
+  >
     <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
   </svg>
 );
 
 const TerminalIcon = ({ className }: { className?: string }) => (
-  <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 7.5l3 2.25-3 2.25m4.5 0h3M4.5 19.5h15a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5h-15A1.5 1.5 0 003 6v12a1.5 1.5 0 001.5 1.5z" />
+  <svg
+    className={className}
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+    strokeWidth={1.5}
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M6.75 7.5l3 2.25-3 2.25m4.5 0h3M4.5 19.5h15a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5h-15A1.5 1.5 0 003 6v12a1.5 1.5 0 001.5 1.5z"
+    />
   </svg>
 );
 
@@ -105,7 +175,13 @@ const features = [
     icon: <BookIcon />,
     label: "Browse",
     title: "Corpus",
-    description: <>The complete Brenner transcript collection from Web of Stories, plus curated <Jargon term="quote-bank">quote banks</Jargon> and <Jargon term="metaprompt">metaprompts</Jargon>.</>,
+    description: (
+      <>
+        The complete Brenner transcript collection from Web of Stories, plus curated{" "}
+        <Jargon term="quote-bank">quote banks</Jargon> and{" "}
+        <Jargon term="metaprompt">metaprompts</Jargon>.
+      </>
+    ),
     accent: "text-primary",
   },
   {
@@ -113,7 +189,12 @@ const features = [
     icon: <SparklesIcon />,
     label: "Compare",
     title: "Distillations",
-    description: <>Three frontier model <Jargon term="distillation">distillations</Jargon> of Brenner&apos;s methodology. Compare perspectives from GPT-5.2, Opus 4.5, and Gemini 3.</>,
+    description: (
+      <>
+        Three frontier model <Jargon term="distillation">distillations</Jargon> of Brenner&apos;s
+        methodology. Compare perspectives from GPT-5.2, Opus 4.5, and Gemini 3.
+      </>
+    ),
     accent: "text-accent",
   },
   {
@@ -121,7 +202,13 @@ const features = [
     icon: <BeakerIcon />,
     label: "Learn",
     title: "Method",
-    description: <>The <Jargon term="operator-library">operators</Jargon>, loop structure, and <Jargon term="bayesian-update">Bayesian</Jargon> framework that operationalize Brenner&apos;s approach to scientific discovery.</>,
+    description: (
+      <>
+        The <Jargon term="operator-library">operators</Jargon>, loop structure, and{" "}
+        <Jargon term="bayesian-update">Bayesian</Jargon> framework that operationalize
+        Brenner&apos;s approach to scientific discovery.
+      </>
+    ),
     accent: "text-primary",
   },
 ];
@@ -333,9 +420,21 @@ const discoveryFeatures = [
 ];
 
 const similarityMatches = [
-  { title: "Morphogen gradient (RS-20251230)", score: 0.82, breakdown: "Statement 0.8 / Mechanism 0.6 / Domain 0.9" },
-  { title: "Timing gate model (RS-20250112)", score: 0.71, breakdown: "Statement 0.7 / Mechanism 0.5 / Domain 0.8" },
-  { title: "Signal relay chain (RS-20241018)", score: 0.64, breakdown: "Statement 0.6 / Mechanism 0.4 / Domain 0.9" },
+  {
+    title: "Morphogen gradient (RS-20251230)",
+    score: 0.82,
+    breakdown: "Statement 0.8 / Mechanism 0.6 / Domain 0.9",
+  },
+  {
+    title: "Timing gate model (RS-20250112)",
+    score: 0.71,
+    breakdown: "Statement 0.7 / Mechanism 0.5 / Domain 0.8",
+  },
+  {
+    title: "Signal relay chain (RS-20241018)",
+    score: 0.64,
+    breakdown: "Statement 0.6 / Mechanism 0.4 / Domain 0.9",
+  },
 ];
 
 const whatIfOutcomes = [
@@ -349,8 +448,18 @@ const robustnessCards = [
 ];
 
 const anomalyItems = [
-  { id: "X-001", title: "Oscillating fate markers", status: "Active", note: "Conflicts with H1 + H2" },
-  { id: "X-014", title: "Late-stage inversion", status: "Deferred", note: "Waiting on potency control" },
+  {
+    id: "X-001",
+    title: "Oscillating fate markers",
+    status: "Active",
+    note: "Conflicts with H1 + H2",
+  },
+  {
+    id: "X-014",
+    title: "Late-stage inversion",
+    status: "Deferred",
+    note: "Waiting on potency control",
+  },
 ];
 
 // Operator Framework data
@@ -359,28 +468,32 @@ const coreOperators = [
     symbol: "⊘",
     name: "Level-Split",
     tagline: "Separate program from interpreter",
-    description: "Message vs machine, genotype vs phenotype. Includes the 'chastity vs impotence' diagnostic.",
+    description:
+      "Message vs machine, genotype vs phenotype. Includes the 'chastity vs impotence' diagnostic.",
     template: "What is the information? What is the mechanism?",
   },
   {
     symbol: "✂",
     name: "Exclusion-Test",
     tagline: "Design tests that eliminate, not confirm",
-    description: "Forbidden patterns: what cannot occur if H is true. Rated by discriminative power.",
+    description:
+      "Forbidden patterns: what cannot occur if H is true. Rated by discriminative power.",
     template: "If H1 is true, we should NEVER see...",
   },
   {
     symbol: "⟂",
     name: "Object-Transpose",
     tagline: "Change the system until the test is easy",
-    description: "Choose organism or model strategically. The experimental object is a design variable.",
+    description:
+      "Choose organism or model strategically. The experimental object is a design variable.",
     template: "What system would make this test cheap and unambiguous?",
   },
   {
     symbol: "⊞",
     name: "Scale-Check",
     tagline: "Stay imprisoned in physics",
-    description: "Validate against physical constraints. Calculate timescales, length scales, energy scales.",
+    description:
+      "Validate against physical constraints. Calculate timescales, length scales, energy scales.",
     template: "Is this physically possible at the relevant scale?",
   },
 ];
@@ -396,8 +509,16 @@ const extendedOperators = [
 
 const plainEnglishSteps = [
   { step: 1, title: "Split the levels", description: "Separate the 'what' from the 'how'" },
-  { step: 2, title: "Design killing tests", description: "Find experiments that eliminate possibilities" },
-  { step: 3, title: "Choose your system", description: "Pick the easiest organism/model to test with" },
+  {
+    step: 2,
+    title: "Design killing tests",
+    description: "Find experiments that eliminate possibilities",
+  },
+  {
+    step: 3,
+    title: "Choose your system",
+    description: "Pick the easiest organism/model to test with",
+  },
   { step: 4, title: "Check the physics", description: "Make sure it's physically possible" },
 ];
 
@@ -427,17 +548,19 @@ export default function Home() {
               </div>
 
               <div className="space-y-3">
-                <p className="text-xs uppercase tracking-[0.4em] text-muted-foreground">Research Orchestration</p>
+                <p className="text-xs uppercase tracking-[0.4em] text-muted-foreground">
+                  Research Orchestration
+                </p>
                 <h1 className="text-3xl sm:text-4xl lg:text-6xl font-bold tracking-tight animate-fade-in-up stagger-1">
-                  <span className="text-gradient-primary">BrennerBot</span>: Three AI Minds. One Rigorous Method. Zero
-                  Blind Spots.
+                  <span className="text-gradient-primary">BrennerBot</span>: Three AI Minds. One
+                  Rigorous Method. Zero Blind Spots.
                 </h1>
               </div>
 
               <p className="max-w-2xl mx-auto lg:mx-0 text-base sm:text-lg lg:text-xl text-muted-foreground leading-relaxed animate-fade-in-up stagger-2">
-                Coordinate Claude, GPT, and Gemini in structured debates. Run 11-phase research sessions that produce
-                hypothesis slates, discriminative tests, and evidence trails. Prevent hindsight bias, unfalsifiable
-                claims, and sloppy reasoning in one command.
+                Coordinate Claude, GPT, and Gemini in structured debates. Run 11-phase research
+                sessions that produce hypothesis slates, discriminative tests, and evidence trails.
+                Prevent hindsight bias, unfalsifiable claims, and sloppy reasoning in one command.
               </p>
 
               <div className="grid gap-4 sm:gap-5 sm:grid-cols-[1.1fr_0.9fr] items-start">
@@ -459,7 +582,8 @@ export default function Home() {
                     curl -fsSL https://brennerbot.org/install.sh | bash
                   </code>
                   <p className="mt-2 text-xs text-muted-foreground">
-                    Options: <span className="text-foreground">--easy-mode</span>, <span className="text-foreground">--verify</span>,{" "}
+                    Options: <span className="text-foreground">--easy-mode</span>,{" "}
+                    <span className="text-foreground">--verify</span>,{" "}
                     <span className="text-foreground">--system</span>
                   </p>
                 </div>
@@ -487,9 +611,15 @@ export default function Home() {
                     <ArrowRightIcon />
                   </Link>
                   <div className="flex flex-wrap items-center justify-center lg:justify-start gap-2 text-[11px] uppercase tracking-wide text-muted-foreground">
-                    <span className="rounded-full border border-border/70 bg-background px-3 py-1">Locked predictions</span>
-                    <span className="rounded-full border border-border/70 bg-background px-3 py-1">Structured debates</span>
-                    <span className="rounded-full border border-border/70 bg-background px-3 py-1">Auditable artifacts</span>
+                    <span className="rounded-full border border-border/70 bg-background px-3 py-1">
+                      Locked predictions
+                    </span>
+                    <span className="rounded-full border border-border/70 bg-background px-3 py-1">
+                      Structured debates
+                    </span>
+                    <span className="rounded-full border border-border/70 bg-background px-3 py-1">
+                      Auditable artifacts
+                    </span>
                   </div>
                 </div>
               </div>
@@ -522,7 +652,9 @@ export default function Home() {
                     <FlowArrowIcon />
                   </div>
                   <div className="rounded-2xl border border-border/70 bg-gradient-to-br from-primary/10 via-background to-accent/10 px-4 py-4">
-                    <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Unified Artifact</p>
+                    <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
+                      Unified Artifact
+                    </p>
                     <p className="mt-2 text-sm text-foreground">
                       Hypothesis slate / Discriminative tests / Evidence ledger
                     </p>
@@ -542,7 +674,10 @@ export default function Home() {
 
       {/* Tutorial CTA - Primary discovery mechanism for tutorials */}
       <section className="px-4 sm:px-0 animate-fade-in-up">
-        <Link href="/tutorial" className="block group touch-manipulation focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-2xl">
+        <Link
+          href="/tutorial"
+          className="block group touch-manipulation focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-2xl"
+        >
           <div className="relative overflow-hidden rounded-xl sm:rounded-2xl p-5 sm:p-8 border border-success/30 hover:border-success/50 bg-gradient-to-br from-success/5 via-success/10 to-primary/5 shadow-lg hover:shadow-xl transition-all active:scale-[0.99]">
             {/* Decorative orbs */}
             <div className="absolute top-0 right-0 -mt-4 -mr-4 size-24 sm:size-32 bg-success/10 rounded-full blur-3xl" />
@@ -558,8 +693,8 @@ export default function Home() {
                   Ready to Apply the Method?
                 </h3>
                 <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">
-                  Three learning paths from quick start to multi-agent orchestration.
-                  Apply Brenner&apos;s scientific method to your own research questions.
+                  Three learning paths from quick start to multi-agent orchestration. Apply
+                  Brenner&apos;s scientific method to your own research questions.
                 </p>
                 <div className="flex flex-wrap gap-2 pt-1">
                   <span className="inline-flex items-center px-2.5 py-1 rounded-md border border-border text-xs font-medium text-muted-foreground bg-background/50">
@@ -590,16 +725,25 @@ export default function Home() {
             What&apos;s Inside
           </h2>
           <p className="text-sm sm:text-base text-muted-foreground max-w-lg mx-auto">
-            A research toolkit for applying Brenner&apos;s epistemology to your own scientific questions.
+            A research toolkit for applying Brenner&apos;s epistemology to your own scientific
+            questions.
           </p>
         </div>
 
         <div className="grid gap-4 sm:gap-6 md:grid-cols-2 lg:grid-cols-3">
           {features.map((feature, index) => (
-            <Link key={feature.href} href={feature.href} className="touch-manipulation focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-2xl">
-              <FeatureCard className={`h-full animate-fade-in-up stagger-${index + 1} active:scale-[0.98] transition-transform`}>
+            <Link
+              key={feature.href}
+              href={feature.href}
+              className="touch-manipulation focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-2xl"
+            >
+              <FeatureCard
+                className={`h-full animate-fade-in-up stagger-${index + 1} active:scale-[0.98] transition-transform`}
+              >
                 <div className="relative z-10 p-5 sm:p-6 space-y-3 sm:space-y-4">
-                  <div className={`inline-flex items-center justify-center size-10 sm:size-12 rounded-xl bg-muted ${feature.accent}`}>
+                  <div
+                    className={`inline-flex items-center justify-center size-10 sm:size-12 rounded-xl bg-muted ${feature.accent}`}
+                  >
                     {feature.icon}
                   </div>
                   <div className="space-y-1.5 sm:space-y-2">
@@ -632,7 +776,8 @@ export default function Home() {
             From Question to Conclusion: The Brenner Loop
           </h2>
           <p className="text-sm sm:text-base text-muted-foreground max-w-2xl mx-auto">
-            Research sessions follow a rigorous, reproducible path. Every step is tracked, auditable, and reversible.
+            Research sessions follow a rigorous, reproducible path. Every step is tracked,
+            auditable, and reversible.
           </p>
         </div>
 
@@ -660,10 +805,14 @@ export default function Home() {
                   className={`min-w-[170px] rounded-2xl border ${isActive ? "border-primary/40 bg-primary/5" : "border-border/70 bg-card"} p-4 shadow-sm`}
                 >
                   <div className="flex items-center gap-2">
-                    <div className={`flex size-8 items-center justify-center rounded-full ${isActive ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"} text-xs font-semibold`}>
+                    <div
+                      className={`flex size-8 items-center justify-center rounded-full ${isActive ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"} text-xs font-semibold`}
+                    >
                       {index + 1}
                     </div>
-                    <span className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">Phase</span>
+                    <span className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+                      Phase
+                    </span>
                   </div>
                   <h3 className="mt-3 text-sm font-semibold text-foreground">{phase.title}</h3>
                   <p className="mt-1 text-xs text-muted-foreground">{phase.description}</p>
@@ -675,7 +824,10 @@ export default function Home() {
 
         <div className="grid gap-4 sm:gap-6 px-4 sm:px-0 md:grid-cols-3">
           {workflowCallouts.map((callout) => (
-            <div key={callout.title} className="rounded-2xl border border-border/70 bg-background/80 p-4 sm:p-5 shadow-sm">
+            <div
+              key={callout.title}
+              className="rounded-2xl border border-border/70 bg-background/80 p-4 sm:p-5 shadow-sm"
+            >
               <h3 className="text-base font-semibold text-foreground">{callout.title}</h3>
               <p className="mt-2 text-sm text-muted-foreground">{callout.description}</p>
             </div>
@@ -694,8 +846,18 @@ export default function Home() {
             {/* Header */}
             <div className="space-y-3">
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs sm:text-sm font-medium">
-                <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M9.75 3.104v5.714a2.25 2.25 0 01-.659 1.591L5 14.5M9.75 3.104c-.251.023-.501.05-.75.082m.75-.082a24.301 24.301 0 014.5 0m0 0v5.714c0 .597.237 1.17.659 1.591L19.8 15.3M14.25 3.104c.251.023.501.05.75.082M19.8 15.3l-1.57.393A9.065 9.065 0 0112 15a9.065 9.065 0 00-6.23.693L5 14.5m14.8.8l1.402 5.07a1.125 1.125 0 01-1.135 1.416H3.933a1.125 1.125 0 01-1.135-1.416L5 14.5" />
+                <svg
+                  className="size-4"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={1.5}
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M9.75 3.104v5.714a2.25 2.25 0 01-.659 1.591L5 14.5M9.75 3.104c-.251.023-.501.05-.75.082m.75-.082a24.301 24.301 0 014.5 0m0 0v5.714c0 .597.237 1.17.659 1.591L19.8 15.3M14.25 3.104c.251.023.501.05.75.082M19.8 15.3l-1.57.393A9.065 9.065 0 0112 15a9.065 9.065 0 00-6.23.693L5 14.5m14.8.8l1.402 5.07a1.125 1.125 0 01-1.135 1.416H3.933a1.125 1.125 0 01-1.135-1.416L5 14.5"
+                  />
                 </svg>
                 Research Lab
               </div>
@@ -703,7 +865,10 @@ export default function Home() {
                 Apply the Method to Your Research
               </h2>
               <p className="text-sm sm:text-base text-muted-foreground max-w-2xl leading-relaxed">
-                The <Jargon term="brenner-loop">Brenner Loop</Jargon> is an interactive research framework that helps you develop <Jargon term="discriminative-test">discriminative tests</Jargon> using four cognitive operators. Run structured sessions and track your evolving understanding.
+                The <Jargon term="brenner-loop">Brenner Loop</Jargon> is an interactive research
+                framework that helps you develop{" "}
+                <Jargon term="discriminative-test">discriminative tests</Jargon> using four
+                cognitive operators. Run structured sessions and track your evolving understanding.
               </p>
             </div>
 
@@ -715,9 +880,14 @@ export default function Home() {
                 { symbol: "⟂", name: "Object-Transpose" },
                 { symbol: "⊞", name: "Scale-Check" },
               ].map((op) => (
-                <div key={op.symbol} className="flex flex-col items-center gap-2 p-3 sm:p-4 rounded-xl bg-background/60 border border-border/50">
+                <div
+                  key={op.symbol}
+                  className="flex flex-col items-center gap-2 p-3 sm:p-4 rounded-xl bg-background/60 border border-border/50"
+                >
                   <span className="text-xl sm:text-2xl font-bold text-primary">{op.symbol}</span>
-                  <span className="text-xs sm:text-sm font-medium text-foreground text-center">{op.name}</span>
+                  <span className="text-xs sm:text-sm font-medium text-foreground text-center">
+                    {op.name}
+                  </span>
                 </div>
               ))}
             </div>
@@ -764,12 +934,12 @@ export default function Home() {
               Your Research Team: AI Agents That Debate, Challenge, and Synthesize
             </h2>
             <p className="text-sm sm:text-base text-muted-foreground max-w-2xl mx-auto">
-              Each agent has a precise mandate. Together they sharpen hypotheses, design lethal tests, and merge
-              evidence into auditable artifacts - without surrendering control.
+              Each agent has a precise mandate. Together they sharpen hypotheses, design lethal
+              tests, and merge evidence into auditable artifacts - without surrendering control.
             </p>
             <p className="text-base sm:text-lg text-foreground/90 max-w-3xl mx-auto italic mt-4">
-              &quot;What if you could have Claude, GPT, and Gemini debate your hypothesis - challenging each other until
-              only the strongest ideas survive?&quot;
+              &quot;What if you could have Claude, GPT, and Gemini debate your hypothesis -
+              challenging each other until only the strongest ideas survive?&quot;
             </p>
           </div>
 
@@ -782,11 +952,15 @@ export default function Home() {
                 <div className={`absolute inset-0 bg-gradient-to-br ${agent.accent}`} />
                 <div className="relative p-5 sm:p-6 space-y-4">
                   <div className="flex items-center gap-3">
-                    <div className={`flex size-11 items-center justify-center rounded-xl ${agent.iconClass} shadow-inner`}>
+                    <div
+                      className={`flex size-11 items-center justify-center rounded-xl ${agent.iconClass} shadow-inner`}
+                    >
                       {agent.icon}
                     </div>
                     <div>
-                      <p className="text-[11px] uppercase tracking-wide text-muted-foreground">{agent.engine}</p>
+                      <p className="text-[11px] uppercase tracking-wide text-muted-foreground">
+                        {agent.engine}
+                      </p>
                       <h3 className="text-lg font-semibold text-foreground">{agent.title}</h3>
                     </div>
                   </div>
@@ -795,7 +969,9 @@ export default function Home() {
                     <p className="text-xs text-muted-foreground">{agent.personality}</p>
                   </div>
                   <div className="rounded-xl border border-border/70 bg-background/70 p-3">
-                    <p className="text-[11px] uppercase tracking-wide text-muted-foreground">Signature stance</p>
+                    <p className="text-[11px] uppercase tracking-wide text-muted-foreground">
+                      Signature stance
+                    </p>
                     <p className="text-sm text-foreground italic">&quot;{agent.quote}&quot;</p>
                   </div>
                 </div>
@@ -826,7 +1002,9 @@ export default function Home() {
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
                 <TerminalIcon className="size-4 text-zinc-400" />
-                <span className="text-xs font-medium text-zinc-400 uppercase tracking-wide">Terminal</span>
+                <span className="text-xs font-medium text-zinc-400 uppercase tracking-wide">
+                  Terminal
+                </span>
               </div>
               <span className="text-[10px] text-zinc-500 font-mono">brenner-cli</span>
             </div>
@@ -847,8 +1025,12 @@ brenner session compile --thread-id RS-20260105`}</code>
           <div className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
             <div className="rounded-2xl border border-border/70 bg-card/80 p-5 sm:p-6">
               <div className="flex items-center justify-between">
-                <h4 className="text-lg font-semibold text-foreground">Coordination Visualization</h4>
-                <span className="text-xs uppercase tracking-wide text-muted-foreground">Deterministic Merge</span>
+                <h4 className="text-lg font-semibold text-foreground">
+                  Coordination Visualization
+                </h4>
+                <span className="text-xs uppercase tracking-wide text-muted-foreground">
+                  Deterministic Merge
+                </span>
               </div>
               <div className="mt-5 flex flex-col gap-4">
                 <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
@@ -863,7 +1045,10 @@ brenner session compile --thread-id RS-20260105`}</code>
                 </div>
                 <div className="flex flex-col gap-4">
                   {flowSteps.map((step, index) => (
-                    <div key={step.title} className="flex flex-col gap-3 sm:flex-row sm:items-center">
+                    <div
+                      key={step.title}
+                      className="flex flex-col gap-3 sm:flex-row sm:items-center"
+                    >
                       <div className="flex items-center gap-3">
                         <div className="flex size-9 items-center justify-center rounded-full border border-border/70 bg-background text-sm font-semibold text-foreground">
                           {index + 1}
@@ -891,15 +1076,20 @@ brenner session compile --thread-id RS-20260105`}</code>
 
             <div className="rounded-2xl border border-border/70 bg-background/80 p-5 sm:p-6 space-y-4">
               <div className="space-y-2">
-                <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Coordination Without Chaos</p>
-                <h4 className="text-lg font-semibold text-foreground">Agent Mail keeps every exchange auditable</h4>
+                <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
+                  Coordination Without Chaos
+                </p>
+                <h4 className="text-lg font-semibold text-foreground">
+                  Agent Mail keeps every exchange auditable
+                </h4>
                 <p className="text-sm text-muted-foreground">
-                  Every message lands in a thread, every response is acknowledged, and every delta is preserved. You stay
-                  in the loop with human approval gates at every step.
+                  Every message lands in a thread, every response is acknowledged, and every delta
+                  is preserved. You stay in the loop with human approval gates at every step.
                 </p>
               </div>
               <div className="rounded-xl border border-border/70 bg-card px-4 py-3 text-sm text-muted-foreground">
-                Built on <Jargon term="agent-mail">Agent Mail</Jargon> with thread IDs, ack receipts, and merge-safe deltas.
+                Built on <Jargon term="agent-mail">Agent Mail</Jargon> with thread IDs, ack
+                receipts, and merge-safe deltas.
               </div>
               <div className="space-y-2 text-xs text-muted-foreground">
                 <div className="flex items-center justify-between">
@@ -934,8 +1124,8 @@ brenner session compile --thread-id RS-20260105`}</code>
               Built-In Guardrails for Rigorous Science
             </h2>
             <p className="text-sm sm:text-base text-muted-foreground max-w-2xl mx-auto">
-              The system blocks common failure modes: hindsight bias, unfalsifiable hypotheses, ignored confounds,
-              and overconfidence. Rigor is enforced before you waste a week.
+              The system blocks common failure modes: hindsight bias, unfalsifiable hypotheses,
+              ignored confounds, and overconfidence. Rigor is enforced before you waste a week.
             </p>
           </div>
 
@@ -947,7 +1137,9 @@ brenner session compile --thread-id RS-20260105`}</code>
                   className="rounded-2xl border border-border/70 bg-background/80 p-5 shadow-sm"
                 >
                   <div className="flex items-center gap-3">
-                    <div className={`flex size-11 items-center justify-center rounded-xl bg-muted ${feature.accent}`}>
+                    <div
+                      className={`flex size-11 items-center justify-center rounded-xl bg-muted ${feature.accent}`}
+                    >
                       {feature.icon}
                     </div>
                     <div>
@@ -972,8 +1164,12 @@ brenner session compile --thread-id RS-20260105`}</code>
             <div className="space-y-4">
               <div className="rounded-2xl border border-border/70 bg-background/80 p-5 shadow-sm">
                 <div className="flex items-center justify-between">
-                  <h4 className="text-base font-semibold text-foreground">Prediction Lock Timeline</h4>
-                  <span className="text-xs uppercase tracking-[0.2em] text-muted-foreground">No hindsight</span>
+                  <h4 className="text-base font-semibold text-foreground">
+                    Prediction Lock Timeline
+                  </h4>
+                  <span className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
+                    No hindsight
+                  </span>
                 </div>
                 <div className="mt-4 space-y-3">
                   {predictionLockSteps.map((step, index) => (
@@ -1001,7 +1197,9 @@ brenner session compile --thread-id RS-20260105`}</code>
               <div className="rounded-2xl border border-border/70 bg-background/80 p-5 shadow-sm">
                 <div className="flex items-center justify-between">
                   <h4 className="text-base font-semibold text-foreground">Confound Detection</h4>
-                  <span className="text-xs uppercase tracking-[0.2em] text-muted-foreground">8 domains</span>
+                  <span className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
+                    8 domains
+                  </span>
                 </div>
                 <div className="mt-4 flex flex-wrap gap-2">
                   {confoundDomains.map((domain) => (
@@ -1026,11 +1224,15 @@ brenner session compile --thread-id RS-20260105`}</code>
               <div className="rounded-2xl border border-border/70 bg-background/80 p-5 shadow-sm">
                 <div className="flex items-center justify-between">
                   <h4 className="text-base font-semibold text-foreground">Calibration + Linting</h4>
-                  <span className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Scorecard</span>
+                  <span className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
+                    Scorecard
+                  </span>
                 </div>
                 <div className="mt-4 space-y-3">
                   <div className="space-y-2">
-                    <p className="text-xs text-muted-foreground">Calibration curve (last 10 tests)</p>
+                    <p className="text-xs text-muted-foreground">
+                      Calibration curve (last 10 tests)
+                    </p>
                     <div className="flex items-end gap-1 h-14">
                       {[40, 55, 62, 70, 78, 66, 74, 81, 88, 92].map((value, index) => (
                         <div
@@ -1063,7 +1265,9 @@ brenner session compile --thread-id RS-20260105`}</code>
           <div className="rounded-2xl border border-border/70 bg-background/80 overflow-hidden">
             <div className="grid gap-0 md:grid-cols-2">
               <div className="p-4 sm:p-5 bg-muted/40">
-                <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Without Guardrails</p>
+                <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
+                  Without Guardrails
+                </p>
                 <div className="mt-3 space-y-3 text-sm text-muted-foreground">
                   {hygieneComparisonRows.map((row) => (
                     <div key={row.without} className="flex items-start gap-2">
@@ -1074,7 +1278,9 @@ brenner session compile --thread-id RS-20260105`}</code>
                 </div>
               </div>
               <div className="p-4 sm:p-5 bg-primary/5">
-                <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">With BrennerBot</p>
+                <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
+                  With BrennerBot
+                </p>
                 <div className="mt-3 space-y-3 text-sm text-foreground">
                   {hygieneComparisonRows.map((row) => (
                     <div key={row.with} className="flex items-start gap-2">
@@ -1103,8 +1309,8 @@ brenner session compile --thread-id RS-20260105`}</code>
               Intelligence Built In: Search, Simulate, Score
             </h2>
             <p className="text-sm sm:text-base text-muted-foreground max-w-2xl mx-auto">
-              Connect to prior work instantly, model evidence impact before you test, and track which hypotheses
-              survive pressure. This is research intelligence, not a chat log.
+              Connect to prior work instantly, model evidence impact before you test, and track
+              which hypotheses survive pressure. This is research intelligence, not a chat log.
             </p>
           </div>
 
@@ -1116,7 +1322,9 @@ brenner session compile --thread-id RS-20260105`}</code>
                   className="rounded-2xl border border-border/70 bg-background/80 p-5 shadow-sm"
                 >
                   <div className="flex items-center gap-3">
-                    <div className={`flex size-11 items-center justify-center rounded-xl bg-muted ${feature.accent}`}>
+                    <div
+                      className={`flex size-11 items-center justify-center rounded-xl bg-muted ${feature.accent}`}
+                    >
                       {feature.icon}
                     </div>
                     <div>
@@ -1142,7 +1350,9 @@ brenner session compile --thread-id RS-20260105`}</code>
               <div className="rounded-2xl border border-border/70 bg-background/80 p-5 shadow-sm">
                 <div className="flex items-center justify-between">
                   <h4 className="text-base font-semibold text-foreground">Similarity Search</h4>
-                  <span className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Offline</span>
+                  <span className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
+                    Offline
+                  </span>
                 </div>
                 <div className="mt-4 rounded-lg border border-border/70 bg-card px-3 py-2 text-xs text-muted-foreground">
                   Query: &quot;morphogen gradient cell fate&quot;
@@ -1151,13 +1361,19 @@ brenner session compile --thread-id RS-20260105`}</code>
                   {similarityMatches.map((match) => {
                     const scorePercent = Math.round(match.score * 100);
                     return (
-                      <div key={match.title} className="rounded-lg border border-border/70 bg-background px-3 py-2">
+                      <div
+                        key={match.title}
+                        className="rounded-lg border border-border/70 bg-background px-3 py-2"
+                      >
                         <div className="flex items-center justify-between text-xs text-muted-foreground">
                           <span>{match.title}</span>
                           <span className="text-primary font-medium">{scorePercent}%</span>
                         </div>
                         <div className="mt-2 h-1 rounded-full bg-muted">
-                          <div className="h-1 rounded-full bg-primary/60" style={{ width: `${scorePercent}%` }} />
+                          <div
+                            className="h-1 rounded-full bg-primary/60"
+                            style={{ width: `${scorePercent}%` }}
+                          />
                         </div>
                         <p className="mt-1 text-[11px] text-muted-foreground">{match.breakdown}</p>
                       </div>
@@ -1172,7 +1388,9 @@ brenner session compile --thread-id RS-20260105`}</code>
               <div className="rounded-2xl border border-border/70 bg-background/80 p-5 shadow-sm">
                 <div className="flex items-center justify-between">
                   <h4 className="text-base font-semibold text-foreground">What-If Scenario</h4>
-                  <span className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Info gain</span>
+                  <span className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
+                    Info gain
+                  </span>
                 </div>
                 <div className="mt-4 space-y-3 text-xs text-muted-foreground">
                   <div className="flex items-center justify-between">
@@ -1189,12 +1407,16 @@ brenner session compile --thread-id RS-20260105`}</code>
                         <span className="text-foreground font-medium">{outcome.value}%</span>
                       </div>
                       <div className="h-2 rounded-full bg-muted">
-                        <div className={`h-2 rounded-full ${outcome.tone}`} style={{ width: `${outcome.value}%` }} />
+                        <div
+                          className={`h-2 rounded-full ${outcome.tone}`}
+                          style={{ width: `${outcome.value}%` }}
+                        />
                       </div>
                     </div>
                   ))}
                   <div className="rounded-lg border border-border/70 bg-card px-3 py-2 text-xs text-muted-foreground">
-                    Expected information gain: <span className="text-primary font-medium">0.42</span>
+                    Expected information gain:{" "}
+                    <span className="text-primary font-medium">0.42</span>
                   </div>
                   <div className="rounded-lg border border-border/70 bg-background px-3 py-2 text-xs text-muted-foreground">
                     Best next test: Perturb gradient + checkpoint timing
@@ -1206,7 +1428,9 @@ brenner session compile --thread-id RS-20260105`}</code>
                 <div className="rounded-2xl border border-border/70 bg-background/80 p-5 shadow-sm">
                   <div className="flex items-center justify-between">
                     <h4 className="text-base font-semibold text-foreground">Robustness</h4>
-                    <span className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Survival score</span>
+                    <span className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
+                      Survival score
+                    </span>
                   </div>
                   <div className="mt-4 space-y-3">
                     {robustnessCards.map((card) => (
@@ -1216,7 +1440,10 @@ brenner session compile --thread-id RS-20260105`}</code>
                           <span className="text-foreground font-medium">{card.score}%</span>
                         </div>
                         <div className="h-2 rounded-full bg-muted">
-                          <div className="h-2 rounded-full bg-emerald-500/50" style={{ width: `${card.score}%` }} />
+                          <div
+                            className="h-2 rounded-full bg-emerald-500/50"
+                            style={{ width: `${card.score}%` }}
+                          />
                         </div>
                         <p className="text-[11px] text-muted-foreground">{card.detail}</p>
                       </div>
@@ -1227,14 +1454,21 @@ brenner session compile --thread-id RS-20260105`}</code>
                 <div className="rounded-2xl border border-border/70 bg-background/80 p-5 shadow-sm">
                   <div className="flex items-center justify-between">
                     <h4 className="text-base font-semibold text-foreground">Anomaly Register</h4>
-                    <span className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Quarantine</span>
+                    <span className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
+                      Quarantine
+                    </span>
                   </div>
                   <div className="mt-4 space-y-3 text-xs text-muted-foreground">
                     {anomalyItems.map((item) => (
-                      <div key={item.id} className="rounded-lg border border-border/70 bg-card px-3 py-2">
+                      <div
+                        key={item.id}
+                        className="rounded-lg border border-border/70 bg-card px-3 py-2"
+                      >
                         <div className="flex items-center justify-between">
                           <span className="text-foreground font-medium">{item.id}</span>
-                          <span className="text-[11px] uppercase tracking-[0.2em] text-amber-600">{item.status}</span>
+                          <span className="text-[11px] uppercase tracking-[0.2em] text-amber-600">
+                            {item.status}
+                          </span>
                         </div>
                         <p className="mt-1 text-xs text-foreground">{item.title}</p>
                         <p className="mt-1 text-[11px] text-muted-foreground">{item.note}</p>
@@ -1262,14 +1496,17 @@ brenner session compile --thread-id RS-20260105`}</code>
               The Operator Algebra: Brenner&apos;s Methods as Executable Code
             </h2>
             <p className="text-sm sm:text-base text-muted-foreground max-w-2xl mx-auto">
-              Sydney Brenner&apos;s breakthrough wasn&apos;t just his discoveries - it was his method. We&apos;ve encoded his cognitive
-              patterns as composable operators that you can apply systematically.
+              Sydney Brenner&apos;s breakthrough wasn&apos;t just his discoveries - it was his
+              method. We&apos;ve encoded his cognitive patterns as composable operators that you can
+              apply systematically.
             </p>
           </div>
 
           {/* Plain English Version */}
           <div className="rounded-2xl border border-border/70 bg-background/80 p-5 sm:p-6">
-            <h3 className="text-lg font-semibold text-foreground mb-4">The Brenner Method in 4 Steps</h3>
+            <h3 className="text-lg font-semibold text-foreground mb-4">
+              The Brenner Method in 4 Steps
+            </h3>
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
               {plainEnglishSteps.map((item) => (
                 <div key={item.step} className="flex items-start gap-3">
@@ -1302,7 +1539,9 @@ brenner session compile --thread-id RS-20260105`}</code>
                 <p className="text-sm font-medium text-foreground mb-2">&quot;{op.tagline}&quot;</p>
                 <p className="text-xs text-muted-foreground mb-3">{op.description}</p>
                 <div className="rounded-lg border border-border/70 bg-background px-3 py-2">
-                  <p className="text-[10px] uppercase tracking-wide text-muted-foreground mb-1">Template</p>
+                  <p className="text-[10px] uppercase tracking-wide text-muted-foreground mb-1">
+                    Template
+                  </p>
                   <p className="text-xs text-foreground italic">&quot;{op.template}&quot;</p>
                 </div>
               </div>
@@ -1313,10 +1552,18 @@ brenner session compile --thread-id RS-20260105`}</code>
           <details className="group rounded-2xl border border-border/70 bg-zinc-950 overflow-hidden">
             <summary className="flex items-center justify-between p-4 sm:p-5 cursor-pointer list-none">
               <div className="flex items-center gap-3">
-                <span className="text-xs font-medium text-zinc-400 uppercase tracking-wide">The Core Composition</span>
+                <span className="text-xs font-medium text-zinc-400 uppercase tracking-wide">
+                  The Core Composition
+                </span>
               </div>
               <span className="text-zinc-500 group-open:rotate-180 transition-transform">
-                <svg className="size-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <svg
+                  className="size-5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                >
                   <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
                 </svg>
               </span>
@@ -1330,8 +1577,13 @@ brenner session compile --thread-id RS-20260105`}</code>
               <div className="text-xs text-zinc-400 space-y-1">
                 <p>- Start from a paradox (◊), split levels (⊘), extract invariants (≡)</p>
                 <p>- Design exclusion tests (✂), materialize as decision procedure (⌂)</p>
-                <p>- Power by amplification (↑) in well-chosen system (⟂) you build yourself (🔧)</p>
-                <p>- Constrain by physics (⊞), keep honest with exception handling (ΔE) and theory killing (†)</p>
+                <p>
+                  - Power by amplification (↑) in well-chosen system (⟂) you build yourself (🔧)
+                </p>
+                <p>
+                  - Constrain by physics (⊞), keep honest with exception handling (ΔE) and theory
+                  killing (†)
+                </p>
               </div>
             </div>
           </details>
@@ -1344,7 +1596,13 @@ brenner session compile --thread-id RS-20260105`}</code>
                 <span className="text-xs text-muted-foreground">6 more patterns</span>
               </div>
               <span className="text-muted-foreground group-open:rotate-180 transition-transform">
-                <svg className="size-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <svg
+                  className="size-5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                >
                   <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
                 </svg>
               </span>
@@ -1352,7 +1610,10 @@ brenner session compile --thread-id RS-20260105`}</code>
             <div className="px-4 sm:px-5 pb-5">
               <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                 {extendedOperators.map((op) => (
-                  <div key={op.symbol} className="flex items-center gap-3 rounded-xl border border-border/70 bg-card px-4 py-3">
+                  <div
+                    key={op.symbol}
+                    className="flex items-center gap-3 rounded-xl border border-border/70 bg-card px-4 py-3"
+                  >
                     <span className="text-xl font-bold text-primary">{op.symbol}</span>
                     <div>
                       <p className="text-sm font-medium text-foreground">{op.name}</p>
@@ -1369,7 +1630,9 @@ brenner session compile --thread-id RS-20260105`}</code>
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
                 <TerminalIcon className="size-4 text-zinc-400" />
-                <span className="text-xs font-medium text-zinc-400 uppercase tracking-wide">TypeScript</span>
+                <span className="text-xs font-medium text-zinc-400 uppercase tracking-wide">
+                  TypeScript
+                </span>
               </div>
               <span className="text-[10px] text-zinc-500 font-mono">brenner-loop/operators</span>
             </div>
@@ -1392,7 +1655,10 @@ const result = brennerPipeline(hypothesis, context);`}</code>
       {/* Lab Mode Card */}
       {labModeEnabled && (
         <section className="animate-fade-in-up px-4 sm:px-0">
-          <Link href="/sessions/new" className="touch-manipulation focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-2xl block">
+          <Link
+            href="/sessions/new"
+            className="touch-manipulation focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-2xl block"
+          >
             <div className="relative overflow-hidden rounded-xl sm:rounded-2xl border border-primary/30 bg-gradient-to-br from-primary/5 via-primary/10 to-accent/5 p-5 sm:p-8 shadow-lg hover:shadow-xl hover:border-primary/50 active:scale-[0.99] transition-all group">
               <div className="absolute top-0 right-0 -mt-4 -mr-4 size-24 sm:size-32 bg-primary/10 rounded-full blur-3xl" />
               <div className="absolute bottom-0 left-0 -mb-4 -ml-4 size-20 sm:size-24 bg-accent/10 rounded-full blur-3xl" />
@@ -1403,14 +1669,17 @@ const result = brennerPipeline(hypothesis, context);`}</code>
                 </div>
                 <div className="flex-1 space-y-1.5 sm:space-y-2">
                   <div className="flex items-center gap-2">
-                    <span className="text-xs sm:text-sm font-medium text-primary">Lab Mode Active</span>
+                    <span className="text-xs sm:text-sm font-medium text-primary">
+                      Lab Mode Active
+                    </span>
                     <span className="flex size-2 rounded-full bg-success animate-pulse" />
                   </div>
                   <h3 className="text-lg sm:text-xl font-semibold text-foreground">
                     Start a Research Session
                   </h3>
                   <p className="text-sm sm:text-base text-muted-foreground">
-                    Compose a <Jargon term="kickoff">kickoff</Jargon> prompt and send it to your agent constellation via <Jargon term="agent-mail">Agent Mail</Jargon>.
+                    Compose a <Jargon term="kickoff">kickoff</Jargon> prompt and send it to your
+                    agent constellation via <Jargon term="agent-mail">Agent Mail</Jargon>.
                   </p>
                 </div>
                 <div className="flex items-center gap-2 text-primary font-medium text-sm sm:text-base">
@@ -1434,13 +1703,15 @@ const result = brennerPipeline(hypothesis, context);`}</code>
           </div>
           <p className="text-lg sm:text-xl lg:text-2xl text-foreground leading-relaxed italic pt-6 sm:pt-8">
             I think many fields of science could do a great deal better if they went back to the
-            <span className="text-primary font-medium"> classical approach</span> of studying a problem,
-            rather than following the latest fashion.
+            <span className="text-primary font-medium"> classical approach</span> of studying a
+            problem, rather than following the latest fashion.
           </p>
           <footer className="mt-4 sm:mt-6 text-muted-foreground">
             <cite className="not-italic font-medium block sm:inline">Sydney Brenner</cite>
             <span className="hidden sm:inline mx-2">-</span>
-            <span className="text-xs sm:text-sm block sm:inline mt-1 sm:mt-0">Nobel Laureate in Physiology or Medicine, 2002</span>
+            <span className="text-xs sm:text-sm block sm:inline mt-1 sm:mt-0">
+              Nobel Laureate in Physiology or Medicine, 2002
+            </span>
           </footer>
         </blockquote>
       </section>

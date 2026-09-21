@@ -57,9 +57,9 @@ const anchorPattern = /^§\d+(-\d+)?$/;
  * Key insight: "Neither hidden nor allowed to destroy coherent framework"
  */
 export const QuarantineStatusSchema = z.enum([
-  "active",           // Anomaly not yet resolved (default)
-  "resolved",         // Explained by a hypothesis (link to which one)
-  "deferred",         // Parked until core question settled
+  "active", // Anomaly not yet resolved (default)
+  "resolved", // Explained by a hypothesis (link to which one)
+  "deferred", // Parked until core question settled
   "paradigm_shifting", // So significant it changes the research thread
 ]);
 
@@ -69,10 +69,10 @@ export type QuarantineStatus = z.infer<typeof QuarantineStatusSchema>;
  * Source type for where the anomaly observation came from.
  */
 export const AnomalySourceTypeSchema = z.enum([
-  "experiment",   // Observed in a test/experiment
-  "literature",   // Found in published literature
-  "discussion",   // Emerged during session discussion
-  "calculation",  // Derived from calculations/analysis
+  "experiment", // Observed in a test/experiment
+  "literature", // Found in published literature
+  "discussion", // Emerged during session discussion
+  "calculation", // Derived from calculations/analysis
 ]);
 
 export type AnomalySourceType = z.infer<typeof AnomalySourceTypeSchema>;
@@ -145,9 +145,7 @@ export const AnomalySchema = z.object({
    * Stable ID format: X-{session_id}-{sequence}
    * @example "X-RS20251230-001"
    */
-  id: z
-    .string()
-    .regex(anomalyIdPattern, "Invalid anomaly ID format (expected X-{session}-{seq})"),
+  id: z.string().regex(anomalyIdPattern, "Invalid anomaly ID format (expected X-{session}-{seq})"),
 
   /**
    * Short name for the anomaly (for display)
@@ -187,10 +185,7 @@ export const AnomalySchema = z.object({
   /**
    * If resolved: which hypothesis explains it?
    */
-  resolvedBy: z
-    .string()
-    .regex(hypothesisIdPattern, "Invalid hypothesis ID format")
-    .optional(),
+  resolvedBy: z.string().regex(hypothesisIdPattern, "Invalid hypothesis ID format").optional(),
 
   /**
    * When was this resolved?
@@ -340,10 +335,7 @@ export function canSpawnHypothesis(anomaly: Anomaly): {
   }
 
   // Active anomalies with clear conflicts can spawn hypotheses
-  if (
-    anomaly.quarantineStatus === "active" &&
-    anomaly.conflictsWith.hypotheses.length >= 1
-  ) {
+  if (anomaly.quarantineStatus === "active" && anomaly.conflictsWith.hypotheses.length >= 1) {
     return {
       canSpawn: true,
       reason: "Active anomaly challenging hypotheses - can spawn third alternative",
@@ -393,7 +385,7 @@ export function generateAnomalyId(sessionId: string, existingIds: string[]): str
 
   if (nextSeq > MAX_ANOMALY_SEQUENCE) {
     throw new Error(
-      `Anomaly sequence overflow for session "${sessionId}": maximum ${MAX_ANOMALY_SEQUENCE} anomalies per session exceeded`
+      `Anomaly sequence overflow for session "${sessionId}": maximum ${MAX_ANOMALY_SEQUENCE} anomalies per session exceeded`,
     );
   }
 
@@ -514,7 +506,7 @@ export function createLiteratureAnomaly(input: {
 export function resolveAnomaly(
   anomaly: Anomaly,
   resolvedByHypothesisId: string,
-  options?: { notes?: string }
+  options?: { notes?: string },
 ): Anomaly {
   if (anomaly.quarantineStatus === "resolved") {
     throw new Error(`Anomaly ${anomaly.id} is already resolved`);
@@ -534,10 +526,7 @@ export function resolveAnomaly(
 /**
  * Defer an anomaly for later consideration.
  */
-export function deferAnomaly(
-  anomaly: Anomaly,
-  reason: string
-): Anomaly {
+export function deferAnomaly(anomaly: Anomaly, reason: string): Anomaly {
   if (anomaly.quarantineStatus === "resolved") {
     throw new Error(`Cannot defer resolved anomaly ${anomaly.id}`);
   }
@@ -554,10 +543,7 @@ export function deferAnomaly(
 /**
  * Mark an anomaly as paradigm-shifting.
  */
-export function markParadigmShifting(
-  anomaly: Anomaly,
-  notes?: string
-): Anomaly {
+export function markParadigmShifting(anomaly: Anomaly, notes?: string): Anomaly {
   const now = new Date().toISOString();
   return {
     ...anomaly,
@@ -573,7 +559,7 @@ export function markParadigmShifting(
 export function reactivateAnomaly(anomaly: Anomaly): Anomaly {
   if (anomaly.quarantineStatus !== "deferred") {
     throw new Error(
-      `Cannot reactivate anomaly ${anomaly.id} - current status is ${anomaly.quarantineStatus}, expected 'deferred'`
+      `Cannot reactivate anomaly ${anomaly.id} - current status is ${anomaly.quarantineStatus}, expected 'deferred'`,
     );
   }
 
@@ -588,10 +574,7 @@ export function reactivateAnomaly(anomaly: Anomaly): Anomaly {
 /**
  * Link a spawned hypothesis to an anomaly.
  */
-export function linkSpawnedHypothesis(
-  anomaly: Anomaly,
-  hypothesisId: string
-): Anomaly {
+export function linkSpawnedHypothesis(anomaly: Anomaly, hypothesisId: string): Anomaly {
   const existing = anomaly.spawnedHypotheses ?? [];
   if (existing.includes(hypothesisId)) {
     return anomaly; // Already linked

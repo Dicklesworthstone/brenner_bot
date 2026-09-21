@@ -1,10 +1,10 @@
-import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { randomUUID } from "node:crypto";
 import { promises as fs } from "fs";
-import { join } from "path";
 import { tmpdir } from "os";
+import { join } from "path";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { type Anomaly, createAnomaly } from "../schemas/anomaly";
 import { AnomalyStorage, type SessionAnomalyFile } from "./anomaly-storage";
-import { createAnomaly, type Anomaly } from "../schemas/anomaly";
 
 // ============================================================================
 // Test Helpers
@@ -168,7 +168,7 @@ describe("AnomalyStorage", () => {
       const content2 = JSON.parse(await fs.readFile(filePath, "utf-8")) as SessionAnomalyFile;
       expect(content2.createdAt).toBe(originalCreatedAt);
       expect(new Date(content2.updatedAt).getTime()).toBeGreaterThan(
-        new Date(originalCreatedAt).getTime()
+        new Date(originalCreatedAt).getTime(),
       );
     });
   });
@@ -241,8 +241,14 @@ describe("AnomalyStorage", () => {
   describe("getAnomaliesByStatus", () => {
     it("filters by quarantine status", async () => {
       const active = createTestAnomaly("RS20251230", 1);
-      const resolved = { ...createTestAnomaly("RS20251230", 2), quarantineStatus: "resolved" as const };
-      const deferred = { ...createTestAnomaly("RS20251230", 3), quarantineStatus: "deferred" as const };
+      const resolved = {
+        ...createTestAnomaly("RS20251230", 2),
+        quarantineStatus: "resolved" as const,
+      };
+      const deferred = {
+        ...createTestAnomaly("RS20251230", 3),
+        quarantineStatus: "deferred" as const,
+      };
 
       await storage.saveAnomaly(active);
       await storage.saveAnomaly(resolved);
@@ -262,7 +268,10 @@ describe("AnomalyStorage", () => {
     it("returns only active anomalies", async () => {
       const active1 = createTestAnomaly("RS20251230", 1);
       const active2 = createTestAnomaly("RS20251231", 1);
-      const resolved = { ...createTestAnomaly("RS20251230", 2), quarantineStatus: "resolved" as const };
+      const resolved = {
+        ...createTestAnomaly("RS20251230", 2),
+        quarantineStatus: "resolved" as const,
+      };
 
       await storage.saveAnomaly(active1);
       await storage.saveAnomaly(active2);
@@ -439,9 +448,7 @@ describe("AnomalyStorage", () => {
   describe("Concurrency", () => {
     it("concurrent saveAnomaly calls do not drop writes", async () => {
       const sessionId = "CONCURRENT";
-      const anomalies = Array.from({ length: 10 }, (_, i) =>
-        createTestAnomaly(sessionId, i + 1)
-      );
+      const anomalies = Array.from({ length: 10 }, (_, i) => createTestAnomaly(sessionId, i + 1));
 
       const concurrencyStorage = new AnomalyStorage({ baseDir: tempDir, autoRebuildIndex: false });
       await Promise.all(anomalies.map((a) => concurrencyStorage.saveAnomaly(a)));

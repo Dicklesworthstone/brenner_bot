@@ -49,4 +49,3 @@ export function makeDistillationSectionDomId(args: {
   const safeSlug = slug || `section-${args.index ?? 0}`;
   return args.partNumber ? `part-${args.partNumber}-${safeSlug}` : safeSlug;
 }
-

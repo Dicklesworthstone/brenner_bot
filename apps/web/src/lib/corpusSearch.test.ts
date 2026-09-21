@@ -7,13 +7,13 @@
  * Run with: cd apps/web && bun run test -- src/lib/corpusSearch.test.ts
  */
 
-import { describe, expect, it, beforeAll } from "vitest";
+import { beforeAll, describe, expect, it } from "vitest";
 import {
-  searchCorpus,
-  getSectionByAnchor,
-  getSectionByNumber,
   getAllSections,
   getCacheStats,
+  getSectionByAnchor,
+  getSectionByNumber,
+  searchCorpus,
 } from "./corpusSearch";
 
 // ============================================================================
@@ -149,7 +149,7 @@ describe("searchCorpus", () => {
           const result = await searchCorpus(sampleTitle);
           // At least one hit should have matchType "title" or "both"
           const hasTitleMatch = result.hits.some(
-            (h) => h.matchType === "title" || h.matchType === "both"
+            (h) => h.matchType === "title" || h.matchType === "both",
           );
           expect(hasTitleMatch).toBe(true);
         }
@@ -172,7 +172,7 @@ describe("searchCorpus", () => {
       const result = await searchCorpus("the");
       // Most snippets for common words should be truncated
       const hasEllipsis = result.hits.some(
-        (h) => h.snippet.startsWith("...") || h.snippet.endsWith("...")
+        (h) => h.snippet.startsWith("...") || h.snippet.endsWith("..."),
       );
       expect(hasEllipsis).toBe(true);
     });
@@ -331,14 +331,13 @@ describe("search scoring", () => {
     const result = await searchCorpus("science");
 
     const titleMatches = result.hits.filter(
-      (h) => h.matchType === "title" || h.matchType === "both"
+      (h) => h.matchType === "title" || h.matchType === "both",
     );
     const bodyOnlyMatches = result.hits.filter((h) => h.matchType === "body");
 
     if (titleMatches.length > 0 && bodyOnlyMatches.length > 0) {
       // Title matches should generally score higher
-      const avgTitleScore =
-        titleMatches.reduce((sum, h) => sum + h.score, 0) / titleMatches.length;
+      const avgTitleScore = titleMatches.reduce((sum, h) => sum + h.score, 0) / titleMatches.length;
       const avgBodyScore =
         bodyOnlyMatches.reduce((sum, h) => sum + h.score, 0) / bodyOnlyMatches.length;
 
@@ -353,8 +352,7 @@ describe("search scoring", () => {
     const singleMatches = result.hits.filter((h) => h.matchType !== "both");
 
     if (bothMatches.length > 0 && singleMatches.length > 0) {
-      const avgBothScore =
-        bothMatches.reduce((sum, h) => sum + h.score, 0) / bothMatches.length;
+      const avgBothScore = bothMatches.reduce((sum, h) => sum + h.score, 0) / bothMatches.length;
       const avgSingleScore =
         singleMatches.reduce((sum, h) => sum + h.score, 0) / singleMatches.length;
 

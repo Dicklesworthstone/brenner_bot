@@ -4,37 +4,37 @@
  * @see brenner_bot-sedg (Undo/Redo System)
  */
 
-import { describe, it, expect, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 import type { Session } from "./types";
 import {
-  createUndoStack,
-  generateCommandId,
-  createConfidenceCommand,
-  createSetPrimaryCommand,
-  createArchiveCommand,
-  createRestoreCommand,
-  createEvidenceCommand,
-  createPhaseCommand,
-  createNotesCommand,
-  createAddTagCommand,
-  createRemoveTagCommand,
   applyCommand,
-  reverseCommand,
-  isConfidenceCommand,
-  isHypothesisStateCommand,
-  isEvidenceCommand,
-  isPhaseCommand,
-  executeCommand,
-  undo,
-  redo,
-  canUndo,
   canRedo,
-  getNextUndoDescription,
-  getNextRedoDescription,
-  getRecentHistory,
+  canUndo,
   clearHistory,
-  serializeUndoStack,
+  createAddTagCommand,
+  createArchiveCommand,
+  createConfidenceCommand,
+  createEvidenceCommand,
+  createNotesCommand,
+  createPhaseCommand,
+  createRemoveTagCommand,
+  createRestoreCommand,
+  createSetPrimaryCommand,
+  createUndoStack,
   deserializeUndoStack,
+  executeCommand,
+  generateCommandId,
+  getNextRedoDescription,
+  getNextUndoDescription,
+  getRecentHistory,
+  isConfidenceCommand,
+  isEvidenceCommand,
+  isHypothesisStateCommand,
+  isPhaseCommand,
+  redo,
+  reverseCommand,
+  serializeUndoStack,
+  undo,
 } from "./undoManager";
 
 // ============================================================================
@@ -291,7 +291,9 @@ describe("Command execution", () => {
     expect(applied.evidenceLedger.length).toBe(session.evidenceLedger.length + 1);
 
     const reversed = reverseCommand(applied, cmd);
-    expect(reversed.evidenceLedger.find((e) => (e as { id: string }).id === "EV-3")).toBeUndefined();
+    expect(
+      reversed.evidenceLedger.find((e) => (e as { id: string }).id === "EV-3"),
+    ).toBeUndefined();
   });
 
   it("returns the original session for unknown/invalid commands", () => {
@@ -330,7 +332,7 @@ describe("Command execution", () => {
     let current = session;
     current = {
       ...current,
-      alternativeHypothesisIds: current.alternativeHypothesisIds.filter(id => id !== "hypo-2"),
+      alternativeHypothesisIds: current.alternativeHypothesisIds.filter((id) => id !== "hypo-2"),
       archivedHypothesisIds: [...current.archivedHypothesisIds, "hypo-2"],
     };
 

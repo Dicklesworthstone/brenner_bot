@@ -112,7 +112,7 @@ function formatCliDebug(result: CliResult): string {
  */
 async function runCli(
   args: string[],
-  options?: { timeout?: number; env?: Record<string, string>; cwd?: string; stdin?: string }
+  options?: { timeout?: number; env?: Record<string, string>; cwd?: string; stdin?: string },
 ): Promise<CliResult> {
   const timeoutMs = options?.timeout ?? 5000;
   const env = {
@@ -428,8 +428,21 @@ describe("experiment capture", () => {
     const testId = "T1";
 
     const result = await runCli(
-      ["experiment", "record", "--thread-id", threadId, "--test-id", testId, "--exit-code", "0", "--stdout-file", stdoutPath, "--stderr-file", stderrPath],
-      { cwd }
+      [
+        "experiment",
+        "record",
+        "--thread-id",
+        threadId,
+        "--test-id",
+        testId,
+        "--exit-code",
+        "0",
+        "--stdout-file",
+        stdoutPath,
+        "--stderr-file",
+        stderrPath,
+      ],
+      { cwd },
     );
 
     expect(result.exitCode).toBe(0);
@@ -451,7 +464,7 @@ describe("experiment capture", () => {
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
       throw new Error(
-        `Expected valid ExperimentResult JSON at ${outFile}. Parse failed: ${msg}\n\nContents:\n${raw}\n\nCLI:\n${formatCliDebug(result)}`
+        `Expected valid ExperimentResult JSON at ${outFile}. Parse failed: ${msg}\n\nContents:\n${raw}\n\nCLI:\n${formatCliDebug(result)}`,
       );
     }
 
@@ -486,7 +499,7 @@ describe("experiment capture", () => {
         "-e",
         "console.log('hi'); console.error('err'); process.exit(3);",
       ],
-      { cwd, timeout: 30000 }
+      { cwd, timeout: 30000 },
     );
 
     expect(result.exitCode).toBe(0);
@@ -509,7 +522,7 @@ describe("experiment capture", () => {
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
       throw new Error(
-        `Expected valid ExperimentResult JSON at ${outFile}. Parse failed: ${msg}\n\nContents:\n${raw}\n\nCLI:\n${formatCliDebug(result)}`
+        `Expected valid ExperimentResult JSON at ${outFile}. Parse failed: ${msg}\n\nContents:\n${raw}\n\nCLI:\n${formatCliDebug(result)}`,
       );
     }
 
@@ -548,7 +561,7 @@ describe("experiment capture", () => {
         "-e",
         "setTimeout(() => {}, 10000);", // Sleep 10s, should be killed at 1s
       ],
-      { cwd, timeout: 15000 }
+      { cwd, timeout: 15000 },
     );
 
     expect(result.exitCode).toBe(0);
@@ -566,7 +579,7 @@ describe("experiment capture", () => {
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
       throw new Error(
-        `Expected valid ExperimentResult JSON at ${outFile}. Parse failed: ${msg}\n\nContents:\n${raw}\n\nCLI:\n${formatCliDebug(result)}`
+        `Expected valid ExperimentResult JSON at ${outFile}. Parse failed: ${msg}\n\nContents:\n${raw}\n\nCLI:\n${formatCliDebug(result)}`,
       );
     }
 
@@ -598,7 +611,7 @@ describe("experiment capture", () => {
         "-e",
         "console.log('provenance test');",
       ],
-      { cwd, timeout: 10000 }
+      { cwd, timeout: 10000 },
     );
 
     expect(result.exitCode).toBe(0);
@@ -617,7 +630,7 @@ describe("experiment capture", () => {
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
       throw new Error(
-        `Expected valid ExperimentResult JSON at ${outFile}. Parse failed: ${msg}\n\nContents:\n${raw}\n\nCLI:\n${formatCliDebug(result)}`
+        `Expected valid ExperimentResult JSON at ${outFile}. Parse failed: ${msg}\n\nContents:\n${raw}\n\nCLI:\n${formatCliDebug(result)}`,
       );
     }
 
@@ -661,7 +674,7 @@ describe("experiment capture", () => {
         "--stderr",
         "error text",
       ],
-      { cwd }
+      { cwd },
     );
 
     expect(result.exitCode).toBe(0);
@@ -678,7 +691,7 @@ describe("experiment capture", () => {
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
       throw new Error(
-        `Expected valid ExperimentResult JSON at ${outFile}. Parse failed: ${msg}\n\nContents:\n${raw}\n\nCLI:\n${formatCliDebug(result)}`
+        `Expected valid ExperimentResult JSON at ${outFile}. Parse failed: ${msg}\n\nContents:\n${raw}\n\nCLI:\n${formatCliDebug(result)}`,
       );
     }
 
@@ -720,7 +733,7 @@ describe("experiment capture", () => {
 
     const result = await runCli(
       ["experiment", "encode", "--result-file", resultFile, "--project-key", cwd, "--json"],
-      { cwd }
+      { cwd },
     );
 
     expect(result.exitCode).toBe(0);
@@ -751,7 +764,7 @@ describe("experiment capture", () => {
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
       throw new Error(
-        `Expected valid JSON output from experiment encode. Parse failed: ${msg}\n\nCLI:\n${formatCliDebug(result)}`
+        `Expected valid JSON output from experiment encode. Parse failed: ${msg}\n\nCLI:\n${formatCliDebug(result)}`,
       );
     }
 
@@ -802,7 +815,7 @@ describe("experiment capture", () => {
 
     const result = await runCli(
       ["experiment", "encode", "--result-file", resultFile, "--project-key", cwd, "--json"],
-      { cwd }
+      { cwd },
     );
 
     expect(result.exitCode).toBe(0);
@@ -823,7 +836,9 @@ describe("experiment capture", () => {
       parsed = JSON.parse(result.stdout) as typeof parsed;
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
-      throw new Error(`Expected valid JSON output. Parse failed: ${msg}\n\nCLI:\n${formatCliDebug(result)}`);
+      throw new Error(
+        `Expected valid JSON output. Parse failed: ${msg}\n\nCLI:\n${formatCliDebug(result)}`,
+      );
     }
 
     expect(parsed.ok).toBe(true);
@@ -863,7 +878,7 @@ describe("experiment capture", () => {
 
     const result = await runCli(
       ["experiment", "encode", "--result-file", resultFile, "--project-key", cwd, "--json"],
-      { cwd }
+      { cwd },
     );
 
     expect(result.exitCode).toBe(0);
@@ -884,7 +899,9 @@ describe("experiment capture", () => {
       parsed = JSON.parse(result.stdout) as typeof parsed;
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
-      throw new Error(`Expected valid JSON output. Parse failed: ${msg}\n\nCLI:\n${formatCliDebug(result)}`);
+      throw new Error(
+        `Expected valid JSON output. Parse failed: ${msg}\n\nCLI:\n${formatCliDebug(result)}`,
+      );
     }
 
     expect(parsed.ok).toBe(true);
@@ -911,7 +928,7 @@ describe("experiment capture", () => {
 
     const result = await runCli(
       ["experiment", "encode", "--result-file", resultFile, "--project-key", cwd],
-      { cwd }
+      { cwd },
     );
 
     expect(result.exitCode).toBe(1);
@@ -924,7 +941,7 @@ describe("experiment capture", () => {
 
     const result = await runCli(
       ["experiment", "encode", "--result-file", "nonexistent.json", "--project-key", cwd],
-      { cwd }
+      { cwd },
     );
 
     expect(result.exitCode).toBe(1);
@@ -962,7 +979,7 @@ describe("experiment capture", () => {
 
     const result = await runCli(
       ["experiment", "encode", "--result-file", resultFile, "--project-key", cwd],
-      { cwd }
+      { cwd },
     );
 
     expect(result.exitCode).toBe(0);
@@ -1003,8 +1020,17 @@ describe("experiment capture", () => {
     writeFileSync(resultFile, JSON.stringify(mockResult, null, 2), "utf8");
 
     const result = await runCli(
-      ["experiment", "encode", "--result-file", resultFile, "--project-key", cwd, "--out-file", outFile],
-      { cwd }
+      [
+        "experiment",
+        "encode",
+        "--result-file",
+        resultFile,
+        "--project-key",
+        cwd,
+        "--out-file",
+        outFile,
+      ],
+      { cwd },
     );
 
     expect(result.exitCode).toBe(0);
@@ -1040,7 +1066,7 @@ describe("experiment encode golden fixtures", () => {
 
     const result = await runCli(
       ["experiment", "encode", "--result-file", resultFile, "--project-key", cwd, "--json"],
-      { cwd }
+      { cwd },
     );
 
     expect(result.exitCode).toBe(0);
@@ -1075,12 +1101,16 @@ describe("experiment encode golden fixtures", () => {
 
     const result = await runCli(
       ["experiment", "encode", "--result-file", resultFile, "--project-key", cwd, "--json"],
-      { cwd }
+      { cwd },
     );
 
     expect(result.exitCode).toBe(0);
 
-    const parsed = JSON.parse(result.stdout) as { ok: boolean; delta: { payload: { status: string } }; markdown: string };
+    const parsed = JSON.parse(result.stdout) as {
+      ok: boolean;
+      delta: { payload: { status: string } };
+      markdown: string;
+    };
     expect(parsed.ok).toBe(true);
     expect(parsed.delta.payload.status).toBe("failed");
 
@@ -1110,12 +1140,16 @@ describe("experiment encode golden fixtures", () => {
 
     const result = await runCli(
       ["experiment", "encode", "--result-file", resultFile, "--project-key", cwd, "--json"],
-      { cwd }
+      { cwd },
     );
 
     expect(result.exitCode).toBe(0);
 
-    const parsed = JSON.parse(result.stdout) as { ok: boolean; delta: { payload: { status: string } }; markdown: string };
+    const parsed = JSON.parse(result.stdout) as {
+      ok: boolean;
+      delta: { payload: { status: string } };
+      markdown: string;
+    };
     expect(parsed.ok).toBe(true);
     expect(parsed.delta.payload.status).toBe("blocked");
 
@@ -1145,12 +1179,16 @@ describe("experiment encode golden fixtures", () => {
 
     const result = await runCli(
       ["experiment", "encode", "--result-file", resultFile, "--project-key", cwd, "--json"],
-      { cwd }
+      { cwd },
     );
 
     expect(result.exitCode).toBe(0);
 
-    const parsed = JSON.parse(result.stdout) as { ok: boolean; delta: { payload: { status: string } }; markdown: string };
+    const parsed = JSON.parse(result.stdout) as {
+      ok: boolean;
+      delta: { payload: { status: string } };
+      markdown: string;
+    };
     expect(parsed.ok).toBe(true);
     expect(parsed.delta.payload.status).toBe("passed");
 
@@ -1171,7 +1209,12 @@ describe("experiment encode golden fixtures", () => {
   });
 
   it("validates all fixtures are present", async () => {
-    const expectedFixtures = ["passed.json", "failed.json", "blocked-timeout.json", "record-manual.json"];
+    const expectedFixtures = [
+      "passed.json",
+      "failed.json",
+      "blocked-timeout.json",
+      "record-manual.json",
+    ];
     for (const fixture of expectedFixtures) {
       const fixturePath = join(fixturesDir, fixture);
       expect(() => readFileSync(fixturePath, "utf8")).not.toThrow();
@@ -1198,7 +1241,7 @@ describe("experiment post validation", () => {
 
     const result = await runCli(
       ["experiment", "post", "--result-file", resultFile, "--to", "Agent", "--project-key", cwd],
-      { cwd }
+      { cwd },
     );
     expect(result.exitCode).toBe(1);
     expect(result.stderr).toContain("--sender");
@@ -1211,8 +1254,17 @@ describe("experiment post validation", () => {
     writeFileSync(resultFile, "{}", "utf8");
 
     const result = await runCli(
-      ["experiment", "post", "--result-file", resultFile, "--sender", "TestAgent", "--project-key", cwd],
-      { cwd }
+      [
+        "experiment",
+        "post",
+        "--result-file",
+        resultFile,
+        "--sender",
+        "TestAgent",
+        "--project-key",
+        cwd,
+      ],
+      { cwd },
     );
     expect(result.exitCode).toBe(1);
     expect(result.stderr).toContain("--to");
@@ -1223,8 +1275,19 @@ describe("experiment post validation", () => {
     mkdirSync(cwd, { recursive: true });
 
     const result = await runCli(
-      ["experiment", "post", "--result-file", "nonexistent.json", "--sender", "TestAgent", "--to", "Agent", "--project-key", cwd],
-      { cwd }
+      [
+        "experiment",
+        "post",
+        "--result-file",
+        "nonexistent.json",
+        "--sender",
+        "TestAgent",
+        "--to",
+        "Agent",
+        "--project-key",
+        cwd,
+      ],
+      { cwd },
     );
     expect(result.exitCode).toBe(1);
     expect(result.stderr).toContain("Cannot read result file");
@@ -1240,8 +1303,19 @@ describe("experiment post validation", () => {
     writeFileSync(resultFile, JSON.stringify(mockResult, null, 2), "utf8");
 
     const result = await runCli(
-      ["experiment", "post", "--result-file", resultFile, "--sender", "TestAgent", "--to", "Agent", "--project-key", cwd],
-      { cwd }
+      [
+        "experiment",
+        "post",
+        "--result-file",
+        resultFile,
+        "--sender",
+        "TestAgent",
+        "--to",
+        "Agent",
+        "--project-key",
+        cwd,
+      ],
+      { cwd },
     );
     expect(result.exitCode).toBe(1);
     expect(result.stderr).toContain("missing required field");
@@ -1262,8 +1336,19 @@ describe("experiment post validation", () => {
     writeFileSync(resultFile, JSON.stringify(mockResult, null, 2), "utf8");
 
     const result = await runCli(
-      ["experiment", "post", "--result-file", resultFile, "--sender", "TestAgent", "--to", "Agent", "--project-key", cwd],
-      { cwd }
+      [
+        "experiment",
+        "post",
+        "--result-file",
+        resultFile,
+        "--sender",
+        "TestAgent",
+        "--to",
+        "Agent",
+        "--project-key",
+        cwd,
+      ],
+      { cwd },
     );
     expect(result.exitCode).toBe(1);
     expect(result.stderr).toContain("result_id");
@@ -1284,8 +1369,19 @@ describe("experiment post validation", () => {
     writeFileSync(resultFile, JSON.stringify(mockResult, null, 2), "utf8");
 
     const result = await runCli(
-      ["experiment", "post", "--result-file", resultFile, "--sender", "TestAgent", "--to", "Agent", "--project-key", cwd],
-      { cwd }
+      [
+        "experiment",
+        "post",
+        "--result-file",
+        resultFile,
+        "--sender",
+        "TestAgent",
+        "--to",
+        "Agent",
+        "--project-key",
+        cwd,
+      ],
+      { cwd },
     );
     expect(result.exitCode).toBe(1);
     expect(result.stderr).toContain("test_id");
@@ -1306,8 +1402,19 @@ describe("experiment post validation", () => {
     writeFileSync(resultFile, JSON.stringify(mockResult, null, 2), "utf8");
 
     const result = await runCli(
-      ["experiment", "post", "--result-file", resultFile, "--sender", "TestAgent", "--to", "Agent", "--project-key", cwd],
-      { cwd }
+      [
+        "experiment",
+        "post",
+        "--result-file",
+        resultFile,
+        "--sender",
+        "TestAgent",
+        "--to",
+        "Agent",
+        "--project-key",
+        cwd,
+      ],
+      { cwd },
     );
     expect(result.exitCode).toBe(1);
     expect(result.stderr).toContain("thread_id");
@@ -1328,8 +1435,19 @@ describe("experiment post validation", () => {
     writeFileSync(resultFile, JSON.stringify(mockResult, null, 2), "utf8");
 
     const result = await runCli(
-      ["experiment", "post", "--result-file", resultFile, "--sender", "TestAgent", "--to", "Agent", "--project-key", cwd],
-      { cwd }
+      [
+        "experiment",
+        "post",
+        "--result-file",
+        resultFile,
+        "--sender",
+        "TestAgent",
+        "--to",
+        "Agent",
+        "--project-key",
+        cwd,
+      ],
+      { cwd },
     );
     expect(result.exitCode).toBe(1);
     expect(result.stderr).toContain("exit_code");
@@ -1350,8 +1468,19 @@ describe("experiment post validation", () => {
     writeFileSync(resultFile, JSON.stringify(mockResult, null, 2), "utf8");
 
     const result = await runCli(
-      ["experiment", "post", "--result-file", resultFile, "--sender", "TestAgent", "--to", "Agent", "--project-key", cwd],
-      { cwd }
+      [
+        "experiment",
+        "post",
+        "--result-file",
+        resultFile,
+        "--sender",
+        "TestAgent",
+        "--to",
+        "Agent",
+        "--project-key",
+        cwd,
+      ],
+      { cwd },
     );
     expect(result.exitCode).toBe(1);
     expect(result.stderr).toContain("timed_out");
@@ -1386,7 +1515,7 @@ describe("experiment E2E pipeline", () => {
         "-e",
         "console.log('E2E test output'); process.exit(0);",
       ],
-      { cwd, timeout: 15000 }
+      { cwd, timeout: 15000 },
     );
 
     expect(runResult.exitCode).toBe(0);
@@ -1395,16 +1524,8 @@ describe("experiment E2E pipeline", () => {
 
     // Step 2: Encode the result
     const encodeResult = await runCli(
-      [
-        "experiment",
-        "encode",
-        "--result-file",
-        resultFilePath,
-        "--project-key",
-        cwd,
-        "--json",
-      ],
-      { cwd }
+      ["experiment", "encode", "--result-file", resultFilePath, "--project-key", cwd, "--json"],
+      { cwd },
     );
 
     expect(encodeResult.exitCode).toBe(0);
@@ -1433,7 +1554,9 @@ describe("experiment E2E pipeline", () => {
       encodeOutput = JSON.parse(encodeResult.stdout) as typeof encodeOutput;
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
-      throw new Error(`Expected valid JSON from encode. Parse failed: ${msg}\n\nCLI:\n${formatCliDebug(encodeResult)}`);
+      throw new Error(
+        `Expected valid JSON from encode. Parse failed: ${msg}\n\nCLI:\n${formatCliDebug(encodeResult)}`,
+      );
     }
 
     // Verify the delta structure
@@ -1485,7 +1608,7 @@ describe("experiment E2E pipeline", () => {
         "-e",
         "console.error('Test failure'); process.exit(1);",
       ],
-      { cwd, timeout: 15000 }
+      { cwd, timeout: 15000 },
     );
 
     expect(runResult.exitCode).toBe(0);
@@ -1493,16 +1616,8 @@ describe("experiment E2E pipeline", () => {
 
     // Encode the result
     const encodeResult = await runCli(
-      [
-        "experiment",
-        "encode",
-        "--result-file",
-        resultFilePath,
-        "--project-key",
-        cwd,
-        "--json",
-      ],
-      { cwd }
+      ["experiment", "encode", "--result-file", resultFilePath, "--project-key", cwd, "--json"],
+      { cwd },
     );
 
     expect(encodeResult.exitCode).toBe(0);
@@ -1548,7 +1663,7 @@ describe("experiment E2E pipeline", () => {
         "-e",
         "setTimeout(() => {}, 10000);", // Sleep 10s, times out at 1s
       ],
-      { cwd, timeout: 15000 }
+      { cwd, timeout: 15000 },
     );
 
     expect(runResult.exitCode).toBe(0);
@@ -1556,16 +1671,8 @@ describe("experiment E2E pipeline", () => {
 
     // Encode the result
     const encodeResult = await runCli(
-      [
-        "experiment",
-        "encode",
-        "--result-file",
-        resultFilePath,
-        "--project-key",
-        cwd,
-        "--json",
-      ],
-      { cwd }
+      ["experiment", "encode", "--result-file", resultFilePath, "--project-key", cwd, "--json"],
+      { cwd },
     );
 
     expect(encodeResult.exitCode).toBe(0);
@@ -1614,7 +1721,7 @@ describe("experiment E2E pipeline", () => {
         "-e",
         `console.log('${expectedOutput}'); process.exit(0);`,
       ],
-      { cwd, timeout: 15000 }
+      { cwd, timeout: 15000 },
     );
 
     expect(runResult.exitCode).toBe(0);
@@ -1646,16 +1753,8 @@ describe("experiment E2E pipeline", () => {
 
     // Step 2: Encode
     const encodeResult = await runCli(
-      [
-        "experiment",
-        "encode",
-        "--result-file",
-        runOutput.out_file,
-        "--project-key",
-        cwd,
-        "--json",
-      ],
-      { cwd }
+      ["experiment", "encode", "--result-file", runOutput.out_file, "--project-key", cwd, "--json"],
+      { cwd },
     );
 
     expect(encodeResult.exitCode).toBe(0);
@@ -1731,17 +1830,25 @@ describe("corpus search command", () => {
   it("returns ranked hits with anchors (json mode)", async () => {
     const result = await runCli(
       ["corpus", "search", "Brenner", "--docs", "transcript", "--limit", "3", "--json"],
-      { timeout: 30000 }
+      { timeout: 30000 },
     );
 
     expect(result.exitCode).toBe(0);
 
-    let parsed: { hits: Array<{ docId: string; anchor?: string }>; filters?: { docIds?: string[] } };
+    let parsed: {
+      hits: Array<{ docId: string; anchor?: string }>;
+      filters?: { docIds?: string[] };
+    };
     try {
-      parsed = JSON.parse(result.stdout) as { hits: Array<{ docId: string; anchor?: string }>; filters?: { docIds?: string[] } };
+      parsed = JSON.parse(result.stdout) as {
+        hits: Array<{ docId: string; anchor?: string }>;
+        filters?: { docIds?: string[] };
+      };
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
-      throw new Error(`Expected corpus search --json output. Parse failed: ${msg}\n\nCLI:\n${formatCliDebug(result)}`);
+      throw new Error(
+        `Expected corpus search --json output. Parse failed: ${msg}\n\nCLI:\n${formatCliDebug(result)}`,
+      );
     }
 
     expect(parsed.hits.length).toBeGreaterThan(0);
@@ -1762,7 +1869,7 @@ describe("corpus search command", () => {
     const repoSubdir = resolve(__dirname, "apps", "web", "src");
     const result = await runCli(
       ["corpus", "search", "Brenner", "--docs", "transcript", "--limit", "1", "--json"],
-      { timeout: 30000, cwd: repoSubdir }
+      { timeout: 30000, cwd: repoSubdir },
     );
 
     expect(result.exitCode).toBe(0);
@@ -1772,7 +1879,9 @@ describe("corpus search command", () => {
       parsed = JSON.parse(result.stdout) as { hits: Array<{ docId: string }> };
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
-      throw new Error(`Expected corpus search --json output. Parse failed: ${msg}\n\nCLI:\n${formatCliDebug(result)}`);
+      throw new Error(
+        `Expected corpus search --json output. Parse failed: ${msg}\n\nCLI:\n${formatCliDebug(result)}`,
+      );
     }
     expect(parsed.hits.length).toBeGreaterThan(0);
     expect(parsed.hits[0]?.docId).toBe("transcript");
@@ -1814,7 +1923,11 @@ describe("lint command", () => {
     const result = await runCli(["lint", validPath, "--json"]);
     expect(result.exitCode).toBe(0);
 
-    let parsed: { artifact: string; valid: boolean; summary: { errors: number; warnings: number; info: number } };
+    let parsed: {
+      artifact: string;
+      valid: boolean;
+      summary: { errors: number; warnings: number; info: number };
+    };
     try {
       parsed = JSON.parse(result.stdout) as {
         artifact: string;
@@ -1823,7 +1936,9 @@ describe("lint command", () => {
       };
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
-      throw new Error(`Expected lint --json output. Parse failed: ${msg}\n\nCLI:\n${formatCliDebug(result)}`);
+      throw new Error(
+        `Expected lint --json output. Parse failed: ${msg}\n\nCLI:\n${formatCliDebug(result)}`,
+      );
     }
 
     expect(parsed.artifact).toBe("GOLDEN-VALID-001");
@@ -1859,13 +1974,7 @@ describe("upgrade command", () => {
 
 describe("doctor command", () => {
   it("doctor --json works without requiring external tools when skipped", async () => {
-    const result = await runCli([
-      "doctor",
-      "--json",
-      "--skip-ntm",
-      "--skip-cass",
-      "--skip-cm",
-    ]);
+    const result = await runCli(["doctor", "--json", "--skip-ntm", "--skip-cass", "--skip-cm"]);
 
     expect(result.exitCode).toBe(0);
 
@@ -1881,7 +1990,9 @@ describe("doctor command", () => {
       };
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
-      throw new Error(`Expected brenner doctor --json output. Parse failed: ${msg}\n\nCLI:\n${formatCliDebug(result)}`);
+      throw new Error(
+        `Expected brenner doctor --json output. Parse failed: ${msg}\n\nCLI:\n${formatCliDebug(result)}`,
+      );
     }
 
     expect(parsed.status).toBe("ok");
@@ -1892,13 +2003,7 @@ describe("doctor command", () => {
   });
 
   it("doctor --json includes agent CLI checks", async () => {
-    const result = await runCli([
-      "doctor",
-      "--json",
-      "--skip-ntm",
-      "--skip-cass",
-      "--skip-cm",
-    ]);
+    const result = await runCli(["doctor", "--json", "--skip-ntm", "--skip-cass", "--skip-cm"]);
 
     expect(result.exitCode).toBe(0);
 
@@ -1968,13 +2073,7 @@ describe("doctor command", () => {
   });
 
   it("doctor without --skip-agents reports agent CLI presence", async () => {
-    const result = await runCli([
-      "doctor",
-      "--json",
-      "--skip-ntm",
-      "--skip-cass",
-      "--skip-cm",
-    ]);
+    const result = await runCli(["doctor", "--json", "--skip-ntm", "--skip-cass", "--skip-cm"]);
 
     expect(result.exitCode).toBe(0);
 
@@ -2042,7 +2141,10 @@ describe("excerpt build command", () => {
   });
 
   it("builds an excerpt from quote bank tags (json mode)", async () => {
-    const result = await runCli(["excerpt", "build", "--tags", "cheap-loop", "--limit", "2", "--json"], { timeout: 15000 });
+    const result = await runCli(
+      ["excerpt", "build", "--tags", "cheap-loop", "--limit", "2", "--json"],
+      { timeout: 15000 },
+    );
 
     expect(result.exitCode).toBe(0);
 
@@ -2051,7 +2153,9 @@ describe("excerpt build command", () => {
       parsed = JSON.parse(result.stdout) as { markdown: string; anchors: string[] };
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
-      throw new Error(`Expected excerpt build --json output. Parse failed: ${msg}\n\nCLI:\n${formatCliDebug(result)}`);
+      throw new Error(
+        `Expected excerpt build --json output. Parse failed: ${msg}\n\nCLI:\n${formatCliDebug(result)}`,
+      );
     }
 
     expect(parsed.markdown).toContain("### Excerpt");
@@ -2067,7 +2171,10 @@ describe("memory context command", () => {
   it("fails softly when cm is missing", async () => {
     const result = await runCli(["memory", "context", "test task"], {
       env: {
-        PATH: process.platform === "win32" ? "C:\\__brenner_test_empty_path__" : "/__brenner_test_empty_path__",
+        PATH:
+          process.platform === "win32"
+            ? "C:\\__brenner_test_empty_path__"
+            : "/__brenner_test_empty_path__",
       },
     });
 
@@ -2087,7 +2194,9 @@ describe("memory context command", () => {
       };
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
-      throw new Error(`Expected brenner memory context JSON output. Parse failed: ${msg}\n\nCLI:\n${formatCliDebug(result)}`);
+      throw new Error(
+        `Expected brenner memory context JSON output. Parse failed: ${msg}\n\nCLI:\n${formatCliDebug(result)}`,
+      );
     }
 
     expect(parsed.ok).toBe(false);
@@ -2253,12 +2362,7 @@ describe("prompt compose validation", () => {
   });
 
   it("fails on non-existent excerpt file", async () => {
-    const result = await runCli([
-      "prompt",
-      "compose",
-      "--excerpt-file",
-      "/nonexistent/file.md",
-    ]);
+    const result = await runCli(["prompt", "compose", "--excerpt-file", "/nonexistent/file.md"]);
     expect(result.exitCode).toBe(1);
     // Error message will vary by platform
     expect(result.stderr.length).toBeGreaterThan(0);
@@ -2470,27 +2574,13 @@ describe("session status validation", () => {
   });
 
   it("rejects non-integer --timeout value", async () => {
-    const result = await runCli([
-      "session",
-      "status",
-      "--thread-id",
-      "TEST-1",
-      "--timeout",
-      "abc",
-    ]);
+    const result = await runCli(["session", "status", "--thread-id", "TEST-1", "--timeout", "abc"]);
     expect(result.exitCode).toBe(1);
     expect(result.stderr).toContain("expected integer");
   });
 
   it("accepts valid --timeout value and fails on Agent Mail connect", async () => {
-    const result = await runCli([
-      "session",
-      "status",
-      "--thread-id",
-      "TEST-1",
-      "--timeout",
-      "60",
-    ]);
+    const result = await runCli(["session", "status", "--thread-id", "TEST-1", "--timeout", "60"]);
     expect(result.exitCode).toBe(1);
     expect(result.stderr).toContain("connect");
   });
@@ -2526,7 +2616,13 @@ describe("session compile validation", () => {
               operation: "ADD",
               section: "hypothesis_slate",
               target_id: null,
-              payload: { id: "H1", name: "Bad", claim: "Missing fence", mechanism: "N/A", anchors: ["inference"] },
+              payload: {
+                id: "H1",
+                name: "Bad",
+                claim: "Missing fence",
+                mechanism: "N/A",
+                anchors: ["inference"],
+              },
               rationale: "This should be fenced but is not",
             }),
             created_ts: "2025-01-01T00:00:00Z",
@@ -2536,7 +2632,7 @@ describe("session compile validation", () => {
 
       const result = await runCli(
         ["session", "compile", "--project-key", projectKey, "--thread-id", threadId, "--json"],
-        { env: { AGENT_MAIL_BASE_URL: server.getBaseUrl() }, timeout: 15000 }
+        { env: { AGENT_MAIL_BASE_URL: server.getBaseUrl() }, timeout: 15000 },
       );
 
       expect(result.exitCode).toBe(1);
@@ -2566,7 +2662,9 @@ describe("session write validation", () => {
   it("sanitizes thread-id when using the default output path", async () => {
     const result = await runCli(["session", "write", "--thread-id", "../evil"]);
     expect(result.exitCode).toBe(1);
-    expect(result.stderr).toContain('sanitized thread id for artifact filename: "../evil" -> "evil"');
+    expect(result.stderr).toContain(
+      'sanitized thread id for artifact filename: "../evil" -> "evil"',
+    );
   });
 });
 
@@ -2584,7 +2682,14 @@ describe("session publish validation", () => {
   });
 
   it("requires --to flag", async () => {
-    const result = await runCli(["session", "publish", "--thread-id", "TEST-1", "--sender", "Test"]);
+    const result = await runCli([
+      "session",
+      "publish",
+      "--thread-id",
+      "TEST-1",
+      "--sender",
+      "Test",
+    ]);
     expect(result.exitCode).toBe(1);
     expect(result.stderr).toContain("--to");
   });
@@ -2666,12 +2771,7 @@ describe("flag parsing edge cases", () => {
 
 describe("prompt compose with real files", () => {
   it("composes prompt with default template and README as excerpt", async () => {
-    const result = await runCli([
-      "prompt",
-      "compose",
-      "--excerpt-file",
-      "README.md",
-    ]);
+    const result = await runCli(["prompt", "compose", "--excerpt-file", "README.md"]);
     // Uses default template: metaprompt_by_gpt_52.md
     expect(result.exitCode).toBe(0);
     expect(result.stdout).toContain("## TRANSCRIPT EXCERPT(S)");
@@ -2781,12 +2881,7 @@ describe("mail command output formatting", () => {
   });
 
   it("mail agents fails gracefully when server unavailable", async () => {
-    const result = await runCli([
-      "mail",
-      "agents",
-      "--project-key",
-      "/tmp/test",
-    ]);
+    const result = await runCli(["mail", "agents", "--project-key", "/tmp/test"]);
     expect(result.exitCode).toBe(1);
     expect(result.stderr).toContain("connect");
   });
@@ -2802,7 +2897,7 @@ describe("mail command output formatting", () => {
 async function runCliWithEnv(
   args: string[],
   env: Record<string, string>,
-  timeout = 5000
+  timeout = 5000,
 ): Promise<CliResult> {
   return runCli(args, { env, timeout });
 }
@@ -2819,10 +2914,9 @@ describe("AGENT_NAME environment variable", () => {
   });
 
   it("mail read uses AGENT_NAME if --agent not provided", async () => {
-    const result = await runCliWithEnv(
-      ["mail", "read", "--message-id", "123"],
-      { AGENT_NAME: "EnvAgent" }
-    );
+    const result = await runCliWithEnv(["mail", "read", "--message-id", "123"], {
+      AGENT_NAME: "EnvAgent",
+    });
     expect(result.stderr).not.toContain("Missing --agent");
     expect(result.stderr).toContain("connect");
   });
@@ -2837,17 +2931,8 @@ describe("AGENT_NAME environment variable", () => {
 
   it("mail send uses AGENT_NAME if --sender not provided", async () => {
     const result = await runCliWithEnv(
-      [
-        "mail",
-        "send",
-        "--to",
-        "Agent",
-        "--subject",
-        "Test",
-        "--body-file",
-        "README.md",
-      ],
-      { AGENT_NAME: "EnvAgent" }
+      ["mail", "send", "--to", "Agent", "--subject", "Test", "--body-file", "README.md"],
+      { AGENT_NAME: "EnvAgent" },
     );
     expect(result.stderr).not.toContain("Missing --sender");
     // Will fail on connection
@@ -2882,7 +2967,7 @@ describe("default values", () => {
         "--question",
         "Test?",
       ],
-      { AGENT_NAME: "TestAgent" }
+      { AGENT_NAME: "TestAgent" },
     );
     // Should not complain about missing --project-key
     expect(result.stderr).not.toContain("project-key");
@@ -2891,12 +2976,7 @@ describe("default values", () => {
   });
 
   it("prompt compose uses default template path", async () => {
-    const result = await runCli([
-      "prompt",
-      "compose",
-      "--excerpt-file",
-      "README.md",
-    ]);
+    const result = await runCli(["prompt", "compose", "--excerpt-file", "README.md"]);
     // Should succeed using default template
     expect(result.exitCode).toBe(0);
     expect(result.stdout.length).toBeGreaterThan(0);
@@ -2913,7 +2993,14 @@ describe("config file defaults", () => {
       defaults: { template: "initial_metaprompt.md" },
     });
 
-    const result = await runCli(["--config", configPath, "prompt", "compose", "--excerpt-file", "README.md"]);
+    const result = await runCli([
+      "--config",
+      configPath,
+      "prompt",
+      "compose",
+      "--excerpt-file",
+      "README.md",
+    ]);
 
     expect(result.exitCode).toBe(0);
     expect(result.stdout).toContain("Meta prompt:");
@@ -2942,9 +3029,18 @@ describe("config file defaults", () => {
 
   it("fails when explicit --config path is missing", async () => {
     const missingConfig =
-      process.platform === "win32" ? "C:\\\\__brenner_test_missing_config__.json" : "/__brenner_test_missing_config__.json";
+      process.platform === "win32"
+        ? "C:\\\\__brenner_test_missing_config__.json"
+        : "/__brenner_test_missing_config__.json";
 
-    const result = await runCli(["--config", missingConfig, "prompt", "compose", "--excerpt-file", "README.md"]);
+    const result = await runCli([
+      "--config",
+      missingConfig,
+      "prompt",
+      "compose",
+      "--excerpt-file",
+      "README.md",
+    ]);
 
     expect(result.exitCode).toBe(1);
     expect(result.stderr).toContain("Config file not found");
@@ -2968,9 +3064,12 @@ describe("config file defaults", () => {
 
   it("fails on invalid explicit config file", async () => {
     const configPath = writeTempConfigText("{ not-json");
-    const result = await runCli(["--config", configPath, "prompt", "compose", "--excerpt-file", "README.md"], {
-      env: { BRENNER_CONFIG_PATH: "" },
-    });
+    const result = await runCli(
+      ["--config", configPath, "prompt", "compose", "--excerpt-file", "README.md"],
+      {
+        env: { BRENNER_CONFIG_PATH: "" },
+      },
+    );
 
     expect(result.exitCode).toBe(1);
     expect(result.stderr).toContain("Failed to parse config JSON");
@@ -2983,28 +3082,25 @@ describe("config file defaults", () => {
 
 describe("integer flag validation", () => {
   it("rejects non-integer --limit value", async () => {
-    const result = await runCliWithEnv(
-      ["mail", "inbox", "--limit", "abc"],
-      { AGENT_NAME: "TestAgent" }
-    );
+    const result = await runCliWithEnv(["mail", "inbox", "--limit", "abc"], {
+      AGENT_NAME: "TestAgent",
+    });
     expect(result.exitCode).toBe(1);
     expect(result.stderr).toContain("expected integer");
   });
 
   it("rejects non-integer --message-id value", async () => {
-    const result = await runCliWithEnv(
-      ["mail", "read", "--message-id", "abc"],
-      { AGENT_NAME: "TestAgent" }
-    );
+    const result = await runCliWithEnv(["mail", "read", "--message-id", "abc"], {
+      AGENT_NAME: "TestAgent",
+    });
     expect(result.exitCode).toBe(1);
     expect(result.stderr).toContain("expected integer");
   });
 
   it("accepts valid integer --limit value", async () => {
-    const result = await runCliWithEnv(
-      ["mail", "inbox", "--limit", "50"],
-      { AGENT_NAME: "TestAgent" }
-    );
+    const result = await runCliWithEnv(["mail", "inbox", "--limit", "50"], {
+      AGENT_NAME: "TestAgent",
+    });
     // Should not complain about limit format
     expect(result.stderr).not.toContain("expected integer");
     // Will fail on connection
@@ -3018,20 +3114,18 @@ describe("integer flag validation", () => {
 
 describe("boolean flags", () => {
   it("--urgent-only is recognized as boolean", async () => {
-    const result = await runCliWithEnv(
-      ["mail", "inbox", "--urgent-only"],
-      { AGENT_NAME: "TestAgent" }
-    );
+    const result = await runCliWithEnv(["mail", "inbox", "--urgent-only"], {
+      AGENT_NAME: "TestAgent",
+    });
     // Should not error on flag parsing
     expect(result.stderr).not.toContain("urgent-only");
     expect(result.stderr).toContain("connect");
   });
 
   it("--include-bodies is recognized as boolean", async () => {
-    const result = await runCliWithEnv(
-      ["mail", "inbox", "--include-bodies"],
-      { AGENT_NAME: "TestAgent" }
-    );
+    const result = await runCliWithEnv(["mail", "inbox", "--include-bodies"], {
+      AGENT_NAME: "TestAgent",
+    });
     expect(result.stderr).not.toContain("include-bodies");
     expect(result.stderr).toContain("connect");
   });
@@ -3049,26 +3143,22 @@ describe("boolean flags", () => {
         "README.md",
         "--ack-required",
       ],
-      { AGENT_NAME: "TestAgent" }
+      { AGENT_NAME: "TestAgent" },
     );
     expect(result.stderr).not.toContain("ack-required");
     expect(result.stderr).toContain("connect");
   });
 
   it("--threads is recognized as boolean", async () => {
-    const result = await runCliWithEnv(
-      ["mail", "inbox", "--threads"],
-      { AGENT_NAME: "TestAgent" }
-    );
+    const result = await runCliWithEnv(["mail", "inbox", "--threads"], { AGENT_NAME: "TestAgent" });
     expect(result.stderr).not.toContain("threads");
     expect(result.stderr).toContain("connect");
   });
 
   it("--summaries is recognized as boolean", async () => {
-    const result = await runCliWithEnv(
-      ["mail", "inbox", "--threads", "--summaries"],
-      { AGENT_NAME: "TestAgent" }
-    );
+    const result = await runCliWithEnv(["mail", "inbox", "--threads", "--summaries"], {
+      AGENT_NAME: "TestAgent",
+    });
     expect(result.stderr).not.toContain("summaries");
     expect(result.stderr).toContain("connect");
   });
@@ -3088,7 +3178,7 @@ describe("boolean flags", () => {
         "Test?",
         "--unified",
       ],
-      { AGENT_NAME: "TestAgent" }
+      { AGENT_NAME: "TestAgent" },
     );
     expect(result.stderr).not.toContain("unified");
     expect(result.stderr).toContain("connect");
@@ -3104,13 +3194,7 @@ describe("hypothesis CLI", () => {
     const projectDir = join(tmpdir(), `brenner-test-hypothesis-${randomUUID()}`);
     mkdirSync(projectDir, { recursive: true });
 
-    const listEmpty = await runCli([
-      "hypothesis",
-      "list",
-      "--project-key",
-      projectDir,
-      "--json",
-    ]);
+    const listEmpty = await runCli(["hypothesis", "list", "--project-key", projectDir, "--json"]);
     expect(listEmpty.exitCode).toBe(0);
     const listEmptyParsed = JSON.parse(listEmpty.stdout) as {
       ok: boolean;
@@ -3144,7 +3228,13 @@ describe("hypothesis CLI", () => {
     expect(create1.exitCode).toBe(0);
     const create1Parsed = JSON.parse(create1.stdout) as {
       ok: boolean;
-      hypothesis: { id: string; sessionId: string; anchors?: string[]; tags?: string[]; notes?: string };
+      hypothesis: {
+        id: string;
+        sessionId: string;
+        anchors?: string[];
+        tags?: string[];
+        notes?: string;
+      };
     };
     expect(create1Parsed.ok).toBe(true);
     expect(create1Parsed.hypothesis.id).toBe("H-RS-TEST-001");
@@ -3197,7 +3287,10 @@ describe("hypothesis CLI", () => {
       "--json",
     ]);
     expect(link.exitCode).toBe(0);
-    const linkParsed = JSON.parse(link.stdout) as { ok: boolean; hypothesis: { parentId?: string } };
+    const linkParsed = JSON.parse(link.stdout) as {
+      ok: boolean;
+      hypothesis: { parentId?: string };
+    };
     expect(linkParsed.ok).toBe(true);
     expect(linkParsed.hypothesis.parentId).toBe(create1Parsed.hypothesis.id);
 
@@ -3272,7 +3365,8 @@ describe("test CLI", () => {
       hypotheses: [
         {
           id: hypothesisAId,
-          statement: "Hypothesis A: the assay signal should be detected (positive) under condition X.",
+          statement:
+            "Hypothesis A: the assay signal should be detected (positive) under condition X.",
           origin: "proposed",
           category: "mechanistic",
           confidence: "medium",
@@ -3283,7 +3377,8 @@ describe("test CLI", () => {
         },
         {
           id: hypothesisBId,
-          statement: "Hypothesis B: the assay signal should not be detected (negative) under condition X.",
+          statement:
+            "Hypothesis B: the assay signal should not be detected (negative) under condition X.",
           origin: "proposed",
           category: "third_alternative",
           confidence: "medium",
@@ -3298,7 +3393,7 @@ describe("test CLI", () => {
     writeFileSync(
       join(projectDir, ".research", "hypotheses", `${sessionId}-hypotheses.json`),
       JSON.stringify(hypothesesFile, null, 2),
-      "utf8"
+      "utf8",
     );
 
     const sessionTestsFile = {
@@ -3309,7 +3404,8 @@ describe("test CLI", () => {
         {
           id: testId,
           name: "Binary signal assay for Hypothesis A vs B",
-          procedure: "Run the assay under condition X and observe whether the signal is detected or absent.",
+          procedure:
+            "Run the assay under condition X and observe whether the signal is detected or absent.",
           discriminates: [hypothesisAId, hypothesisBId],
           expectedOutcomes: [
             {
@@ -3326,9 +3422,12 @@ describe("test CLI", () => {
             },
           ],
           potencyCheck: {
-            positiveControl: "Include a known positive sample to verify the assay can detect the signal.",
-            sensitivityVerification: "Verify detection threshold is adequate using a dilution series.",
-            timingValidation: "Run a short time course to confirm we measure within the assay window.",
+            positiveControl:
+              "Include a known positive sample to verify the assay can detect the signal.",
+            sensitivityVerification:
+              "Verify detection threshold is adequate using a dilution series.",
+            timingValidation:
+              "Run a short time course to confirm we measure within the assay window.",
           },
           evidencePerWeekScore: {
             likelihoodRatio: 3,
@@ -3352,18 +3451,23 @@ describe("test CLI", () => {
     writeFileSync(
       join(projectDir, ".research", "tests", `${sessionId}-tests.json`),
       JSON.stringify(sessionTestsFile, null, 2),
-      "utf8"
+      "utf8",
     );
 
     return { projectDir, sessionId, testId, hypothesisAId, hypothesisBId };
   }
 
   it("supports list/show/execute/suggest-kills (json mode)", async () => {
-    const { projectDir, sessionId, testId, hypothesisAId, hypothesisBId } = setupTestProjectFixture();
+    const { projectDir, sessionId, testId, hypothesisAId, hypothesisBId } =
+      setupTestProjectFixture();
 
     const list = await runCli(["test", "list", "--project-key", projectDir, "--json"]);
     expect(list.exitCode).toBe(0);
-    const listParsed = JSON.parse(list.stdout) as { ok: boolean; count: number; tests: Array<{ id: string }> };
+    const listParsed = JSON.parse(list.stdout) as {
+      ok: boolean;
+      count: number;
+      tests: Array<{ id: string }>;
+    };
     expect(listParsed.ok).toBe(true);
     expect(listParsed.count).toBe(1);
     expect(listParsed.tests.map((t) => t.id)).toContain(testId);
@@ -3397,16 +3501,39 @@ describe("test CLI", () => {
     expect(executeParsed.test.status).toBe("completed");
     expect(executeParsed.test.execution?.observedOutcome).toBe("positive");
     expect(executeParsed.applied).toBeNull();
-    expect(executeParsed.suggestions.some((s) => s.hypothesisId === hypothesisAId && s.suggestedAction === "validate")).toBe(true);
-    expect(executeParsed.suggestions.some((s) => s.hypothesisId === hypothesisBId && s.suggestedAction === "kill")).toBe(true);
+    expect(
+      executeParsed.suggestions.some(
+        (s) => s.hypothesisId === hypothesisAId && s.suggestedAction === "validate",
+      ),
+    ).toBe(true);
+    expect(
+      executeParsed.suggestions.some(
+        (s) => s.hypothesisId === hypothesisBId && s.suggestedAction === "kill",
+      ),
+    ).toBe(true);
 
-    const suggestKills = await runCli(["test", "suggest-kills", testId, "--project-key", projectDir, "--json"]);
+    const suggestKills = await runCli([
+      "test",
+      "suggest-kills",
+      testId,
+      "--project-key",
+      projectDir,
+      "--json",
+    ]);
     expect(suggestKills.exitCode).toBe(0);
-    const suggestParsed = JSON.parse(suggestKills.stdout) as { ok: boolean; kills: Array<{ hypothesisId: string }> };
+    const suggestParsed = JSON.parse(suggestKills.stdout) as {
+      ok: boolean;
+      kills: Array<{ hypothesisId: string }>;
+    };
     expect(suggestParsed.ok).toBe(true);
     expect(suggestParsed.kills.map((k) => k.hypothesisId)).toContain(hypothesisBId);
 
-    const hypothesesPath = join(projectDir, ".research", "hypotheses", `${sessionId}-hypotheses.json`);
+    const hypothesesPath = join(
+      projectDir,
+      ".research",
+      "hypotheses",
+      `${sessionId}-hypotheses.json`,
+    );
     expect(existsSync(hypothesesPath)).toBe(true);
     const hypothesesJson = JSON.parse(readFileSync(hypothesesPath, "utf8")) as {
       hypotheses: Array<{ id: string; state: string }>;
@@ -3417,7 +3544,8 @@ describe("test CLI", () => {
   });
 
   it("execute --apply transitions hypotheses and persists", async () => {
-    const { projectDir, sessionId, testId, hypothesisAId, hypothesisBId } = setupTestProjectFixture();
+    const { projectDir, sessionId, testId, hypothesisAId, hypothesisBId } =
+      setupTestProjectFixture();
 
     const execute = await runCli([
       "test",
@@ -3441,7 +3569,12 @@ describe("test CLI", () => {
     expect(executeParsed.applied?.saved).toBe(2);
     expect(executeParsed.applied?.applied.every((r) => r.ok)).toBe(true);
 
-    const hypothesesPath = join(projectDir, ".research", "hypotheses", `${sessionId}-hypotheses.json`);
+    const hypothesesPath = join(
+      projectDir,
+      ".research",
+      "hypotheses",
+      `${sessionId}-hypotheses.json`,
+    );
     const hypothesesJson = JSON.parse(readFileSync(hypothesesPath, "utf8")) as {
       hypotheses: Array<{ id: string; state: string }>;
     };
@@ -3451,7 +3584,9 @@ describe("test CLI", () => {
   });
 
   it("bind transitions hypotheses (matched/violated)", async () => {
-    const { projectDir, sessionId, testId, hypothesisAId, hypothesisBId } = setupTestProjectFixture({ sessionId: "RS-BIND" });
+    const { projectDir, sessionId, testId, hypothesisAId, hypothesisBId } = setupTestProjectFixture(
+      { sessionId: "RS-BIND" },
+    );
 
     const bindMatched = await runCli([
       "test",
@@ -3466,7 +3601,10 @@ describe("test CLI", () => {
       "Tester",
     ]);
     expect(bindMatched.exitCode).toBe(0);
-    const bindMatchedParsed = JSON.parse(bindMatched.stdout) as { ok: boolean; hypothesis: { id: string; state: string } };
+    const bindMatchedParsed = JSON.parse(bindMatched.stdout) as {
+      ok: boolean;
+      hypothesis: { id: string; state: string };
+    };
     expect(bindMatchedParsed.ok).toBe(true);
     expect(bindMatchedParsed.hypothesis.id).toBe(hypothesisAId);
     expect(bindMatchedParsed.hypothesis.state).toBe("confirmed");
@@ -3484,12 +3622,20 @@ describe("test CLI", () => {
       "Tester",
     ]);
     expect(bindViolated.exitCode).toBe(0);
-    const bindViolatedParsed = JSON.parse(bindViolated.stdout) as { ok: boolean; hypothesis: { id: string; state: string } };
+    const bindViolatedParsed = JSON.parse(bindViolated.stdout) as {
+      ok: boolean;
+      hypothesis: { id: string; state: string };
+    };
     expect(bindViolatedParsed.ok).toBe(true);
     expect(bindViolatedParsed.hypothesis.id).toBe(hypothesisBId);
     expect(bindViolatedParsed.hypothesis.state).toBe("refuted");
 
-    const hypothesesPath = join(projectDir, ".research", "hypotheses", `${sessionId}-hypotheses.json`);
+    const hypothesesPath = join(
+      projectDir,
+      ".research",
+      "hypotheses",
+      `${sessionId}-hypotheses.json`,
+    );
     const hypothesesJson = JSON.parse(readFileSync(hypothesesPath, "utf8")) as {
       hypotheses: Array<{ id: string; state: string }>;
     };
@@ -3499,7 +3645,9 @@ describe("test CLI", () => {
   });
 
   it("execute --interactive accepts stdin input for prompts", async () => {
-    const { projectDir, testId, hypothesisAId, hypothesisBId } = setupTestProjectFixture({ sessionId: "RS-INTERACT" });
+    const { projectDir, testId, hypothesisAId, hypothesisBId } = setupTestProjectFixture({
+      sessionId: "RS-INTERACT",
+    });
 
     // Provide stdin input for the interactive prompts:
     // 1. Observed result (text) - "positive"
@@ -3513,13 +3661,17 @@ describe("test CLI", () => {
 
     const execute = await runCli(
       ["test", "execute", testId, "--project-key", projectDir, "--json", "--interactive"],
-      { stdin: stdinInput, timeout: 15000 }
+      { stdin: stdinInput, timeout: 15000 },
     );
 
     expect(execute.exitCode).toBe(0);
     const parsed = JSON.parse(execute.stdout) as {
       ok: boolean;
-      test: { id: string; status: string; execution?: { observedOutcome: string; potencyCheckPassed?: boolean } };
+      test: {
+        id: string;
+        status: string;
+        execution?: { observedOutcome: string; potencyCheckPassed?: boolean };
+      };
       suggestions: Array<{ hypothesisId: string; suggestedAction: string }>;
       applied: unknown;
     };
@@ -3532,14 +3684,24 @@ describe("test CLI", () => {
     // Applied is null because we said 'n' to apply
     expect(parsed.applied).toBeNull();
     // Should still have suggestions
-    expect(parsed.suggestions.some((s) => s.hypothesisId === hypothesisAId && s.suggestedAction === "validate")).toBe(true);
-    expect(parsed.suggestions.some((s) => s.hypothesisId === hypothesisBId && s.suggestedAction === "kill")).toBe(true);
+    expect(
+      parsed.suggestions.some(
+        (s) => s.hypothesisId === hypothesisAId && s.suggestedAction === "validate",
+      ),
+    ).toBe(true);
+    expect(
+      parsed.suggestions.some(
+        (s) => s.hypothesisId === hypothesisBId && s.suggestedAction === "kill",
+      ),
+    ).toBe(true);
   });
 
   it("execute --interactive with apply transitions hypotheses", async () => {
-    const { projectDir, sessionId, testId, hypothesisAId, hypothesisBId } = setupTestProjectFixture({
-      sessionId: "RS-INTERACT-APPLY",
-    });
+    const { projectDir, sessionId, testId, hypothesisAId, hypothesisBId } = setupTestProjectFixture(
+      {
+        sessionId: "RS-INTERACT-APPLY",
+      },
+    );
 
     // Provide stdin input including 'y' to apply suggestions:
     // 1. Observed result (text) - "positive"
@@ -3553,7 +3715,7 @@ describe("test CLI", () => {
 
     const execute = await runCli(
       ["test", "execute", testId, "--project-key", projectDir, "--json", "--interactive"],
-      { stdin: stdinInput, timeout: 15000 }
+      { stdin: stdinInput, timeout: 15000 },
     );
 
     expect(execute.exitCode).toBe(0);
@@ -3569,7 +3731,12 @@ describe("test CLI", () => {
     expect(parsed.applied?.saved).toBe(2);
 
     // Verify hypothesis states were updated
-    const hypothesesPath = join(projectDir, ".research", "hypotheses", `${sessionId}-hypotheses.json`);
+    const hypothesesPath = join(
+      projectDir,
+      ".research",
+      "hypotheses",
+      `${sessionId}-hypotheses.json`,
+    );
     const hypothesesJson = JSON.parse(readFileSync(hypothesesPath, "utf8")) as {
       hypotheses: Array<{ id: string; state: string }>;
     };
@@ -3590,7 +3757,14 @@ describe("evidence post", () => {
 
     const threadId = "RS-EVIDENCE";
 
-    const init = await runCli(["evidence", "init", "--thread-id", threadId, "--project-key", projectDir]);
+    const init = await runCli([
+      "evidence",
+      "init",
+      "--thread-id",
+      threadId,
+      "--project-key",
+      projectDir,
+    ]);
     expect(init.exitCode).toBe(0);
 
     const add1 = await runCli([
@@ -3673,7 +3847,10 @@ describe("evidence post", () => {
       "--json",
     ]);
     expect(dryRunFiltered.exitCode).toBe(0);
-    const dryRunFilteredParsed = JSON.parse(dryRunFiltered.stdout) as { ok: boolean; body_md: string };
+    const dryRunFilteredParsed = JSON.parse(dryRunFiltered.stdout) as {
+      ok: boolean;
+      body_md: string;
+    };
     expect(dryRunFilteredParsed.ok).toBe(true);
     expect(dryRunFilteredParsed.body_md).toContain("EV-001");
     expect(dryRunFilteredParsed.body_md).not.toContain("EV-002");

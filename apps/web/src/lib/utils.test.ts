@@ -57,7 +57,9 @@ describe("cn() - class name merging", () => {
     });
 
     it("handles mixed inputs", () => {
-      expect(cn("base", { conditional: true }, ["array", "item"])).toBe("base conditional array item");
+      expect(cn("base", { conditional: true }, ["array", "item"])).toBe(
+        "base conditional array item",
+      );
     });
   });
 
@@ -84,7 +86,9 @@ describe("cn() - class name merging", () => {
     });
 
     it("preserves non-conflicting classes", () => {
-      expect(cn("flex", "items-center", "justify-between", "p-4")).toBe("flex items-center justify-between p-4");
+      expect(cn("flex", "items-center", "justify-between", "p-4")).toBe(
+        "flex items-center justify-between p-4",
+      );
     });
 
     it("resolves responsive variants", () => {

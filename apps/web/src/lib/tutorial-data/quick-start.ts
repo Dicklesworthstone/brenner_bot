@@ -9,10 +9,10 @@
  */
 
 import type {
-  TutorialStep,
-  TroubleshootingItem,
   CheckpointData,
   CodeBlockData,
+  TroubleshootingItem,
+  TutorialStep,
 } from "@/lib/tutorial-types";
 
 // ============================================================================
@@ -48,8 +48,7 @@ export interface ArtifactSectionData {
 export const QUICK_START_PATH = {
   id: "quick-start",
   title: "Quick Start",
-  description:
-    "From zero to research artifact in ~30 minutes. Works with any AI chat interface.",
+  description: "From zero to research artifact in ~30 minutes. Works with any AI chat interface.",
   estimatedDuration: "~30 min",
   difficulty: "beginner" as const,
   totalSteps: 7,
@@ -289,8 +288,7 @@ export const TROUBLESHOOTING: Record<string, TroubleshootingItem[]> = {
   step1: [
     {
       problem: "This feels too abstract",
-      solution:
-        "Skim the sample artifact below to see the concrete output you're aiming for.",
+      solution: "Skim the sample artifact below to see the concrete output you're aiming for.",
     },
     {
       problem: "Unsure if your question fits",
@@ -326,8 +324,7 @@ export const TROUBLESHOOTING: Record<string, TroubleshootingItem[]> = {
     {
       problem: "Clone fails with 'Permission denied (publickey)'",
       symptoms: ["SSH authentication error during git clone"],
-      solution:
-        "Use the HTTPS URL instead, or set up SSH keys for GitHub.",
+      solution: "Use the HTTPS URL instead, or set up SSH keys for GitHub.",
       commands: ["git clone https://github.com/Dicklesworthstone/brenner_bot.git"],
     },
     {
@@ -350,16 +347,12 @@ export const TROUBLESHOOTING: Record<string, TroubleshootingItem[]> = {
       symptoms: ["Empty results", "No matching segments"],
       solution:
         "Try broader or different terms. The corpus uses Brenner's vocabulary, which may differ from modern terminology.",
-      commands: [
-        './brenner corpus search "mechanism"',
-        './brenner corpus search "experiment"',
-      ],
+      commands: ['./brenner corpus search "mechanism"', './brenner corpus search "experiment"'],
     },
     {
       problem: "Command not found: brenner",
       symptoms: ["'brenner' is not recognized"],
-      solution:
-        "Make sure you're in the brenner_bot directory and use the full path.",
+      solution: "Make sure you're in the brenner_bot directory and use the full path.",
       commands: ['./brenner corpus search "your topic"'],
     },
   ],
@@ -374,8 +367,7 @@ export const TROUBLESHOOTING: Record<string, TroubleshootingItem[]> = {
     {
       problem: "Output file is empty",
       symptoms: ["Created file has no content"],
-      solution:
-        "Make sure you're using valid section numbers separated by commas, with no spaces.",
+      solution: "Make sure you're using valid section numbers separated by commas, with no spaces.",
       commands: ["./brenner excerpt build --sections 58,78,161 > my_excerpt.md"],
     },
   ],
@@ -405,13 +397,11 @@ export const TROUBLESHOOTING: Record<string, TroubleshootingItem[]> = {
   step7: [
     {
       problem: "Missing a third alternative",
-      solution:
-        'Add an explicit "both could be wrong" hypothesis and re-run the prompt.',
+      solution: 'Add an explicit "both could be wrong" hypothesis and re-run the prompt.',
     },
     {
       problem: "Tests don't discriminate",
-      solution:
-        "Rewrite tests so at least two hypotheses predict different outcomes.",
+      solution: "Rewrite tests so at least two hypotheses predict different outcomes.",
     },
   ],
 };
@@ -428,8 +418,7 @@ export const CHECKPOINTS: Record<string, CheckpointData> = {
       "Installed all dependencies",
       "Verified the installation with doctor",
     ],
-    nextPreview:
-      "Next, you'll learn to search Brenner's corpus for relevant wisdom.",
+    nextPreview: "Next, you'll learn to search Brenner's corpus for relevant wisdom.",
   },
 
   step7: {
@@ -477,15 +466,8 @@ export const STEP_2: QuickStartStepData = {
   stepNumber: 2,
   title: "Prerequisites",
   estimatedTime: "~2 min",
-  whatYouLearn: [
-    "How to verify your development environment",
-    "Platform-specific setup tips",
-  ],
-  whatYouDo: [
-    "Check that Git is installed",
-    "Verify terminal access",
-    "Install Bun (if needed)",
-  ],
+  whatYouLearn: ["How to verify your development environment", "Platform-specific setup tips"],
+  whatYouDo: ["Check that Git is installed", "Verify terminal access", "Install Bun (if needed)"],
   troubleshooting: TROUBLESHOOTING.step2,
   codeBlocks: [
     CODE_BLOCKS.gitCheck,
@@ -536,11 +518,7 @@ export const STEP_4: QuickStartStepData = {
     "Note 3-5 §n references that seem relevant",
   ],
   troubleshooting: TROUBLESHOOTING.step4,
-  codeBlocks: [
-    CODE_BLOCKS.searchExample,
-    CODE_BLOCKS.searchResults,
-    CODE_BLOCKS.searchYourTopic,
-  ],
+  codeBlocks: [CODE_BLOCKS.searchExample, CODE_BLOCKS.searchResults, CODE_BLOCKS.searchYourTopic],
 };
 
 export const STEP_5: QuickStartStepData = {
@@ -559,11 +537,7 @@ export const STEP_5: QuickStartStepData = {
     "Review the compiled content",
   ],
   troubleshooting: TROUBLESHOOTING.step5,
-  codeBlocks: [
-    CODE_BLOCKS.excerptBuild,
-    CODE_BLOCKS.excerptView,
-    CODE_BLOCKS.excerptExample,
-  ],
+  codeBlocks: [CODE_BLOCKS.excerptBuild, CODE_BLOCKS.excerptView, CODE_BLOCKS.excerptExample],
 };
 
 export const STEP_6: QuickStartStepData = {
@@ -582,11 +556,7 @@ export const STEP_6: QuickStartStepData = {
     "Run the session and save the output",
   ],
   troubleshooting: TROUBLESHOOTING.step6,
-  codeBlocks: [
-    CODE_BLOCKS.promptCompose,
-    CODE_BLOCKS.promptView,
-    CODE_BLOCKS.saveOutput,
-  ],
+  codeBlocks: [CODE_BLOCKS.promptCompose, CODE_BLOCKS.promptView, CODE_BLOCKS.saveOutput],
 };
 
 export const STEP_7: QuickStartStepData = {
@@ -737,8 +707,7 @@ export const ARTIFACT_PREVIEW_ITEMS = [
   },
   {
     title: "Discriminative Tests",
-    description:
-      "Tests designed to separate hypotheses, not just confirm your favorite",
+    description: "Tests designed to separate hypotheses, not just confirm your favorite",
   },
   {
     title: "Assumption Ledger",

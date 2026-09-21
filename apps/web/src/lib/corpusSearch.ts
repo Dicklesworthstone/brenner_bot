@@ -5,11 +5,8 @@
  * search_approach_decision_v0.1.md.
  */
 
-import {
-  parseTranscript,
-  Section,
-} from "./transcriptParser";
 import { readCorpusDoc } from "./corpus";
+import { parseTranscript, type Section } from "./transcriptParser";
 
 // ============================================================================
 // Types
@@ -175,7 +172,7 @@ function computeScore(
   section: EnrichedSection,
   query: string,
   inTitle: boolean,
-  inBody: boolean
+  inBody: boolean,
 ): number {
   let score = 0;
 

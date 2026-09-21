@@ -10,9 +10,9 @@
 
 import { act, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
-import { SpotlightSearch, SearchProvider, SearchTrigger, useSearch } from "./SpotlightSearch";
-import type { GlobalSearchResult, GlobalSearchHit } from "@/lib/globalSearchTypes";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import type { GlobalSearchHit, GlobalSearchResult } from "@/lib/globalSearchTypes";
+import { SearchProvider, SearchTrigger, SpotlightSearch, useSearch } from "./SpotlightSearch";
 
 // ============================================================================
 // Mocks
@@ -81,7 +81,7 @@ function createSearchHit(overrides: Partial<GlobalSearchHit> = {}): GlobalSearch
 function createSearchResult(
   query: string,
   hits: GlobalSearchHit[] = [],
-  overrides: Partial<GlobalSearchResult> = {}
+  overrides: Partial<GlobalSearchResult> = {},
 ): GlobalSearchResult {
   return {
     query,
@@ -121,9 +121,7 @@ describe("SpotlightSearch", () => {
 
   describe("rendering", () => {
     it("renders nothing when closed", () => {
-      const { container } = render(
-        <SpotlightSearch isOpen={false} onClose={vi.fn()} />
-      );
+      const { container } = render(<SpotlightSearch isOpen={false} onClose={vi.fn()} />);
       expect(container.firstChild).toBeNull();
     });
 
@@ -135,9 +133,7 @@ describe("SpotlightSearch", () => {
 
     it("renders search input placeholder", () => {
       render(<SpotlightSearch isOpen={true} onClose={vi.fn()} />);
-      expect(
-        screen.getByPlaceholderText(/search transcript/i)
-      ).toBeInTheDocument();
+      expect(screen.getByPlaceholderText(/search transcript/i)).toBeInTheDocument();
     });
 
     it("renders initial state with suggestion chips", () => {
@@ -163,7 +159,7 @@ describe("SpotlightSearch", () => {
     it("shows loading spinner when pending", async () => {
       const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
       mockSearchAction.mockReturnValue(
-        new Promise(() => {}) // Never resolves
+        new Promise(() => {}), // Never resolves
       );
 
       render(<SpotlightSearch isOpen={true} onClose={vi.fn()} />);
@@ -216,9 +212,7 @@ describe("SpotlightSearch", () => {
     });
 
     it("resets state when reopened", async () => {
-      const { rerender } = render(
-        <SpotlightSearch isOpen={true} onClose={vi.fn()} />
-      );
+      const { rerender } = render(<SpotlightSearch isOpen={true} onClose={vi.fn()} />);
 
       const input = screen.getByPlaceholderText(/search transcript/i);
       // Simulate typing manually since we need to check after rerender
@@ -318,9 +312,7 @@ describe("SpotlightSearch", () => {
         createSearchHit({ id: "2" }),
         createSearchHit({ id: "3" }),
       ];
-      mockSearchAction.mockResolvedValue(
-        createSearchResult("test", hits, { totalMatches: 3 })
-      );
+      mockSearchAction.mockResolvedValue(createSearchResult("test", hits, { totalMatches: 3 }));
 
       render(<SpotlightSearch isOpen={true} onClose={vi.fn()} />);
 
@@ -351,9 +343,7 @@ describe("SpotlightSearch", () => {
 
     it("shows anchor badge for results with anchors", async () => {
       const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
-      const hits = [
-        createSearchHit({ anchor: "§103" }),
-      ];
+      const hits = [createSearchHit({ anchor: "§103" })];
       mockSearchAction.mockResolvedValue(createSearchResult("test", hits));
 
       render(<SpotlightSearch isOpen={true} onClose={vi.fn()} />);
@@ -441,9 +431,7 @@ describe("SpotlightSearch", () => {
 
     it("navigates to result on Enter", async () => {
       const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
-      const hits = [
-        createSearchHit({ url: "/transcript/doc-1#section-103" }),
-      ];
+      const hits = [createSearchHit({ url: "/transcript/doc-1#section-103" })];
       mockSearchAction.mockResolvedValue(createSearchResult("test", hits));
       const onClose = vi.fn();
 
@@ -459,9 +447,7 @@ describe("SpotlightSearch", () => {
 
       await user.keyboard("{Enter}");
 
-      expect(mockPush).toHaveBeenCalledWith(
-        expect.stringContaining("/transcript/doc-1")
-      );
+      expect(mockPush).toHaveBeenCalledWith(expect.stringContaining("/transcript/doc-1"));
       expect(onClose).toHaveBeenCalled();
     });
 
@@ -497,9 +483,7 @@ describe("SpotlightSearch", () => {
   describe("category filtering", () => {
     it("shows category pills when searching", async () => {
       const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
-      mockSearchAction.mockResolvedValue(
-        createSearchResult("test", [createSearchHit()])
-      );
+      mockSearchAction.mockResolvedValue(createSearchResult("test", [createSearchHit()]));
 
       render(<SpotlightSearch isOpen={true} onClose={vi.fn()} />);
 
@@ -534,10 +518,9 @@ describe("SpotlightSearch", () => {
       expect(pillsContainer).toBeInTheDocument();
 
       // Click transcript category filter pill (not the result category badge)
-      const transcriptPill = within(pillsContainer as HTMLElement).getByRole(
-        "button",
-        { name: /transcript/i }
-      );
+      const transcriptPill = within(pillsContainer as HTMLElement).getByRole("button", {
+        name: /transcript/i,
+      });
       await user.click(transcriptPill);
 
       // Should trigger new search with category filter
@@ -545,7 +528,7 @@ describe("SpotlightSearch", () => {
 
       expect(mockSearchAction).toHaveBeenLastCalledWith(
         "test",
-        expect.objectContaining({ category: "transcript" })
+        expect.objectContaining({ category: "transcript" }),
       );
     });
   });
@@ -572,10 +555,7 @@ describe("SpotlightSearch", () => {
       await advanceDebounce();
 
       await waitFor(() => {
-        expect(mockSearchAction).toHaveBeenCalledWith(
-          "C. elegans",
-          expect.any(Object)
-        );
+        expect(mockSearchAction).toHaveBeenCalledWith("C. elegans", expect.any(Object));
       });
     });
   });
@@ -617,9 +597,7 @@ describe("SpotlightSearch", () => {
       await advanceDebounce();
 
       await waitFor(() => {
-        expect(
-          screen.getByRole("button", { name: /add to excerpt basket/i })
-        ).toBeInTheDocument();
+        expect(screen.getByRole("button", { name: /add to excerpt basket/i })).toBeInTheDocument();
       });
     });
 
@@ -641,9 +619,7 @@ describe("SpotlightSearch", () => {
       await advanceDebounce();
 
       await waitFor(() => {
-        expect(
-          screen.getByRole("button", { name: /add to excerpt basket/i })
-        ).toBeInTheDocument();
+        expect(screen.getByRole("button", { name: /add to excerpt basket/i })).toBeInTheDocument();
       });
 
       const addButton = screen.getByRole("button", { name: /add to excerpt basket/i });
@@ -674,7 +650,7 @@ describe("SpotlightSearch", () => {
       });
 
       expect(
-        screen.queryByRole("button", { name: /add to excerpt basket/i })
+        screen.queryByRole("button", { name: /add to excerpt basket/i }),
       ).not.toBeInTheDocument();
     });
   });
@@ -699,7 +675,7 @@ describe("SearchProvider", () => {
     render(
       <SearchProvider>
         <TestChild />
-      </SearchProvider>
+      </SearchProvider>,
     );
 
     expect(screen.getByTestId("is-open")).toHaveTextContent("false");
@@ -711,7 +687,7 @@ describe("SearchProvider", () => {
     render(
       <SearchProvider>
         <div>Test content</div>
-      </SearchProvider>
+      </SearchProvider>,
     );
 
     // Search should be closed initially
@@ -729,7 +705,7 @@ describe("SearchProvider", () => {
     render(
       <SearchProvider>
         <div>Test content</div>
-      </SearchProvider>
+      </SearchProvider>,
     );
 
     // Press Ctrl+K
@@ -744,7 +720,7 @@ describe("SearchProvider", () => {
     render(
       <SearchProvider>
         <div>Test content</div>
-      </SearchProvider>
+      </SearchProvider>,
     );
 
     // Open
@@ -762,7 +738,7 @@ describe("SearchTrigger", () => {
     render(
       <SearchProvider>
         <SearchTrigger />
-      </SearchProvider>
+      </SearchProvider>,
     );
 
     expect(screen.getByRole("button")).toBeInTheDocument();
@@ -774,7 +750,7 @@ describe("SearchTrigger", () => {
     render(
       <SearchProvider>
         <SearchTrigger />
-      </SearchProvider>
+      </SearchProvider>,
     );
 
     await user.click(screen.getByRole("button"));
@@ -786,7 +762,7 @@ describe("SearchTrigger", () => {
     render(
       <SearchProvider>
         <SearchTrigger className="custom-class" />
-      </SearchProvider>
+      </SearchProvider>,
     );
 
     expect(screen.getByRole("button")).toHaveClass("custom-class");

@@ -30,7 +30,7 @@
  * ```
  */
 
-import { useMemo, type ReactNode, type ElementType, type ComponentPropsWithoutRef } from "react";
+import { type ComponentPropsWithoutRef, type ElementType, type ReactNode, useMemo } from "react";
 import { Jargon } from "@/components/jargon";
 import { findJargonInText, type JargonMatch } from "@/lib/jargon";
 
@@ -69,7 +69,7 @@ interface TextSegment {
 function segmentText(
   text: string,
   jargonMatches: JargonMatch[],
-  highlights?: string[]
+  highlights?: string[],
 ): TextSegment[] {
   if (jargonMatches.length === 0 && (!highlights || highlights.length === 0)) {
     return [{ type: "text", content: text }];
@@ -101,7 +101,7 @@ function segmentText(
   // Mark highlight positions
   if (highlights && highlights.length > 0) {
     // Filter out empty/whitespace strings to prevent infinite regex matches
-    const validHighlights = highlights.filter(h => h.trim().length > 0);
+    const validHighlights = highlights.filter((h) => h.trim().length > 0);
     if (validHighlights.length > 0) {
       const pattern = validHighlights.map(escapeRegex).join("|");
       const regex = new RegExp(`(${pattern})`, "gi");
@@ -134,9 +134,7 @@ function segmentText(
 
     // Check if we can continue the current segment
     const canContinue =
-      currentSegment &&
-      currentSegment.type === type &&
-      currentSegment.termKey === ann.termKey;
+      currentSegment && currentSegment.type === type && currentSegment.termKey === ann.termKey;
 
     if (canContinue && currentSegment) {
       currentSegment.content += text[i];
@@ -206,10 +204,7 @@ export function JargonText<E extends ElementType = "span">({
 
         case "highlight":
           return (
-            <span
-              key={i}
-              className="font-semibold text-primary bg-primary/10 px-0.5 rounded"
-            >
+            <span key={i} className="font-semibold text-primary bg-primary/10 px-0.5 rounded">
               {segment.content}
             </span>
           );
@@ -217,7 +212,11 @@ export function JargonText<E extends ElementType = "span">({
         case "jargon-highlight":
           // Both jargon tooltip AND highlight styling
           return segment.termKey ? (
-            <Jargon key={i} term={segment.termKey} className="font-semibold text-primary bg-primary/10 px-0.5 rounded">
+            <Jargon
+              key={i}
+              term={segment.termKey}
+              className="font-semibold text-primary bg-primary/10 px-0.5 rounded"
+            >
               {segment.content}
             </Jargon>
           ) : (

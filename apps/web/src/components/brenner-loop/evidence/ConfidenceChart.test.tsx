@@ -1,7 +1,12 @@
-import * as React from "react";
 import { render, screen } from "@testing-library/react";
-import { describe, expect, it, vi, beforeEach } from "vitest";
-import type { EvidenceEntry, DiscriminativePower, TestType, EvidenceResult } from "@/lib/brenner-loop/evidence";
+import type * as React from "react";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import type {
+  DiscriminativePower,
+  EvidenceEntry,
+  EvidenceResult,
+  TestType,
+} from "@/lib/brenner-loop/evidence";
 
 // Mock framer-motion for simpler testing
 vi.mock("framer-motion", () => ({
@@ -11,9 +16,7 @@ vi.mock("framer-motion", () => ({
     ),
     circle: (props: React.SVGProps<SVGCircleElement>) => <circle {...props} />,
     path: (props: React.SVGProps<SVGPathElement>) => <path {...props} />,
-    g: ({ children, ...props }: React.SVGProps<SVGGElement>) => (
-      <g {...props}>{children}</g>
-    ),
+    g: ({ children, ...props }: React.SVGProps<SVGGElement>) => <g {...props}>{children}</g>,
   },
   AnimatePresence: ({ children }: { children: React.ReactNode }) => <>{children}</>,
 }));
@@ -60,9 +63,7 @@ describe("ConfidenceChart", () => {
     const { ConfidenceChart } = await import("./ConfidenceChart");
     render(<ConfidenceChart entries={[]} />);
 
-    expect(
-      screen.getByText(/Record evidence to see your confidence journey/i)
-    ).toBeInTheDocument();
+    expect(screen.getByText(/Record evidence to see your confidence journey/i)).toBeInTheDocument();
   });
 
   it("renders chart with evidence entries", async () => {
@@ -145,9 +146,7 @@ describe("ConfidenceChart", () => {
     });
 
     const { ConfidenceChart } = await import("./ConfidenceChart");
-    render(
-      <ConfidenceChart entries={[entry]} onPointClick={onPointClick} />
-    );
+    render(<ConfidenceChart entries={[entry]} onPointClick={onPointClick} />);
 
     // Find data point circles - should have at least initial + entry points
     const circles = document.querySelectorAll("circle");
@@ -169,13 +168,7 @@ describe("ConfidenceChart", () => {
     ];
 
     const { ConfidenceChart } = await import("./ConfidenceChart");
-    render(
-      <ConfidenceChart
-        entries={entries}
-        initialConfidence={40}
-        showLabels={true}
-      />
-    );
+    render(<ConfidenceChart entries={entries} initialConfidence={40} showLabels={true} />);
 
     // Should show our custom initial confidence
     expect(screen.getByText("40%")).toBeInTheDocument();

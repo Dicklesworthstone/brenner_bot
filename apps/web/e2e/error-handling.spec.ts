@@ -7,14 +7,7 @@
  * @see brenner_bot-tx0d (bead)
  */
 
-import {
-  test,
-  expect,
-  navigateTo,
-  fillInput,
-  takeScreenshot,
-  waitForNetworkIdle,
-} from "./utils";
+import { expect, fillInput, navigateTo, takeScreenshot, test, waitForNetworkIdle } from "./utils";
 import { withStep } from "./utils/e2e-logging";
 
 // ============================================================================
@@ -23,7 +16,10 @@ import { withStep } from "./utils/e2e-logging";
 
 test.describe("Error Handling - Form Validation", () => {
   // Skip form validation tests on Safari - WebKit cookie handling differs
-  test.skip(({ browserName }) => browserName === "webkit", "WebKit cookie handling differs in tests");
+  test.skip(
+    ({ browserName }) => browserName === "webkit",
+    "WebKit cookie handling differs in tests",
+  );
 
   test.describe("Session Form Validation", () => {
     test("shows error for empty research question", async ({ page, logger, context }) => {
@@ -380,7 +376,10 @@ test.describe("Error Handling - Network", () => {
 
 test.describe("Error Handling - Authentication", () => {
   // Skip auth tests on Safari - WebKit cookie handling differs in test env
-  test.skip(({ browserName }) => browserName === "webkit", "WebKit cookie handling differs in tests");
+  test.skip(
+    ({ browserName }) => browserName === "webkit",
+    "WebKit cookie handling differs in tests",
+  );
 
   test("handles session expiry gracefully", async ({ page, logger, context }) => {
     // Set an expired or invalid cookie

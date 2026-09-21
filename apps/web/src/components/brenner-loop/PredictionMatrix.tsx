@@ -9,14 +9,14 @@
  */
 
 import * as React from "react";
-import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
-import type { ComparisonMatrix, TestResultType } from "@/lib/brenner-loop/hypothesis-arena";
 import {
   buildEvidenceSummary,
   buildPredictionConflictMatrix,
   type PredictionConflictRow,
 } from "@/lib/brenner-loop/comparison";
+import type { ComparisonMatrix, TestResultType } from "@/lib/brenner-loop/hypothesis-arena";
+import { cn } from "@/lib/utils";
 
 export interface PredictionMatrixProps {
   matrix: ComparisonMatrix;
@@ -68,7 +68,7 @@ function DiscriminatingRow({ row }: { row: PredictionConflictRow }) {
     <div
       className={cn(
         "grid gap-3 rounded-lg border px-4 py-3 md:grid-cols-[1.5fr_1fr_1fr]",
-        row.discriminating ? "border-emerald-500/40" : "border-muted"
+        row.discriminating ? "border-emerald-500/40" : "border-muted",
       )}
     >
       <div className="space-y-1">
@@ -78,28 +78,39 @@ function DiscriminatingRow({ row }: { row: PredictionConflictRow }) {
         </div>
       </div>
       <div className="space-y-1">
-        <div className="text-[11px] uppercase tracking-wide text-muted-foreground">Hypothesis A</div>
+        <div className="text-[11px] uppercase tracking-wide text-muted-foreground">
+          Hypothesis A
+        </div>
         <ResultBadge result={row.resultA} />
       </div>
       <div className="space-y-1">
-        <div className="text-[11px] uppercase tracking-wide text-muted-foreground">Hypothesis B</div>
+        <div className="text-[11px] uppercase tracking-wide text-muted-foreground">
+          Hypothesis B
+        </div>
         <ResultBadge result={row.resultB} />
       </div>
     </div>
   );
 }
 
-export function PredictionMatrix({ matrix, hypothesisAId, hypothesisBId, className }: PredictionMatrixProps) {
+export function PredictionMatrix({
+  matrix,
+  hypothesisAId,
+  hypothesisBId,
+  className,
+}: PredictionMatrixProps) {
   const rows = React.useMemo(
     () => buildPredictionConflictMatrix(matrix, hypothesisAId, hypothesisBId),
-    [matrix, hypothesisAId, hypothesisBId]
+    [matrix, hypothesisAId, hypothesisBId],
   );
 
   const summary = React.useMemo(() => buildEvidenceSummary(rows), [rows]);
 
   if (rows.length === 0) {
     return (
-      <div className={cn("rounded-xl border bg-muted/20 p-4 text-sm text-muted-foreground", className)}>
+      <div
+        className={cn("rounded-xl border bg-muted/20 p-4 text-sm text-muted-foreground", className)}
+      >
         No shared tests recorded yet. Add discriminating tests to compare these hypotheses.
       </div>
     );

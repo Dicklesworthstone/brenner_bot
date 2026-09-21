@@ -8,10 +8,10 @@
  */
 
 import {
-  globalSearch as performSearch,
-  warmIndex,
   type GlobalSearchResult,
+  globalSearch as performSearch,
   type SearchCategory,
+  warmIndex,
 } from "./globalSearch";
 
 export async function searchAction(
@@ -20,7 +20,7 @@ export async function searchAction(
     limit?: number;
     category?: SearchCategory;
     model?: "gpt" | "opus" | "gemini";
-  }
+  },
 ): Promise<GlobalSearchResult> {
   return performSearch(query, options);
 }

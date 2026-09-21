@@ -8,10 +8,10 @@
  * @see @/components/ui/toast.tsx
  */
 
-import { render, screen, act, waitFor } from "@testing-library/react";
+import { act, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
-import { ToastProvider, useToast, Toaster, showToast, toast } from "./toast";
+import { showToast, Toaster, ToastProvider, toast, useToast } from "./toast";
 
 // Test component that uses the useToast hook
 function TestToastConsumer() {
@@ -50,7 +50,7 @@ describe("Toast", () => {
       render(
         <ToastProvider>
           <div data-testid="child">Child content</div>
-        </ToastProvider>
+        </ToastProvider>,
       );
       expect(screen.getByTestId("child")).toBeInTheDocument();
     });
@@ -61,7 +61,7 @@ describe("Toast", () => {
       render(
         <ToastProvider>
           <TestToastConsumer />
-        </ToastProvider>
+        </ToastProvider>,
       );
 
       await user.click(screen.getByText("Show Success"));
@@ -77,7 +77,7 @@ describe("Toast", () => {
       render(
         <ToastProvider>
           <TestToastConsumer />
-        </ToastProvider>
+        </ToastProvider>,
       );
 
       await user.click(screen.getByText("Show Success"));
@@ -95,7 +95,7 @@ describe("Toast", () => {
       render(
         <ToastProvider>
           <TestToastConsumer />
-        </ToastProvider>
+        </ToastProvider>,
       );
 
       await user.click(screen.getByText("Show Error"));
@@ -111,7 +111,7 @@ describe("Toast", () => {
       render(
         <ToastProvider>
           <TestToastConsumer />
-        </ToastProvider>
+        </ToastProvider>,
       );
 
       await user.click(screen.getByText("Show Success"));
@@ -128,7 +128,7 @@ describe("Toast", () => {
         () => {
           expect(screen.queryByText("Success!")).not.toBeInTheDocument();
         },
-        { timeout: 1000 }
+        { timeout: 1000 },
       );
     });
 
@@ -138,7 +138,7 @@ describe("Toast", () => {
       render(
         <ToastProvider>
           <TestToastConsumer />
-        </ToastProvider>
+        </ToastProvider>,
       );
 
       await user.click(screen.getByText("Show Success"));
@@ -156,7 +156,7 @@ describe("Toast", () => {
       render(
         <ToastProvider>
           <TestToastConsumer />
-        </ToastProvider>
+        </ToastProvider>,
       );
 
       await user.click(screen.getByText("Show Success"));
@@ -173,7 +173,7 @@ describe("Toast", () => {
       render(
         <ToastProvider>
           <TestToastConsumer />
-        </ToastProvider>
+        </ToastProvider>,
       );
 
       await user.click(screen.getByText("Show Success"));
@@ -198,7 +198,7 @@ describe("Toast", () => {
         window.dispatchEvent(
           new CustomEvent("toast", {
             detail: { type: "success", title: "Event Toast", message: "From event" },
-          })
+          }),
         );
       });
 
@@ -224,7 +224,7 @@ describe("Toast", () => {
 
     it("showToast function is callable with all toast fields", () => {
       expect(() =>
-        showToast({ type: "success", title: "Test", message: "msg", duration: 3000 })
+        showToast({ type: "success", title: "Test", message: "msg", duration: 3000 }),
       ).not.toThrow();
     });
   });

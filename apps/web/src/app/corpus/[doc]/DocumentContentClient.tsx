@@ -8,18 +8,18 @@
  * for instant render, then caches for subsequent navigations.
  */
 
-import { useCorpusDoc } from "@/hooks/queries";
-import { parseTranscript } from "@/lib/transcript-parser";
-import { parseDistillation } from "@/lib/distillation-parser";
-import { parseQuoteBank } from "@/lib/quotebank-parser";
-import { parseMetaprompt } from "@/lib/metaprompt-parser";
 import { memo, useMemo } from "react";
-import { TranscriptViewer } from "@/components/transcript/TranscriptViewer";
 import { DistillationViewer } from "@/components/distillation/DistillationViewer";
-import { QuoteBankViewer } from "@/components/quotebank/QuoteBankViewer";
 import { MetapromptViewer } from "@/components/metaprompt/MetapromptViewer";
-import { RawResponseViewer, parseRawResponse } from "@/components/raw-response/RawResponseViewer";
+import { QuoteBankViewer } from "@/components/quotebank/QuoteBankViewer";
+import { parseRawResponse, RawResponseViewer } from "@/components/raw-response/RawResponseViewer";
+import { TranscriptViewer } from "@/components/transcript/TranscriptViewer";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useCorpusDoc } from "@/hooks/queries";
+import { parseDistillation } from "@/lib/distillation-parser";
+import { parseMetaprompt } from "@/lib/metaprompt-parser";
+import { parseQuoteBank } from "@/lib/quotebank-parser";
+import { parseTranscript } from "@/lib/transcript-parser";
 
 // ============================================================================
 // TYPES
@@ -33,7 +33,9 @@ interface DocumentContentClientProps {
 // HELPERS
 // ============================================================================
 
-function getDocType(id: string): "transcript" | "distillation" | "quote-bank" | "raw-response" | "metaprompt" {
+function getDocType(
+  id: string,
+): "transcript" | "distillation" | "quote-bank" | "raw-response" | "metaprompt" {
   if (id === "transcript") return "transcript";
   if (id === "quote-bank") return "quote-bank";
   if (id.startsWith("distillation")) return "distillation";
@@ -95,9 +97,7 @@ function DocumentSkeleton() {
 function DocumentError({ error }: { error: Error }) {
   return (
     <div className="rounded-xl border border-destructive/50 bg-destructive/10 p-6">
-      <h2 className="text-lg font-semibold text-destructive mb-2">
-        Failed to load document
-      </h2>
+      <h2 className="text-lg font-semibold text-destructive mb-2">Failed to load document</h2>
       <p className="text-sm text-muted-foreground">
         {error.message || "An unexpected error occurred"}
       </p>
@@ -109,7 +109,9 @@ function DocumentError({ error }: { error: Error }) {
 // MAIN COMPONENT
 // ============================================================================
 
-export const DocumentContentClient = memo(function DocumentContentClient({ docId }: DocumentContentClientProps) {
+export const DocumentContentClient = memo(function DocumentContentClient({
+  docId,
+}: DocumentContentClientProps) {
   const { data, isLoading, error } = useCorpusDoc(docId);
 
   const docType = getDocType(docId);

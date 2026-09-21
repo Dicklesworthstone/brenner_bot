@@ -12,21 +12,21 @@
  * @see brenner_bot-reew.4 (bead) - Enhanced session management
  */
 
-import * as React from "react";
 import { useRouter } from "next/navigation";
-import { cn } from "@/lib/utils";
+import * as React from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import {
-  sessionStorage,
+  buildSessionPath,
   importSession,
   listSessionResumeEntries,
-  buildSessionPath,
-  type SessionSummary,
   type SessionResumeEntry,
+  type SessionSummary,
   type StorageStats,
+  sessionStorage,
 } from "@/lib/brenner-loop";
+import { cn } from "@/lib/utils";
 import { SessionCard } from "./SessionCard";
 
 // ============================================================================
@@ -48,15 +48,31 @@ type StatusFilter = "all" | "active" | "complete";
 
 function ChevronUpDownIcon({ className }: { className?: string }) {
   return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 15L12 18.75 15.75 15m-7.5-6L12 5.25 15.75 9" />
+    <svg
+      className={className}
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+      strokeWidth={1.5}
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M8.25 15L12 18.75 15.75 15m-7.5-6L12 5.25 15.75 9"
+      />
     </svg>
   );
 }
 
 function ChevronUpIcon({ className }: { className?: string }) {
   return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+    <svg
+      className={className}
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+      strokeWidth={2}
+    >
       <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 15.75l7.5-7.5 7.5 7.5" />
     </svg>
   );
@@ -64,12 +80,17 @@ function ChevronUpIcon({ className }: { className?: string }) {
 
 function ChevronDownIcon({ className }: { className?: string }) {
   return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+    <svg
+      className={className}
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+      strokeWidth={2}
+    >
       <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
     </svg>
   );
 }
-
 
 // ============================================================================
 // Sorting & Filtering
@@ -170,7 +191,7 @@ function formatBytes(bytes: number): string {
 function sortSessions(
   sessions: SessionSummary[],
   field: SortField,
-  direction: SortDirection
+  direction: SortDirection,
 ): SessionSummary[] {
   const sorted = [...sessions].sort((a, b) => {
     let comparison = 0;
@@ -194,10 +215,7 @@ function sortSessions(
   return sorted;
 }
 
-function filterSessions(
-  sessions: SessionSummary[],
-  statusFilter: StatusFilter
-): SessionSummary[] {
+function filterSessions(sessions: SessionSummary[], statusFilter: StatusFilter): SessionSummary[] {
   if (statusFilter === "all") return sessions;
 
   return sessions.filter((s) => {
@@ -211,15 +229,17 @@ function filterSessions(
 // ============================================================================
 
 function tokenizeSearchQuery(query: string): string[] {
-  return query
-    .trim()
-    .toLowerCase()
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 12);
+  return query.trim().toLowerCase().split(/\s+/).filter(Boolean).slice(0, 12);
 }
 
-type SessionJumpTarget = "overview" | "hypothesis" | "evidence" | "operators" | "test-queue" | "agents" | "brief";
+type SessionJumpTarget =
+  | "overview"
+  | "hypothesis"
+  | "evidence"
+  | "operators"
+  | "test-queue"
+  | "agents"
+  | "brief";
 
 function fieldContainsAnyToken(value: string | undefined, tokens: string[]): boolean {
   if (!value || tokens.length === 0) return false;
@@ -239,7 +259,7 @@ function matchesTokensAcrossFields(fields: Array<string | undefined>, tokens: st
 function matchesSessionSummary(summary: SessionSummary, tokens: string[]): boolean {
   return matchesTokensAcrossFields(
     [summary.id, summary.hypothesis, summary.researchQuestion, summary.theme, summary.phase],
-    tokens
+    tokens,
   );
 }
 
@@ -361,7 +381,7 @@ function SortButton({ label, field, currentField, direction, onClick }: SortButt
         "inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium rounded-lg transition-colors",
         isActive
           ? "bg-primary/10 text-primary border border-primary/20"
-          : "bg-muted text-muted-foreground border border-transparent hover:bg-muted/80"
+          : "bg-muted text-muted-foreground border border-transparent hover:bg-muted/80",
       )}
     >
       {label}
@@ -406,7 +426,7 @@ function FilterPills({ value, onChange, counts }: FilterPillsProps) {
             "inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-md transition-all",
             value === option.value
               ? "bg-background text-foreground shadow-sm"
-              : "text-muted-foreground hover:text-foreground"
+              : "text-muted-foreground hover:text-foreground",
           )}
         >
           {option.label}
@@ -415,7 +435,7 @@ function FilterPills({ value, onChange, counts }: FilterPillsProps) {
               "px-1.5 py-0.5 rounded text-[10px] font-semibold",
               value === option.value
                 ? "bg-primary/10 text-primary"
-                : "bg-muted text-muted-foreground"
+                : "bg-muted text-muted-foreground",
             )}
           >
             {option.count}
@@ -452,7 +472,10 @@ export function SessionList({ className, onSelect }: SessionListProps) {
   // Search state (local-only)
   const [searchQuery, setSearchQuery] = React.useState("");
   const [searchMatchIds, setSearchMatchIds] = React.useState<Set<string> | null>(null);
-  const [searchMatchLocations, setSearchMatchLocations] = React.useState<Record<string, SessionJumpTarget[]> | null>(null);
+  const [searchMatchLocations, setSearchMatchLocations] = React.useState<Record<
+    string,
+    SessionJumpTarget[]
+  > | null>(null);
   const [isSearching, setIsSearching] = React.useState(false);
 
   const refreshSessions = React.useCallback(async () => {
@@ -482,7 +505,7 @@ export function SessionList({ className, onSelect }: SessionListProps) {
 
   const activeSessions = React.useMemo(
     () => sessions.filter((session) => !archivedById.has(session.id)),
-    [sessions, archivedById]
+    [sessions, archivedById],
   );
 
   const sessionsById = React.useMemo(() => {
@@ -563,7 +586,8 @@ export function SessionList({ className, onSelect }: SessionListProps) {
 
           if (valueContainsAnyToken(session.hypothesisCards, tokens)) locations.add("hypothesis");
           if (valueContainsAnyToken(session.evidenceLedger, tokens)) locations.add("evidence");
-          if (valueContainsAnyToken(session.operatorApplications, tokens)) locations.add("operators");
+          if (valueContainsAnyToken(session.operatorApplications, tokens))
+            locations.add("operators");
 
           if (
             valueContainsAnyToken(
@@ -572,7 +596,7 @@ export function SessionList({ className, onSelect }: SessionListProps) {
                 agentResponses: session.agentResponses,
                 synthesis: session.synthesis,
               },
-              tokens
+              tokens,
             )
           ) {
             locations.add("agents");
@@ -609,19 +633,22 @@ export function SessionList({ className, onSelect }: SessionListProps) {
     return archivedSessions.filter((session) => searchMatchIds.has(session.id));
   }, [archivedSessions, searchMatchIds]);
 
-  const handleImport = React.useCallback(async (file: File) => {
-    setImportError(null);
-    setImportWarnings([]);
+  const handleImport = React.useCallback(
+    async (file: File) => {
+      setImportError(null);
+      setImportWarnings([]);
 
-    try {
-      const { session, warnings } = await importSession(file);
-      await sessionStorage.save(session);
-      setImportWarnings(warnings);
-      await refreshSessions();
-    } catch (error) {
-      setImportError(error instanceof Error ? error.message : "Failed to import session.");
-    }
-  }, [refreshSessions]);
+      try {
+        const { session, warnings } = await importSession(file);
+        await sessionStorage.save(session);
+        setImportWarnings(warnings);
+        await refreshSessions();
+      } catch (error) {
+        setImportError(error instanceof Error ? error.message : "Failed to import session.");
+      }
+    },
+    [refreshSessions],
+  );
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -786,7 +813,7 @@ export function SessionList({ className, onSelect }: SessionListProps) {
       <div
         className={cn(
           "rounded-2xl border border-dashed border-border bg-muted/20 p-6 transition-colors",
-          isDragging ? "border-primary bg-primary/5" : "hover:border-primary/40"
+          isDragging ? "border-primary bg-primary/5" : "hover:border-primary/40",
         )}
         onDragOver={(event) => {
           event.preventDefault();
@@ -816,9 +843,7 @@ export function SessionList({ className, onSelect }: SessionListProps) {
           </div>
         </div>
 
-        {importError && (
-          <p className="mt-3 text-xs text-destructive">{importError}</p>
-        )}
+        {importError && <p className="mt-3 text-xs text-destructive">{importError}</p>}
         {importWarnings.length > 0 && (
           <div className="mt-3 text-xs text-warning">
             {importWarnings.map((warning) => (
@@ -836,14 +861,18 @@ export function SessionList({ className, onSelect }: SessionListProps) {
               <div className="space-y-1">
                 <div className="text-sm font-semibold text-foreground">Storage Usage</div>
                 <div className="text-xs text-muted-foreground">
-                  {formatBytes(storageSummary.used)} used · {formatBytes(storageSummary.total)} estimated limit
+                  {formatBytes(storageSummary.used)} used · {formatBytes(storageSummary.total)}{" "}
+                  estimated limit
                 </div>
                 <div className="text-xs text-muted-foreground">
                   Sessions:{" "}
-                  <span className="font-medium text-foreground">{activeSessions.length}</span> active{" "}
+                  <span className="font-medium text-foreground">{activeSessions.length}</span>{" "}
+                  active{" "}
                   {archivedSessions.length > 0 && (
                     <>
-                      · <span className="font-medium text-foreground">{archivedSessions.length}</span> archived
+                      ·{" "}
+                      <span className="font-medium text-foreground">{archivedSessions.length}</span>{" "}
+                      archived
                     </>
                   )}
                 </div>
@@ -947,9 +976,9 @@ export function SessionList({ className, onSelect }: SessionListProps) {
               {activeSessions.length === 0
                 ? "No local sessions yet. Import one to get started."
                 : trimmedSearchQuery.length > 0
-                  ? (visibleArchivedSessions.length > 0
-                      ? "No active sessions match your search."
-                      : "No sessions match your search.")
+                  ? visibleArchivedSessions.length > 0
+                    ? "No active sessions match your search."
+                    : "No sessions match your search."
                   : "No sessions match the current filter."}
             </CardContent>
           </Card>
@@ -960,7 +989,9 @@ export function SessionList({ className, onSelect }: SessionListProps) {
               session={session}
               resumeEntry={resumeEntries[session.id] ?? null}
               highlightTokens={trimmedSearchQuery.length > 0 ? searchTokens : undefined}
-              matchLocations={trimmedSearchQuery.length > 0 ? searchMatchLocations?.[session.id] : undefined}
+              matchLocations={
+                trimmedSearchQuery.length > 0 ? searchMatchLocations?.[session.id] : undefined
+              }
               onContinue={handleContinue}
               onDelete={handleDelete}
               onArchiveChange={handleArchiveChange}
@@ -993,7 +1024,9 @@ export function SessionList({ className, onSelect }: SessionListProps) {
                 archivedAt={archivedById.get(session.id)}
                 resumeEntry={resumeEntries[session.id] ?? null}
                 highlightTokens={trimmedSearchQuery.length > 0 ? searchTokens : undefined}
-                matchLocations={trimmedSearchQuery.length > 0 ? searchMatchLocations?.[session.id] : undefined}
+                matchLocations={
+                  trimmedSearchQuery.length > 0 ? searchMatchLocations?.[session.id] : undefined
+                }
                 onContinue={handleContinue}
                 onDelete={handleDelete}
                 onArchiveChange={handleArchiveChange}
@@ -1014,15 +1047,27 @@ export function SessionList({ className, onSelect }: SessionListProps) {
             <div>
               <h3 className="text-lg font-semibold text-foreground">Clear archived sessions?</h3>
               <p className="mt-2 text-sm text-muted-foreground">
-                This will permanently delete <span className="font-medium text-foreground">{archivedSessions.length}</span>{" "}
-                archived session(s) from your browser storage. Consider exporting first if you want a backup.
+                This will permanently delete{" "}
+                <span className="font-medium text-foreground">{archivedSessions.length}</span>{" "}
+                archived session(s) from your browser storage. Consider exporting first if you want
+                a backup.
               </p>
             </div>
             <div className="flex justify-end gap-3">
-              <Button variant="outline" size="sm" onClick={() => setShowClearArchivedModal(false)} disabled={isClearingArchived}>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowClearArchivedModal(false)}
+                disabled={isClearingArchived}
+              >
                 Cancel
               </Button>
-              <Button variant="destructive" size="sm" onClick={() => void handleClearArchived()} disabled={isClearingArchived}>
+              <Button
+                variant="destructive"
+                size="sm"
+                onClick={() => void handleClearArchived()}
+                disabled={isClearingArchived}
+              >
                 {isClearingArchived ? "Clearing..." : "Delete Archived"}
               </Button>
             </div>

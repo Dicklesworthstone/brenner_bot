@@ -1,6 +1,15 @@
 import { describe, expect, it } from "vitest";
-import { createHypothesisCard, generateHypothesisCardId } from "./hypothesis";
-import type { HypothesisCard } from "./hypothesis";
+import { renderResearchBriefTemplate } from "./artifacts/research-brief-template";
+import {
+  analyzeWhatIf,
+  computeBatchConfidenceUpdate,
+  computeConfidenceUpdate,
+  formatConfidence,
+  formatDelta,
+  getAsymmetryExplanation,
+  getConfidenceAssessment,
+  getStarRating,
+} from "./confidence";
 import {
   createEvidenceEntry,
   generateEvidenceId,
@@ -13,16 +22,8 @@ import {
   summarizeEvidenceResult,
   validateEvidenceEntry,
 } from "./evidence";
-import {
-  analyzeWhatIf,
-  computeBatchConfidenceUpdate,
-  computeConfidenceUpdate,
-  formatConfidence,
-  formatDelta,
-  getAsymmetryExplanation,
-  getConfidenceAssessment,
-  getStarRating,
-} from "./confidence";
+import type { HypothesisCard } from "./hypothesis";
+import { createHypothesisCard, generateHypothesisCardId } from "./hypothesis";
 import {
   addCompetitor,
   assessPredictionBoldness,
@@ -42,7 +43,6 @@ import {
   resolveArena,
   scorePredictions,
 } from "./hypothesis-arena";
-import { renderResearchBriefTemplate } from "./artifacts/research-brief-template";
 
 function makeHypothesis(overrides: Partial<HypothesisCard> = {}): HypothesisCard {
   const sessionId = overrides.sessionId ?? "TEST-SESSION";
@@ -149,7 +149,7 @@ describe("evidence", () => {
         confidenceAfter: 51,
         interpretation: "ok",
         recordedAt: "not-a-date",
-      })
+      }),
     ).toBe(false);
 
     expect(() =>
@@ -165,7 +165,7 @@ describe("evidence", () => {
         confidenceBefore: 50,
         confidenceAfter: 51,
         interpretation: "ok",
-      })
+      }),
     ).toThrow(/Invalid EvidenceEntry/);
   });
 
@@ -219,9 +219,7 @@ describe("evidence", () => {
     expect(summarizeEvidenceResult(validEntry)).toContain("Challenges");
     expect(getResultColor("supports")).toBe("green");
 
-    expect(
-      isEvidenceEntry({ ...validEntry, tags: ["ok", 123] } as never)
-    ).toBe(false);
+    expect(isEvidenceEntry({ ...validEntry, tags: ["ok", 123] } as never)).toBe(false);
   });
 
   it("reports validation failures for malformed evidence", () => {
@@ -292,29 +290,49 @@ describe("confidence", () => {
 
   it("throws on invalid discriminativePower", () => {
     expect(() =>
-      computeConfidenceUpdate(50, { discriminativePower: 0 as never }, "supports")
+      computeConfidenceUpdate(50, { discriminativePower: 0 as never }, "supports"),
     ).toThrow("Invalid discriminativePower");
 
     expect(() =>
-      computeConfidenceUpdate(50, { discriminativePower: 6 as never }, "challenges")
+      computeConfidenceUpdate(50, { discriminativePower: 6 as never }, "challenges"),
     ).toThrow("Invalid discriminativePower");
   });
 });
 
 describe("hypothesis-arena", () => {
   it("runs a basic arena lifecycle and builds a comparison matrix", () => {
-    const primary = makeHypothesis({ id: "HC-SESSION-1-001-v1", statement: "A causes B", confidence: 50 });
-    const arena0 = createArena({ question: "Why?", primaryHypothesis: primary, sessionId: "SESSION-1" });
+    const primary = makeHypothesis({
+      id: "HC-SESSION-1-001-v1",
+      statement: "A causes B",
+      confidence: 50,
+    });
+    const arena0 = createArena({
+      question: "Why?",
+      primaryHypothesis: primary,
+      sessionId: "SESSION-1",
+    });
     expect(arena0.id).toMatch(/^ARENA-/);
     expect(generateArenaId("X")).toMatch(/^X-/);
 
-    const competitor = makeHypothesis({ id: "HC-SESSION-1-002-v1", statement: "B causes A", confidence: 40 });
+    const competitor = makeHypothesis({
+      id: "HC-SESSION-1-002-v1",
+      statement: "B causes A",
+      confidence: 40,
+    });
     const arena1 = addCompetitor(arena0, competitor, "object_transpose");
     expect(arena1.competitors).toHaveLength(2);
 
-    const { arena: arena2, test } = createArenaTest(arena1, { name: "Test 1", targetHypotheses: [primary.id, competitor.id] });
-    const arena3 = recordTestResult(arena2, test.id, primary.id, "supports", { confidence: 0.8, boldness: "specific" });
-    const arena4 = recordTestResult(arena3, test.id, competitor.id, "eliminates", { notes: "ruled out" });
+    const { arena: arena2, test } = createArenaTest(arena1, {
+      name: "Test 1",
+      targetHypotheses: [primary.id, competitor.id],
+    });
+    const arena3 = recordTestResult(arena2, test.id, primary.id, "supports", {
+      confidence: 0.8,
+      boldness: "specific",
+    });
+    const arena4 = recordTestResult(arena3, test.id, competitor.id, "eliminates", {
+      notes: "ruled out",
+    });
 
     expect(getEliminatedHypotheses(arena4)).toHaveLength(1);
     expect(getActiveHypotheses(arena4).length).toBeGreaterThan(0);
@@ -325,7 +343,9 @@ describe("hypothesis-arena", () => {
     expect(matrix.tests).toHaveLength(1);
 
     expect(calculateDiscriminativePower(arena4)).toBeGreaterThanOrEqual(0);
-    expect(getRankedHypotheses(arena4)[0]?.score).toBeGreaterThanOrEqual(getRankedHypotheses(arena4)[1]?.score ?? -Infinity);
+    expect(getRankedHypotheses(arena4)[0]?.score).toBeGreaterThanOrEqual(
+      getRankedHypotheses(arena4)[1]?.score ?? -Infinity,
+    );
 
     const resolved = resolveArena(arena4, primary.id, "done");
     expect(resolved.status).toBe("resolved");

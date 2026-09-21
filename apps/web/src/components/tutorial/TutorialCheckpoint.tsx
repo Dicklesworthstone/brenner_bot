@@ -11,12 +11,12 @@
  * - Premium celebration visuals
  */
 
+import { AnimatePresence, motion, type Variants } from "framer-motion";
+import { ArrowRight, CheckCircle, PartyPopper, Sparkles, Star, Trophy } from "lucide-react";
 import * as React from "react";
-import { motion, AnimatePresence, type Variants } from "framer-motion";
-import { CheckCircle, ArrowRight, Trophy, Star, Sparkles, PartyPopper } from "lucide-react";
-import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import type { CheckpointData } from "@/lib/tutorial-types";
+import { cn } from "@/lib/utils";
 
 // ============================================================================
 // Types
@@ -193,7 +193,7 @@ export function TutorialCheckpoint({
       animate="visible"
       className={cn(
         "relative overflow-hidden rounded-3xl border-2 border-[oklch(0.72_0.19_145/0.3)] bg-gradient-to-br from-[oklch(0.72_0.19_145/0.1)] via-[oklch(0.72_0.19_145/0.05)] to-primary/5 p-8 sm:p-10 text-center",
-        className
+        className,
       )}
     >
       {/* Decorative background elements */}
@@ -230,7 +230,12 @@ export function TutorialCheckpoint({
             ))}
             {/* Rain particles */}
             {Array.from({ length: 15 }).map((_, i) => (
-              <ConfettiParticle key={`rain-${i}`} delay={0.5 + i * 0.08} index={i + 30} variant="rain" />
+              <ConfettiParticle
+                key={`rain-${i}`}
+                delay={0.5 + i * 0.08}
+                index={i + 30}
+                variant="rain"
+              />
             ))}
             {/* Sparkle stars */}
             {Array.from({ length: 8 }).map((_, i) => (
@@ -315,7 +320,9 @@ export function TutorialCheckpoint({
 
         {/* Accomplishments with stagger */}
         <motion.div variants={itemVariants} className="space-y-3">
-          <p className="text-sm font-semibold text-[oklch(0.72_0.19_145)]">You&apos;ve accomplished:</p>
+          <p className="text-sm font-semibold text-[oklch(0.72_0.19_145)]">
+            You&apos;ve accomplished:
+          </p>
           <ul className="space-y-2.5 text-left max-w-md mx-auto">
             {data.accomplishments.map((item, i) => (
               <motion.li
@@ -328,7 +335,12 @@ export function TutorialCheckpoint({
                 <motion.div
                   initial={{ scale: 0, rotate: -90 }}
                   animate={{ scale: 1, rotate: 0 }}
-                  transition={{ delay: 0.6 + i * 0.12, type: "spring", stiffness: 400, damping: 15 }}
+                  transition={{
+                    delay: 0.6 + i * 0.12,
+                    type: "spring",
+                    stiffness: 400,
+                    damping: 15,
+                  }}
                 >
                   <CheckCircle className="size-5 text-[oklch(0.72_0.19_145)] shrink-0" />
                 </motion.div>
@@ -341,8 +353,7 @@ export function TutorialCheckpoint({
         {/* Next preview */}
         <motion.div variants={itemVariants} className="pt-2">
           <p className="text-sm text-muted-foreground">
-            <span className="font-semibold text-foreground">Coming up:</span>{" "}
-            {data.nextPreview}
+            <span className="font-semibold text-foreground">Coming up:</span> {data.nextPreview}
           </p>
         </motion.div>
 

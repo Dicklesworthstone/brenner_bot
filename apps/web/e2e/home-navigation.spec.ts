@@ -6,15 +6,15 @@
  */
 
 import {
-  test,
-  expect,
-  navigateTo,
-  clickElement,
-  takeScreenshot,
+  assertPageHasContent,
   assertTextContent,
   assertUrl,
+  clickElement,
+  expect,
+  navigateTo,
+  takeScreenshot,
+  test,
   waitForNetworkIdle,
-  assertPageHasContent,
 } from "./utils";
 
 test.describe("Home Page", () => {
@@ -43,7 +43,7 @@ test.describe("Home Page", () => {
     logger.step("Checking navigation links");
 
     // Find main nav links
-    const navLinks = page.locator('nav a, header a');
+    const navLinks = page.locator("nav a, header a");
     const navCount = await navLinks.count();
     logger.info(`Found ${navCount} navigation links`);
 
@@ -78,7 +78,9 @@ test.describe("Home Page", () => {
 
     // Find and click distillations link
     logger.step("Looking for distillations link");
-    const distillationsLink = page.locator('a[href="/distillations"], a[href*="distillation"]').first();
+    const distillationsLink = page
+      .locator('a[href="/distillations"], a[href*="distillation"]')
+      .first();
 
     if (await distillationsLink.isVisible()) {
       await clickElement(page, logger, distillationsLink, "Distillations link");

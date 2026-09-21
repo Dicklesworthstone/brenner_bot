@@ -9,21 +9,20 @@
  */
 
 import { useCallback, useMemo } from "react";
-
-import type { Session, SessionPhase, HypothesisCard } from "./types";
 import type { SessionEvent, SessionEventType, TransitionResult } from "./session-machine";
 import {
-  transition,
-  getAvailableEvents,
-  getReachablePhases,
-  canSend,
   canGoBack,
-  isComplete,
+  canSend,
+  getAvailableEvents,
   getDefaultNextPhase,
-  getPhaseName,
   getPhaseDescription,
+  getPhaseName,
   getPhaseSymbol,
+  getReachablePhases,
+  isComplete,
+  transition,
 } from "./session-machine";
+import type { HypothesisCard, Session, SessionPhase } from "./types";
 
 // ============================================================================
 // Types
@@ -144,7 +143,7 @@ export interface UseSessionMachineOptions {
  */
 export function useSessionMachine(
   session: Session | null,
-  options: UseSessionMachineOptions = {}
+  options: UseSessionMachineOptions = {},
 ): SessionMachineState | null {
   const { onSessionUpdate } = options;
 
@@ -155,30 +154,15 @@ export function useSessionMachine(
   const phaseName = useMemo(() => getPhaseName(phase), [phase]);
   const phaseDescription = useMemo(() => getPhaseDescription(phase), [phase]);
   const phaseSymbol = useMemo(() => getPhaseSymbol(phase), [phase]);
-  const sessionIsComplete = useMemo(
-    () => (session ? isComplete(session) : false),
-    [session]
-  );
+  const sessionIsComplete = useMemo(() => (session ? isComplete(session) : false), [session]);
 
-  const availableEvents = useMemo(
-    () => (session ? getAvailableEvents(session) : []),
-    [session]
-  );
+  const availableEvents = useMemo(() => (session ? getAvailableEvents(session) : []), [session]);
 
-  const reachablePhases = useMemo(
-    () => (session ? getReachablePhases(session) : []),
-    [session]
-  );
+  const reachablePhases = useMemo(() => (session ? getReachablePhases(session) : []), [session]);
 
-  const sessionCanGoBack = useMemo(
-    () => (session ? canGoBack(session) : false),
-    [session]
-  );
+  const sessionCanGoBack = useMemo(() => (session ? canGoBack(session) : false), [session]);
 
-  const nextPhase = useMemo(
-    () => (session ? getDefaultNextPhase(session) : null),
-    [session]
-  );
+  const nextPhase = useMemo(() => (session ? getDefaultNextPhase(session) : null), [session]);
 
   // === Actions ===
 
@@ -199,14 +183,14 @@ export function useSessionMachine(
       }
       return result;
     },
-    [session, onSessionUpdate]
+    [session, onSessionUpdate],
   );
 
   const checkCanSend = useCallback(
     (eventType: SessionEventType): boolean => {
       return session ? canSend(session, eventType) : false;
     },
-    [session]
+    [session],
   );
 
   const goBack = useCallback((): TransitionResult => {
@@ -250,7 +234,7 @@ export function useSessionMachine(
     (targetPhase: SessionPhase): TransitionResult => {
       return send({ type: "GO_TO_PHASE", phase: targetPhase });
     },
-    [send]
+    [send],
   );
 
   // === Convenience Actions ===
@@ -259,7 +243,7 @@ export function useSessionMachine(
     (hypothesis: HypothesisCard): TransitionResult => {
       return send({ type: "SUBMIT_HYPOTHESIS", hypothesis });
     },
-    [send]
+    [send],
   );
 
   const continueToOperators = useCallback((): TransitionResult => {
@@ -274,7 +258,7 @@ export function useSessionMachine(
     (result: unknown): TransitionResult => {
       return send({ type: "COMPLETE_OPERATOR", result });
     },
-    [send]
+    [send],
   );
 
   const skipOperator = useCallback((): TransitionResult => {
@@ -330,7 +314,7 @@ export function useSessionMachine(
 export function getPhaseStatusClass(
   currentPhase: SessionPhase,
   targetPhase: SessionPhase,
-  reachablePhases: SessionPhase[]
+  reachablePhases: SessionPhase[],
 ): "complete" | "current" | "upcoming" | "locked" {
   const phaseOrder = [
     "intake",

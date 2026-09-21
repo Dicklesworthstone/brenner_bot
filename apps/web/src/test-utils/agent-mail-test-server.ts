@@ -26,7 +26,7 @@
  * ```
  */
 
-import { createServer, type Server, type IncomingMessage, type ServerResponse } from "node:http";
+import { createServer, type IncomingMessage, type Server, type ServerResponse } from "node:http";
 
 // ============================================================================
 // Types
@@ -259,7 +259,9 @@ export class AgentMailTestServer {
       if (method === "tools/list") {
         result = this.handleToolsList();
       } else if (method === "tools/call") {
-        result = await this.handleToolsCall(params as { name: string; arguments: Record<string, unknown> });
+        result = await this.handleToolsCall(
+          params as { name: string; arguments: Record<string, unknown> },
+        );
       } else if (method === "resources/read") {
         result = this.handleResourcesRead(params as { uri: string });
       } else {
@@ -334,7 +336,9 @@ export class AgentMailTestServer {
     return { structuredContent: result };
   }
 
-  private handleResourcesRead(params: { uri: string }): { contents: Array<{ uri: string; text: string }> } {
+  private handleResourcesRead(params: { uri: string }): {
+    contents: Array<{ uri: string; text: string }>;
+  } {
     const { uri } = params;
 
     // Parse resource:// URIs manually since URL() doesn't handle custom schemes correctly
@@ -554,7 +558,11 @@ export class AgentMailTestServer {
     return this.getInboxFor(projectKey, agentName, limit, includeBodies).messages;
   }
 
-  private markMessageRead(args: Record<string, unknown>): { message_id: number; read: boolean; read_at: string } {
+  private markMessageRead(args: Record<string, unknown>): {
+    message_id: number;
+    read: boolean;
+    read_at: string;
+  } {
     const projectKey = args.project_key as string;
     const agentName = args.agent_name as string;
     const messageId = args.message_id as number;
@@ -564,7 +572,7 @@ export class AgentMailTestServer {
     if (!messageId) throw new Error("message_id is required");
 
     const delivery = this.deliveries.find(
-      (d) => d.message_id === messageId && d.agent_name === agentName
+      (d) => d.message_id === messageId && d.agent_name === agentName,
     );
 
     if (!delivery) throw new Error(`Delivery not found for message ${messageId} to ${agentName}`);
@@ -596,7 +604,7 @@ export class AgentMailTestServer {
     if (!messageId) throw new Error("message_id is required");
 
     const delivery = this.deliveries.find(
-      (d) => d.message_id === messageId && d.agent_name === agentName
+      (d) => d.message_id === messageId && d.agent_name === agentName,
     );
 
     if (!delivery) throw new Error(`Delivery not found for message ${messageId} to ${agentName}`);
@@ -625,7 +633,7 @@ export class AgentMailTestServer {
     projectKey: string,
     agentName: string,
     limit: number,
-    includeBodies: boolean
+    includeBodies: boolean,
   ): { project: string; agent: string; count: number; messages: TestMessage[] } {
     const project = this.projects.get(projectKey);
     if (!project) {
@@ -657,7 +665,7 @@ export class AgentMailTestServer {
   private getThread(
     projectKey: string,
     threadId: string,
-    includeBodies: boolean
+    includeBodies: boolean,
   ): { project: string; thread_id: string; messages: TestMessage[] } {
     const project = this.projects.get(projectKey);
     if (!project) {
@@ -665,7 +673,7 @@ export class AgentMailTestServer {
     }
 
     let messages = this.messages.filter(
-      (m) => m.project_id === project.id && m.thread_id === threadId
+      (m) => m.project_id === project.id && m.thread_id === threadId,
     );
 
     if (!includeBodies) {
@@ -748,7 +756,7 @@ export class AgentMailTestServer {
       .filter((a) => a.project_id === project.id)
       .map((a) => {
         const unreadCount = this.deliveries.filter(
-          (d) => d.agent_id === a.id && d.read_ts === null
+          (d) => d.agent_id === a.id && d.read_ts === null,
         ).length;
         return { name: a.name, unread_count: unreadCount };
       });

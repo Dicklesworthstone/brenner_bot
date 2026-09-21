@@ -8,9 +8,9 @@
  * @see brenner_bot-w5p6 (Tutorial Path: Agent-Assisted Research)
  */
 
-import * as React from "react";
 import { useRouter } from "next/navigation";
-import { TutorialStep, TutorialCodeBlock, ProTip } from "@/components/tutorial";
+import * as React from "react";
+import { ProTip, TutorialCodeBlock, TutorialStep } from "@/components/tutorial";
 import { useTutorial } from "@/lib/tutorial-context";
 import type { TutorialStep as TutorialStepType } from "@/lib/tutorial-types";
 
@@ -137,26 +137,18 @@ cd brenner_bot`}
           <div className="space-y-3">
             <div className="p-4 rounded-xl border border-primary/30 bg-card">
               <h4 className="font-semibold text-sm mb-2">For Claude Code:</h4>
-              <TutorialCodeBlock
-                code="claude"
-                language="bash"
-                title="Terminal (in brenner_bot/)"
-              />
+              <TutorialCodeBlock code="claude" language="bash" title="Terminal (in brenner_bot/)" />
             </div>
 
             <div className="p-4 rounded-xl border border-border bg-card">
               <h4 className="font-semibold text-sm mb-2">For Codex:</h4>
-              <TutorialCodeBlock
-                code="codex"
-                language="bash"
-                title="Terminal (in brenner_bot/)"
-              />
+              <TutorialCodeBlock code="codex" language="bash" title="Terminal (in brenner_bot/)" />
             </div>
           </div>
 
           <p className="text-sm text-muted-foreground">
-            The agent will now have access to all files in the repository. You can verify
-            by asking it to list the files or describe the project structure.
+            The agent will now have access to all files in the repository. You can verify by asking
+            it to list the files or describe the project structure.
           </p>
         </div>
 
@@ -172,24 +164,24 @@ cd brenner_bot`}
             title="Prompt to your agent"
           />
           <p className="text-sm text-muted-foreground">
-            Your agent should mention AGENTS.md, README.md, brenner.ts, and the various
-            markdown files. If it says it can&apos;t access files, you may need to restart
-            the agent from the correct directory.
+            Your agent should mention AGENTS.md, README.md, brenner.ts, and the various markdown
+            files. If it says it can&apos;t access files, you may need to restart the agent from the
+            correct directory.
           </p>
         </div>
 
         <ProTip>
-          The agent builds its understanding of the codebase as it reads files.
-          In the next step, we&apos;ll have it systematically study the methodology
-          documents before applying them to your research question.
+          The agent builds its understanding of the codebase as it reads files. In the next step,
+          we&apos;ll have it systematically study the methodology documents before applying them to
+          your research question.
         </ProTip>
 
         {/* Next Step Preview */}
         <div className="p-4 rounded-xl border border-border bg-card/50">
           <p className="text-sm text-muted-foreground">
-            <strong className="text-foreground">Next up:</strong> In Step 4, you&apos;ll
-            guide your agent to study the Brenner methodology systematically. This is
-            the key step where the agent internalizes the approach.
+            <strong className="text-foreground">Next up:</strong> In Step 4, you&apos;ll guide your
+            agent to study the Brenner methodology systematically. This is the key step where the
+            agent internalizes the approach.
           </p>
         </div>
       </section>

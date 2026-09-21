@@ -1,8 +1,7 @@
 "use client";
 
-import * as React from "react";
 import { motion } from "framer-motion";
-import { cn } from "@/lib/utils";
+import * as React from "react";
 import {
   getPhaseName,
   getPhaseSymbol,
@@ -10,6 +9,7 @@ import {
   PHASE_ORDER,
   type SessionPhase,
 } from "@/lib/brenner-loop";
+import { cn } from "@/lib/utils";
 
 export interface PhaseTimelineProps {
   phases?: SessionPhase[];
@@ -24,13 +24,25 @@ export interface PhaseTimelineProps {
 type PhaseStatus = "complete" | "current" | "available" | "locked" | "skipped";
 
 const CheckIcon = ({ className }: { className?: string }) => (
-  <svg className={cn("size-4", className)} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+  <svg
+    className={cn("size-4", className)}
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+    strokeWidth={2}
+  >
     <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
   </svg>
 );
 
 const LockClosedIcon = ({ className }: { className?: string }) => (
-  <svg className={cn("size-3", className)} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+  <svg
+    className={cn("size-3", className)}
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+    strokeWidth={2}
+  >
     <path
       strokeLinecap="round"
       strokeLinejoin="round"
@@ -92,7 +104,7 @@ export function PhaseTimeline({
       if (phase === currentPhase) return false;
       return available.has(phase);
     },
-    [available, skipped, currentPhase]
+    [available, skipped, currentPhase],
   );
 
   const focusablePhases = React.useMemo(() => {
@@ -114,12 +126,13 @@ export function PhaseTimeline({
     (direction: -1 | 1) => {
       if (focusablePhases.length === 0) return;
       const currentIndex = Math.max(0, focusablePhases.indexOf(focusedPhase));
-      const nextIndex = (currentIndex + direction + focusablePhases.length) % focusablePhases.length;
+      const nextIndex =
+        (currentIndex + direction + focusablePhases.length) % focusablePhases.length;
       const nextPhase = focusablePhases[nextIndex] ?? focusablePhases[0] ?? currentPhase;
       setFocusedPhase(nextPhase);
       buttonRefs.current[nextPhase]?.focus();
     },
-    [focusablePhases, focusedPhase, currentPhase]
+    [focusablePhases, focusedPhase, currentPhase],
   );
 
   const handleKeyDown = React.useCallback(
@@ -163,7 +176,7 @@ export function PhaseTimeline({
         return;
       }
     },
-    [focusablePhases, isClickable, moveFocus, onPhaseClick]
+    [focusablePhases, isClickable, moveFocus, onPhaseClick],
   );
 
   return (
@@ -195,7 +208,10 @@ export function PhaseTimeline({
           const fullName = getPhaseName(phase);
 
           return (
-            <div key={phase} className="flex items-center gap-3 sm:flex-col sm:items-center sm:flex-1 sm:min-w-0">
+            <div
+              key={phase}
+              className="flex items-center gap-3 sm:flex-col sm:items-center sm:flex-1 sm:min-w-0"
+            >
               <button
                 ref={(el) => {
                   buttonRefs.current[phase] = el;
@@ -212,11 +228,12 @@ export function PhaseTimeline({
                   "relative size-9 sm:size-8 rounded-full flex items-center justify-center transition-all cursor-default",
                   "focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
                   status === "complete" && "bg-emerald-500 text-emerald-950 dark:text-emerald-50",
-                  status === "current" && "bg-primary text-primary-foreground ring-2 ring-primary ring-offset-2",
+                  status === "current" &&
+                    "bg-primary text-primary-foreground ring-2 ring-primary ring-offset-2",
                   status === "available" &&
                     "bg-muted-foreground/20 text-muted-foreground hover:bg-muted-foreground/30 cursor-pointer",
                   status === "locked" && "bg-muted text-muted-foreground/50 cursor-not-allowed",
-                  status === "skipped" && "bg-muted text-muted-foreground/50"
+                  status === "skipped" && "bg-muted text-muted-foreground/50",
                 )}
                 title={fullName}
               >
@@ -237,7 +254,7 @@ export function PhaseTimeline({
                   status === "current" && "font-semibold text-foreground",
                   (status === "complete" || status === "available") && "text-muted-foreground",
                   status === "locked" && "text-muted-foreground/50",
-                  status === "skipped" && "text-muted-foreground/50 line-through"
+                  status === "skipped" && "text-muted-foreground/50 line-through",
                 )}
               >
                 <span className="sm:hidden">{fullName}</span>

@@ -24,9 +24,9 @@ declare global {
   interface Window {
     dataLayer: unknown[];
     gtag: (
-      command: 'config' | 'event' | 'set' | 'js',
+      command: "config" | "event" | "set" | "js",
       targetId: string | Date,
-      params?: Record<string, unknown>
+      params?: Record<string, unknown>,
     ) => void;
   }
 }
@@ -35,7 +35,7 @@ declare global {
  * Sanitize GA Measurement ID (handles common misconfigurations)
  */
 function sanitizeGaMeasurementId(value: unknown): string | undefined {
-  if (typeof value !== 'string') return undefined;
+  if (typeof value !== "string") return undefined;
   let cleaned = value.trim();
   if (!cleaned) return undefined;
 
@@ -48,7 +48,7 @@ function sanitizeGaMeasurementId(value: unknown): string | undefined {
   }
 
   // Remove escaped newlines from Vercel env pulls
-  cleaned = cleaned.replace(/\\n$/, '').replace(/\s+$/, '');
+  cleaned = cleaned.replace(/\\n$/, "").replace(/\s+$/, "");
 
   // Extract valid GA4 ID pattern
   const ga4Match = cleaned.match(/^(G-[A-Z0-9]+)/i);
@@ -72,11 +72,7 @@ export const GA_MEASUREMENT_ID = sanitizeGaMeasurementId(GA_MEASUREMENT_ID_RAW);
  * Check if analytics is properly configured and we're in a browser
  */
 export function isAnalyticsEnabled(): boolean {
-  return (
-    typeof window !== 'undefined' &&
-    !!GA_MEASUREMENT_ID &&
-    typeof window.gtag === 'function'
-  );
+  return typeof window !== "undefined" && !!GA_MEASUREMENT_ID && typeof window.gtag === "function";
 }
 
 /**
@@ -128,9 +124,9 @@ function safeSetJSON(key: string, value: unknown): void {
  * Get or create a stable client ID for the user
  */
 export function getClientId(): string {
-  if (typeof window === 'undefined') return '';
+  if (typeof window === "undefined") return "";
 
-  const storageKey = 'brennerbot_client_id';
+  const storageKey = "brennerbot_client_id";
   let clientId = safeGetItem(storageKey);
 
   if (!clientId) {
@@ -149,9 +145,9 @@ export function getClientId(): string {
  * Get or create a persistent user ID
  */
 export function getOrCreateUserId(): string {
-  if (typeof window === 'undefined') return '';
+  if (typeof window === "undefined") return "";
 
-  const storageKey = 'brennerbot_user_id';
+  const storageKey = "brennerbot_user_id";
   let userId = safeGetItem(storageKey);
 
   if (!userId) {
@@ -161,7 +157,7 @@ export function getOrCreateUserId(): string {
       userId = `user_${Date.now()}_${Math.random().toString(36).slice(2, 11)}`;
     }
     safeSetItem(storageKey, userId);
-    sendEvent('new_user_created', { user_id: userId });
+    sendEvent("new_user_created", { user_id: userId });
   }
 
   return userId;
@@ -174,13 +170,10 @@ export function getOrCreateUserId(): string {
 /**
  * Send a custom event to GA4
  */
-export function sendEvent(
-  eventName: string,
-  parameters?: Record<string, unknown>
-): void {
+export function sendEvent(eventName: string, parameters?: Record<string, unknown>): void {
   if (!isAnalyticsEnabled()) return;
 
-  window.gtag('event', eventName, {
+  window.gtag("event", eventName, {
     ...parameters,
     timestamp: new Date().toISOString(),
   });
@@ -189,12 +182,10 @@ export function sendEvent(
 /**
  * Set user properties in GA4
  */
-export function setUserProperties(
-  properties: Record<string, string | number | boolean>
-): void {
+export function setUserProperties(properties: Record<string, string | number | boolean>): void {
   if (!isAnalyticsEnabled()) return;
 
-  window.gtag('set', 'user_properties', properties);
+  window.gtag("set", "user_properties", properties);
 }
 
 /**
@@ -202,15 +193,15 @@ export function setUserProperties(
  */
 export async function sendServerEvent(
   eventName: string,
-  params?: Record<string, string | number | boolean>
+  params?: Record<string, string | number | boolean>,
 ): Promise<void> {
-  if (typeof window === 'undefined') return;
+  if (typeof window === "undefined") return;
   if (!GA_MEASUREMENT_ID) return;
 
   try {
-    await fetch('/api/track', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+    await fetch("/api/track", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         client_id: getClientId(),
         events: [{ name: eventName, params }],
@@ -246,7 +237,10 @@ export function nowMs(): number {
   return Date.now();
 }
 
-export function normalizeSystemError(error: unknown): { error_type?: string; error_message?: string } {
+export function normalizeSystemError(error: unknown): {
+  error_type?: string;
+  error_message?: string;
+} {
   if (!error) return {};
   if (error instanceof Error) {
     return {
@@ -274,7 +268,7 @@ export function normalizeSystemError(error: unknown): { error_type?: string; err
 }
 
 function coerceSystemParams(
-  params?: Record<string, unknown>
+  params?: Record<string, unknown>,
 ): Record<string, string | number | boolean> {
   const safeParams: Record<string, string | number | boolean> = {};
   if (!params) return safeParams;
@@ -288,10 +282,7 @@ function coerceSystemParams(
   return safeParams;
 }
 
-export function trackSystemEvent(
-  eventName: string,
-  params?: Record<string, unknown>
-): void {
+export function trackSystemEvent(eventName: string, params?: Record<string, unknown>): void {
   if (typeof window === "undefined") return;
 
   const name = sanitizeSystemEventName(eventName);
@@ -307,7 +298,7 @@ export function trackSystemEvent(
 export function trackSystemLatency(
   eventName: string,
   durationMs: number,
-  params?: Record<string, unknown>
+  params?: Record<string, unknown>,
 ): void {
   trackSystemEvent(eventName, {
     ...params,
@@ -320,17 +311,17 @@ export function trackSystemLatency(
 // =============================================================================
 
 export type DocumentType =
-  | 'transcript'
-  | 'distillation'
-  | 'quote_bank'
-  | 'metaprompt'
-  | 'method'
-  | 'operators'
-  | 'glossary'
-  | 'session'
-  | 'landing';
+  | "transcript"
+  | "distillation"
+  | "quote_bank"
+  | "metaprompt"
+  | "method"
+  | "operators"
+  | "glossary"
+  | "session"
+  | "landing";
 
-const FIRST_DOC_READ_KEY = 'brennerbot_first_doc_read';
+const FIRST_DOC_READ_KEY = "brennerbot_first_doc_read";
 
 /**
  * Track when a user views a document
@@ -339,19 +330,19 @@ export function trackDocumentView(
   documentType: DocumentType,
   documentId: string,
   documentTitle: string,
-  source?: 'search' | 'nav' | 'link' | 'scroll' | 'direct'
+  source?: "search" | "nav" | "link" | "scroll" | "direct",
 ): void {
-  sendEvent('document_view', {
+  sendEvent("document_view", {
     document_type: documentType,
     document_id: documentId,
     document_title: documentTitle,
-    content_discovery_source: source || 'direct',
+    content_discovery_source: source || "direct",
   });
 
   // Track first document read conversion (only fires once ever)
-  if (!safeGetItem(FIRST_DOC_READ_KEY) && documentType !== 'landing') {
+  if (!safeGetItem(FIRST_DOC_READ_KEY) && documentType !== "landing") {
     safeSetItem(FIRST_DOC_READ_KEY, new Date().toISOString());
-    trackConversion('first_document_read', 1);
+    trackConversion("first_document_read", 1);
   }
 }
 
@@ -361,9 +352,9 @@ export function trackDocumentView(
 export function trackScrollDepth(
   depth: 25 | 50 | 75 | 90 | 100,
   documentType: DocumentType,
-  documentId: string
+  documentId: string,
 ): void {
-  sendEvent('scroll_depth', {
+  sendEvent("scroll_depth", {
     depth_percentage: depth,
     document_type: documentType,
     document_id: documentId,
@@ -377,19 +368,19 @@ export function trackScrollDepth(
 export function trackTimeOnDocument(
   seconds: number,
   documentType: DocumentType,
-  documentId: string
+  documentId: string,
 ): void {
   // Categorize into buckets for analysis
-  let timeBucket: 'quick' | 'engaged' | 'deep';
+  let timeBucket: "quick" | "engaged" | "deep";
   if (seconds < 30) {
-    timeBucket = 'quick';
+    timeBucket = "quick";
   } else if (seconds < 180) {
-    timeBucket = 'engaged';
+    timeBucket = "engaged";
   } else {
-    timeBucket = 'deep';
+    timeBucket = "deep";
   }
 
-  sendEvent('time_on_document', {
+  sendEvent("time_on_document", {
     time_on_document_seconds: seconds,
     document_type: documentType,
     document_id: documentId,
@@ -398,19 +389,15 @@ export function trackTimeOnDocument(
 
   // Track conversion for deep reading
   if (seconds >= 180) {
-    trackConversion('deep_reading', 5);
+    trackConversion("deep_reading", 5);
   }
 }
 
 /**
  * Track when a user clicks an anchor reference (e.g., §58)
  */
-export function trackAnchorClick(
-  anchor: string,
-  fromDocument: string,
-  toDocument?: string
-): void {
-  sendEvent('anchor_click', {
+export function trackAnchorClick(anchor: string, fromDocument: string, toDocument?: string): void {
+  sendEvent("anchor_click", {
     anchor_clicked: anchor,
     navigation_from: fromDocument,
     navigation_to: toDocument || anchor,
@@ -424,14 +411,14 @@ export function trackDocumentExit(
   documentType: DocumentType,
   documentId: string,
   timeSpentSeconds: number,
-  maxScrollDepth: number
+  maxScrollDepth: number,
 ): void {
-  sendEvent('document_exit', {
+  sendEvent("document_exit", {
     document_type: documentType,
     document_id: documentId,
     time_on_document_seconds: timeSpentSeconds,
     reading_depth_percent: maxScrollDepth,
-    transport_type: 'beacon',
+    transport_type: "beacon",
   });
 }
 
@@ -442,14 +429,10 @@ export function trackDocumentExit(
 /**
  * Track search query execution
  */
-export function trackSearch(
-  query: string,
-  category: string | null,
-  resultsCount: number
-): void {
-  sendEvent('search', {
+export function trackSearch(query: string, category: string | null, resultsCount: number): void {
+  sendEvent("search", {
     search_query: query,
-    search_category: category || 'all',
+    search_category: category || "all",
     search_results_count: resultsCount,
   });
 }
@@ -461,19 +444,19 @@ export function trackSearchResultClick(
   query: string,
   resultPosition: number,
   resultDocumentId: string,
-  resultDocumentType: DocumentType
+  resultDocumentType: DocumentType,
 ): void {
-  sendEvent('search_result_click', {
+  sendEvent("search_result_click", {
     search_query: query,
     search_click_position: resultPosition,
     document_id: resultDocumentId,
     document_type: resultDocumentType,
-    content_discovery_source: 'search',
+    content_discovery_source: "search",
   });
 
   // Track conversion for engaged search
   if (resultPosition <= 3) {
-    trackConversion('search_engaged', 2);
+    trackConversion("search_engaged", 2);
   }
 }
 
@@ -482,12 +465,12 @@ export function trackSearchResultClick(
 // =============================================================================
 
 export type JargonCategory =
-  | 'operators'
-  | 'brenner'
-  | 'biology'
-  | 'bayesian'
-  | 'method'
-  | 'project';
+  | "operators"
+  | "brenner"
+  | "biology"
+  | "bayesian"
+  | "method"
+  | "project";
 
 /**
  * Track when a user views a jargon term
@@ -495,9 +478,9 @@ export type JargonCategory =
 export function trackJargonView(
   term: string,
   category: JargonCategory,
-  viewType: 'tooltip' | 'modal' | 'page'
+  viewType: "tooltip" | "modal" | "page",
 ): void {
-  sendEvent('jargon_view', {
+  sendEvent("jargon_view", {
     jargon_term: term,
     jargon_category: category,
     view_type: viewType,
@@ -513,14 +496,14 @@ export function trackJargonEngagement(term: string, category: JargonCategory): v
   jargonViewedInSession.add(term);
 
   // Track the specific category being explored
-  sendEvent('jargon_engagement', {
+  sendEvent("jargon_engagement", {
     jargon_term: term,
     jargon_category: category,
     unique_terms_viewed: jargonViewedInSession.size,
   });
 
   if (jargonViewedInSession.size === 3) {
-    trackConversion('glossary_engaged', 3);
+    trackConversion("glossary_engaged", 3);
   }
 }
 
@@ -530,16 +513,16 @@ export function trackJargonEngagement(term: string, category: JargonCategory): v
 export function trackOperatorView(
   operatorId: string,
   operatorName: string,
-  viewType: 'list' | 'detail' | 'inline'
+  viewType: "list" | "detail" | "inline",
 ): void {
-  sendEvent('operator_view', {
+  sendEvent("operator_view", {
     operator_id: operatorId,
     operator_name: operatorName,
     view_type: viewType,
   });
 
-  if (viewType === 'detail') {
-    trackConversion('operator_studied', 3);
+  if (viewType === "detail") {
+    trackConversion("operator_studied", 3);
   }
 }
 
@@ -548,34 +531,34 @@ export function trackOperatorView(
 // =============================================================================
 
 export type TutorialStep =
-  | 'welcome'
-  | 'what_is_brenner'
-  | 'two_axioms'
-  | 'operators_intro'
-  | 'level_split'
-  | 'exclusion_test'
-  | 'object_transpose'
-  | 'scale_check'
-  | 'practice_session'
-  | 'next_steps'
-  | 'complete';
+  | "welcome"
+  | "what_is_brenner"
+  | "two_axioms"
+  | "operators_intro"
+  | "level_split"
+  | "exclusion_test"
+  | "object_transpose"
+  | "scale_check"
+  | "practice_session"
+  | "next_steps"
+  | "complete";
 
 const TUTORIAL_STEPS: TutorialStep[] = [
-  'welcome',
-  'what_is_brenner',
-  'two_axioms',
-  'operators_intro',
-  'level_split',
-  'exclusion_test',
-  'object_transpose',
-  'scale_check',
-  'practice_session',
-  'next_steps',
-  'complete',
+  "welcome",
+  "what_is_brenner",
+  "two_axioms",
+  "operators_intro",
+  "level_split",
+  "exclusion_test",
+  "object_transpose",
+  "scale_check",
+  "practice_session",
+  "next_steps",
+  "complete",
 ];
 
 const TOTAL_TUTORIAL_STEPS = TUTORIAL_STEPS.length;
-const TUTORIAL_FUNNEL_KEY = 'brennerbot_tutorial_funnel';
+const TUTORIAL_FUNNEL_KEY = "brennerbot_tutorial_funnel";
 
 interface TutorialFunnelData {
   sessionId: string;
@@ -597,9 +580,7 @@ function getTutorialFunnelData(): TutorialFunnelData | null {
  * Initialize the tutorial funnel
  */
 export function initTutorialFunnel(): TutorialFunnelData {
-  const params = new URLSearchParams(
-    typeof window !== 'undefined' ? window.location.search : ''
-  );
+  const params = new URLSearchParams(typeof window !== "undefined" ? window.location.search : "");
 
   let sessionId = "";
   if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
@@ -615,22 +596,22 @@ export function initTutorialFunnel(): TutorialFunnelData {
     maxStepReached: 0,
     stepTimestamps: {},
     completedSteps: [],
-    source: params.get('utm_source') || document.referrer || 'direct',
-    medium: params.get('utm_medium') || 'none',
-    campaign: params.get('utm_campaign') || 'none',
+    source: params.get("utm_source") || document.referrer || "direct",
+    medium: params.get("utm_medium") || "none",
+    campaign: params.get("utm_campaign") || "none",
   };
 
   safeSetJSON(TUTORIAL_FUNNEL_KEY, funnelData);
 
-  sendEvent('tutorial_funnel_initiated', {
+  sendEvent("tutorial_funnel_initiated", {
     funnel_id: funnelData.sessionId,
     funnel_source: funnelData.source,
     funnel_medium: funnelData.medium,
     funnel_campaign: funnelData.campaign,
-    referrer: typeof document !== 'undefined' ? document.referrer : '',
+    referrer: typeof document !== "undefined" ? document.referrer : "",
   });
 
-  trackConversion('tutorial_started', 1);
+  trackConversion("tutorial_started", 1);
 
   return funnelData;
 }
@@ -638,10 +619,7 @@ export function initTutorialFunnel(): TutorialFunnelData {
 /**
  * Track when user enters a tutorial step
  */
-export function trackTutorialStepEnter(
-  stepNumber: number,
-  stepName: TutorialStep
-): void {
+export function trackTutorialStepEnter(stepNumber: number, stepName: TutorialStep): void {
   let funnelData = getTutorialFunnelData();
   if (!funnelData) {
     funnelData = initTutorialFunnel();
@@ -667,7 +645,7 @@ export function trackTutorialStepEnter(
     timeFromPreviousStep = Math.round((Date.now() - prevTime) / 1000);
   }
 
-  sendEvent('tutorial_step_enter', {
+  sendEvent("tutorial_step_enter", {
     funnel_id: funnelData.sessionId,
     tutorial_step: stepNumber,
     tutorial_step_name: stepName,
@@ -681,11 +659,20 @@ export function trackTutorialStepEnter(
 
   // Track milestones
   if (stepNumber === 1) {
-    sendEvent('tutorial_milestone', { milestone: 'tutorial_started', funnel_id: funnelData.sessionId });
+    sendEvent("tutorial_milestone", {
+      milestone: "tutorial_started",
+      funnel_id: funnelData.sessionId,
+    });
   } else if (stepNumber === 4) {
-    sendEvent('tutorial_milestone', { milestone: 'operators_reached', funnel_id: funnelData.sessionId });
+    sendEvent("tutorial_milestone", {
+      milestone: "operators_reached",
+      funnel_id: funnelData.sessionId,
+    });
   } else if (stepNumber === 9) {
-    sendEvent('tutorial_milestone', { milestone: 'practice_reached', funnel_id: funnelData.sessionId });
+    sendEvent("tutorial_milestone", {
+      milestone: "practice_reached",
+      funnel_id: funnelData.sessionId,
+    });
   }
 }
 
@@ -695,7 +682,7 @@ export function trackTutorialStepEnter(
 export function trackTutorialStepComplete(
   stepNumber: number,
   stepName: TutorialStep,
-  additionalData?: Record<string, unknown>
+  additionalData?: Record<string, unknown>,
 ): void {
   const funnelData = getTutorialFunnelData();
   if (!funnelData) return;
@@ -721,18 +708,20 @@ export function trackTutorialStepComplete(
 
   safeSetJSON(TUTORIAL_FUNNEL_KEY, funnelData);
 
-  sendEvent('tutorial_step_complete', {
+  sendEvent("tutorial_step_complete", {
     funnel_id: funnelData.sessionId,
     tutorial_step: stepNumber,
     tutorial_step_name: stepName,
     time_on_tutorial_step_seconds: timeOnStep,
     tutorial_completed_steps: funnelData.completedSteps.length,
     tutorial_total_steps: TOTAL_TUTORIAL_STEPS,
-    tutorial_progress_percent: Math.round((funnelData.completedSteps.length / TOTAL_TUTORIAL_STEPS) * 100),
+    tutorial_progress_percent: Math.round(
+      (funnelData.completedSteps.length / TOTAL_TUTORIAL_STEPS) * 100,
+    ),
     ...additionalData,
   });
 
-  trackConversion('tutorial_step_complete', 2);
+  trackConversion("tutorial_step_complete", 2);
 
   // Check for tutorial completion
   if (stepNumber === TOTAL_TUTORIAL_STEPS - 1) {
@@ -751,7 +740,7 @@ export function trackTutorialComplete(): void {
   const totalTimeSeconds = Math.round((Date.now() - startTime) / 1000);
   const totalTimeMinutes = Math.round(totalTimeSeconds / 60);
 
-  sendEvent('tutorial_complete', {
+  sendEvent("tutorial_complete", {
     funnel_id: funnelData.sessionId,
     total_session_time_seconds: totalTimeSeconds,
     total_time_minutes: totalTimeMinutes,
@@ -762,7 +751,7 @@ export function trackTutorialComplete(): void {
     funnel_campaign: funnelData.campaign,
   });
 
-  trackConversion('tutorial_complete', 10);
+  trackConversion("tutorial_complete", 10);
 
   setUserProperties({
     tutorial_completed: true,
@@ -788,15 +777,15 @@ export function trackTutorialDropoff(reason?: string): void {
     timeOnCurrentStep = Math.round((Date.now() - enterTime) / 1000);
   }
 
-  sendEvent('tutorial_dropoff', {
+  sendEvent("tutorial_dropoff", {
     funnel_id: funnelData.sessionId,
     dropped_at_step: funnelData.currentStep,
-    dropped_at_step_name: TUTORIAL_STEPS[funnelData.currentStep] || 'unknown',
+    dropped_at_step_name: TUTORIAL_STEPS[funnelData.currentStep] || "unknown",
     max_step_reached: funnelData.maxStepReached,
     tutorial_completed_steps: funnelData.completedSteps.length,
     total_session_time_seconds: totalTimeSeconds,
     time_on_current_step_seconds: timeOnCurrentStep,
-    dropoff_reason: reason || 'unknown',
+    dropoff_reason: reason || "unknown",
     funnel_source: funnelData.source,
     funnel_medium: funnelData.medium,
   });
@@ -837,35 +826,32 @@ export function getTutorialProgress(): {
 // =============================================================================
 
 export type ConversionType =
-  | 'first_document_read'
-  | 'deep_reading'
-  | 'corpus_explorer'
-  | 'search_engaged'
-  | 'tutorial_started'
-  | 'tutorial_step_complete'
-  | 'tutorial_complete'
-  | 'glossary_engaged'
-  | 'operator_studied'
-  | 'return_visitor'
-  | 'power_user';
+  | "first_document_read"
+  | "deep_reading"
+  | "corpus_explorer"
+  | "search_engaged"
+  | "tutorial_started"
+  | "tutorial_step_complete"
+  | "tutorial_complete"
+  | "glossary_engaged"
+  | "operator_studied"
+  | "return_visitor"
+  | "power_user";
 
 /**
  * Track a conversion event (both client and server-side)
  */
-export function trackConversion(
-  conversionType: ConversionType,
-  value?: number
-): void {
+export function trackConversion(conversionType: ConversionType, value?: number): void {
   const params = {
     conversion_type: conversionType,
     conversion_value: value ?? 0,
   };
 
   // Client-side (fast but may be blocked)
-  sendEvent('conversion', params);
+  sendEvent("conversion", params);
 
   // Server-side (reliable)
-  sendServerEvent('conversion', params);
+  sendServerEvent("conversion", params);
 
   // Also send the specific conversion event name
   sendEvent(conversionType, { conversion_value: value ?? 0 });
@@ -889,22 +875,22 @@ function getAcquisitionData(): {
   referrer_domain: string;
   landing_page: string;
 } {
-  if (typeof window === 'undefined') {
+  if (typeof window === "undefined") {
     return {
-      utm_source: 'direct',
-      utm_medium: 'none',
-      utm_campaign: '',
-      utm_term: '',
-      utm_content: '',
-      referrer: '',
-      referrer_domain: '',
-      landing_page: '',
+      utm_source: "direct",
+      utm_medium: "none",
+      utm_campaign: "",
+      utm_term: "",
+      utm_content: "",
+      referrer: "",
+      referrer_domain: "",
+      landing_page: "",
     };
   }
 
   const params = new URLSearchParams(window.location.search);
-  const referrer = document.referrer || '';
-  let referrerDomain = '';
+  const referrer = document.referrer || "";
+  let referrerDomain = "";
 
   try {
     if (referrer) {
@@ -915,63 +901,63 @@ function getAcquisitionData(): {
   }
 
   // Determine source from UTM or referrer
-  let source = params.get('utm_source') || '';
-  let medium = params.get('utm_medium') || '';
+  let source = params.get("utm_source") || "";
+  let medium = params.get("utm_medium") || "";
 
   if (!source && referrer) {
     // Infer source from referrer
-    if (referrerDomain.includes('google')) {
-      source = 'google';
-      medium = medium || 'organic';
-    } else if (referrerDomain.includes('bing')) {
-      source = 'bing';
-      medium = medium || 'organic';
-    } else if (referrerDomain.includes('twitter') || referrerDomain.includes('x.com')) {
-      source = 'twitter';
-      medium = medium || 'social';
-    } else if (referrerDomain.includes('linkedin')) {
-      source = 'linkedin';
-      medium = medium || 'social';
-    } else if (referrerDomain.includes('facebook')) {
-      source = 'facebook';
-      medium = medium || 'social';
-    } else if (referrerDomain.includes('reddit')) {
-      source = 'reddit';
-      medium = medium || 'social';
-    } else if (referrerDomain.includes('github')) {
-      source = 'github';
-      medium = medium || 'referral';
+    if (referrerDomain.includes("google")) {
+      source = "google";
+      medium = medium || "organic";
+    } else if (referrerDomain.includes("bing")) {
+      source = "bing";
+      medium = medium || "organic";
+    } else if (referrerDomain.includes("twitter") || referrerDomain.includes("x.com")) {
+      source = "twitter";
+      medium = medium || "social";
+    } else if (referrerDomain.includes("linkedin")) {
+      source = "linkedin";
+      medium = medium || "social";
+    } else if (referrerDomain.includes("facebook")) {
+      source = "facebook";
+      medium = medium || "social";
+    } else if (referrerDomain.includes("reddit")) {
+      source = "reddit";
+      medium = medium || "social";
+    } else if (referrerDomain.includes("github")) {
+      source = "github";
+      medium = medium || "referral";
     } else if (referrerDomain) {
       source = referrerDomain;
-      medium = medium || 'referral';
+      medium = medium || "referral";
     }
   }
 
   return {
-    utm_source: source || 'direct',
-    utm_medium: medium || 'none',
-    utm_campaign: params.get('utm_campaign') || '',
-    utm_term: params.get('utm_term') || '',
-    utm_content: params.get('utm_content') || '',
+    utm_source: source || "direct",
+    utm_medium: medium || "none",
+    utm_campaign: params.get("utm_campaign") || "",
+    utm_term: params.get("utm_term") || "",
+    utm_content: params.get("utm_content") || "",
     referrer,
     referrer_domain: referrerDomain,
     landing_page: window.location.pathname,
   };
 }
 
-const FIRST_VISIT_KEY = 'brennerbot_first_visit';
-const FIRST_SOURCE_KEY = 'brennerbot_first_source';
+const FIRST_VISIT_KEY = "brennerbot_first_visit";
+const FIRST_SOURCE_KEY = "brennerbot_first_source";
 
 /**
  * Track session start with device info, UTM parameters, and referrer
  */
 export function trackSessionStart(): void {
-  if (typeof window === 'undefined') return;
+  if (typeof window === "undefined") return;
 
   const screenWidth = window.screen.width;
   const screenHeight = window.screen.height;
   const devicePixelRatio = window.devicePixelRatio || 1;
-  const isTouchDevice = 'ontouchstart' in window;
+  const isTouchDevice = "ontouchstart" in window;
   const acquisition = getAcquisitionData();
 
   // Check for first visit
@@ -998,7 +984,7 @@ export function trackSessionStart(): void {
     landing_page: string;
   }>(FIRST_SOURCE_KEY);
 
-  sendEvent('session_start_enhanced', {
+  sendEvent("session_start_enhanced", {
     // Device info
     screen_width: screenWidth,
     screen_height: screenHeight,
@@ -1006,12 +992,17 @@ export function trackSessionStart(): void {
     is_touch_device: isTouchDevice,
     timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
     language: navigator.language,
-    platform: navigator.userAgent.includes('Mac') ? 'macOS'
-      : navigator.userAgent.includes('Win') ? 'Windows'
-      : navigator.userAgent.includes('Linux') ? 'Linux'
-      : navigator.userAgent.includes('iPhone') || navigator.userAgent.includes('iPad') ? 'iOS'
-      : navigator.userAgent.includes('Android') ? 'Android'
-      : 'unknown',
+    platform: navigator.userAgent.includes("Mac")
+      ? "macOS"
+      : navigator.userAgent.includes("Win")
+        ? "Windows"
+        : navigator.userAgent.includes("Linux")
+          ? "Linux"
+          : navigator.userAgent.includes("iPhone") || navigator.userAgent.includes("iPad")
+            ? "iOS"
+            : navigator.userAgent.includes("Android")
+              ? "Android"
+              : "unknown",
     // Acquisition data
     utm_source: acquisition.utm_source,
     utm_medium: acquisition.utm_medium,
@@ -1025,8 +1016,8 @@ export function trackSessionStart(): void {
   });
 
   // Check for returning user
-  const visitCount = parseInt(safeGetItem('brennerbot_visit_count') || '0', 10) + 1;
-  safeSetItem('brennerbot_visit_count', String(visitCount));
+  const visitCount = parseInt(safeGetItem("brennerbot_visit_count") || "0", 10) + 1;
+  safeSetItem("brennerbot_visit_count", String(visitCount));
 
   // Set comprehensive user properties
   setUserProperties({
@@ -1044,12 +1035,12 @@ export function trackSessionStart(): void {
   });
 
   if (visitCount === 2) {
-    trackConversion('return_visitor', 5);
+    trackConversion("return_visitor", 5);
   }
 }
 
 // Track documents viewed across sessions for power user detection
-const DOCS_VIEWED_KEY = 'brennerbot_docs_viewed';
+const DOCS_VIEWED_KEY = "brennerbot_docs_viewed";
 
 export function trackDocumentsViewed(documentId: string): void {
   const viewed = new Set(safeGetJSON<string[]>(DOCS_VIEWED_KEY) || []);
@@ -1058,14 +1049,14 @@ export function trackDocumentsViewed(documentId: string): void {
 
   const count = viewed.size;
 
-  sendEvent('documents_viewed_milestone', {
+  sendEvent("documents_viewed_milestone", {
     documents_viewed_count: count,
   });
 
   if (count === 5) {
-    trackConversion('corpus_explorer', 5);
+    trackConversion("corpus_explorer", 5);
   } else if (count === 20) {
-    trackConversion('power_user', 10);
+    trackConversion("power_user", 10);
   }
 }
 
@@ -1079,9 +1070,9 @@ export function trackDocumentsViewed(documentId: string): void {
 export function trackNavigation(
   from: string,
   to: string,
-  method: 'nav' | 'link' | 'search' | 'back' | 'forward'
+  method: "nav" | "link" | "search" | "back" | "forward",
 ): void {
-  sendEvent('navigation', {
+  sendEvent("navigation", {
     navigation_from: from,
     navigation_to: to,
     navigation_method: method,
@@ -1092,14 +1083,14 @@ export function trackNavigation(
  * Track outbound link clicks
  */
 export function trackOutboundLink(url: string, linkText: string): void {
-  let linkDomain = 'unknown';
+  let linkDomain = "unknown";
   try {
     linkDomain = new URL(url).hostname;
   } catch {
     // Invalid URL
   }
 
-  sendEvent('outbound_link_click', {
+  sendEvent("outbound_link_click", {
     link_url: url,
     link_text: linkText,
     link_domain: linkDomain,
@@ -1110,19 +1101,17 @@ export function trackOutboundLink(url: string, linkText: string): void {
  * Track CTA clicks on landing page
  */
 export function trackLandingCTA(
-  ctaType: 'hero_start' | 'feature_start' | 'footer_start' | 'nav_start' | 'tutorial_start',
-  ctaText: string
+  ctaType: "hero_start" | "feature_start" | "footer_start" | "nav_start" | "tutorial_start",
+  ctaText: string,
 ): void {
-  sendEvent('landing_cta_click', {
+  sendEvent("landing_cta_click", {
     cta_type: ctaType,
     cta_text: ctaText,
     page_scroll_depth:
-      typeof window !== 'undefined'
+      typeof window !== "undefined"
         ? (() => {
             const scrollableHeight = document.documentElement.scrollHeight - window.innerHeight;
-            return scrollableHeight > 0
-              ? Math.round((window.scrollY / scrollableHeight) * 100)
-              : 0;
+            return scrollableHeight > 0 ? Math.round((window.scrollY / scrollableHeight) * 100) : 0;
           })()
         : 0,
   });
@@ -1139,9 +1128,9 @@ export function trackError(
   errorType: string,
   errorMessage: string,
   errorStack?: string,
-  context?: Record<string, unknown>
+  context?: Record<string, unknown>,
 ): void {
-  sendEvent('error_occurred', {
+  sendEvent("error_occurred", {
     error_type: errorType,
     error_message: errorMessage,
     error_stack: errorStack?.slice(0, 500),
@@ -1152,12 +1141,8 @@ export function trackError(
 /**
  * Track API errors
  */
-export function trackAPIError(
-  endpoint: string,
-  statusCode: number,
-  errorMessage: string
-): void {
-  sendEvent('api_error', {
+export function trackAPIError(endpoint: string, statusCode: number, errorMessage: string): void {
+  sendEvent("api_error", {
     endpoint,
     status_code: statusCode,
     error_message: errorMessage,
@@ -1172,12 +1157,12 @@ export function trackAPIError(
  * Track page performance metrics
  */
 export function trackPagePerformance(): void {
-  if (typeof window === 'undefined' || !window.performance) return;
+  if (typeof window === "undefined" || !window.performance) return;
 
-  const timing = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming;
+  const timing = performance.getEntriesByType("navigation")[0] as PerformanceNavigationTiming;
   if (!timing) return;
 
-  sendEvent('page_performance', {
+  sendEvent("page_performance", {
     dns_lookup_ms: Math.round(timing.domainLookupEnd - timing.domainLookupStart),
     tcp_connect_ms: Math.round(timing.connectEnd - timing.connectStart),
     ttfb_ms: Math.round(timing.responseStart - timing.requestStart),
@@ -1190,12 +1175,8 @@ export function trackPagePerformance(): void {
 /**
  * Track Web Vitals
  */
-export function trackWebVitals(metric: {
-  name: string;
-  value: number;
-  id: string;
-}): void {
-  sendEvent('web_vitals', {
+export function trackWebVitals(metric: { name: string; value: number; id: string }): void {
+  sendEvent("web_vitals", {
     metric_name: metric.name,
     metric_value: Math.round(metric.value),
     metric_id: metric.id,

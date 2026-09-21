@@ -51,12 +51,7 @@ const sessionIdPattern = /^RS[A-Za-z0-9-][\w-]*$/;
  * - completed: Research goals achieved
  * - abandoned: Program discontinued (document why!)
  */
-export const ProgramStatusSchema = z.enum([
-  "active",
-  "paused",
-  "completed",
-  "abandoned",
-]);
+export const ProgramStatusSchema = z.enum(["active", "paused", "completed", "abandoned"]);
 
 export type ProgramStatus = z.infer<typeof ProgramStatusSchema>;
 
@@ -67,11 +62,7 @@ export type ProgramStatus = z.infer<typeof ProgramStatusSchema>;
 /**
  * Health check warning severity levels.
  */
-export const WarningSeveritySchema = z.enum([
-  "info",
-  "warning",
-  "critical",
-]);
+export const WarningSeveritySchema = z.enum(["info", "warning", "critical"]);
 
 export type WarningSeverity = z.infer<typeof WarningSeveritySchema>;
 
@@ -279,7 +270,7 @@ export const ResearchProgramSchema = z.object({
    * Order matters - first session is the origin session.
    */
   sessions: z.array(
-    z.string().regex(sessionIdPattern, "Invalid session ID format (expected RS...)")
+    z.string().regex(sessionIdPattern, "Invalid session ID format (expected RS...)"),
   ),
 
   /**
@@ -380,7 +371,7 @@ export function generateProgramId(slug: string, existingIds: string[]): string {
     existing.map((id) => {
       const match = id.match(/-(\d{3})$/);
       return match ? parseInt(match[1], 10) : 0;
-    })
+    }),
   );
 
   for (let seq = 1; seq <= 999; seq++) {
@@ -399,10 +390,7 @@ export function generateProgramId(slug: string, existingIds: string[]): string {
 /**
  * Add a session to a research program.
  */
-export function addSessionToProgram(
-  program: ResearchProgram,
-  sessionId: string
-): ResearchProgram {
+export function addSessionToProgram(program: ResearchProgram, sessionId: string): ResearchProgram {
   if (!sessionIdPattern.test(sessionId)) {
     throw new Error(`Invalid session ID format: ${sessionId}`);
   }
@@ -425,7 +413,7 @@ export function addSessionToProgram(
  */
 export function removeSessionFromProgram(
   program: ResearchProgram,
-  sessionId: string
+  sessionId: string,
 ): ResearchProgram {
   if (!program.sessions.includes(sessionId)) {
     throw new Error(`Session ${sessionId} is not in program ${program.id}`);
@@ -443,10 +431,7 @@ export function removeSessionFromProgram(
 /**
  * Pause a research program.
  */
-export function pauseProgram(
-  program: ResearchProgram,
-  reason?: string
-): ResearchProgram {
+export function pauseProgram(program: ResearchProgram, reason?: string): ResearchProgram {
   if (program.status === "completed" || program.status === "abandoned") {
     throw new Error(`Cannot pause a ${program.status} program`);
   }
@@ -481,10 +466,7 @@ export function resumeProgram(program: ResearchProgram): ResearchProgram {
 /**
  * Complete a research program.
  */
-export function completeProgram(
-  program: ResearchProgram,
-  summary?: string
-): ResearchProgram {
+export function completeProgram(program: ResearchProgram, summary?: string): ResearchProgram {
   if (program.status === "completed" || program.status === "abandoned") {
     throw new Error(`Program is already ${program.status}`);
   }
@@ -503,10 +485,7 @@ export function completeProgram(
 /**
  * Abandon a research program.
  */
-export function abandonProgram(
-  program: ResearchProgram,
-  reason: string
-): ResearchProgram {
+export function abandonProgram(program: ResearchProgram, reason: string): ResearchProgram {
   if (program.status === "completed" || program.status === "abandoned") {
     throw new Error(`Program is already ${program.status}`);
   }

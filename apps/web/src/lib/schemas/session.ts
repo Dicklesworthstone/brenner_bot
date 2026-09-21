@@ -87,7 +87,7 @@ export const sessionFormSchema = z.object({
       val
         .split(",")
         .map((s) => s.trim())
-        .filter(Boolean)
+        .filter(Boolean),
     )
     .refine((arr) => arr.length > 0, "At least one recipient is required"),
 

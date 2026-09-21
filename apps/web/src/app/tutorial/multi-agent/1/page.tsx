@@ -8,12 +8,11 @@
  * @see brenner_bot-nm89 (Tutorial Path: Multi-Agent Cockpit)
  */
 
-import * as React from "react";
 import { useRouter } from "next/navigation";
-import { TutorialStep } from "@/components/tutorial";
-import { TutorialCodeBlock, ProTip, Warning } from "@/components/tutorial";
+import * as React from "react";
+import { ProTip, TutorialCodeBlock, TutorialStep, Warning } from "@/components/tutorial";
 import { useTutorial } from "@/lib/tutorial-context";
-import type { TutorialStep as TutorialStepType, TroubleshootingItem } from "@/lib/tutorial-types";
+import type { TroubleshootingItem, TutorialStep as TutorialStepType } from "@/lib/tutorial-types";
 
 // ============================================================================
 // Step Data
@@ -23,20 +22,22 @@ const troubleshooting: TroubleshootingItem[] = [
   {
     problem: "ntm: command not found",
     symptoms: ["Terminal shows 'command not found' after running ntm"],
-    solution: "Make sure ntm is installed and in your PATH. Restart your terminal after installation.",
+    solution:
+      "Make sure ntm is installed and in your PATH. Restart your terminal after installation.",
     commands: ["cargo install ntm", "# Or download binary from releases"],
   },
   {
     problem: "Agent Mail server won't start",
     symptoms: ["Error binding to port 8765", "Connection refused"],
-    solution: "Check if another process is using port 8765. You can specify a different port with --port.",
+    solution:
+      "Check if another process is using port 8765. You can specify a different port with --port.",
     commands: ["lsof -i :8765", "# Kill the process or use a different port"],
   },
   {
     problem: "brenner CLI not found after install",
     symptoms: ["'brenner: command not found' after running install script"],
     solution: "The install script adds brenner to ~/bin. Make sure this is in your PATH.",
-    commands: ["export PATH=\"$HOME/bin:$PATH\"", "# Add to ~/.bashrc or ~/.zshrc"],
+    commands: ['export PATH="$HOME/bin:$PATH"', "# Add to ~/.bashrc or ~/.zshrc"],
   },
 ];
 
@@ -87,20 +88,36 @@ export default function MultiAgentStep1() {
         <div className="p-6 rounded-2xl bg-gradient-to-br from-destructive/5 via-destructive/10 to-accent/5 border border-destructive/20">
           <h2 className="text-xl font-semibold mb-4">The Multi-Agent Stack</h2>
           <p className="text-muted-foreground leading-relaxed mb-4">
-            Running three AI agents in parallel requires coordination infrastructure. You&apos;ll set up:
+            Running three AI agents in parallel requires coordination infrastructure. You&apos;ll
+            set up:
           </p>
           <ul className="space-y-2 text-muted-foreground">
             <li className="flex items-start gap-3">
-              <span className="flex items-center justify-center size-6 rounded-full bg-destructive/10 text-destructive text-xs font-bold shrink-0 mt-0.5">1</span>
-              <span><strong className="text-foreground">ntm</strong> — Named Tmux Manager for running agents in persistent terminal sessions</span>
+              <span className="flex items-center justify-center size-6 rounded-full bg-destructive/10 text-destructive text-xs font-bold shrink-0 mt-0.5">
+                1
+              </span>
+              <span>
+                <strong className="text-foreground">ntm</strong> — Named Tmux Manager for running
+                agents in persistent terminal sessions
+              </span>
             </li>
             <li className="flex items-start gap-3">
-              <span className="flex items-center justify-center size-6 rounded-full bg-destructive/10 text-destructive text-xs font-bold shrink-0 mt-0.5">2</span>
-              <span><strong className="text-foreground">Agent Mail</strong> — Message-passing server for agent coordination</span>
+              <span className="flex items-center justify-center size-6 rounded-full bg-destructive/10 text-destructive text-xs font-bold shrink-0 mt-0.5">
+                2
+              </span>
+              <span>
+                <strong className="text-foreground">Agent Mail</strong> — Message-passing server for
+                agent coordination
+              </span>
             </li>
             <li className="flex items-start gap-3">
-              <span className="flex items-center justify-center size-6 rounded-full bg-destructive/10 text-destructive text-xs font-bold shrink-0 mt-0.5">3</span>
-              <span><strong className="text-foreground">brenner CLI</strong> — Session management and artifact compilation</span>
+              <span className="flex items-center justify-center size-6 rounded-full bg-destructive/10 text-destructive text-xs font-bold shrink-0 mt-0.5">
+                3
+              </span>
+              <span>
+                <strong className="text-foreground">brenner CLI</strong> — Session management and
+                artifact compilation
+              </span>
             </li>
           </ul>
         </div>
@@ -114,19 +131,18 @@ export default function MultiAgentStep1() {
             Install ntm (Named Tmux Manager)
           </h2>
           <p className="text-sm text-muted-foreground">
-            ntm lets you create named tmux sessions and panes. Each AI agent will run in its own pane,
-            allowing you to monitor all three simultaneously.
+            ntm lets you create named tmux sessions and panes. Each AI agent will run in its own
+            pane, allowing you to monitor all three simultaneously.
           </p>
 
           <div className="p-4 rounded-xl border border-border bg-card/50 space-y-3">
             <p className="text-sm font-medium">Install via Cargo (Rust):</p>
-            <TutorialCodeBlock
-              code="cargo install ntm"
-              language="bash"
-              title="Terminal"
-            />
+            <TutorialCodeBlock code="cargo install ntm" language="bash" title="Terminal" />
             <p className="text-xs text-muted-foreground">
-              Don&apos;t have Rust? Install with: <code className="px-1.5 py-0.5 rounded bg-muted">curl --proto &apos;=https&apos; --tlsv1.2 -sSf https://sh.rustup.rs | sh</code>
+              Don&apos;t have Rust? Install with:{" "}
+              <code className="px-1.5 py-0.5 rounded bg-muted">
+                curl --proto &apos;=https&apos; --tlsv1.2 -sSf https://sh.rustup.rs | sh
+              </code>
             </p>
           </div>
 
@@ -146,11 +162,7 @@ sudo mv ntm-linux-x64 /usr/local/bin/ntm`}
           </div>
 
           <p className="text-sm text-muted-foreground">Verify installation:</p>
-          <TutorialCodeBlock
-            code="ntm --version"
-            language="bash"
-            title="Terminal"
-          />
+          <TutorialCodeBlock code="ntm --version" language="bash" title="Terminal" />
         </div>
 
         {/* Agent Mail Installation */}
@@ -191,8 +203,9 @@ bun run start`}
           />
 
           <ProTip>
-            Keep Agent Mail running in its own terminal tab. You can also run it as a background service
-            or use tmux to keep it alive. The server persists messages to disk, so restarting is safe.
+            Keep Agent Mail running in its own terminal tab. You can also run it as a background
+            service or use tmux to keep it alive. The server persists messages to disk, so
+            restarting is safe.
           </ProTip>
         </div>
 
@@ -205,8 +218,8 @@ bun run start`}
             Install the brenner CLI
           </h2>
           <p className="text-sm text-muted-foreground">
-            The brenner CLI manages research sessions, compiles artifacts from agent deltas,
-            and provides utilities for corpus search and excerpt building.
+            The brenner CLI manages research sessions, compiles artifacts from agent deltas, and
+            provides utilities for corpus search and excerpt building.
           </p>
 
           <TutorialCodeBlock
@@ -229,7 +242,9 @@ brenner doctor`}
           />
 
           <div className="p-4 rounded-xl border border-border bg-card/50">
-            <p className="text-sm font-medium mb-2">What <code>brenner doctor</code> checks:</p>
+            <p className="text-sm font-medium mb-2">
+              What <code>brenner doctor</code> checks:
+            </p>
             <ul className="space-y-1 text-xs text-muted-foreground">
               <li>✓ Corpus file exists and is readable</li>
               <li>✓ Dependencies are installed</li>
@@ -276,8 +291,8 @@ brenner doctor`}
           <p className="text-sm">
             <strong className="text-[oklch(0.72_0.19_145)]">Infrastructure Ready?</strong>{" "}
             <span className="text-muted-foreground">
-              If all three tools are working, you&apos;re ready to configure your AI agent subscriptions
-              in the next step.
+              If all three tools are working, you&apos;re ready to configure your AI agent
+              subscriptions in the next step.
             </span>
           </p>
         </div>

@@ -1,27 +1,19 @@
-import { describe, it, expect, beforeEach } from "vitest";
 import { promises as fs } from "fs";
-import { join } from "path";
 import { tmpdir } from "os";
-
-import { DashboardAggregator } from "./program-dashboard";
-import { HypothesisStorage } from "./hypothesis-storage";
-import { AssumptionStorage } from "./assumption-storage";
-import { AnomalyStorage } from "./anomaly-storage";
-import { CritiqueStorage } from "./critique-storage";
-import { TestStorage } from "./test-storage";
-
-import {
-  createResearchProgram,
-} from "../schemas/research-program";
-import {
-  createHypothesis,
-  createThirdAlternative,
-  HypothesisSchema,
-} from "../schemas/hypothesis";
-import { createAssumption, AssumptionSchema } from "../schemas/assumption";
-import { createAnomaly, AnomalySchema } from "../schemas/anomaly";
+import { join } from "path";
+import { beforeEach, describe, expect, it } from "vitest";
+import { AnomalySchema, createAnomaly } from "../schemas/anomaly";
+import { AssumptionSchema, createAssumption } from "../schemas/assumption";
 import { createCritique } from "../schemas/critique";
+import { createHypothesis, createThirdAlternative, HypothesisSchema } from "../schemas/hypothesis";
+import { createResearchProgram } from "../schemas/research-program";
 import { createTestRecord, TestRecordSchema } from "../schemas/test-record";
+import { AnomalyStorage } from "./anomaly-storage";
+import { AssumptionStorage } from "./assumption-storage";
+import { CritiqueStorage } from "./critique-storage";
+import { HypothesisStorage } from "./hypothesis-storage";
+import { DashboardAggregator } from "./program-dashboard";
+import { TestStorage } from "./test-storage";
 
 /**
  * Tests for Program Dashboard Aggregation
@@ -36,7 +28,7 @@ let testDir: string;
 async function createTestDir(): Promise<string> {
   const dir = join(
     tmpdir(),
-    `program-dashboard-test-${Date.now()}-${Math.random().toString(36).slice(2)}`
+    `program-dashboard-test-${Date.now()}-${Math.random().toString(36).slice(2)}`,
   );
   await fs.mkdir(dir, { recursive: true });
   return dir;
@@ -382,39 +374,39 @@ describe("DashboardAggregator", () => {
 
     await critiqueStorage.saveSessionCritiques(session, [addressedCritique]);
 
-	    const inProgress = TestRecordSchema.parse({
-	      ...createTestRecord({
-	        id: "T-RS-20260101-001",
-	        name: "In progress test",
-	        procedure: "Procedure long enough.",
-	        discriminates: ["H-RS-20260101-001", "H-RS-20260101-002"],
-	        expectedOutcomes: [
-	          { hypothesisId: "H-RS-20260101-001", outcome: "Alpha", resultType: "positive" },
-	          { hypothesisId: "H-RS-20260101-002", outcome: "Gamma", resultType: "negative" },
-	        ],
-	        potencyCheck: { positiveControl: "A specific positive control that is long enough." },
-	        evidencePerWeekScore: { likelihoodRatio: 2, cost: 2, speed: 2, ambiguity: 2 },
-	        feasibility: { requirements: "Standard", difficulty: "easy" },
-	        designedInSession: session,
-	      }),
-	      status: "in_progress",
-	    });
+    const inProgress = TestRecordSchema.parse({
+      ...createTestRecord({
+        id: "T-RS-20260101-001",
+        name: "In progress test",
+        procedure: "Procedure long enough.",
+        discriminates: ["H-RS-20260101-001", "H-RS-20260101-002"],
+        expectedOutcomes: [
+          { hypothesisId: "H-RS-20260101-001", outcome: "Alpha", resultType: "positive" },
+          { hypothesisId: "H-RS-20260101-002", outcome: "Gamma", resultType: "negative" },
+        ],
+        potencyCheck: { positiveControl: "A specific positive control that is long enough." },
+        evidencePerWeekScore: { likelihoodRatio: 2, cost: 2, speed: 2, ambiguity: 2 },
+        feasibility: { requirements: "Standard", difficulty: "easy" },
+        designedInSession: session,
+      }),
+      status: "in_progress",
+    });
 
-	    const completed = TestRecordSchema.parse({
-	      ...createTestRecord({
-	        id: "T-RS-20260101-002",
-	        name: "Completed test",
-	        procedure: "Procedure long enough.",
-	        discriminates: ["H-RS-20260101-001", "H-RS-20260101-002"],
-	        expectedOutcomes: [
-	          { hypothesisId: "H-RS-20260101-001", outcome: "Alpha", resultType: "positive" },
-	          { hypothesisId: "H-RS-20260101-002", outcome: "Gamma", resultType: "negative" },
-	        ],
-	        potencyCheck: { positiveControl: "A specific positive control that is long enough." },
-	        evidencePerWeekScore: { likelihoodRatio: 1, cost: 1, speed: 1, ambiguity: 1 },
-	        feasibility: { requirements: "Standard", difficulty: "easy" },
-	        designedInSession: session,
-	      }),
+    const completed = TestRecordSchema.parse({
+      ...createTestRecord({
+        id: "T-RS-20260101-002",
+        name: "Completed test",
+        procedure: "Procedure long enough.",
+        discriminates: ["H-RS-20260101-001", "H-RS-20260101-002"],
+        expectedOutcomes: [
+          { hypothesisId: "H-RS-20260101-001", outcome: "Alpha", resultType: "positive" },
+          { hypothesisId: "H-RS-20260101-002", outcome: "Gamma", resultType: "negative" },
+        ],
+        potencyCheck: { positiveControl: "A specific positive control that is long enough." },
+        evidencePerWeekScore: { likelihoodRatio: 1, cost: 1, speed: 1, ambiguity: 1 },
+        feasibility: { requirements: "Standard", difficulty: "easy" },
+        designedInSession: session,
+      }),
       status: "completed",
       execution: {
         startedAt: "2026-01-01T12:00:00Z",

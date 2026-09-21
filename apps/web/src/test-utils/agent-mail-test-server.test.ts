@@ -5,7 +5,7 @@
  * the Agent Mail JSON-RPC protocol.
  */
 
-import { describe, it, expect, beforeAll, afterAll, beforeEach } from "vitest";
+import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { AgentMailTestServer } from "./agent-mail-test-server";
 
 describe("AgentMailTestServer", () => {
@@ -333,7 +333,7 @@ describe("AgentMailTestServer", () => {
           to: ["Receiver"],
           subject: "Test",
           body_md: "Body",
-        })
+        }),
       ).rejects.toThrow("Sender agent not found");
     });
   });
@@ -388,7 +388,7 @@ describe("AgentMailTestServer", () => {
       });
 
       const result = await resourcesRead(
-        `resource://inbox/Agent2?project=/test/project&include_bodies=true`
+        `resource://inbox/Agent2?project=/test/project&include_bodies=true`,
       );
 
       const contents = (result as { contents: Array<{ text: string }> }).contents;
@@ -409,7 +409,7 @@ describe("AgentMailTestServer", () => {
       });
 
       const result = await resourcesRead(
-        `resource://inbox/Agent2?project=/test/project&include_bodies=false`
+        `resource://inbox/Agent2?project=/test/project&include_bodies=false`,
       );
 
       const contents = (result as { contents: Array<{ text: string }> }).contents;
@@ -469,7 +469,7 @@ describe("AgentMailTestServer", () => {
       });
 
       const result = await resourcesRead(
-        `resource://thread/THREAD-1?project=/test/project&include_bodies=true`
+        `resource://thread/THREAD-1?project=/test/project&include_bodies=true`,
       );
 
       const contents = (result as { contents: Array<{ text: string }> }).contents;
@@ -480,9 +480,7 @@ describe("AgentMailTestServer", () => {
     });
 
     it("returns empty thread for unknown thread_id", async () => {
-      const result = await resourcesRead(
-        `resource://thread/UNKNOWN?project=/test/project`
-      );
+      const result = await resourcesRead(`resource://thread/UNKNOWN?project=/test/project`);
 
       const contents = (result as { contents: Array<{ text: string }> }).contents;
       const thread = JSON.parse(contents[0].text);
@@ -562,7 +560,7 @@ describe("AgentMailTestServer", () => {
           project_key: "/test/project",
           agent_name: "Receiver",
           message_id: 99999,
-        })
+        }),
       ).rejects.toThrow("Delivery not found");
     });
   });
@@ -640,9 +638,9 @@ describe("AgentMailTestServer", () => {
     it("returns error response when error mode is enabled", async () => {
       server.enableErrorMode(-32000, "Simulated server error");
 
-      await expect(
-        toolsCall("ensure_project", { human_key: "/test/project" })
-      ).rejects.toThrow("Simulated server error");
+      await expect(toolsCall("ensure_project", { human_key: "/test/project" })).rejects.toThrow(
+        "Simulated server error",
+      );
 
       server.disableErrorMode();
     });

@@ -5,16 +5,16 @@
  * Philosophy: Make test failures easy to diagnose.
  */
 
+import { existsSync, mkdirSync, writeFileSync } from "node:fs";
+import { join } from "node:path";
 import type {
+  FullConfig,
+  FullResult,
   Reporter,
+  Suite,
   TestCase,
   TestResult,
-  FullConfig,
-  Suite,
-  FullResult,
 } from "@playwright/test/reporter";
-import { writeFileSync, mkdirSync, existsSync } from "node:fs";
-import { join } from "node:path";
 
 interface TestSummary {
   title: string;
@@ -111,7 +111,9 @@ export default class BrennerBotReporter implements Reporter {
         statusColor = "\x1b[90m"; // gray
     }
 
-    console.log(`${statusColor}${statusIcon} ${result.status.toUpperCase()}\x1b[0m ${titlePath} \x1b[90m(${durationStr})\x1b[0m`);
+    console.log(
+      `${statusColor}${statusIcon} ${result.status.toUpperCase()}\x1b[0m ${titlePath} \x1b[90m(${durationStr})\x1b[0m`,
+    );
 
     // Log errors with details
     if (result.errors.length > 0) {
@@ -162,20 +164,29 @@ export default class BrennerBotReporter implements Reporter {
     console.log("╠══════════════════════════════════════════════════════════╣");
 
     const passedStr = `\x1b[32m${this.summary.passed} passed\x1b[0m`;
-    const failedStr = this.summary.failed > 0 ? `\x1b[31m${this.summary.failed} failed\x1b[0m` : "0 failed";
-    const skippedStr = this.summary.skipped > 0 ? `\x1b[33m${this.summary.skipped} skipped\x1b[0m` : "";
-    const timedOutStr = this.summary.timedOut > 0 ? `\x1b[33m${this.summary.timedOut} timed out\x1b[0m` : "";
+    const failedStr =
+      this.summary.failed > 0 ? `\x1b[31m${this.summary.failed} failed\x1b[0m` : "0 failed";
+    const skippedStr =
+      this.summary.skipped > 0 ? `\x1b[33m${this.summary.skipped} skipped\x1b[0m` : "";
+    const timedOutStr =
+      this.summary.timedOut > 0 ? `\x1b[33m${this.summary.timedOut} timed out\x1b[0m` : "";
 
     console.log(`║  Total: ${this.summary.total} tests`.padEnd(62) + "║");
-    console.log(`║  ${passedStr} | ${failedStr}${skippedStr ? ` | ${skippedStr}` : ""}${timedOutStr ? ` | ${timedOutStr}` : ""}`.padEnd(70) + "");
+    console.log(
+      `║  ${passedStr} | ${failedStr}${skippedStr ? ` | ${skippedStr}` : ""}${timedOutStr ? ` | ${timedOutStr}` : ""}`.padEnd(
+        70,
+      ) + "",
+    );
 
-    const durationStr = this.summary.duration < 1000
-      ? `${this.summary.duration}ms`
-      : `${(this.summary.duration / 1000).toFixed(2)}s`;
+    const durationStr =
+      this.summary.duration < 1000
+        ? `${this.summary.duration}ms`
+        : `${(this.summary.duration / 1000).toFixed(2)}s`;
     console.log(`║  Duration: ${durationStr}`.padEnd(62) + "║");
 
     // Overall status
-    const overallStatus = result.status === "passed" ? "\x1b[32m✓ PASSED\x1b[0m" : "\x1b[31m✗ FAILED\x1b[0m";
+    const overallStatus =
+      result.status === "passed" ? "\x1b[32m✓ PASSED\x1b[0m" : "\x1b[31m✗ FAILED\x1b[0m";
     console.log(`║  Status: ${overallStatus}`.padEnd(70) + "");
     console.log("╚══════════════════════════════════════════════════════════╝");
 

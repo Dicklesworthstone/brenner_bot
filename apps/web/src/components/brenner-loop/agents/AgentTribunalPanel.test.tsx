@@ -1,11 +1,13 @@
-import * as React from "react";
 import { act, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import * as React from "react";
 import { describe, expect, it } from "vitest";
 import type { AgentMailMessage } from "@/lib/agentMail";
 import { AgentTribunalPanel } from "./AgentTribunalPanel";
 
-function msg(partial: Partial<AgentMailMessage> & Pick<AgentMailMessage, "id" | "subject" | "created_ts">): AgentMailMessage {
+function msg(
+  partial: Partial<AgentMailMessage> & Pick<AgentMailMessage, "id" | "subject" | "created_ts">,
+): AgentMailMessage {
   return {
     thread_id: "TRIBUNAL-SESSION-abc",
     ...partial,
@@ -61,7 +63,8 @@ describe("AgentTribunalPanel", () => {
         id: 21,
         subject: "Re: TRIBUNAL[devils_advocate]: HC-123",
         created_ts: "2026-01-05T00:10:00.000Z",
-        body_md: "- Selection bias is a major confound; anxious people may self-select.\n- The mechanism is not well supported.",
+        body_md:
+          "- Selection bias is a major confound; anxious people may self-select.\n- The mechanism is not well supported.",
         from: "AgentA",
         to: ["Operator"],
       }),
@@ -69,7 +72,8 @@ describe("AgentTribunalPanel", () => {
         id: 22,
         subject: "Re: TRIBUNAL[experiment_designer]: HC-123",
         created_ts: "2026-01-05T00:12:00.000Z",
-        body_md: "- Selection bias is a major confound; randomize if possible.\n- Design a randomized intervention study.",
+        body_md:
+          "- Selection bias is a major confound; randomize if possible.\n- Design a randomized intervention study.",
         from: "AgentB",
         to: ["Operator"],
       }),
@@ -79,7 +83,7 @@ describe("AgentTribunalPanel", () => {
       <AgentTribunalPanel
         messages={responses}
         roles={["devils_advocate", "experiment_designer"]}
-      />
+      />,
     );
 
     expect(screen.getByText(/heuristic synthesis/i)).toBeInTheDocument();
@@ -93,7 +97,9 @@ describe("AgentTribunalPanel", () => {
       id: 123,
       subject: "Re: TRIBUNAL[devils_advocate]: HC-123",
       created_ts: "2026-01-05T00:10:00.000Z",
-      body_md: ["## Analysis", "", "### Key Objection", "Reverse causation is plausible."].join("\n"),
+      body_md: ["## Analysis", "", "### Key Objection", "Reverse causation is plausible."].join(
+        "\n",
+      ),
       from: "AgentA",
       to: ["Operator"],
     });
@@ -103,7 +109,7 @@ describe("AgentTribunalPanel", () => {
         threadId="TRIBUNAL-SESSION-abc"
         messages={[response]}
         roles={["devils_advocate"]}
-      />
+      />,
     );
 
     expect(screen.getByText(/completion blocked/i)).toBeInTheDocument();
@@ -112,10 +118,12 @@ describe("AgentTribunalPanel", () => {
     act(() => {
       localStorage.setItem(
         "brenner-objection-register:TRIBUNAL-SESSION-abc",
-        JSON.stringify({ "123:0": "addressed" })
+        JSON.stringify({ "123:0": "addressed" }),
       );
       window.dispatchEvent(
-        new CustomEvent("brenner-objection-register-updated", { detail: { threadId: "TRIBUNAL-SESSION-abc" } })
+        new CustomEvent("brenner-objection-register-updated", {
+          detail: { threadId: "TRIBUNAL-SESSION-abc" },
+        }),
       );
     });
 

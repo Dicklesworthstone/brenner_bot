@@ -18,7 +18,7 @@
  * - Uses simple echo command for reproducibility
  */
 
-import { test, expect, navigateTo, takeScreenshot, waitForNetworkIdle } from "./utils";
+import { expect, navigateTo, takeScreenshot, test, waitForNetworkIdle } from "./utils";
 import { withStep } from "./utils/e2e-logging";
 
 // ============================================================================
@@ -56,7 +56,11 @@ const TEST_THREAD_ID = "E2E-EXPERIMENT-TEST-001";
 
 test.describe("Experiment Panel", () => {
   test.describe("Happy Path", () => {
-    test("runs experiment and posts DELTA message with mocked API", async ({ page, context, logger }) => {
+    test("runs experiment and posts DELTA message with mocked API", async ({
+      page,
+      context,
+      logger,
+    }) => {
       // Setup lab authentication (no page needed for this step)
       await setupLabAuth(context);
       logger.info("Lab authentication set up");
@@ -186,11 +190,11 @@ test.describe("Experiment Panel", () => {
         const testIdInput = page.locator('input[placeholder*="T-"]').first();
         const commandInput = page.locator('input[placeholder*="echo"]').first();
 
-        if (await testIdInput.count() > 0) {
+        if ((await testIdInput.count()) > 0) {
           await testIdInput.fill("T-E2E-001");
         }
 
-        if (await commandInput.count() > 0) {
+        if ((await commandInput.count()) > 0) {
           await commandInput.fill("echo 'E2E Test Result'");
         }
       });
@@ -200,7 +204,7 @@ test.describe("Experiment Panel", () => {
       // Run the experiment
       await withStep(logger, page, "Run experiment", async () => {
         const runButton = page.locator("button", { hasText: "Run Experiment" });
-        if (await runButton.count() > 0) {
+        if ((await runButton.count()) > 0) {
           await runButton.click();
 
           // Wait for result to appear (with timeout)
@@ -306,7 +310,7 @@ test.describe("Experiment Panel", () => {
 
       await withStep(logger, page, "Open experiment panel and try to run", async () => {
         const experimentPanelTrigger = page.locator("text=Experiment panel");
-        if (await experimentPanelTrigger.count() === 0) {
+        if ((await experimentPanelTrigger.count()) === 0) {
           logger.warn("Experiment panel not found, skipping");
           test.skip();
           return;
@@ -319,16 +323,16 @@ test.describe("Experiment Panel", () => {
         const testIdInput = page.locator('input[placeholder*="T-"]').first();
         const commandInput = page.locator('input[placeholder*="echo"]').first();
 
-        if (await testIdInput.count() > 0) {
+        if ((await testIdInput.count()) > 0) {
           await testIdInput.fill("T-FAIL-001");
         }
-        if (await commandInput.count() > 0) {
+        if ((await commandInput.count()) > 0) {
           await commandInput.fill("false"); // Command that fails
         }
 
         // Run experiment
         const runButton = page.locator("button", { hasText: "Run Experiment" });
-        if (await runButton.count() > 0) {
+        if ((await runButton.count()) > 0) {
           await runButton.click();
           await page.waitForTimeout(1000);
         }

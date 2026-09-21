@@ -7,18 +7,18 @@
  * Import from here to get all providers in one place.
  */
 
-export { QueryProvider, getQueryClient, type QueryProviderProps } from "./QueryProvider";
+export { getQueryClient, QueryProvider, type QueryProviderProps } from "./QueryProvider";
 
 // ============================================================================
 // UNIFIED PROVIDERS WRAPPER
 // ============================================================================
 
 import * as React from "react";
-import { QueryProvider } from "./QueryProvider";
+import { AnalyticsProvider } from "@/components/analytics-provider";
 import { ExcerptBasketProvider } from "@/components/excerpt";
 import { SectionDataProvider } from "@/components/section-data-provider";
-import { AnalyticsProvider } from "@/components/analytics-provider";
 import { registerServiceWorker } from "@/lib/offline";
+import { QueryProvider } from "./QueryProvider";
 
 interface ProvidersProps {
   children: React.ReactNode;

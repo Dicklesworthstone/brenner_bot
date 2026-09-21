@@ -1,33 +1,33 @@
-import { describe, test, expect } from "vitest";
+import { describe, expect, test } from "vitest";
 import {
-  CritiqueSchema,
-  CritiqueTargetTypeSchema,
-  CritiqueStatusSchema,
-  CritiqueSeveritySchema,
-  CritiqueActionSchema,
-  ProposedAlternativeSchema,
-  CritiqueResponseSchema,
+  acceptCritique,
+  // Response functions
+  addressCritique,
   type Critique,
-  type ProposedAlternative,
+  CritiqueActionSchema,
+  CritiqueResponseSchema,
+  CritiqueSchema,
+  CritiqueSeveritySchema,
+  CritiqueStatusSchema,
+  CritiqueTargetTypeSchema,
+  countUnaddressedCritiques,
+  // Factory functions
+  createCritique,
+  createFramingCritique,
+  createHypothesisCritique,
+  createTestCritique,
+  dismissCritique,
   // Validation helpers
   evaluateKillJustification,
   evaluateThirdAlternative,
-  requiresResponse,
-  countUnaddressedCritiques,
   // ID functions
   generateCritiqueId,
-  isValidCritiqueId,
   isValidAnchor,
-  // Factory functions
-  createCritique,
-  createHypothesisCritique,
-  createTestCritique,
-  createFramingCritique,
-  // Response functions
-  addressCritique,
-  dismissCritique,
-  acceptCritique,
+  isValidCritiqueId,
+  type ProposedAlternative,
+  ProposedAlternativeSchema,
   reopenCritique,
+  requiresResponse,
 } from "./critique";
 
 /**
@@ -155,7 +155,7 @@ describe("ProposedAlternativeSchema", () => {
       ProposedAlternativeSchema.parse({
         description: "Short",
         testable: false,
-      })
+      }),
     ).toThrow(/at least 10 characters/);
   });
 });
@@ -187,7 +187,7 @@ describe("CritiqueResponseSchema", () => {
       CritiqueResponseSchema.parse({
         text: "Short",
         respondedAt: new Date().toISOString(),
-      })
+      }),
     ).toThrow(/at least 10 characters/);
   });
 });
@@ -269,7 +269,7 @@ describe("CritiqueSchema", () => {
         CritiqueSchema.parse({
           ...createValidCritique(),
           id: "invalid-id",
-        })
+        }),
       ).toThrow(/Invalid critique ID format/);
     });
 
@@ -284,7 +284,7 @@ describe("CritiqueSchema", () => {
           sessionId: "TEST",
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
-        })
+        }),
       ).toThrow(/targetId is required/);
     });
 
@@ -300,7 +300,7 @@ describe("CritiqueSchema", () => {
           sessionId: "TEST",
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
-        })
+        }),
       ).toThrow(/targetId is required and must match the format/);
     });
 
@@ -309,7 +309,7 @@ describe("CritiqueSchema", () => {
         CritiqueSchema.parse({
           ...createValidCritique(),
           attack: "Too short",
-        })
+        }),
       ).toThrow(/at least 20 characters/);
     });
 
@@ -318,7 +318,7 @@ describe("CritiqueSchema", () => {
         CritiqueSchema.parse({
           ...createValidCritique(),
           evidenceToConfirm: "Short",
-        })
+        }),
       ).toThrow(/at least 10 characters/);
     });
 
@@ -326,7 +326,7 @@ describe("CritiqueSchema", () => {
       expect(() =>
         createValidCritique({
           anchors: ["invalid-anchor"],
-        })
+        }),
       ).toThrow(/Invalid anchor format/);
     });
   });
@@ -355,8 +355,10 @@ describe("evaluateKillJustification", () => {
 
   test("returns score 3 for complete critique with anchors and alternative", () => {
     const critique = createValidCritique({
-      attack: "This hypothesis completely fails to account for the observed phenomenon. The predictions are contradicted by experimental evidence from multiple independent sources, and there is no plausible rescue mechanism.",
-      evidenceToConfirm: "Perform experiments A, B, and C. If results show X, Y, and Z respectively, the hypothesis is definitively falsified.",
+      attack:
+        "This hypothesis completely fails to account for the observed phenomenon. The predictions are contradicted by experimental evidence from multiple independent sources, and there is no plausible rescue mechanism.",
+      evidenceToConfirm:
+        "Perform experiments A, B, and C. If results show X, Y, and Z respectively, the hypothesis is definitively falsified.",
       anchors: ["§103", "§147"],
       proposedAlternative: createValidAlternative(),
     });
@@ -484,8 +486,9 @@ describe("generateCritiqueId", () => {
   });
 
   test("throws on sequence overflow", () => {
-    const existingIds = Array.from({ length: 999 }, (_, i) =>
-      `C-TEST-${(i + 1).toString().padStart(3, "0")}`
+    const existingIds = Array.from(
+      { length: 999 },
+      (_, i) => `C-TEST-${(i + 1).toString().padStart(3, "0")}`,
     );
     expect(() => generateCritiqueId("TEST", existingIds)).toThrow(/sequence overflow/);
   });
@@ -638,7 +641,7 @@ describe("addressCritique", () => {
     expect(() =>
       addressCritique(critique, {
         text: "Trying to address dismissed critique",
-      })
+      }),
     ).toThrow(/current status is dismissed/);
   });
 });
@@ -666,7 +669,7 @@ describe("acceptCritique", () => {
       critique,
       "modified",
       "The hypothesis was modified to address this critique",
-      "TestAgent"
+      "TestAgent",
     );
 
     expect(accepted.status).toBe("accepted");
@@ -678,7 +681,7 @@ describe("acceptCritique", () => {
     const accepted = acceptCritique(
       critique,
       "killed",
-      "The hypothesis was killed due to this critique"
+      "The hypothesis was killed due to this critique",
     );
 
     expect(accepted.response?.actionTaken).toBe("killed");
@@ -691,7 +694,7 @@ describe("acceptCritique", () => {
       "new_test",
       "A new test was designed to address this",
       "TestAgent",
-      "T-TEST-001"
+      "T-TEST-001",
     );
 
     expect(accepted.response?.actionTaken).toBe("new_test");
@@ -701,7 +704,7 @@ describe("acceptCritique", () => {
   test("throws when accepting non-active critique", () => {
     const critique = createValidCritique({ status: "addressed" });
     expect(() => acceptCritique(critique, "none", "Response")).toThrow(
-      /current status is addressed/
+      /current status is addressed/,
     );
   });
 });

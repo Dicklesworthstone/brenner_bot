@@ -7,15 +7,14 @@
 
 import { readFile, writeFile } from "fs/promises";
 import path from "path";
-
+import { OPERATOR_DOCUMENTATION } from "../src/lib/brenner-loop/operators/docs";
 import {
   EMBEDDING_DIMENSION,
   EMBEDDING_INDEX_VERSION,
-  embedText,
   type EmbeddingEntry,
   type EmbeddingIndex,
+  embedText,
 } from "../src/lib/brenner-loop/search/embeddings";
-import { OPERATOR_DOCUMENTATION } from "../src/lib/brenner-loop/operators/docs";
 
 interface SectionBlock {
   section: number;
@@ -35,7 +34,10 @@ const QUOTE_BANK_PATH = path.join(REPO_ROOT, "quote_bank_restored_primitives.md"
 const DISTILLATION_PATHS = [
   {
     source: "gpt",
-    path: path.join(REPO_ROOT, "final_distillation_of_brenner_method_by_gpt_52_extra_high_reasoning.md"),
+    path: path.join(
+      REPO_ROOT,
+      "final_distillation_of_brenner_method_by_gpt_52_extra_high_reasoning.md",
+    ),
   },
   {
     source: "gemini",
@@ -51,16 +53,18 @@ async function main(): Promise<void> {
   const [transcriptText, quoteBankText, distillationTexts] = await Promise.all([
     readFile(TRANSCRIPT_PATH, "utf8"),
     readFile(QUOTE_BANK_PATH, "utf8"),
-    Promise.all(DISTILLATION_PATHS.map(async (entry) => ({
-      source: entry.source,
-      text: await readFile(entry.path, "utf8"),
-    }))),
+    Promise.all(
+      DISTILLATION_PATHS.map(async (entry) => ({
+        source: entry.source,
+        text: await readFile(entry.path, "utf8"),
+      })),
+    ),
   ]);
 
   const transcriptEntries = buildTranscriptEntries(transcriptText);
   const quoteEntries = buildQuoteEntries(quoteBankText);
   const distillationEntries = distillationTexts.flatMap((entry) =>
-    buildDistillationEntries(entry.text, entry.source)
+    buildDistillationEntries(entry.text, entry.source),
   );
   const operatorEntries = buildOperatorEntries();
 
@@ -125,10 +129,16 @@ function buildQuoteEntries(markdown: string): EmbeddingEntry[] {
     const tagsLine = lines.find((line) => line.trim().startsWith("Tags:"));
 
     const quoteText = normalizeText(stripBlockquotes(quoteLines.join("\n")));
-    const takeawayText = takeawayLine ? normalizeText(takeawayLine.trim().replace(/^Takeaway:\s*/, "")) : "";
+    const takeawayText = takeawayLine
+      ? normalizeText(takeawayLine.trim().replace(/^Takeaway:\s*/, ""))
+      : "";
     const tagsText = tagsLine ? normalizeText(tagsLine.trim().replace(/^Tags:\s*/, "")) : "";
 
-    const combined = [quoteText, takeawayText && `Takeaway: ${takeawayText}`, tagsText && `Tags: ${tagsText}`]
+    const combined = [
+      quoteText,
+      takeawayText && `Takeaway: ${takeawayText}`,
+      tagsText && `Tags: ${tagsText}`,
+    ]
       .filter(Boolean)
       .join("\n");
 
@@ -179,7 +189,7 @@ function buildOperatorEntries(): EmbeddingEntry[] {
         doc.successCriteria.length ? `Success criteria: ${doc.successCriteria.join("; ")}` : "",
       ]
         .filter(Boolean)
-        .join("\n")
+        .join("\n"),
     );
 
     return {

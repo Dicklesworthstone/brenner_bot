@@ -1,11 +1,20 @@
 import { isAbsolute, resolve, win32 } from "node:path";
 import { cookies, headers } from "next/headers";
-import { NextResponse, type NextRequest } from "next/server";
+import { type NextRequest, NextResponse } from "next/server";
 import { AgentMailClient, type AgentMailMessage } from "@/lib/agentMail";
+import {
+  createEmptyArtifact,
+  lintArtifact,
+  mergeArtifactWithTimestamps,
+  renderArtifactMarkdown,
+} from "@/lib/artifact-merge";
 import { checkOrchestrationAuth } from "@/lib/auth";
-import { createEmptyArtifact, lintArtifact, mergeArtifactWithTimestamps, renderArtifactMarkdown } from "@/lib/artifact-merge";
 import { parseDeltaMessage, type ValidDelta } from "@/lib/delta-parser";
-import { extractVersion, parseSubjectType, getDeltaMessagesForCurrentRound } from "@/lib/threadStatus";
+import {
+  extractVersion,
+  getDeltaMessagesForCurrentRound,
+  parseSubjectType,
+} from "@/lib/threadStatus";
 
 export const runtime = "nodejs";
 
@@ -96,7 +105,11 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
-function resolveProjectKey(rawProjectKey?: string): { ok: true; projectKey: string } | { ok: false; error: string; code: "VALIDATION_ERROR" | "SERVER_ERROR" } {
+function resolveProjectKey(
+  rawProjectKey?: string,
+):
+  | { ok: true; projectKey: string }
+  | { ok: false; error: string; code: "VALIDATION_ERROR" | "SERVER_ERROR" } {
   const fallback = process.env.BRENNER_PROJECT_KEY || repoRootFromWebCwd();
   const trimmed = rawProjectKey?.trim();
   const candidate = trimmed && trimmed.length > 0 ? trimmed : fallback;
@@ -104,7 +117,9 @@ function resolveProjectKey(rawProjectKey?: string): { ok: true; projectKey: stri
   if (!isAbs) {
     return {
       ok: false,
-      error: trimmed ? "Invalid projectKey: must be an absolute path" : "Server misconfigured: BRENNER_PROJECT_KEY must be absolute",
+      error: trimmed
+        ? "Invalid projectKey: must be an absolute path"
+        : "Server misconfigured: BRENNER_PROJECT_KEY must be absolute",
       code: trimmed ? "VALIDATION_ERROR" : "SERVER_ERROR",
     };
   }
@@ -178,10 +193,8 @@ function normalizeRecipients(recipients: unknown): string[] | null {
 
   const normalized = Array.from(
     new Set(
-      recipients
-        .map((r) => (typeof r === "string" ? r.trim() : ""))
-        .filter((r) => r.length > 0)
-    )
+      recipients.map((r) => (typeof r === "string" ? r.trim() : "")).filter((r) => r.length > 0),
+    ),
   );
 
   return normalized.length > 0 ? normalized : null;
@@ -217,7 +230,9 @@ function computeNextCompiledVersion(messages: AgentMailMessage[]): number {
 function getLatestCompiled(messages: AgentMailMessage[]): AgentMailMessage | null {
   const compiledMessages = messages.filter((m) => parseSubjectType(m.subject).type === "compiled");
   if (compiledMessages.length === 0) return null;
-  return [...compiledMessages].sort((a, b) => a.created_ts.localeCompare(b.created_ts)).at(-1) ?? null;
+  return (
+    [...compiledMessages].sort((a, b) => a.created_ts.localeCompare(b.created_ts)).at(-1) ?? null
+  );
 }
 
 async function compileThread(params: {
@@ -236,7 +251,10 @@ async function compileThread(params: {
     threadMessages = thread.messages ?? [];
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
-    const code = message.includes("ECONNREFUSED") || message.includes("fetch failed") ? "NETWORK_ERROR" : "SERVER_ERROR";
+    const code =
+      message.includes("ECONNREFUSED") || message.includes("fetch failed")
+        ? "NETWORK_ERROR"
+        : "SERVER_ERROR";
     return {
       ok: false,
       response: { success: false, error: `Agent Mail thread fetch failed: ${message}`, code },
@@ -250,7 +268,9 @@ async function compileThread(params: {
   // For a complete artifact, we process ALL deltas from all rounds.
   // This ensures the compiled artifact contains the full state, not just incremental changes.
   // (Incremental compilation on top of previous artifact would require complex artifact parsing.)
-  const allDeltaMessages = threadMessages.filter((m) => parseSubjectType(m.subject).type === "delta" && typeof m.body_md === "string");
+  const allDeltaMessages = threadMessages.filter(
+    (m) => parseSubjectType(m.subject).type === "delta" && typeof m.body_md === "string",
+  );
 
   // For stats, we also track current round deltas separately.
   const currentRoundDeltas = getDeltaMessagesForCurrentRound(threadMessages);
@@ -388,7 +408,11 @@ async function ensureProjectAndRegisterSender(args: {
   const ensured = await client.toolsCall("ensure_project", { human_key: projectKey });
   const ensuredSlug = parseEnsureProjectSlug(ensured);
   if (!ensuredSlug) {
-    return { success: false, error: "Agent Mail: could not resolve project slug", code: "NETWORK_ERROR" };
+    return {
+      success: false,
+      error: "Agent Mail: could not resolve project slug",
+      code: "NETWORK_ERROR",
+    };
   }
 
   await client.toolsCall("register_agent", {
@@ -407,8 +431,12 @@ async function ensureProjectAndRegisterSender(args: {
 // ============================================================================
 
 export async function POST(
-  request: NextRequest
-): Promise<NextResponse<CompileResult | PublishResult | CritiqueRequestResult | PostDeltaResult | ErrorResponse>> {
+  request: NextRequest,
+): Promise<
+  NextResponse<
+    CompileResult | PublishResult | CritiqueRequestResult | PostDeltaResult | ErrorResponse
+  >
+> {
   const reqHeaders = await headers();
   const reqCookies = await cookies();
   const authResult = checkOrchestrationAuth(reqHeaders, reqCookies);
@@ -416,7 +444,7 @@ export async function POST(
   if (!authResult.authorized) {
     return NextResponse.json(
       { success: false, error: "Not found", code: "AUTH_ERROR" },
-      { status: 404 }
+      { status: 404 },
     );
   }
 
@@ -426,22 +454,27 @@ export async function POST(
   } catch {
     return NextResponse.json(
       { success: false, error: "Invalid JSON body", code: "VALIDATION_ERROR" },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
   const action = body.action;
-  if (action !== "compile" && action !== "publish" && action !== "request_critique" && action !== "post_delta") {
+  if (
+    action !== "compile" &&
+    action !== "publish" &&
+    action !== "request_critique" &&
+    action !== "post_delta"
+  ) {
     return NextResponse.json(
       { success: false, error: "Invalid action", code: "VALIDATION_ERROR" },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
   if (!body.threadId?.trim()) {
     return NextResponse.json(
       { success: false, error: "Missing thread ID", code: "VALIDATION_ERROR" },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
@@ -450,7 +483,7 @@ export async function POST(
   if (!projectKeyResult.ok) {
     return NextResponse.json(
       { success: false, error: projectKeyResult.error, code: projectKeyResult.code },
-      { status: projectKeyResult.code === "VALIDATION_ERROR" ? 400 : 500 }
+      { status: projectKeyResult.code === "VALIDATION_ERROR" ? 400 : 500 },
     );
   }
   const projectKey = projectKeyResult.projectKey;
@@ -477,7 +510,7 @@ export async function POST(
     if (!sender) {
       return NextResponse.json(
         { success: false, error: "Missing sender", code: "VALIDATION_ERROR" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -485,7 +518,7 @@ export async function POST(
     if (!recipients) {
       return NextResponse.json(
         { success: false, error: "Missing recipients", code: "VALIDATION_ERROR" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -537,7 +570,10 @@ export async function POST(
       });
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
-      const code = message.includes("ECONNREFUSED") || message.includes("fetch failed") ? "NETWORK_ERROR" : "SERVER_ERROR";
+      const code =
+        message.includes("ECONNREFUSED") || message.includes("fetch failed")
+          ? "NETWORK_ERROR"
+          : "SERVER_ERROR";
       const status = code === "NETWORK_ERROR" ? 502 : 500;
       return NextResponse.json({ success: false, error: message, code }, { status });
     }
@@ -548,7 +584,7 @@ export async function POST(
     if (!sender) {
       return NextResponse.json(
         { success: false, error: "Missing sender", code: "VALIDATION_ERROR" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -556,7 +592,7 @@ export async function POST(
     if (!recipients) {
       return NextResponse.json(
         { success: false, error: "Missing recipients", code: "VALIDATION_ERROR" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -571,17 +607,20 @@ export async function POST(
     if (!bodyMd) {
       return NextResponse.json(
         { success: false, error: "Missing bodyMd", code: "VALIDATION_ERROR" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     const hasDeltaFence =
-      /```delta\s*\r?\n[\s\S]*?```/m.test(bodyMd) ||
-      /:::delta\s*\r?\n[\s\S]*?:::/m.test(bodyMd);
+      /```delta\s*\r?\n[\s\S]*?```/m.test(bodyMd) || /:::delta\s*\r?\n[\s\S]*?:::/m.test(bodyMd);
     if (!hasDeltaFence) {
       return NextResponse.json(
-        { success: false, error: "bodyMd must include at least one ```delta or :::delta fenced block", code: "VALIDATION_ERROR" },
-        { status: 400 }
+        {
+          success: false,
+          error: "bodyMd must include at least one ```delta or :::delta fenced block",
+          code: "VALIDATION_ERROR",
+        },
+        { status: 400 },
       );
     }
 
@@ -617,10 +656,13 @@ export async function POST(
       });
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
-      const code = message.includes("ECONNREFUSED") || message.includes("fetch failed") ? "NETWORK_ERROR" : "SERVER_ERROR";
+      const code =
+        message.includes("ECONNREFUSED") || message.includes("fetch failed")
+          ? "NETWORK_ERROR"
+          : "SERVER_ERROR";
       return NextResponse.json(
         { success: false, error: message, code },
-        { status: code === "NETWORK_ERROR" ? 502 : 500 }
+        { status: code === "NETWORK_ERROR" ? 502 : 500 },
       );
     }
   }
@@ -630,7 +672,7 @@ export async function POST(
   if (!sender) {
     return NextResponse.json(
       { success: false, error: "Missing sender", code: "VALIDATION_ERROR" },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
@@ -638,7 +680,7 @@ export async function POST(
   if (!recipients) {
     return NextResponse.json(
       { success: false, error: "Missing recipients", code: "VALIDATION_ERROR" },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
@@ -650,22 +692,34 @@ export async function POST(
     threadMessages = thread.messages ?? [];
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
-    const code = message.includes("ECONNREFUSED") || message.includes("fetch failed") ? "NETWORK_ERROR" : "SERVER_ERROR";
+    const code =
+      message.includes("ECONNREFUSED") || message.includes("fetch failed")
+        ? "NETWORK_ERROR"
+        : "SERVER_ERROR";
     return NextResponse.json(
       { success: false, error: `Agent Mail thread fetch failed: ${message}`, code },
-      { status: code === "NETWORK_ERROR" ? 502 : 500 }
+      { status: code === "NETWORK_ERROR" ? 502 : 500 },
     );
   }
 
   const latestCompiled = getLatestCompiled(threadMessages);
   if (!latestCompiled?.body_md) {
     return NextResponse.json(
-      { success: false, error: "No compiled artifact found yet. Publish a COMPILED message first.", code: "VALIDATION_ERROR" },
-      { status: 400 }
+      {
+        success: false,
+        error: "No compiled artifact found yet. Publish a COMPILED message first.",
+        code: "VALIDATION_ERROR",
+      },
+      { status: 400 },
     );
   }
 
-  const currentVersion = extractVersion(latestCompiled.subject) ?? Math.max(1, threadMessages.filter((m) => parseSubjectType(m.subject).type === "compiled").length);
+  const currentVersion =
+    extractVersion(latestCompiled.subject) ??
+    Math.max(
+      1,
+      threadMessages.filter((m) => parseSubjectType(m.subject).type === "compiled").length,
+    );
   const subject = critiqueRequestSubject(threadId, currentVersion);
 
   const critiqueBody = [
@@ -715,10 +769,13 @@ export async function POST(
     });
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
-    const code = message.includes("ECONNREFUSED") || message.includes("fetch failed") ? "NETWORK_ERROR" : "SERVER_ERROR";
+    const code =
+      message.includes("ECONNREFUSED") || message.includes("fetch failed")
+        ? "NETWORK_ERROR"
+        : "SERVER_ERROR";
     return NextResponse.json(
       { success: false, error: message, code },
-      { status: code === "NETWORK_ERROR" ? 502 : 500 }
+      { status: code === "NETWORK_ERROR" ? 502 : 500 },
     );
   }
 }

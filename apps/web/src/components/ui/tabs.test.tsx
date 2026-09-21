@@ -10,7 +10,7 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "./tabs";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "./tabs";
 
 describe("Tabs", () => {
   describe("rendering", () => {
@@ -21,7 +21,7 @@ describe("Tabs", () => {
             <TabsTrigger value="tab1">Tab 1</TabsTrigger>
           </TabsList>
           <TabsContent value="tab1">Content 1</TabsContent>
-        </Tabs>
+        </Tabs>,
       );
       expect(screen.getByRole("tablist")).toBeInTheDocument();
     });
@@ -33,7 +33,7 @@ describe("Tabs", () => {
             <TabsTrigger value="tab1">Tab 1</TabsTrigger>
           </TabsList>
           <TabsContent value="tab1">Content 1</TabsContent>
-        </Tabs>
+        </Tabs>,
       );
       expect(screen.getByTestId("tabs")).toHaveAttribute("data-slot", "tabs");
     });
@@ -45,7 +45,7 @@ describe("Tabs", () => {
             <TabsTrigger value="tab1">Tab 1</TabsTrigger>
           </TabsList>
           <TabsContent value="tab1">Content 1</TabsContent>
-        </Tabs>
+        </Tabs>,
       );
       expect(screen.getByTestId("tabs")).toHaveClass("custom-tabs");
     });
@@ -59,7 +59,7 @@ describe("Tabs", () => {
             <TabsTrigger value="tab1">Tab 1</TabsTrigger>
           </TabsList>
           <TabsContent value="tab1">Content 1</TabsContent>
-        </Tabs>
+        </Tabs>,
       );
       expect(screen.getByRole("tablist")).toBeInTheDocument();
     });
@@ -71,7 +71,7 @@ describe("Tabs", () => {
             <TabsTrigger value="tab1">Tab 1</TabsTrigger>
           </TabsList>
           <TabsContent value="tab1">Content 1</TabsContent>
-        </Tabs>
+        </Tabs>,
       );
       expect(screen.getByRole("tablist")).toHaveAttribute("data-slot", "tabs-list");
     });
@@ -83,7 +83,7 @@ describe("Tabs", () => {
             <TabsTrigger value="tab1">Tab 1</TabsTrigger>
           </TabsList>
           <TabsContent value="tab1">Content 1</TabsContent>
-        </Tabs>
+        </Tabs>,
       );
       expect(screen.getByRole("tablist")).toHaveClass("custom-list");
     });
@@ -99,7 +99,7 @@ describe("Tabs", () => {
           </TabsList>
           <TabsContent value="tab1">Content 1</TabsContent>
           <TabsContent value="tab2">Content 2</TabsContent>
-        </Tabs>
+        </Tabs>,
       );
       expect(screen.getByRole("tab", { name: "Tab 1" })).toBeInTheDocument();
       expect(screen.getByRole("tab", { name: "Tab 2" })).toBeInTheDocument();
@@ -112,7 +112,7 @@ describe("Tabs", () => {
             <TabsTrigger value="tab1">Tab 1</TabsTrigger>
           </TabsList>
           <TabsContent value="tab1">Content 1</TabsContent>
-        </Tabs>
+        </Tabs>,
       );
       expect(screen.getByRole("tab")).toHaveAttribute("data-slot", "tabs-trigger");
     });
@@ -126,16 +126,10 @@ describe("Tabs", () => {
           </TabsList>
           <TabsContent value="tab1">Content 1</TabsContent>
           <TabsContent value="tab2">Content 2</TabsContent>
-        </Tabs>
+        </Tabs>,
       );
-      expect(screen.getByRole("tab", { name: "Tab 1" })).toHaveAttribute(
-        "data-state",
-        "active"
-      );
-      expect(screen.getByRole("tab", { name: "Tab 2" })).toHaveAttribute(
-        "data-state",
-        "inactive"
-      );
+      expect(screen.getByRole("tab", { name: "Tab 1" })).toHaveAttribute("data-state", "active");
+      expect(screen.getByRole("tab", { name: "Tab 2" })).toHaveAttribute("data-state", "inactive");
     });
 
     it("applies custom className", () => {
@@ -147,7 +141,7 @@ describe("Tabs", () => {
             </TabsTrigger>
           </TabsList>
           <TabsContent value="tab1">Content 1</TabsContent>
-        </Tabs>
+        </Tabs>,
       );
       expect(screen.getByRole("tab")).toHaveClass("custom-trigger");
     });
@@ -163,7 +157,7 @@ describe("Tabs", () => {
           </TabsList>
           <TabsContent value="tab1">Content 1</TabsContent>
           <TabsContent value="tab2">Content 2</TabsContent>
-        </Tabs>
+        </Tabs>,
       );
       expect(screen.getByRole("tabpanel")).toHaveTextContent("Content 1");
     });
@@ -175,7 +169,7 @@ describe("Tabs", () => {
             <TabsTrigger value="tab1">Tab 1</TabsTrigger>
           </TabsList>
           <TabsContent value="tab1">Content 1</TabsContent>
-        </Tabs>
+        </Tabs>,
       );
       expect(screen.getByRole("tabpanel")).toHaveAttribute("data-slot", "tabs-content");
     });
@@ -189,7 +183,7 @@ describe("Tabs", () => {
           <TabsContent value="tab1" className="custom-content">
             Content 1
           </TabsContent>
-        </Tabs>
+        </Tabs>,
       );
       expect(screen.getByRole("tabpanel")).toHaveClass("custom-content");
     });
@@ -206,7 +200,7 @@ describe("Tabs", () => {
           </TabsList>
           <TabsContent value="tab1">Content 1</TabsContent>
           <TabsContent value="tab2">Content 2</TabsContent>
-        </Tabs>
+        </Tabs>,
       );
 
       expect(screen.getByRole("tabpanel")).toHaveTextContent("Content 1");
@@ -226,19 +220,13 @@ describe("Tabs", () => {
           </TabsList>
           <TabsContent value="tab1">Content 1</TabsContent>
           <TabsContent value="tab2">Content 2</TabsContent>
-        </Tabs>
+        </Tabs>,
       );
 
       await user.click(screen.getByRole("tab", { name: "Tab 2" }));
 
-      expect(screen.getByRole("tab", { name: "Tab 2" })).toHaveAttribute(
-        "data-state",
-        "active"
-      );
-      expect(screen.getByRole("tab", { name: "Tab 1" })).toHaveAttribute(
-        "data-state",
-        "inactive"
-      );
+      expect(screen.getByRole("tab", { name: "Tab 2" })).toHaveAttribute("data-state", "active");
+      expect(screen.getByRole("tab", { name: "Tab 1" })).toHaveAttribute("data-state", "inactive");
     });
   });
 
@@ -253,7 +241,7 @@ describe("Tabs", () => {
           </TabsList>
           <TabsContent value="tab1">Content 1</TabsContent>
           <TabsContent value="tab2">Content 2</TabsContent>
-        </Tabs>
+        </Tabs>,
       );
 
       // Focus the first tab
@@ -272,7 +260,7 @@ describe("Tabs", () => {
             <TabsTrigger value="tab1">Tab 1</TabsTrigger>
           </TabsList>
           <TabsContent value="tab1">Content 1</TabsContent>
-        </Tabs>
+        </Tabs>,
       );
 
       const tab = screen.getByRole("tab");

@@ -1,12 +1,12 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
 import { useStore } from "@tanstack/react-store";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
-  readingStore,
-  saveReadingPosition,
   clearReadingPosition,
   type ReadingPosition,
+  readingStore,
+  saveReadingPosition,
 } from "@/stores/readingStore";
 
 interface UseReadingPositionOptions {
@@ -59,7 +59,7 @@ interface UseReadingPositionReturn {
  */
 export function useReadingPosition(
   docId: string,
-  options: UseReadingPositionOptions = {}
+  options: UseReadingPositionOptions = {},
 ): UseReadingPositionReturn {
   const { debounceMs = 500, maxSection } = options;
 
@@ -71,8 +71,7 @@ export function useReadingPosition(
 
   // Validate position against maxSection
   const validPosition =
-    position &&
-    (maxSection === undefined || position.activeSection <= maxSection)
+    position && (maxSection === undefined || position.activeSection <= maxSection)
       ? position
       : null;
 
@@ -90,7 +89,7 @@ export function useReadingPosition(
         saveReadingPosition(docId, scrollOffset, activeSection);
       }, debounceMs);
     },
-    [docId, debounceMs]
+    [docId, debounceMs],
   );
 
   // Clear position

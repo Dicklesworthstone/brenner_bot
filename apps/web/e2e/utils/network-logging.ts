@@ -6,8 +6,8 @@
  */
 
 import type { Page, Request, Response, TestInfo } from "@playwright/test";
-import * as path from "path";
 import * as fs from "fs";
+import * as path from "path";
 
 // ============================================================================
 // Types
@@ -129,10 +129,13 @@ export function logNetworkResponse(testTitle: string, response: Response): void 
   context.networkLogs.push(networkLog);
 
   // Log to console with color based on status
-  const statusColor = response.status() >= 400 ? "\x1b[31m" : response.status() >= 300 ? "\x1b[33m" : "\x1b[32m";
+  const statusColor =
+    response.status() >= 400 ? "\x1b[31m" : response.status() >= 300 ? "\x1b[33m" : "\x1b[32m";
   const durationStr = duration ? ` [${formatDuration(duration)}]` : "";
   const displayUrl = url.length > 60 ? `${url.slice(0, 60)}...` : url;
-  console.log(`\x1b[90m  <- ${statusColor}${response.status()}\x1b[0m ${request.method()} ${displayUrl}${durationStr}`);
+  console.log(
+    `\x1b[90m  <- ${statusColor}${response.status()}\x1b[0m ${request.method()} ${displayUrl}${durationStr}`,
+  );
 }
 
 export function logNetworkFailure(testTitle: string, request: Request, failure: string): void {
@@ -178,13 +181,18 @@ export function setupNetworkLogging(page: Page, testTitle: string): void {
 // Performance Timing
 // ============================================================================
 
-export async function collectPerformanceTiming(page: Page, testTitle: string): Promise<PerformanceTimingData> {
+export async function collectPerformanceTiming(
+  page: Page,
+  testTitle: string,
+): Promise<PerformanceTimingData> {
   const context = getNetworkContext(testTitle);
 
   try {
     const performanceData = await page.evaluate(async () => {
       const perf = window.performance;
-      const navigation = perf.getEntriesByType("navigation")[0] as PerformanceNavigationTiming | undefined;
+      const navigation = perf.getEntriesByType("navigation")[0] as
+        | PerformanceNavigationTiming
+        | undefined;
       const paint = perf.getEntriesByType("paint");
       const fcp = paint.find((p) => p.name === "first-contentful-paint");
 
@@ -205,7 +213,9 @@ export async function collectPerformanceTiming(page: Page, testTitle: string): P
               ? `.${className.trim().split(/\s+/).filter(Boolean).slice(0, 3).join(".")}`
               : "";
             const text = element?.textContent?.trim().slice(0, 80);
-            const elementLabel = tag ? `${tag}${id}${classes}${text ? ` "${text}"` : ""}` : undefined;
+            const elementLabel = tag
+              ? `${tag}${id}${classes}${text ? ` "${text}"` : ""}`
+              : undefined;
 
             observer.disconnect();
             resolve({ value: lcpEntry?.startTime, element: elementLabel });
@@ -222,7 +232,9 @@ export async function collectPerformanceTiming(page: Page, testTitle: string): P
         try {
           let total = 0;
           const observer = new PerformanceObserver((list) => {
-            const entries = list.getEntries() as Array<PerformanceEntry & { hadRecentInput?: boolean; value?: number }>;
+            const entries = list.getEntries() as Array<
+              PerformanceEntry & { hadRecentInput?: boolean; value?: number }
+            >;
             for (const entry of entries) {
               if (!entry.hadRecentInput && typeof entry.value === "number") {
                 total += entry.value;
@@ -276,7 +288,9 @@ export async function collectPerformanceTiming(page: Page, testTitle: string): P
     });
 
     context.performanceTiming = performanceData;
-    console.log(`\x1b[32m  Performance: FCP=${performanceData.firstContentfulPaint?.toFixed(0) || "N/A"}ms, Load=${performanceData.load?.toFixed(0) || "N/A"}ms\x1b[0m`);
+    console.log(
+      `\x1b[32m  Performance: FCP=${performanceData.firstContentfulPaint?.toFixed(0) || "N/A"}ms, Load=${performanceData.load?.toFixed(0) || "N/A"}ms\x1b[0m`,
+    );
 
     return performanceData;
   } catch {
@@ -301,7 +315,9 @@ export function formatNetworkLogsAsText(testTitle: string): string {
   const header = `\n${"=".repeat(60)}\nNetwork Requests: ${testTitle}\nTotal: ${context.networkLogs.length}\n${"=".repeat(60)}\n`;
 
   const logLines = context.networkLogs.map((entry) => {
-    const statusStr = entry.status ? `${entry.status} ${entry.statusText || ""}` : entry.failure || "pending";
+    const statusStr = entry.status
+      ? `${entry.status} ${entry.statusText || ""}`
+      : entry.failure || "pending";
     const durationStr = entry.duration ? ` [${formatDuration(entry.duration)}]` : "";
     const displayUrl = entry.url.length > 60 ? `${entry.url.slice(0, 60)}...` : entry.url;
     return `${entry.timestamp.slice(11, 23)} ${entry.method.padEnd(6)} ${statusStr.padEnd(12)} ${displayUrl}${durationStr}`;
@@ -497,7 +513,10 @@ export function saveHarFile(testTitle: string): string | undefined {
   return saveHarFileDirect(testTitle, JSON.stringify(har, null, 2));
 }
 
-export async function attachNetworkLogsToTest(testInfo: TestInfo, testTitle: string): Promise<void> {
+export async function attachNetworkLogsToTest(
+  testInfo: TestInfo,
+  testTitle: string,
+): Promise<void> {
   const context = getNetworkContext(testTitle);
 
   if (context.networkLogs.length > 0) {

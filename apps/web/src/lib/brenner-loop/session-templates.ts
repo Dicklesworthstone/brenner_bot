@@ -9,8 +9,8 @@
  * @module brenner-loop/session-templates
  */
 
-import type { SessionPhase } from "./types";
 import type { TribunalAgentRole } from "./agents";
+import type { SessionPhase } from "./types";
 
 // ============================================================================
 // Types
@@ -153,17 +153,19 @@ const QUICK_CHECK: SessionTemplate = {
 
   requiredPhases: ["intake", "sharpening", "exclusion_test"],
   optionalPhases: ["synthesis"],
-  skippedPhases: ["level_split", "object_transpose", "scale_check", "evidence_gathering", "revision"],
+  skippedPhases: [
+    "level_split",
+    "object_transpose",
+    "scale_check",
+    "evidence_gathering",
+    "revision",
+  ],
 
   defaultAgents: ["devils_advocate"],
   defaultDepth: "quick",
 
   expectedDuration: "15-30 min",
-  bestFor: [
-    "Early-stage ideas",
-    "Gut checks before deeper analysis",
-    "Quick hypothesis triage",
-  ],
+  bestFor: ["Early-stage ideas", "Gut checks before deeper analysis", "Quick hypothesis triage"],
   tagline: "Is this idea worth pursuing? Get quick pushback.",
 
   allowCustomization: true,
@@ -364,11 +366,7 @@ const CUSTOM: SessionTemplate = {
   defaultDepth: "standard",
 
   expectedDuration: "Varies",
-  bestFor: [
-    "Experienced users",
-    "Specific workflows",
-    "Unusual research questions",
-  ],
+  bestFor: ["Experienced users", "Specific workflows", "Unusual research questions"],
   tagline: "Build your own workflow.",
 
   allowCustomization: true,
@@ -396,7 +394,7 @@ export const SESSION_TEMPLATES: SessionTemplate[] = [
  * Template lookup by ID.
  */
 export const TEMPLATE_BY_ID = new Map<string, SessionTemplate>(
-  SESSION_TEMPLATES.map((t) => [t.id, t])
+  SESSION_TEMPLATES.map((t) => [t.id, t]),
 );
 
 // ============================================================================
@@ -414,9 +412,9 @@ export function getSessionTemplate(id: string): SessionTemplate | undefined {
  * Get all featured templates (sorted by display order).
  */
 export function getFeaturedSessionTemplates(): SessionTemplate[] {
-  return SESSION_TEMPLATES
-    .filter((t) => t.featured)
-    .sort((a, b) => a.displayOrder - b.displayOrder);
+  return SESSION_TEMPLATES.filter((t) => t.featured).sort(
+    (a, b) => a.displayOrder - b.displayOrder,
+  );
 }
 
 /**
@@ -436,9 +434,7 @@ export function getTemplatesByDepth(depth: SessionDepth): SessionTemplate[] {
 /**
  * Get the recommended template for a given time constraint.
  */
-export function getTemplateForTimeConstraint(
-  maxMinutes: number
-): SessionTemplate {
+export function getTemplateForTimeConstraint(maxMinutes: number): SessionTemplate {
   if (maxMinutes <= 30) {
     return QUICK_CHECK;
   } else if (maxMinutes <= 90) {
@@ -453,44 +449,29 @@ export function getTemplateForTimeConstraint(
 /**
  * Check if a phase is required in a template.
  */
-export function isPhaseRequired(
-  template: SessionTemplate,
-  phase: SessionPhase
-): boolean {
+export function isPhaseRequired(template: SessionTemplate, phase: SessionPhase): boolean {
   return template.requiredPhases.includes(phase);
 }
 
 /**
  * Check if a phase is optional in a template.
  */
-export function isPhaseOptional(
-  template: SessionTemplate,
-  phase: SessionPhase
-): boolean {
+export function isPhaseOptional(template: SessionTemplate, phase: SessionPhase): boolean {
   return template.optionalPhases.includes(phase);
 }
 
 /**
  * Check if a phase is skipped in a template.
  */
-export function isPhaseSkipped(
-  template: SessionTemplate,
-  phase: SessionPhase
-): boolean {
+export function isPhaseSkipped(template: SessionTemplate, phase: SessionPhase): boolean {
   return template.skippedPhases.includes(phase);
 }
 
 /**
  * Check if a phase is enabled (required or optional) in a template.
  */
-export function isPhaseEnabled(
-  template: SessionTemplate,
-  phase: SessionPhase
-): boolean {
-  return (
-    template.requiredPhases.includes(phase) ||
-    template.optionalPhases.includes(phase)
-  );
+export function isPhaseEnabled(template: SessionTemplate, phase: SessionPhase): boolean {
+  return template.requiredPhases.includes(phase) || template.optionalPhases.includes(phase);
 }
 
 /**
@@ -498,10 +479,7 @@ export function isPhaseEnabled(
  * These are phases that are not skipped.
  */
 export function getActivePhases(template: SessionTemplate): SessionPhase[] {
-  return [
-    ...template.requiredPhases,
-    ...template.optionalPhases,
-  ];
+  return [...template.requiredPhases, ...template.optionalPhases];
 }
 
 /**
@@ -509,7 +487,7 @@ export function getActivePhases(template: SessionTemplate): SessionPhase[] {
  * Includes both active and skipped phases in their natural order.
  */
 export function getPhaseOrderForTemplate(
-  template: SessionTemplate
+  template: SessionTemplate,
 ): { phase: SessionPhase; status: "required" | "optional" | "skipped" }[] {
   const phaseOrder: SessionPhase[] = [
     "intake",
@@ -538,9 +516,7 @@ export function getPhaseOrderForTemplate(
 /**
  * Create default template settings for a new session.
  */
-export function createTemplateSettings(
-  templateId: string
-): SessionTemplateSettings {
+export function createTemplateSettings(templateId: string): SessionTemplateSettings {
   return {
     templateId,
     appliedAt: new Date().toISOString(),
@@ -557,7 +533,7 @@ export function customizeTemplateSettings(
     optional: SessionPhase[];
     skipped: SessionPhase[];
   },
-  agents?: AgentRole[]
+  agents?: AgentRole[],
 ): SessionTemplateSettings {
   return {
     ...settings,
@@ -571,7 +547,7 @@ export function customizeTemplateSettings(
  */
 export function getEffectivePhases(
   template: SessionTemplate,
-  settings?: SessionTemplateSettings
+  settings?: SessionTemplateSettings,
 ): {
   required: SessionPhase[];
   optional: SessionPhase[];
@@ -593,7 +569,7 @@ export function getEffectivePhases(
  */
 export function getEffectiveAgents(
   template: SessionTemplate,
-  settings?: SessionTemplateSettings
+  settings?: SessionTemplateSettings,
 ): AgentRole[] {
   if (settings?.customizedAgents) {
     return settings.customizedAgents;

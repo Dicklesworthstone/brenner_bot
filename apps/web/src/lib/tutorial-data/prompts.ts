@@ -106,8 +106,7 @@ export const INPUT_GENERATION_PROMPT: PromptTemplate = {
     {
       placeholder: "[YOUR REFINED QUESTION FROM STEP 5]",
       description: "Your research question after refinement in Step 5",
-      example:
-        "What mechanism explains the observed correlation between X and Y in population Z?",
+      example: "What mechanism explains the observed correlation between X and Y in population Z?",
       required: true,
     },
   ],
@@ -285,8 +284,7 @@ export const ARTIFACT_REVISION_PROMPT: PromptTemplate = {
   variables: [
     {
       placeholder: "[LIST THE FAILED CHECKS HERE]",
-      description:
-        "The checklist items that failed during human review (from Step 8)",
+      description: "The checklist items that failed during human review (from Step 8)",
       example:
         "- Tests are not discriminative (same predictions across hypotheses)\n- Missing potency check for Test 2",
       required: true,
@@ -355,7 +353,7 @@ export function getPromptsForStep(stepPath: string): PromptTemplate[] {
  */
 export function fillPromptVariables(
   prompt: PromptTemplate,
-  values: Record<string, string>
+  values: Record<string, string>,
 ): string {
   let result = prompt.content;
   for (const variable of prompt.variables || []) {

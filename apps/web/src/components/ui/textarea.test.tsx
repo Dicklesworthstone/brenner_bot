@@ -7,9 +7,9 @@
  * @see @/components/ui/textarea.tsx
  */
 
-import { createRef } from "react";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { createRef } from "react";
 import { describe, expect, it, vi } from "vitest";
 import { Textarea } from "./textarea";
 
@@ -131,18 +131,12 @@ describe("Textarea", () => {
   describe("accessibility", () => {
     it("has aria-describedby for error", () => {
       render(<Textarea id="test" error="Error message" />);
-      expect(screen.getByRole("textbox")).toHaveAttribute(
-        "aria-describedby",
-        "test-error"
-      );
+      expect(screen.getByRole("textbox")).toHaveAttribute("aria-describedby", "test-error");
     });
 
     it("has aria-describedby for hint", () => {
       render(<Textarea id="test" hint="Hint message" />);
-      expect(screen.getByRole("textbox")).toHaveAttribute(
-        "aria-describedby",
-        "test-hint"
-      );
+      expect(screen.getByRole("textbox")).toHaveAttribute("aria-describedby", "test-hint");
     });
   });
 });

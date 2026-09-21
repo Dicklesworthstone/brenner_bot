@@ -15,9 +15,9 @@
  * @module brenner-loop/literature
  */
 
-import type { HypothesisCard } from "./hypothesis";
 import type { DiscriminativePower, EvidenceResult } from "./evidence";
-import { embedText, cosineSimilarity } from "./search/embeddings";
+import type { HypothesisCard } from "./hypothesis";
+import { cosineSimilarity, embedText } from "./search/embeddings";
 
 // ============================================================================
 // Types
@@ -356,7 +356,7 @@ export function generateSearchQueries(hypothesis: HypothesisCard): SuggestedSear
     const confoundKeywords = extractKeywords(confound.description);
     if (confoundKeywords.length > 0) {
       alternativeQueries.push(
-        `${keywords[0] || ""} ${confoundKeywords.slice(0, 2).join(" ")} alternative explanation`
+        `${keywords[0] || ""} ${confoundKeywords.slice(0, 2).join(" ")} alternative explanation`,
       );
     }
   }
@@ -380,21 +380,135 @@ export function generateSearchQueries(hypothesis: HypothesisCard): SuggestedSear
 function extractKeywords(text: string): string[] {
   // Remove common stop words and extract significant terms
   const stopWords = new Set([
-    "the", "a", "an", "is", "are", "was", "were", "be", "been", "being",
-    "have", "has", "had", "do", "does", "did", "will", "would", "could",
-    "should", "may", "might", "must", "shall", "can", "need", "dare",
-    "ought", "used", "to", "of", "in", "for", "on", "with", "at", "by",
-    "from", "as", "into", "through", "during", "before", "after", "above",
-    "below", "between", "under", "again", "further", "then", "once", "here",
-    "there", "when", "where", "why", "how", "all", "each", "few", "more",
-    "most", "other", "some", "such", "no", "nor", "not", "only", "own",
-    "same", "so", "than", "too", "very", "just", "also", "now", "that",
-    "this", "these", "those", "which", "who", "whom", "what", "whose",
-    "and", "but", "or", "if", "because", "while", "although", "though",
-    "whether", "both", "either", "neither", "i", "my", "me", "we", "our",
-    "you", "your", "he", "she", "it", "they", "them", "his", "her", "its",
-    "their", "causes", "cause", "caused", "causing", "leads", "lead",
-    "results", "result", "due", "effect", "effects", "affects", "affect",
+    "the",
+    "a",
+    "an",
+    "is",
+    "are",
+    "was",
+    "were",
+    "be",
+    "been",
+    "being",
+    "have",
+    "has",
+    "had",
+    "do",
+    "does",
+    "did",
+    "will",
+    "would",
+    "could",
+    "should",
+    "may",
+    "might",
+    "must",
+    "shall",
+    "can",
+    "need",
+    "dare",
+    "ought",
+    "used",
+    "to",
+    "of",
+    "in",
+    "for",
+    "on",
+    "with",
+    "at",
+    "by",
+    "from",
+    "as",
+    "into",
+    "through",
+    "during",
+    "before",
+    "after",
+    "above",
+    "below",
+    "between",
+    "under",
+    "again",
+    "further",
+    "then",
+    "once",
+    "here",
+    "there",
+    "when",
+    "where",
+    "why",
+    "how",
+    "all",
+    "each",
+    "few",
+    "more",
+    "most",
+    "other",
+    "some",
+    "such",
+    "no",
+    "nor",
+    "not",
+    "only",
+    "own",
+    "same",
+    "so",
+    "than",
+    "too",
+    "very",
+    "just",
+    "also",
+    "now",
+    "that",
+    "this",
+    "these",
+    "those",
+    "which",
+    "who",
+    "whom",
+    "what",
+    "whose",
+    "and",
+    "but",
+    "or",
+    "if",
+    "because",
+    "while",
+    "although",
+    "though",
+    "whether",
+    "both",
+    "either",
+    "neither",
+    "i",
+    "my",
+    "me",
+    "we",
+    "our",
+    "you",
+    "your",
+    "he",
+    "she",
+    "it",
+    "they",
+    "them",
+    "his",
+    "her",
+    "its",
+    "their",
+    "causes",
+    "cause",
+    "caused",
+    "causing",
+    "leads",
+    "lead",
+    "results",
+    "result",
+    "due",
+    "effect",
+    "effects",
+    "affects",
+    "affect",
   ]);
 
   return text
@@ -427,7 +541,7 @@ function cleanQueryString(text: string): string {
  */
 export function calculateRelevance(
   paper: Partial<PaperResult>,
-  hypothesis: HypothesisCard
+  hypothesis: HypothesisCard,
 ): { score: number; rationale: string } {
   // Combine paper text
   const paperText = [
@@ -455,9 +569,11 @@ export function calculateRelevance(
   // Generate rationale based on score
   let rationale: string;
   if (score >= RELEVANCE_THRESHOLDS.HIGH) {
-    rationale = "Highly relevant - strong semantic overlap with hypothesis statement and mechanism.";
+    rationale =
+      "Highly relevant - strong semantic overlap with hypothesis statement and mechanism.";
   } else if (score >= RELEVANCE_THRESHOLDS.MODERATE) {
-    rationale = "Moderately relevant - addresses related concepts but may focus on different aspects.";
+    rationale =
+      "Moderately relevant - addresses related concepts but may focus on different aspects.";
   } else if (score >= RELEVANCE_THRESHOLDS.LOW) {
     rationale = "Low relevance - tangentially related or focuses on peripheral topics.";
   } else {
@@ -470,10 +586,7 @@ export function calculateRelevance(
 /**
  * Sort and filter paper results by relevance
  */
-export function rankByRelevance(
-  papers: PaperResult[],
-  minScore: number = 0
-): PaperResult[] {
+export function rankByRelevance(papers: PaperResult[], minScore: number = 0): PaperResult[] {
   return papers
     .filter((p) => p.relevanceScore >= minScore)
     .sort((a, b) => b.relevanceScore - a.relevanceScore);
@@ -565,10 +678,7 @@ export function parseBibTeX(bibtex: string): BibTeXEntry | null {
 /**
  * Convert a BibTeX entry to a PaperResult
  */
-export function bibTeXToPaperResult(
-  entry: BibTeXEntry,
-  hypothesis?: HypothesisCard
-): PaperResult {
+export function bibTeXToPaperResult(entry: BibTeXEntry, hypothesis?: HypothesisCard): PaperResult {
   const paper: PaperResult = {
     id: entry.doi ? `doi:${entry.doi}` : `bibtex:${entry.citationKey}`,
     title: entry.title || "Untitled",
@@ -606,10 +716,7 @@ function parseAuthors(authorString: string): string[] {
  * Clean BibTeX field value (remove braces, extra whitespace)
  */
 function cleanBibTeXValue(value: string): string {
-  return value
-    .replace(/\{|\}/g, "")
-    .replace(/\s+/g, " ")
-    .trim();
+  return value.replace(/\{|\}/g, "").replace(/\s+/g, " ").trim();
 }
 
 // ============================================================================
@@ -632,10 +739,7 @@ export function extractDOI(input: string): string | null {
   if (directMatch) return directMatch[0];
 
   // Try extracting from DOI URLs
-  const urlPatterns = [
-    /doi\.org\/(10\.\d{4,}\/[^\s]+)/,
-    /dx\.doi\.org\/(10\.\d{4,}\/[^\s]+)/,
-  ];
+  const urlPatterns = [/doi\.org\/(10\.\d{4,}\/[^\s]+)/, /dx\.doi\.org\/(10\.\d{4,}\/[^\s]+)/];
 
   for (const pattern of urlPatterns) {
     const match = input.match(pattern);
@@ -660,11 +764,12 @@ export function doiToUrl(doi: string): string {
  * Format a paper citation for display
  */
 export function formatCitation(paper: PaperResult): string {
-  const authorPart = paper.authors.length > 0
-    ? paper.authors.length > 3
-      ? `${paper.authors[0]} et al.`
-      : paper.authors.join(", ")
-    : "Unknown";
+  const authorPart =
+    paper.authors.length > 0
+      ? paper.authors.length > 3
+        ? `${paper.authors[0]} et al.`
+        : paper.authors.join(", ")
+      : "Unknown";
 
   const venuePart = paper.venue ? `. ${paper.venue}` : "";
   const doiPart = paper.doi ? ` DOI: ${paper.doi}` : "";
@@ -755,7 +860,7 @@ export function createLiteratureSearch(input: {
  */
 export function createPaperResult(
   input: Omit<PaperResult, "id" | "relevanceScore">,
-  hypothesis?: HypothesisCard
+  hypothesis?: HypothesisCard,
 ): PaperResult {
   const paper: PaperResult = {
     ...input,
@@ -783,7 +888,7 @@ function hashString(str: string): string {
   let hash = 0;
   for (let i = 0; i < str.length; i++) {
     const char = str.charCodeAt(i);
-    hash = ((hash << 5) - hash) + char;
+    hash = (hash << 5) - hash + char;
     hash = hash & hash;
   }
   return Math.abs(hash).toString(36);

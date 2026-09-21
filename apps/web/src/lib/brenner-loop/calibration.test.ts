@@ -19,9 +19,9 @@ import {
   isPredictionOutcome,
   isPredictionRecord,
   MIN_PREDICTIONS_FOR_METRICS,
+  type PredictionRecord,
   resolvePrediction,
   trackCalibrationProgress,
-  type PredictionRecord,
 } from "./calibration";
 
 // ============================================================================
@@ -31,7 +31,7 @@ import {
 function createResolvedPrediction(
   confidence: number,
   outcome: "correct" | "incorrect",
-  overrides: Partial<PredictionRecord> = {}
+  overrides: Partial<PredictionRecord> = {},
 ): PredictionRecord {
   return {
     id: generatePredictionId(),
@@ -130,7 +130,7 @@ describe("Prediction Record Creation", () => {
         sessionId: "session-1",
         prediction: "Test",
         statedConfidence: -10,
-      })
+      }),
     ).toThrow(/Invalid statedConfidence/);
 
     expect(() =>
@@ -139,7 +139,7 @@ describe("Prediction Record Creation", () => {
         sessionId: "session-1",
         prediction: "Test",
         statedConfidence: 110,
-      })
+      }),
     ).toThrow(/Invalid statedConfidence/);
   });
 });
@@ -495,7 +495,10 @@ describe("Calibration Progress Tracking", () => {
     const recentPredictions: PredictionRecord[] = [];
     for (let i = 0; i < MIN_PREDICTIONS_FOR_METRICS + 5; i++) {
       recentPredictions.push(
-        createResolvedPrediction(50, i < (MIN_PREDICTIONS_FOR_METRICS + 5) / 2 ? "correct" : "incorrect")
+        createResolvedPrediction(
+          50,
+          i < (MIN_PREDICTIONS_FOR_METRICS + 5) / 2 ? "correct" : "incorrect",
+        ),
       );
     }
     recentPredictions.forEach((p, i) => {
@@ -570,7 +573,7 @@ describe("Calibration Strengths Identification", () => {
         .map((_, i) =>
           createResolvedPrediction(50, i < 9 ? "correct" : "incorrect", {
             domain: "psychology",
-          })
+          }),
         ),
       // Weak in economics (20% accuracy)
       ...Array(10)
@@ -578,7 +581,7 @@ describe("Calibration Strengths Identification", () => {
         .map((_, i) =>
           createResolvedPrediction(50, i < 2 ? "correct" : "incorrect", {
             domain: "economics",
-          })
+          }),
         ),
     ];
 

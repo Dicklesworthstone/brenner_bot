@@ -4,15 +4,31 @@ import Link from "next/link";
 
 function FlaskConicalIcon({ className }: { className?: string }) {
   return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M9.75 3.75v4.5m0 0H9A5.25 5.25 0 003.75 13.5v0A5.25 5.25 0 009 18.75h6a5.25 5.25 0 005.25-5.25v0A5.25 5.25 0 0015 8.25h-.75m-4.5 0h4.5m0 0v-4.5" />
+    <svg
+      className={className}
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+      strokeWidth={1.5}
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M9.75 3.75v4.5m0 0H9A5.25 5.25 0 003.75 13.5v0A5.25 5.25 0 009 18.75h6a5.25 5.25 0 005.25-5.25v0A5.25 5.25 0 0015 8.25h-.75m-4.5 0h4.5m0 0v-4.5"
+      />
     </svg>
   );
 }
 
 function ArrowLeftIcon({ className }: { className?: string }) {
   return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+    <svg
+      className={className}
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+      strokeWidth={1.5}
+    >
       <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
     </svg>
   );
@@ -20,8 +36,18 @@ function ArrowLeftIcon({ className }: { className?: string }) {
 
 function BookOpenIcon({ className }: { className?: string }) {
   return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.75c-1.75-1.5-4.25-2.5-6.75-2.5v13.5c2.5 0 5 1 6.75 2.5m0-16c1.75-1.5 4.25-2.5 6.75-2.5v13.5c-2.5 0-5 1-6.75 2.5m0-16v16" />
+    <svg
+      className={className}
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+      strokeWidth={1.5}
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M12 6.75c-1.75-1.5-4.25-2.5-6.75-2.5v13.5c2.5 0 5 1 6.75 2.5m0-16c1.75-1.5 4.25-2.5 6.75-2.5v13.5c-2.5 0-5 1-6.75 2.5m0-16v16"
+      />
     </svg>
   );
 }
@@ -50,9 +76,7 @@ export function DemoFeaturePreview({
             <h1 className="text-xl font-bold text-amber-900 dark:text-amber-100">
               {featureName} - Demo Preview
             </h1>
-            <p className="text-sm text-amber-700 dark:text-amber-300">
-              {featureDescription}
-            </p>
+            <p className="text-sm text-amber-700 dark:text-amber-300">{featureDescription}</p>
             <p className="text-sm text-amber-700 dark:text-amber-300">
               This feature is available when running BrennerBot locally with Lab Mode enabled.
             </p>

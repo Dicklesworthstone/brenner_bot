@@ -8,12 +8,11 @@
  * @see brenner_bot-s797 (Tutorial Path: Quick Start)
  */
 
-import * as React from "react";
 import { useRouter } from "next/navigation";
-import { TutorialStep } from "@/components/tutorial";
-import { TutorialCodeBlock, ProTip, Note } from "@/components/tutorial";
+import * as React from "react";
+import { Note, ProTip, TutorialCodeBlock, TutorialStep } from "@/components/tutorial";
 import { useTutorial } from "@/lib/tutorial-context";
-import type { TutorialStep as TutorialStepType, TroubleshootingItem } from "@/lib/tutorial-types";
+import type { TroubleshootingItem, TutorialStep as TutorialStepType } from "@/lib/tutorial-types";
 
 // ============================================================================
 // Step Data
@@ -23,7 +22,8 @@ const troubleshooting: TroubleshootingItem[] = [
   {
     problem: "Section number not found",
     symptoms: ["Error: section §X not found"],
-    solution: "Double-check the section number from your search results. Use ./brenner corpus list to see all available sections.",
+    solution:
+      "Double-check the section number from your search results. Use ./brenner corpus list to see all available sections.",
   },
   {
     problem: "Output file is empty",
@@ -79,9 +79,9 @@ export default function QuickStartStep5() {
     >
       <section className="space-y-6">
         <p className="text-muted-foreground leading-relaxed">
-          An <strong>excerpt</strong> is a curated collection of Brenner passages relevant to
-          your research question. It grounds your AI session in specific wisdom rather than
-          generic prompts.
+          An <strong>excerpt</strong> is a curated collection of Brenner passages relevant to your
+          research question. It grounds your AI session in specific wisdom rather than generic
+          prompts.
         </p>
 
         {/* Why Excerpts Matter */}
@@ -90,15 +90,23 @@ export default function QuickStartStep5() {
           <ul className="text-sm text-muted-foreground space-y-2">
             <li className="flex items-start gap-2">
               <span className="text-primary">•</span>
-              <span><strong>Grounding:</strong> Your AI gets specific Brenner context, not generic research advice</span>
+              <span>
+                <strong>Grounding:</strong> Your AI gets specific Brenner context, not generic
+                research advice
+              </span>
             </li>
             <li className="flex items-start gap-2">
               <span className="text-primary">•</span>
-              <span><strong>Citation:</strong> §n anchors let you trace insights back to the original transcript</span>
+              <span>
+                <strong>Citation:</strong> §n anchors let you trace insights back to the original
+                transcript
+              </span>
             </li>
             <li className="flex items-start gap-2">
               <span className="text-primary">•</span>
-              <span><strong>Focus:</strong> Only include what&apos;s relevant to YOUR question</span>
+              <span>
+                <strong>Focus:</strong> Only include what&apos;s relevant to YOUR question
+              </span>
             </li>
           </ul>
         </div>
@@ -137,11 +145,7 @@ export default function QuickStartStep5() {
           <p className="text-sm text-muted-foreground">
             Open the file to see what you&apos;ve compiled:
           </p>
-          <TutorialCodeBlock
-            code="cat my_excerpt.md"
-            language="bash"
-            title="Terminal"
-          />
+          <TutorialCodeBlock code="cat my_excerpt.md" language="bash" title="Terminal" />
           <p className="text-sm text-muted-foreground">
             Your excerpt should look something like this:
           </p>
@@ -178,8 +182,8 @@ Correlation is the beginning, not the end..."`}
             Customize (Optional)
           </h2>
           <p className="text-sm text-muted-foreground">
-            You can edit the excerpt file to add your own notes or remove less relevant parts.
-            The file is just Markdown — feel free to annotate it.
+            You can edit the excerpt file to add your own notes or remove less relevant parts. The
+            file is just Markdown — feel free to annotate it.
           </p>
         </div>
 
@@ -189,15 +193,15 @@ Correlation is the beginning, not the end..."`}
         </ProTip>
 
         <Note>
-          Keep your <code>my_excerpt.md</code> file handy — you&apos;ll use it in the next step
-          to compose your session prompt.
+          Keep your <code>my_excerpt.md</code> file handy — you&apos;ll use it in the next step to
+          compose your session prompt.
         </Note>
 
         {/* Next Step */}
         <div className="p-4 rounded-xl border border-border bg-card/50">
           <p className="text-sm text-muted-foreground">
-            <strong className="text-foreground">Next up:</strong> You&apos;ll use your excerpt
-            to compose a kickoff prompt and run your first Brenner-style research session.
+            <strong className="text-foreground">Next up:</strong> You&apos;ll use your excerpt to
+            compose a kickoff prompt and run your first Brenner-style research session.
           </p>
         </div>
       </section>

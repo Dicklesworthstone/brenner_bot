@@ -8,9 +8,9 @@
  * @see brenner_bot-w5p6 (Tutorial Path: Agent-Assisted Research)
  */
 
-import * as React from "react";
 import { useRouter } from "next/navigation";
-import { TutorialStep, TutorialCodeBlock, ProTip, Warning } from "@/components/tutorial";
+import * as React from "react";
+import { ProTip, TutorialCodeBlock, TutorialStep, Warning } from "@/components/tutorial";
 import { useTutorial } from "@/lib/tutorial-context";
 import type { TutorialStep as TutorialStepType } from "@/lib/tutorial-types";
 
@@ -37,11 +37,13 @@ const stepData: TutorialStepType = {
   troubleshooting: [
     {
       problem: "Agent says my question is too broad",
-      solution: "This is actually good feedback! Ask the agent to suggest specific sub-questions or narrower framings.",
+      solution:
+        "This is actually good feedback! Ask the agent to suggest specific sub-questions or narrower framings.",
     },
     {
       problem: "Not sure what makes a question 'good'",
-      solution: "Good questions have: a clear observable to measure, potential for exclusion (falsifiability), and implications if proven true or false.",
+      solution:
+        "Good questions have: a clear observable to measure, potential for exclusion (falsifiability), and implications if proven true or false.",
     },
   ],
 };
@@ -100,8 +102,8 @@ Take your time. Be critical. I want a question that will actually lead somewhere
         <div className="space-y-4">
           <h2 className="text-xl font-semibold">What Makes a Good Research Question?</h2>
           <p className="text-muted-foreground">
-            Brenner was ruthless about question quality. Most questions scientists ask are
-            actually disguised statements or lead nowhere testable. Here are his criteria:
+            Brenner was ruthless about question quality. Most questions scientists ask are actually
+            disguised statements or lead nowhere testable. Here are his criteria:
           </p>
 
           <div className="space-y-3">
@@ -125,10 +127,7 @@ Take your time. Be critical. I want a question that will actually lead somewhere
                 good: "Can we identify the minimal gene set for segment formation?",
               },
             ].map((item, i) => (
-              <div
-                key={i}
-                className="p-4 rounded-xl border border-border bg-card/50"
-              >
+              <div key={i} className="p-4 rounded-xl border border-border bg-card/50">
                 <h4 className="font-semibold text-sm mb-2 text-amber-600 dark:text-amber-400">
                   {item.criterion}
                 </h4>
@@ -181,22 +180,19 @@ Take your time. Be critical. I want a question that will actually lead somewhere
         <div className="space-y-4">
           <h2 className="text-xl font-semibold">Give Your Question to the Agent</h2>
           <p className="text-muted-foreground">
-            Copy this prompt, replace <code className="px-1.5 py-0.5 rounded bg-muted text-xs">[YOUR QUESTION HERE]</code> with
-            your actual question, and give it to your agent:
+            Copy this prompt, replace{" "}
+            <code className="px-1.5 py-0.5 rounded bg-muted text-xs">[YOUR QUESTION HERE]</code>{" "}
+            with your actual question, and give it to your agent:
           </p>
-          <TutorialCodeBlock
-            code={questionPrompt}
-            language="text"
-            title="Prompt to your agent"
-          />
+          <TutorialCodeBlock code={questionPrompt} language="text" title="Prompt to your agent" />
         </div>
 
         {/* What to Expect */}
         <div className="space-y-4">
           <h2 className="text-xl font-semibold">What to Expect</h2>
           <p className="text-muted-foreground">
-            Your agent should respond with a thorough critique. Don&apos;t be discouraged if
-            it finds problems &mdash; that&apos;s exactly what you want at this stage.
+            Your agent should respond with a thorough critique. Don&apos;t be discouraged if it
+            finds problems &mdash; that&apos;s exactly what you want at this stage.
           </p>
 
           <div className="grid gap-3 sm:grid-cols-2">
@@ -218,10 +214,7 @@ Take your time. Be critical. I want a question that will actually lead somewhere
                 check: "Agent evaluates whether the question can be answered",
               },
             ].map((item, i) => (
-              <div
-                key={i}
-                className="p-4 rounded-xl border border-border bg-card/50"
-              >
+              <div key={i} className="p-4 rounded-xl border border-border bg-card/50">
                 <h4 className="font-semibold text-sm mb-1">{item.title}</h4>
                 <p className="text-xs text-muted-foreground">{item.check}</p>
               </div>
@@ -231,22 +224,22 @@ Take your time. Be critical. I want a question that will actually lead somewhere
 
         <Warning>
           Don&apos;t skip the critique step! It&apos;s tempting to rush ahead with your original
-          question, but taking 5 minutes now to sharpen it will save you from building
-          elaborate tests for the wrong question.
+          question, but taking 5 minutes now to sharpen it will save you from building elaborate
+          tests for the wrong question.
         </Warning>
 
         <ProTip>
-          If your agent&apos;s critique reveals that your question is actually several
-          questions bundled together, that&apos;s a valuable discovery. Pick the most
-          important sub-question to proceed with.
+          If your agent&apos;s critique reveals that your question is actually several questions
+          bundled together, that&apos;s a valuable discovery. Pick the most important sub-question
+          to proceed with.
         </ProTip>
 
         {/* Iteration */}
         <div className="p-5 rounded-xl border border-primary/30 bg-primary/5">
           <h3 className="font-semibold mb-3">Iterate Until Sharp</h3>
           <p className="text-sm text-muted-foreground mb-3">
-            You may need 2-3 rounds of refinement. After the agent critiques your
-            question, try a revised version:
+            You may need 2-3 rounds of refinement. After the agent critiques your question, try a
+            revised version:
           </p>
           <TutorialCodeBlock
             code={`Based on your critique, here's my refined question:
@@ -262,9 +255,7 @@ Does this address the issues you raised? What's still weak about it?`}
         {/* Success Criteria */}
         <div className="p-5 rounded-xl border border-[oklch(0.72_0.19_145/0.3)] bg-[oklch(0.72_0.19_145/0.05)]">
           <h3 className="font-semibold text-[oklch(0.72_0.19_145)] mb-3">Success Criteria</h3>
-          <p className="text-sm text-muted-foreground mb-3">
-            You&apos;re ready to proceed when:
-          </p>
+          <p className="text-sm text-muted-foreground mb-3">You&apos;re ready to proceed when:</p>
           <ul className="space-y-2 text-sm text-muted-foreground">
             <li className="flex items-center gap-2">
               <span className="size-1.5 rounded-full bg-[oklch(0.72_0.19_145)]" />
@@ -288,9 +279,9 @@ Does this address the issues you raised? What's still weak about it?`}
         {/* Next Step Preview */}
         <div className="p-4 rounded-xl border border-border bg-card/50">
           <p className="text-sm text-muted-foreground">
-            <strong className="text-foreground">Next up:</strong> In Step 6, your agent
-            will generate the formal inputs for the Brenner loop: hypothesis slate,
-            assumption ledger, and more.
+            <strong className="text-foreground">Next up:</strong> In Step 6, your agent will
+            generate the formal inputs for the Brenner loop: hypothesis slate, assumption ledger,
+            and more.
           </p>
         </div>
       </section>

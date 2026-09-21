@@ -19,7 +19,7 @@
  * @see @/hooks/useReadingPosition for the TanStack Store-based pattern
  */
 
-import { useCallback, useEffect, useRef, useState, type MutableRefObject } from "react";
+import { type MutableRefObject, useCallback, useEffect, useRef, useState } from "react";
 
 /**
  * Hook for persisting state to localStorage with SSR safety.
@@ -32,7 +32,7 @@ import { useCallback, useEffect, useRef, useState, type MutableRefObject } from 
 export function useLocalStorage<T>(
   key: string,
   initialValue: T,
-  options: { debounceMs?: number } = {}
+  options: { debounceMs?: number } = {},
 ): [T, (value: T | ((prev: T) => T)) => void, () => void] {
   const { debounceMs = 300 } = options;
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -80,7 +80,7 @@ export function useLocalStorage<T>(
         return valueToStore;
       });
     },
-    [key, debounceMs]
+    [key, debounceMs],
   );
 
   // Remove from storage

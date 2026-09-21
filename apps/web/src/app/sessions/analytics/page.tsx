@@ -1,20 +1,20 @@
 "use client";
 
-import * as React from "react";
 import Link from "next/link";
+import * as React from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { OPERATOR_METADATA, type OperatorType } from "@/lib/brenner-loop/operators";
-import { cn } from "@/lib/utils";
 import {
   computePersonalAnalytics,
-  sessionStorage,
-  loadObjectionStatsFromStorage,
   findThreadIdsForSession,
+  loadObjectionStatsFromStorage,
   type PersonalAnalytics,
   type Session,
+  sessionStorage,
 } from "@/lib/brenner-loop";
+import { OPERATOR_METADATA, type OperatorType } from "@/lib/brenner-loop/operators";
+import { cn } from "@/lib/utils";
 
 function formatPercent(value: number): string {
   if (!Number.isFinite(value)) return "0%";
@@ -66,12 +66,16 @@ function OperatorRow({
           <span className="text-xs text-muted-foreground font-mono">{meta.symbol}</span>
         </div>
         <div className="text-xs text-muted-foreground">
-          <span className="font-mono text-foreground">{usedCount}</span> / {sessionsTotal} ({formatPercent(pct)})
+          <span className="font-mono text-foreground">{usedCount}</span> / {sessionsTotal} (
+          {formatPercent(pct)})
         </div>
       </div>
       <div className="h-2 rounded-full bg-muted overflow-hidden">
         <div
-          className={cn("h-full rounded-full", operatorType === "scale_check" ? "bg-purple-500/70" : "bg-primary/70")}
+          className={cn(
+            "h-full rounded-full",
+            operatorType === "scale_check" ? "bg-purple-500/70" : "bg-primary/70",
+          )}
           style={{ width }}
         />
       </div>
@@ -157,8 +161,14 @@ export default function PersonalAnalyticsPage() {
 
   const trendPoints = analytics.trendsOver30Days.points.slice(-14);
   const maxTrendValue = Math.max(1, ...trendPoints.map((p) => p.averageFalsifiabilityScore));
-  const trendStartAvg = analytics.trendsOver30Days.points.slice(0, 15).reduce((sum, p) => sum + p.averageFalsifiabilityScore, 0) / 15;
-  const trendEndAvg = analytics.trendsOver30Days.points.slice(-15).reduce((sum, p) => sum + p.averageFalsifiabilityScore, 0) / 15;
+  const trendStartAvg =
+    analytics.trendsOver30Days.points
+      .slice(0, 15)
+      .reduce((sum, p) => sum + p.averageFalsifiabilityScore, 0) / 15;
+  const trendEndAvg =
+    analytics.trendsOver30Days.points
+      .slice(-15)
+      .reduce((sum, p) => sum + p.averageFalsifiabilityScore, 0) / 15;
   const trendDelta = Math.round(trendEndAvg - trendStartAvg);
 
   return (
@@ -199,7 +209,8 @@ export default function PersonalAnalyticsPage() {
           <CardContent>
             <div className="text-2xl font-semibold">{analytics.sessionsCompleted}</div>
             <div className="text-xs text-muted-foreground">
-              of <span className="font-mono">{sessionsTotal}</span> total ({formatPercent(analytics.completionRate)})
+              of <span className="font-mono">{sessionsTotal}</span> total (
+              {formatPercent(analytics.completionRate)})
             </div>
           </CardContent>
         </Card>
@@ -210,7 +221,8 @@ export default function PersonalAnalyticsPage() {
           <CardContent>
             <div className="text-2xl font-semibold">{analytics.hypothesesTested}</div>
             <div className="text-xs text-muted-foreground">
-              <span className="font-mono">{analytics.hypothesesWithCompetitors}</span> with competitors
+              <span className="font-mono">{analytics.hypothesesWithCompetitors}</span> with
+              competitors
             </div>
           </CardContent>
         </Card>
@@ -225,10 +237,14 @@ export default function PersonalAnalyticsPage() {
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Avg Duration</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              Avg Duration
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-semibold">{formatMinutes(analytics.averageSessionDurationMinutes)}</div>
+            <div className="text-2xl font-semibold">
+              {formatMinutes(analytics.averageSessionDurationMinutes)}
+            </div>
             <div className="text-xs text-muted-foreground">Based on createdAt → updatedAt</div>
           </CardContent>
         </Card>
@@ -238,16 +254,22 @@ export default function PersonalAnalyticsPage() {
         <Card>
           <CardHeader className="space-y-1">
             <CardTitle className="text-base">Quality Signals</CardTitle>
-            <p className="text-sm text-muted-foreground">Computed from your primary hypothesis cards.</p>
+            <p className="text-sm text-muted-foreground">
+              Computed from your primary hypothesis cards.
+            </p>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex items-center justify-between gap-3">
               <div className="text-sm text-muted-foreground">Avg falsifiability</div>
-              <div className="text-sm font-semibold">{Math.round(analytics.averageFalsifiabilityScore)}/100</div>
+              <div className="text-sm font-semibold">
+                {Math.round(analytics.averageFalsifiabilityScore)}/100
+              </div>
             </div>
             <div className="flex items-center justify-between gap-3">
               <div className="text-sm text-muted-foreground">Avg specificity</div>
-              <div className="text-sm font-semibold">{Math.round(analytics.averageSpecificityScore)}/100</div>
+              <div className="text-sm font-semibold">
+                {Math.round(analytics.averageSpecificityScore)}/100
+              </div>
             </div>
             <div className="rounded-lg border border-border bg-muted/30 p-4 space-y-3">
               <div className="flex items-center justify-between gap-3">
@@ -257,7 +279,11 @@ export default function PersonalAnalyticsPage() {
                 <div
                   className={cn(
                     "text-xs font-mono",
-                    trendDelta > 0 ? "text-success" : trendDelta < 0 ? "text-destructive" : "text-muted-foreground"
+                    trendDelta > 0
+                      ? "text-success"
+                      : trendDelta < 0
+                        ? "text-destructive"
+                        : "text-muted-foreground",
                   )}
                 >
                   {trendDelta >= 0 ? "+" : ""}
@@ -265,9 +291,15 @@ export default function PersonalAnalyticsPage() {
                 </div>
               </div>
 
-              <div className="flex items-end gap-1 h-16" aria-label="Falsifiability score trend over last 14 days">
+              <div
+                className="flex items-end gap-1 h-16"
+                aria-label="Falsifiability score trend over last 14 days"
+              >
                 {trendPoints.map((point) => {
-                  const heightPct = Math.max(0, Math.min(100, (point.averageFalsifiabilityScore / maxTrendValue) * 100));
+                  const heightPct = Math.max(
+                    0,
+                    Math.min(100, (point.averageFalsifiabilityScore / maxTrendValue) * 100),
+                  );
                   const title = `${point.date}: ${Math.round(point.averageFalsifiabilityScore)}/100 (${point.sessionsCreated} sessions)`;
                   return (
                     <div key={point.date} className="flex-1">
@@ -288,7 +320,9 @@ export default function PersonalAnalyticsPage() {
             </div>
             {analytics.insights.length > 0 && (
               <div className="rounded-lg border border-border bg-muted/30 p-4 space-y-2">
-                <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Insights</div>
+                <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                  Insights
+                </div>
                 <ul className="space-y-1 text-sm text-foreground">
                   {analytics.insights.map((insight, idx) => (
                     <li key={idx} className="flex gap-2">
@@ -307,16 +341,24 @@ export default function PersonalAnalyticsPage() {
         <Card>
           <CardHeader className="space-y-1">
             <CardTitle className="text-base">Operator Usage</CardTitle>
-            <p className="text-sm text-muted-foreground">How often each operator appears across sessions.</p>
+            <p className="text-sm text-muted-foreground">
+              How often each operator appears across sessions.
+            </p>
           </CardHeader>
           <CardContent className="space-y-4">
             {sessionsTotal === 0 ? (
               <div className="text-sm text-muted-foreground">
-                No sessions yet. Once you create Brenner Loop sessions, this will populate automatically.
+                No sessions yet. Once you create Brenner Loop sessions, this will populate
+                automatically.
               </div>
             ) : (
               operators.map(({ op, count }) => (
-                <OperatorRow key={op} operatorType={op} usedCount={count} sessionsTotal={sessionsTotal} />
+                <OperatorRow
+                  key={op}
+                  operatorType={op}
+                  usedCount={count}
+                  sessionsTotal={sessionsTotal}
+                />
               ))
             )}
           </CardContent>
@@ -328,7 +370,9 @@ export default function PersonalAnalyticsPage() {
         <Card>
           <CardHeader className="space-y-1">
             <CardTitle className="text-base">Hypothesis Outcomes</CardTitle>
-            <p className="text-sm text-muted-foreground">Track how your hypotheses fare through testing.</p>
+            <p className="text-sm text-muted-foreground">
+              Track how your hypotheses fare through testing.
+            </p>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-3 gap-4">
@@ -362,20 +406,26 @@ export default function PersonalAnalyticsPage() {
         <Card>
           <CardHeader className="space-y-1">
             <CardTitle className="text-base">Learning Metrics</CardTitle>
-            <p className="text-sm text-muted-foreground">How you respond to evidence and objections.</p>
+            <p className="text-sm text-muted-foreground">
+              How you respond to evidence and objections.
+            </p>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex items-center justify-between gap-3 p-3 rounded-lg bg-muted/30 border border-border">
               <div>
                 <div className="text-sm font-medium">Revisions After Evidence</div>
-                <div className="text-xs text-muted-foreground">Hypotheses updated based on evidence</div>
+                <div className="text-xs text-muted-foreground">
+                  Hypotheses updated based on evidence
+                </div>
               </div>
               <div className="text-xl font-semibold">{analytics.revisionsAfterEvidence}</div>
             </div>
             <div className="flex items-center justify-between gap-3 p-3 rounded-lg bg-muted/30 border border-border">
               <div>
                 <div className="text-sm font-medium">Objections Addressed</div>
-                <div className="text-xs text-muted-foreground">Tribunal objections you resolved</div>
+                <div className="text-xs text-muted-foreground">
+                  Tribunal objections you resolved
+                </div>
               </div>
               <div className="text-xl font-semibold">{analytics.objectionsAddressed}</div>
             </div>
@@ -393,7 +443,9 @@ export default function PersonalAnalyticsPage() {
       <Card>
         <CardHeader className="space-y-1">
           <CardTitle className="text-base">Achievements</CardTitle>
-          <p className="text-sm text-muted-foreground">Lightweight milestones to make progress visible.</p>
+          <p className="text-sm text-muted-foreground">
+            Lightweight milestones to make progress visible.
+          </p>
         </CardHeader>
         <CardContent className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {analytics.achievements.map((a) => (
@@ -401,7 +453,7 @@ export default function PersonalAnalyticsPage() {
               key={a.id}
               className={cn(
                 "rounded-xl border p-4",
-                a.unlocked ? "border-success/25 bg-success/10" : "border-border bg-muted/20"
+                a.unlocked ? "border-success/25 bg-success/10" : "border-border bg-muted/20",
               )}
             >
               <div className="flex items-start justify-between gap-3">
@@ -415,7 +467,7 @@ export default function PersonalAnalyticsPage() {
                     "shrink-0",
                     a.unlocked
                       ? "border-success/30 bg-success/15 text-success"
-                      : "border-border bg-muted/40 text-muted-foreground"
+                      : "border-border bg-muted/40 text-muted-foreground",
                   )}
                 >
                   {a.unlocked ? "Unlocked" : "Locked"}

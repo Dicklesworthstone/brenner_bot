@@ -16,27 +16,25 @@
  * @see brenner_bot-3vc
  */
 
-// Types
-export type {
-  SearchDocCategory,
-  SearchScope,
-  StoredSearchEntry,
-  SearchResult,
-  SearchOptions,
-  SearchState,
-  SearchActions,
-  UseSearchReturn,
-  IndexStats,
-} from "./types";
-
 // Engine (for direct access)
 export {
-  searchEngine,
+  getSearchError,
+  isSearchIndexLoaded,
   loadSearchIndex,
   search,
-  isSearchIndexLoaded,
-  getSearchError,
+  searchEngine,
 } from "./engine";
-
 // Hooks (primary API)
 export { useSearch, useSearchIndex, useSearchResult } from "./hooks";
+// Types
+export type {
+  IndexStats,
+  SearchActions,
+  SearchDocCategory,
+  SearchOptions,
+  SearchResult,
+  SearchScope,
+  SearchState,
+  StoredSearchEntry,
+  UseSearchReturn,
+} from "./types";

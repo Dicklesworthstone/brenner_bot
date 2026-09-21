@@ -1,6 +1,6 @@
-import * as React from "react";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import type * as React from "react";
 import { describe, expect, it, vi } from "vitest";
 import type { HypothesisCard } from "@/lib/brenner-loop/hypothesis";
 
@@ -10,11 +10,7 @@ vi.mock("framer-motion", () => ({
     div: ({ children, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
       <div {...props}>{children}</div>
     ),
-    button: ({
-      children,
-      onClick,
-      ...props
-    }: React.ButtonHTMLAttributes<HTMLButtonElement>) => (
+    button: ({ children, onClick, ...props }: React.ButtonHTMLAttributes<HTMLButtonElement>) => (
       <button onClick={onClick} {...props}>
         {children}
       </button>
@@ -42,9 +38,7 @@ function createMockHypothesis(overrides: Partial<HypothesisCard> = {}): Hypothes
       "Depression rates should be similar regardless of social media usage patterns",
       "Chronically depressed teens should not show increased social media usage",
     ],
-    impossibleIfTrue: [
-      "Teens using social media extensively show improved mental health outcomes",
-    ],
+    impossibleIfTrue: ["Teens using social media extensively show improved mental health outcomes"],
     confounds: [],
     assumptions: ["Social media usage is measurable and quantifiable"],
     confidence: 50,
@@ -64,7 +58,7 @@ describe("LiteratureSearch", () => {
         sessionId="test-session"
         hypothesis={createMockHypothesis()}
         currentConfidence={50}
-      />
+      />,
     );
 
     expect(screen.getByText("Literature Search")).toBeInTheDocument();
@@ -78,7 +72,7 @@ describe("LiteratureSearch", () => {
         sessionId="test-session"
         hypothesis={createMockHypothesis()}
         currentConfidence={50}
-      />
+      />,
     );
 
     expect(screen.getByRole("tab", { name: /suggested/i })).toBeInTheDocument();
@@ -93,7 +87,7 @@ describe("LiteratureSearch", () => {
         sessionId="test-session"
         hypothesis={createMockHypothesis()}
         currentConfidence={50}
-      />
+      />,
     );
 
     // Should show suggested searches content by default
@@ -109,7 +103,7 @@ describe("LiteratureSearch", () => {
         sessionId="test-session"
         hypothesis={createMockHypothesis()}
         currentConfidence={50}
-      />
+      />,
     );
 
     // Click on search tab
@@ -128,7 +122,7 @@ describe("LiteratureSearch", () => {
         sessionId="test-session"
         hypothesis={createMockHypothesis()}
         currentConfidence={50}
-      />
+      />,
     );
 
     // Click on import tab
@@ -148,7 +142,7 @@ describe("LiteratureSearch", () => {
         sessionId="test-session"
         hypothesis={createMockHypothesis()}
         currentConfidence={50}
-      />
+      />,
     );
 
     // Switch to import tab
@@ -168,7 +162,7 @@ describe("LiteratureSearch", () => {
         sessionId="test-session"
         hypothesis={createMockHypothesis()}
         currentConfidence={50}
-      />
+      />,
     );
 
     // Switch to import tab
@@ -188,7 +182,7 @@ describe("LiteratureSearch", () => {
         sessionId="test-session"
         hypothesis={createMockHypothesis()}
         currentConfidence={50}
-      />
+      />,
     );
 
     // Switch to import tab
@@ -213,7 +207,9 @@ describe("LiteratureSearch", () => {
     // Should show imported paper
     expect(screen.getByText("Imported Paper")).toBeInTheDocument();
     // Title may appear multiple times (header and card), so use getAllByText
-    expect(screen.getAllByText(/Social Media Effects on Teen Mental Health/i).length).toBeGreaterThanOrEqual(1);
+    expect(
+      screen.getAllByText(/Social Media Effects on Teen Mental Health/i).length,
+    ).toBeGreaterThanOrEqual(1);
   });
 
   it("shows error for invalid BibTeX", async () => {
@@ -224,7 +220,7 @@ describe("LiteratureSearch", () => {
         sessionId="test-session"
         hypothesis={createMockHypothesis()}
         currentConfidence={50}
-      />
+      />,
     );
 
     // Switch to import tab
@@ -251,7 +247,7 @@ describe("LiteratureSearch", () => {
         sessionId="test-session"
         hypothesis={createMockHypothesis()}
         currentConfidence={50}
-      />
+      />,
     );
 
     // Switch to import tab
@@ -277,7 +273,7 @@ describe("LiteratureSearch", () => {
         sessionId="test-session"
         hypothesis={createMockHypothesis()}
         currentConfidence={50}
-      />
+      />,
     );
 
     // Should show key terms section
@@ -292,7 +288,7 @@ describe("LiteratureSearch", () => {
         sessionId="test-session"
         hypothesis={createMockHypothesis()}
         currentConfidence={50}
-      />
+      />,
     );
 
     // Switch to search tab (not suggested)

@@ -31,7 +31,16 @@ export interface SeededMessage {
   from: string;
   subject: string;
   body: string;
-  type?: "KICKOFF" | "DELTA" | "CRITIQUE" | "ACK" | "EVIDENCE" | "RESULT" | "ADMIN" | "COMPILE" | "PUBLISH";
+  type?:
+    | "KICKOFF"
+    | "DELTA"
+    | "CRITIQUE"
+    | "ACK"
+    | "EVIDENCE"
+    | "RESULT"
+    | "ADMIN"
+    | "COMPILE"
+    | "PUBLISH";
   to?: string[];
 }
 
@@ -173,10 +182,7 @@ export async function cleanupTestSession(threadId: string): Promise<void> {
 // Helpers
 // ============================================================================
 
-async function callTestServer(
-  tool: string,
-  args: Record<string, unknown>
-): Promise<unknown> {
+async function callTestServer(tool: string, args: Record<string, unknown>): Promise<unknown> {
   const url = getTestServerUrl();
   const response = await fetch(url, {
     method: "POST",
@@ -295,7 +301,8 @@ export function createSessionWithDeltas(threadId: string): SessionConfig {
       payload: {
         name: "Third alternative: environment instability",
         claim: "The tests are mostly correct; CI environment instability drives failures.",
-        mechanism: "Resource contention, noisy neighbors, and infra variability surface as flakiness.",
+        mechanism:
+          "Resource contention, noisy neighbors, and infra variability surface as flakiness.",
         anchors: ["inference"],
         third_alternative: true,
       },
@@ -352,14 +359,16 @@ export function createSessionWithDeltas(threadId: string): SessionConfig {
       target_id: null,
       payload: {
         name: "Isolation A/B test",
-        procedure: "Run N=200 CI iterations comparing isolated vs shared-state mode; record failure rate and failure loci.",
+        procedure:
+          "Run N=200 CI iterations comparing isolated vs shared-state mode; record failure rate and failure loci.",
         discriminates: "H1 vs (H2,H3) by testing whether isolation collapses flakiness.",
         expected_outcomes: {
           H1: "Large delta in pass rate in isolated mode.",
           H2: "Small delta; race failures persist.",
           H3: "Small delta; failures track load/infra.",
         },
-        potency_check: "If isolation changes timing, ensure we attribute improvement to state (not scheduler).",
+        potency_check:
+          "If isolation changes timing, ensure we attribute improvement to state (not scheduler).",
         score: { likelihood_ratio: 3, cost: 2, speed: 2, ambiguity: 2 },
       },
       rationale: "Directly tests whether shared-state coupling is the dominant mechanism.",
@@ -370,7 +379,8 @@ export function createSessionWithDeltas(threadId: string): SessionConfig {
       target_id: null,
       payload: {
         name: "Load sensitivity sweep",
-        procedure: "Run suite while varying CPU/memory pressure; quantify failure correlation with load metrics.",
+        procedure:
+          "Run suite while varying CPU/memory pressure; quantify failure correlation with load metrics.",
         discriminates: "H3 vs (H1,H2) by testing dependence on infra variability.",
         expected_outcomes: {
           H1: "Weak dependence after isolation.",
@@ -416,7 +426,8 @@ export function createSessionWithDeltas(threadId: string): SessionConfig {
         load: "High",
         test: "Power calculation for difference in proportions at alpha=0.05.",
         scale_check: true,
-        calculation: "If p=0.10 baseline and we expect to reduce to 0.03, N≈150 per arm gives >80% power (rule-of-thumb).",
+        calculation:
+          "If p=0.10 baseline and we expect to reduce to 0.03, N≈150 per arm gives >80% power (rule-of-thumb).",
       },
       rationale: "Ensure we’re not underpowered and misled by noise.",
     },
@@ -429,8 +440,10 @@ export function createSessionWithDeltas(threadId: string): SessionConfig {
       target_id: null,
       payload: {
         name: "Confounding: isolation changes timing",
-        attack: "Isolation may change concurrency and scheduling, confounding attribution to shared state.",
-        evidence: "If isolated mode also changes timing windows, race failures may disappear even if H1 is false.",
+        attack:
+          "Isolation may change concurrency and scheduling, confounding attribution to shared state.",
+        evidence:
+          "If isolated mode also changes timing windows, race failures may disappear even if H1 is false.",
         current_status: "Unresolved — requires potency controls in test design.",
       },
       rationale: "Force potency control between 'state' and 'timing'.",
@@ -441,8 +454,10 @@ export function createSessionWithDeltas(threadId: string): SessionConfig {
       target_id: null,
       payload: {
         name: "Hidden fourth alternative",
-        attack: "All three hypotheses could be wrong; failures might stem from nondeterministic external dependencies.",
-        evidence: "If failures correlate with network calls or external services, neither state, timing, nor infra load is primary.",
+        attack:
+          "All three hypotheses could be wrong; failures might stem from nondeterministic external dependencies.",
+        evidence:
+          "If failures correlate with network calls or external services, neither state, timing, nor infra load is primary.",
         current_status: "Investigate by hermeticizing external dependencies (record/replay).",
         real_third_alternative: true,
       },

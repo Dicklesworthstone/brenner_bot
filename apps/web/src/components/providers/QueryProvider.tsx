@@ -1,8 +1,8 @@
 "use client";
 
-import * as React from "react";
-import { QueryClient, QueryClientProvider, type DefaultOptions } from "@tanstack/react-query";
+import { type DefaultOptions, QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
+import type * as React from "react";
 
 // ============================================================================
 // QUERY CLIENT CONFIGURATION
@@ -56,7 +56,7 @@ function makeQueryClient(): QueryClient {
 
 // For server-side rendering, we need to create a new client each request
 // to avoid sharing state between requests
-let browserQueryClient: QueryClient | undefined = undefined;
+let browserQueryClient: QueryClient | undefined;
 
 function getQueryClient(): QueryClient {
   if (typeof window === "undefined") {
@@ -111,10 +111,7 @@ export function QueryProvider({ children }: QueryProviderProps) {
       {children}
       {/* DevTools only in development */}
       {process.env.NODE_ENV === "development" && (
-        <ReactQueryDevtools
-          initialIsOpen={false}
-          buttonPosition="bottom-left"
-        />
+        <ReactQueryDevtools initialIsOpen={false} buttonPosition="bottom-left" />
       )}
     </QueryClientProvider>
   );

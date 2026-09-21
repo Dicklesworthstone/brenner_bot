@@ -18,11 +18,10 @@
  * @see apps/web/src/lib/brenner-loop/prediction-lock.ts
  */
 
+import { AnimatePresence, motion } from "framer-motion";
 import * as React from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -31,76 +30,152 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import {
+  amendPrediction,
+  formatLockTimestamp,
+  getLockStateDisplay,
+  getShortHash,
   type LockedPrediction,
+  lockPrediction,
   type PredictionLockState,
   type PredictionType,
-  lockPrediction,
   revealPrediction,
-  amendPrediction,
-  getLockStateDisplay,
-  formatLockTimestamp,
-  getShortHash,
 } from "@/lib/brenner-loop";
+import { cn } from "@/lib/utils";
 
 // ============================================================================
 // Icons
 // ============================================================================
 
 const LockClosedIcon = ({ className }: { className?: string }) => (
-  <svg className={cn("size-4", className)} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
+  <svg
+    className={cn("size-4", className)}
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+    strokeWidth={2}
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z"
+    />
   </svg>
 );
 
 const LockOpenIcon = ({ className }: { className?: string }) => (
-  <svg className={cn("size-4", className)} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 10.5V6.75a4.5 4.5 0 119 0v3.75M3.75 21.75h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H3.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
+  <svg
+    className={cn("size-4", className)}
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+    strokeWidth={2}
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M13.5 10.5V6.75a4.5 4.5 0 119 0v3.75M3.75 21.75h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H3.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z"
+    />
   </svg>
 );
 
 const EyeIcon = ({ className }: { className?: string }) => (
-  <svg className={cn("size-4", className)} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
+  <svg
+    className={cn("size-4", className)}
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+    strokeWidth={2}
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z"
+    />
     <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
   </svg>
 );
 
 const PencilIcon = ({ className }: { className?: string }) => (
-  <svg className={cn("size-4", className)} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125" />
+  <svg
+    className={cn("size-4", className)}
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+    strokeWidth={2}
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125"
+    />
   </svg>
 );
 
 const ExclamationTriangleIcon = ({ className }: { className?: string }) => (
-  <svg className={cn("size-4", className)} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+  <svg
+    className={cn("size-4", className)}
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+    strokeWidth={2}
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"
+    />
   </svg>
 );
 
 const CheckCircleIcon = ({ className }: { className?: string }) => (
-  <svg className={cn("size-4", className)} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+  <svg
+    className={cn("size-4", className)}
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+    strokeWidth={2}
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+    />
   </svg>
 );
 
 const XCircleIcon = ({ className }: { className?: string }) => (
-  <svg className={cn("size-4", className)} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M9.75 9.75l4.5 4.5m0-4.5l-4.5 4.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+  <svg
+    className={cn("size-4", className)}
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+    strokeWidth={2}
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M9.75 9.75l4.5 4.5m0-4.5l-4.5 4.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+    />
   </svg>
 );
 
 const HashtagIcon = ({ className }: { className?: string }) => (
-  <svg className={cn("size-4", className)} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M5.25 8.25h15m-16.5 7.5h15m-1.8-13.5l-3.9 19.5m-2.1-19.5l-3.9 19.5" />
+  <svg
+    className={cn("size-4", className)}
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+    strokeWidth={2}
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M5.25 8.25h15m-16.5 7.5h15m-1.8-13.5l-3.9 19.5m-2.1-19.5l-3.9 19.5"
+    />
   </svg>
 );
 
@@ -162,7 +237,11 @@ interface PredictionLockItemProps {
   prediction: LockedPrediction;
   index: number;
   onReveal?: (outcome: string, match: "confirmed" | "refuted" | "inconclusive") => void;
-  onAmend?: (amendmentType: "clarification" | "reinterpretation" | "scope_change" | "retraction", text: string, reason?: string) => void;
+  onAmend?: (
+    amendmentType: "clarification" | "reinterpretation" | "scope_change" | "retraction",
+    text: string,
+    reason?: string,
+  ) => void;
   readOnly?: boolean;
 }
 
@@ -176,7 +255,9 @@ function PredictionLockItem({
   const [showRevealDialog, setShowRevealDialog] = React.useState(false);
   const [showAmendDialog, setShowAmendDialog] = React.useState(false);
   const [outcome, setOutcome] = React.useState("");
-  const [outcomeMatch, setOutcomeMatch] = React.useState<"confirmed" | "refuted" | "inconclusive">("inconclusive");
+  const [outcomeMatch, setOutcomeMatch] = React.useState<"confirmed" | "refuted" | "inconclusive">(
+    "inconclusive",
+  );
   const [amendText, setAmendText] = React.useState("");
   const [amendReason, setAmendReason] = React.useState("");
 
@@ -201,19 +282,13 @@ function PredictionLockItem({
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      className={cn(
-        "rounded-lg border p-4",
-        colors.border,
-        colors.bg
-      )}
+      className={cn("rounded-lg border p-4", colors.border, colors.bg)}
     >
       {/* Header */}
       <div className="flex items-start justify-between gap-4">
         <div className="flex items-start gap-3">
           {/* State Icon */}
-          <div className={cn("mt-0.5", colors.text)}>
-            {getStateIcon(prediction.state)}
-          </div>
+          <div className={cn("mt-0.5", colors.text)}>{getStateIcon(prediction.state)}</div>
 
           {/* Content */}
           <div className="flex-1 min-w-0">
@@ -233,10 +308,9 @@ function PredictionLockItem({
             </div>
 
             {/* Prediction Text */}
-            <p className={cn(
-              "text-sm",
-              prediction.state === "amended" && "line-through opacity-70"
-            )}>
+            <p
+              className={cn("text-sm", prediction.state === "amended" && "line-through opacity-70")}
+            >
               {prediction.originalText}
             </p>
 
@@ -291,9 +365,7 @@ function PredictionLockItem({
             {/* Observed Outcome */}
             {prediction.observedOutcome && (
               <div className="mt-2 p-2 rounded border border-muted bg-muted/30">
-                <p className="text-xs font-medium text-muted-foreground mb-1">
-                  Observed Outcome:
-                </p>
+                <p className="text-xs font-medium text-muted-foreground mb-1">Observed Outcome:</p>
                 <p className="text-sm">{prediction.observedOutcome}</p>
               </div>
             )}
@@ -304,11 +376,7 @@ function PredictionLockItem({
         {!readOnly && (
           <div className="flex items-center gap-2">
             {prediction.state === "locked" && onReveal && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setShowRevealDialog(true)}
-              >
+              <Button variant="outline" size="sm" onClick={() => setShowRevealDialog(true)}>
                 <EyeIcon className="size-4 mr-1" />
                 Reveal
               </Button>
@@ -411,8 +479,8 @@ function PredictionLockItem({
             </DialogTitle>
             <DialogDescription>
               <span className="text-amber-600 font-medium">Warning:</span> Amending a prediction
-              after seeing evidence will be flagged and may reduce your hypothesis&apos;s credibility score.
-              The original prediction will be preserved for audit.
+              after seeing evidence will be flagged and may reduce your hypothesis&apos;s
+              credibility score. The original prediction will be preserved for audit.
             </DialogDescription>
           </DialogHeader>
 
@@ -506,11 +574,7 @@ function UnlockedPredictionItem({
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      className={cn(
-        "rounded-lg border p-4",
-        colors.border,
-        colors.bg
-      )}
+      className={cn("rounded-lg border p-4", colors.border, colors.bg)}
     >
       <div className="flex items-start justify-between gap-4">
         <div className="flex items-start gap-3">
@@ -555,9 +619,9 @@ function UnlockedPredictionItem({
               Lock Prediction?
             </DialogTitle>
             <DialogDescription>
-              Once locked, this prediction <strong>cannot be changed</strong>. This is
-              the key anti-rationalization mechanism - you&apos;re committing to this prediction
-              before seeing evidence.
+              Once locked, this prediction <strong>cannot be changed</strong>. This is the key
+              anti-rationalization mechanism - you&apos;re committing to this prediction before
+              seeing evidence.
             </DialogDescription>
           </DialogHeader>
 
@@ -632,7 +696,11 @@ export function PredictionLock({
     onPredictionLocked?.(lockedPrediction);
   };
 
-  const handleReveal = (prediction: LockedPrediction, outcome: string, match: "confirmed" | "refuted" | "inconclusive") => {
+  const handleReveal = (
+    prediction: LockedPrediction,
+    outcome: string,
+    match: "confirmed" | "refuted" | "inconclusive",
+  ) => {
     const result = revealPrediction(prediction, outcome, match);
     if (result.success && result.prediction) {
       onPredictionRevealed?.(result.prediction);
@@ -643,7 +711,7 @@ export function PredictionLock({
     prediction: LockedPrediction,
     amendmentType: "clarification" | "reinterpretation" | "scope_change" | "retraction",
     text: string,
-    reason?: string
+    reason?: string,
   ) => {
     const amended = amendPrediction(prediction, amendmentType, text, reason);
     onPredictionAmended?.(amended);
@@ -651,9 +719,9 @@ export function PredictionLock({
 
   // Group locked predictions by type
   const lockedByType = {
-    if_true: lockedPredictions.filter(p => p.predictionType === "if_true"),
-    if_false: lockedPredictions.filter(p => p.predictionType === "if_false"),
-    impossible_if_true: lockedPredictions.filter(p => p.predictionType === "impossible_if_true"),
+    if_true: lockedPredictions.filter((p) => p.predictionType === "if_true"),
+    if_false: lockedPredictions.filter((p) => p.predictionType === "if_false"),
+    impossible_if_true: lockedPredictions.filter((p) => p.predictionType === "impossible_if_true"),
   };
 
   return (
@@ -661,9 +729,7 @@ export function PredictionLock({
       {/* Predictions If True */}
       {(draftPredictions?.ifTrue?.length || lockedByType.if_true.length > 0) && (
         <div>
-          <h4 className="text-sm font-medium text-muted-foreground mb-3">
-            Predictions If True
-          </h4>
+          <h4 className="text-sm font-medium text-muted-foreground mb-3">Predictions If True</h4>
           <div className="space-y-3">
             <AnimatePresence mode="popLayout">
               {/* Locked predictions */}
@@ -681,7 +747,7 @@ export function PredictionLock({
               {/* Draft predictions */}
               {draftPredictions?.ifTrue?.map((text, idx) => {
                 // Skip if already locked
-                const isLocked = lockedByType.if_true.some(p => p.originalIndex === idx);
+                const isLocked = lockedByType.if_true.some((p) => p.originalIndex === idx);
                 if (isLocked) return null;
 
                 return (
@@ -704,9 +770,7 @@ export function PredictionLock({
       {/* Predictions If False */}
       {(draftPredictions?.ifFalse?.length || lockedByType.if_false.length > 0) && (
         <div>
-          <h4 className="text-sm font-medium text-muted-foreground mb-3">
-            Predictions If False
-          </h4>
+          <h4 className="text-sm font-medium text-muted-foreground mb-3">Predictions If False</h4>
           <div className="space-y-3">
             <AnimatePresence mode="popLayout">
               {lockedByType.if_false.map((pred) => (
@@ -721,7 +785,7 @@ export function PredictionLock({
               ))}
 
               {draftPredictions?.ifFalse?.map((text, idx) => {
-                const isLocked = lockedByType.if_false.some(p => p.originalIndex === idx);
+                const isLocked = lockedByType.if_false.some((p) => p.originalIndex === idx);
                 if (isLocked) return null;
 
                 return (
@@ -761,7 +825,9 @@ export function PredictionLock({
               ))}
 
               {draftPredictions?.impossible?.map((text, idx) => {
-                const isLocked = lockedByType.impossible_if_true.some(p => p.originalIndex === idx);
+                const isLocked = lockedByType.impossible_if_true.some(
+                  (p) => p.originalIndex === idx,
+                );
                 if (isLocked) return null;
 
                 return (

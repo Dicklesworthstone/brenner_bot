@@ -1,8 +1,8 @@
 "use client";
 
+import { AnimatePresence, motion, type PanInfo, useMotionValue, useTransform } from "framer-motion";
 import * as React from "react";
 import { createPortal } from "react-dom";
-import { motion, AnimatePresence, useMotionValue, useTransform, type PanInfo } from "framer-motion";
 import { cn } from "@/lib/utils";
 
 const CloseIcon = () => (
@@ -27,13 +27,7 @@ interface BottomSheetProps {
   className?: string;
 }
 
-export function BottomSheet({
-  open,
-  onClose,
-  title,
-  children,
-  className,
-}: BottomSheetProps) {
+export function BottomSheet({ open, onClose, title, children, className }: BottomSheetProps) {
   const [isMounted, setIsMounted] = React.useState(false);
   const constraintsRef = React.useRef<HTMLDivElement>(null);
 
@@ -103,7 +97,7 @@ export function BottomSheet({
             className={cn(
               "absolute inset-x-0 bottom-0 max-h-[85vh] flex flex-col",
               "rounded-t-3xl border-t border-border/50 bg-card shadow-2xl",
-              className
+              className,
             )}
             style={{ y, touchAction: "pan-y" }}
             initial={{ y: "100%" }}
@@ -145,7 +139,7 @@ export function BottomSheet({
         </motion.div>
       )}
     </AnimatePresence>,
-    document.body
+    document.body,
   );
 }
 
@@ -193,12 +187,10 @@ export function BottomSheetActions({
           className={cn(
             "w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left",
             "hover:bg-muted active:bg-muted/70 active:scale-[0.98] transition-all touch-manipulation",
-            action.destructive && "text-destructive hover:bg-destructive/10"
+            action.destructive && "text-destructive hover:bg-destructive/10",
           )}
         >
-          {action.icon && (
-            <span className="size-5 text-muted-foreground">{action.icon}</span>
-          )}
+          {action.icon && <span className="size-5 text-muted-foreground">{action.icon}</span>}
           <span className="font-medium">{action.label}</span>
         </button>
       ))}

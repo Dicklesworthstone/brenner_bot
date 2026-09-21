@@ -10,17 +10,17 @@
 import type {
   Artifact,
   ArtifactMetadata,
-  HypothesisItem,
-  TestItem,
   AssumptionItem,
   CritiqueItem,
+  HypothesisItem,
   PredictionItem,
   ResearchThreadItem,
+  TestItem,
 } from "../lib/artifact-merge";
-import type { Session, SessionParticipant, SessionExcerpt } from "./sessions";
-import type { User, AuthSession } from "./users";
-import type { AgentMailMessage, AgentMailInbox, AgentProfile } from "./api";
-import type { TranscriptDocument, DistillationDocument, DocumentSection } from "./documents";
+import type { AgentMailInbox, AgentMailMessage, AgentProfile } from "./api";
+import type { DistillationDocument, DocumentSection, TranscriptDocument } from "./documents";
+import type { Session, SessionExcerpt, SessionParticipant } from "./sessions";
+import type { AuthSession, User } from "./users";
 
 // ============================================================================
 // ID Generators
@@ -61,25 +61,26 @@ export function generateTimestamp(offsetMinutes: number = 0): string {
  */
 export function createTranscriptDocument(
   overrides: Partial<TranscriptDocument> = {},
-  sections: Partial<DocumentSection>[] = []
+  sections: Partial<DocumentSection>[] = [],
 ): TranscriptDocument {
-  const defaultSections: DocumentSection[] = sections.length > 0
-    ? sections.map((s, i) => ({
-        number: s.number ?? i + 1,
-        title: s.title ?? `Section ${i + 1}`,
-        text: s.text ?? `Content for section ${i + 1}`,
-        anchors: s.anchors ?? [`§${s.number ?? i + 1}`],
-        highlights: s.highlights,
-        jargonTerms: s.jargonTerms,
-      }))
-    : [
-        {
-          number: 1,
-          title: "Default Section",
-          text: "Default section content.",
-          anchors: ["§1"],
-        },
-      ];
+  const defaultSections: DocumentSection[] =
+    sections.length > 0
+      ? sections.map((s, i) => ({
+          number: s.number ?? i + 1,
+          title: s.title ?? `Section ${i + 1}`,
+          text: s.text ?? `Content for section ${i + 1}`,
+          anchors: s.anchors ?? [`§${s.number ?? i + 1}`],
+          highlights: s.highlights,
+          jargonTerms: s.jargonTerms,
+        }))
+      : [
+          {
+            number: 1,
+            title: "Default Section",
+            text: "Default section content.",
+            anchors: ["§1"],
+          },
+        ];
 
   return {
     id: generateId("transcript"),
@@ -96,7 +97,7 @@ export function createTranscriptDocument(
  */
 export function createDistillationDocument(
   model: "opus-4.5" | "gpt-5.2" | "gemini-3" = "opus-4.5",
-  overrides: Partial<DistillationDocument> = {}
+  overrides: Partial<DistillationDocument> = {},
 ): DistillationDocument {
   return {
     id: generateId("distillation"),
@@ -125,7 +126,8 @@ export function createDistillationDocument(
  */
 export function createSession(overrides: Partial<Session> = {}): Session {
   const id = overrides.id ?? generateId("session");
-  const thread_id = overrides.thread_id ?? `RS-${new Date().toISOString().slice(0, 10).replace(/-/g, "")}-${id}`;
+  const thread_id =
+    overrides.thread_id ?? `RS-${new Date().toISOString().slice(0, 10).replace(/-/g, "")}-${id}`;
 
   return {
     id,
@@ -158,7 +160,7 @@ export function createParticipant(overrides: Partial<SessionParticipant> = {}): 
 export function createExcerpt(
   anchor: string,
   text: string,
-  source: "transcript" | "quote-bank" | "distillation" = "transcript"
+  source: "transcript" | "quote-bank" | "distillation" = "transcript",
 ): SessionExcerpt {
   return { anchor, text, source };
 }
@@ -172,7 +174,7 @@ export function createExcerpt(
  */
 export function createArtifactMetadata(
   sessionId: string,
-  overrides: Partial<ArtifactMetadata> = {}
+  overrides: Partial<ArtifactMetadata> = {},
 ): ArtifactMetadata {
   const now = generateTimestamp();
   return {
@@ -212,8 +214,8 @@ export function createTest(overrides: Partial<TestItem> = {}): TestItem {
     procedure: overrides.procedure ?? "Test procedure description.",
     discriminates: overrides.discriminates ?? "H1 vs H2",
     expected_outcomes: overrides.expected_outcomes ?? {
-      "H1": "Expected outcome if H1 is true",
-      "H2": "Expected outcome if H2 is true",
+      H1: "Expected outcome if H1 is true",
+      H2: "Expected outcome if H2 is true",
     },
     potency_check: overrides.potency_check ?? "Control to verify test sensitivity.",
     feasibility: overrides.feasibility,
@@ -262,8 +264,8 @@ export function createPrediction(overrides: Partial<PredictionItem> = {}): Predi
     id,
     condition: overrides.condition ?? "Under test condition X",
     predictions: overrides.predictions ?? {
-      "H1": "Prediction if H1 is true",
-      "H2": "Prediction if H2 is true",
+      H1: "Prediction if H1 is true",
+      H2: "Prediction if H2 is true",
     },
   };
 }
@@ -272,7 +274,7 @@ export function createPrediction(overrides: Partial<PredictionItem> = {}): Predi
  * Create a research thread.
  */
 export function createResearchThread(
-  overrides: Partial<ResearchThreadItem> = {}
+  overrides: Partial<ResearchThreadItem> = {},
 ): ResearchThreadItem {
   return {
     id: "RT",
@@ -333,10 +335,7 @@ export function createValidArtifact(sessionId?: string): Artifact {
         createPrediction({ id: "P2" }),
         createPrediction({ id: "P3" }),
       ],
-      discriminative_tests: [
-        createTest({ id: "T1" }),
-        createTest({ id: "T2" }),
-      ],
+      discriminative_tests: [createTest({ id: "T1" }), createTest({ id: "T2" })],
       assumption_ledger: [
         createAssumption({ id: "A1" }),
         createAssumption({ id: "A2", scale_check: true, calculation: "Scale calculation." }),
@@ -392,7 +391,7 @@ export function createAuthSession(user?: User, overrides: Partial<AuthSession> =
  * Create an Agent Mail message.
  */
 export function createAgentMailMessage(
-  overrides: Partial<AgentMailMessage> = {}
+  overrides: Partial<AgentMailMessage> = {},
 ): AgentMailMessage {
   return {
     id: overrides.id ?? Math.floor(Math.random() * 10000),
@@ -417,7 +416,7 @@ export function createAgentMailMessage(
  */
 export function createAgentMailInbox(
   agent: string,
-  messages: AgentMailMessage[] = []
+  messages: AgentMailMessage[] = [],
 ): AgentMailInbox {
   return {
     project: "/data/projects/brenner_bot",

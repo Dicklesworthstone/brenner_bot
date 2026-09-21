@@ -6,7 +6,7 @@
  */
 
 import { expect } from "vitest";
-import type { ValidDelta, ParsedDelta, DeltaSection, DeltaOperation } from "../lib/delta-parser";
+import type { DeltaOperation, DeltaSection, ParsedDelta, ValidDelta } from "../lib/delta-parser";
 
 /**
  * Assert that a parsed delta is valid.
@@ -44,7 +44,10 @@ export function assertDeltaSection(delta: ValidDelta, expected: DeltaSection): v
 /**
  * Assert that a delta has a payload with the expected fields.
  */
-export function assertDeltaPayload(delta: ValidDelta, expectedFields: Record<string, unknown>): void {
+export function assertDeltaPayload(
+  delta: ValidDelta,
+  expectedFields: Record<string, unknown>,
+): void {
   for (const [key, value] of Object.entries(expectedFields)) {
     expect(delta.payload).toHaveProperty(key, value);
   }
@@ -77,7 +80,10 @@ export function assertContains(actual: string, expected: string, description = "
 /**
  * Assert that a value is defined (not null or undefined).
  */
-export function assertDefined<T>(value: T | null | undefined, description = "value"): asserts value is T {
+export function assertDefined<T>(
+  value: T | null | undefined,
+  description = "value",
+): asserts value is T {
   if (value === null || value === undefined) {
     throw new Error(`Expected ${description} to be defined, but got ${value}`);
   }

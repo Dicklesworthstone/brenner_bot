@@ -10,9 +10,8 @@
 
 "use client";
 
-import { useState, useCallback, useRef, useEffect } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { AgentMailClient } from "@/lib/agentMail";
-import type { HypothesisCard } from "@/lib/brenner-loop/hypothesis";
 import type { TribunalAgentRole } from "@/lib/brenner-loop/agents";
 import type {
   AgentDispatch,
@@ -20,14 +19,15 @@ import type {
   TribunalAgentResponse,
 } from "@/lib/brenner-loop/agents/dispatch";
 import {
-  createDispatch,
-  dispatchAllTasks,
-  pollForResponses,
   checkAgentAvailability,
-  getFallbackContent,
-  getDispatchStatus,
+  createDispatch,
   DEFAULT_DISPATCH_ROLES,
+  dispatchAllTasks,
+  getDispatchStatus,
+  getFallbackContent,
+  pollForResponses,
 } from "@/lib/brenner-loop/agents/dispatch";
+import type { HypothesisCard } from "@/lib/brenner-loop/hypothesis";
 
 // ============================================================================
 // Types
@@ -37,13 +37,13 @@ import {
  * Overall status of the dispatch operation
  */
 export type DispatchState =
-  | "idle"        // Not started
-  | "checking"    // Checking agent availability
+  | "idle" // Not started
+  | "checking" // Checking agent availability
   | "dispatching" // Sending dispatch messages
-  | "polling"     // Waiting for responses
-  | "complete"    // All responses received
+  | "polling" // Waiting for responses
+  | "complete" // All responses received
   | "unavailable" // Agents not available
-  | "error";      // Error occurred
+  | "error"; // Error occurred
 
 /**
  * Configuration for the hook
@@ -104,7 +104,7 @@ export interface UseAgentDispatchResult {
     hypothesis: HypothesisCard,
     sessionId: string,
     operatorResults?: OperatorResults,
-    roles?: TribunalAgentRole[]
+    roles?: TribunalAgentRole[],
   ) => Promise<void>;
 
   /** Manually trigger polling for responses */
@@ -235,7 +235,7 @@ export function useAgentDispatch(config: UseAgentDispatchConfig): UseAgentDispat
       hypothesis: HypothesisCard,
       sessionId: string,
       operatorResults?: OperatorResults,
-      roles?: TribunalAgentRole[]
+      roles?: TribunalAgentRole[],
     ) => {
       if (!clientRef.current) {
         setError("Agent Mail client not initialized");
@@ -296,7 +296,7 @@ export function useAgentDispatch(config: UseAgentDispatchConfig): UseAgentDispat
         setState("error");
       }
     },
-    [projectKey, senderName, autoStartPolling, startPolling, stopPolling]
+    [projectKey, senderName, autoStartPolling, startPolling, stopPolling],
   );
 
   /**

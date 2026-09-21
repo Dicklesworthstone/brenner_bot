@@ -12,33 +12,33 @@
  */
 
 import { useCallback, useEffect, useMemo } from "react";
-import { useLocalStorage } from "./useLocalStorage";
-import type { Session, SessionPhase, EvidenceEntry } from "@/lib/brenner-loop/types";
+import type { EvidenceEntry, Session, SessionPhase } from "@/lib/brenner-loop/types";
 import {
-  type UndoStack,
-  type SessionCommand,
-  createUndoStack,
-  executeCommand,
-  undo,
-  redo,
-  canUndo,
   canRedo,
-  getNextUndoDescription,
-  getNextRedoDescription,
-  getRecentHistory,
+  canUndo,
   clearHistory,
-  createConfidenceCommand,
-  createSetPrimaryCommand,
-  createArchiveCommand,
-  createRestoreCommand,
-  createEvidenceCommand,
-  createPhaseCommand,
-  createNotesCommand,
   createAddTagCommand,
+  createArchiveCommand,
+  createConfidenceCommand,
+  createEvidenceCommand,
+  createNotesCommand,
+  createPhaseCommand,
   createRemoveTagCommand,
-  serializeUndoStack,
+  createRestoreCommand,
+  createSetPrimaryCommand,
+  createUndoStack,
   deserializeUndoStack,
+  executeCommand,
+  getNextRedoDescription,
+  getNextUndoDescription,
+  getRecentHistory,
+  redo,
+  type SessionCommand,
+  serializeUndoStack,
+  type UndoStack,
+  undo,
 } from "@/lib/brenner-loop/undoManager";
+import { useLocalStorage } from "./useLocalStorage";
 
 // ============================================================================
 // Types
@@ -102,20 +102,12 @@ export interface UseUndoRedoResult {
     previousConfidence: number,
     newConfidence: number,
     reason: string,
-    evidenceId?: string
+    evidenceId?: string,
   ) => Session;
 
-  setPrimary: (
-    session: Session,
-    newPrimaryId: string,
-    previousPrimaryId: string
-  ) => Session;
+  setPrimary: (session: Session, newPrimaryId: string, previousPrimaryId: string) => Session;
 
-  archiveHypothesis: (
-    session: Session,
-    hypothesisId: string,
-    reason: string
-  ) => Session;
+  archiveHypothesis: (session: Session, hypothesisId: string, reason: string) => Session;
 
   restoreHypothesis: (session: Session, hypothesisId: string) => Session;
 
@@ -124,14 +116,10 @@ export interface UseUndoRedoResult {
   transitionPhase: (
     session: Session,
     previousPhase: SessionPhase,
-    newPhase: SessionPhase
+    newPhase: SessionPhase,
   ) => Session;
 
-  updateNotes: (
-    session: Session,
-    previousNotes: string,
-    newNotes: string
-  ) => Session;
+  updateNotes: (session: Session, previousNotes: string, newNotes: string) => Session;
 
   addTag: (session: Session, tag: string) => Session;
 
@@ -151,7 +139,7 @@ export function useUndoRedo(options: UseUndoRedoOptions): UseUndoRedoResult {
   // Persist undo stack to localStorage
   const [stackData, setStackData] = useLocalStorage<string>(
     `brenner-undo-${sessionId}`,
-    serializeUndoStack(createUndoStack(maxHistory))
+    serializeUndoStack(createUndoStack(maxHistory)),
   );
 
   // Parse the stack from storage
@@ -167,7 +155,7 @@ export function useUndoRedo(options: UseUndoRedoOptions): UseUndoRedoResult {
       setStackData(serializeUndoStack(result.stack));
       return result.session;
     },
-    [stack, setStackData]
+    [stack, setStackData],
   );
 
   // Undo
@@ -178,7 +166,7 @@ export function useUndoRedo(options: UseUndoRedoOptions): UseUndoRedoResult {
       setStackData(serializeUndoStack(result.stack));
       return result.session;
     },
-    [stack, setStackData]
+    [stack, setStackData],
   );
 
   // Redo
@@ -189,7 +177,7 @@ export function useUndoRedo(options: UseUndoRedoOptions): UseUndoRedoResult {
       setStackData(serializeUndoStack(result.stack));
       return result.session;
     },
-    [stack, setStackData]
+    [stack, setStackData],
   );
 
   // Clear all
@@ -205,30 +193,26 @@ export function useUndoRedo(options: UseUndoRedoOptions): UseUndoRedoResult {
       previousConfidence: number,
       newConfidence: number,
       reason: string,
-      evidenceId?: string
+      evidenceId?: string,
     ): Session => {
       const cmd = createConfidenceCommand(
         hypothesisId,
         previousConfidence,
         newConfidence,
         reason,
-        evidenceId
+        evidenceId,
       );
       return execute(session, cmd);
     },
-    [execute]
+    [execute],
   );
 
   const setPrimary = useCallback(
-    (
-      session: Session,
-      newPrimaryId: string,
-      previousPrimaryId: string
-    ): Session => {
+    (session: Session, newPrimaryId: string, previousPrimaryId: string): Session => {
       const cmd = createSetPrimaryCommand(newPrimaryId, previousPrimaryId);
       return execute(session, cmd);
     },
-    [execute]
+    [execute],
   );
 
   const archiveHypothesis = useCallback(
@@ -236,7 +220,7 @@ export function useUndoRedo(options: UseUndoRedoOptions): UseUndoRedoResult {
       const cmd = createArchiveCommand(hypothesisId, reason);
       return execute(session, cmd);
     },
-    [execute]
+    [execute],
   );
 
   const restoreHypothesis = useCallback(
@@ -244,7 +228,7 @@ export function useUndoRedo(options: UseUndoRedoOptions): UseUndoRedoResult {
       const cmd = createRestoreCommand(hypothesisId);
       return execute(session, cmd);
     },
-    [execute]
+    [execute],
   );
 
   const recordEvidence = useCallback(
@@ -252,19 +236,15 @@ export function useUndoRedo(options: UseUndoRedoOptions): UseUndoRedoResult {
       const cmd = createEvidenceCommand(evidence);
       return execute(session, cmd);
     },
-    [execute]
+    [execute],
   );
 
   const transitionPhase = useCallback(
-    (
-      session: Session,
-      previousPhase: SessionPhase,
-      newPhase: SessionPhase
-    ): Session => {
+    (session: Session, previousPhase: SessionPhase, newPhase: SessionPhase): Session => {
       const cmd = createPhaseCommand(previousPhase, newPhase);
       return execute(session, cmd);
     },
-    [execute]
+    [execute],
   );
 
   const updateNotes = useCallback(
@@ -272,7 +252,7 @@ export function useUndoRedo(options: UseUndoRedoOptions): UseUndoRedoResult {
       const cmd = createNotesCommand(previousNotes, newNotes);
       return execute(session, cmd);
     },
-    [execute]
+    [execute],
   );
 
   const addTag = useCallback(
@@ -280,7 +260,7 @@ export function useUndoRedo(options: UseUndoRedoOptions): UseUndoRedoResult {
       const cmd = createAddTagCommand(tag);
       return execute(session, cmd);
     },
-    [execute]
+    [execute],
   );
 
   const removeTag = useCallback(
@@ -288,7 +268,7 @@ export function useUndoRedo(options: UseUndoRedoOptions): UseUndoRedoResult {
       const cmd = createRemoveTagCommand(tag);
       return execute(session, cmd);
     },
-    [execute]
+    [execute],
   );
 
   // Keyboard shortcuts

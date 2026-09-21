@@ -12,7 +12,7 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
-import { TutorialCodeBlock, InlineCode } from "./TutorialCodeBlock";
+import { InlineCode, TutorialCodeBlock } from "./TutorialCodeBlock";
 
 describe("TutorialCodeBlock", () => {
   describe("rendering", () => {
@@ -22,13 +22,7 @@ describe("TutorialCodeBlock", () => {
     });
 
     it("renders with title in header", () => {
-      render(
-        <TutorialCodeBlock
-          code="npm install"
-          language="bash"
-          title="package.json"
-        />
-      );
+      render(<TutorialCodeBlock code="npm install" language="bash" title="package.json" />);
       expect(screen.getByText("package.json")).toBeInTheDocument();
     });
 
@@ -43,26 +37,20 @@ describe("TutorialCodeBlock", () => {
           code="npm install"
           language="bash"
           description="Install the dependencies"
-        />
+        />,
       );
       expect(screen.getByText("Install the dependencies")).toBeInTheDocument();
     });
 
     it("applies custom className", () => {
       const { container } = render(
-        <TutorialCodeBlock
-          code="test"
-          language="text"
-          className="custom-class"
-        />
+        <TutorialCodeBlock code="test" language="text" className="custom-class" />,
       );
       expect(container.firstChild).toHaveClass("custom-class");
     });
 
     it("renders traffic light buttons", () => {
-      const { container } = render(
-        <TutorialCodeBlock code="test" language="bash" />
-      );
+      const { container } = render(<TutorialCodeBlock code="test" language="bash" />);
       // Traffic lights are decorative divs with specific background colors
       const trafficLights = container.querySelectorAll(".rounded-full.size-3");
       expect(trafficLights.length).toBe(3);
@@ -117,8 +105,13 @@ describe("TutorialCodeBlock", () => {
 
   describe("line numbers", () => {
     it("does not show line numbers by default", () => {
-      render(<TutorialCodeBlock code={`line 1
-line 2`} language="text" />);
+      render(
+        <TutorialCodeBlock
+          code={`line 1
+line 2`}
+          language="text"
+        />,
+      );
       // Line numbers should not be rendered when showLineNumbers is false
       const codeBlock = screen.getByText(/line 1/);
       expect(codeBlock).toBeInTheDocument();
@@ -132,7 +125,7 @@ line 2
 line 3`}
           language="text"
           showLineNumbers
-        />
+        />,
       );
       // When showLineNumbers is true, we should see number elements
       // The numbers appear in select-none spans before the content
@@ -162,37 +155,24 @@ line 3`}
     });
 
     it("shows code when collapsible but not defaultCollapsed", () => {
-      render(
-        <TutorialCodeBlock code="collapsible code" language="text" collapsible />
-      );
+      render(<TutorialCodeBlock code="collapsible code" language="text" collapsible />);
       expect(screen.getByText("collapsible code")).toBeInTheDocument();
     });
 
     it("hides code when collapsible and defaultCollapsed", () => {
-      render(
-        <TutorialCodeBlock
-          code="hidden code"
-          language="text"
-          collapsible
-          defaultCollapsed
-        />
-      );
+      render(<TutorialCodeBlock code="hidden code" language="text" collapsible defaultCollapsed />);
       expect(screen.queryByText("hidden code")).not.toBeInTheDocument();
     });
 
     it("renders collapse toggle button when collapsible", () => {
-      render(
-        <TutorialCodeBlock code="test" language="text" collapsible />
-      );
+      render(<TutorialCodeBlock code="test" language="text" collapsible />);
       const collapseButton = screen.getByRole("button", { name: /collapse|expand/i });
       expect(collapseButton).toBeInTheDocument();
     });
 
     it("toggles code visibility when collapse button is clicked", async () => {
       const user = userEvent.setup();
-      render(
-        <TutorialCodeBlock code="toggle me" language="text" collapsible />
-      );
+      render(<TutorialCodeBlock code="toggle me" language="text" collapsible />);
 
       // Initially visible
       expect(screen.getByText("toggle me")).toBeInTheDocument();
@@ -243,9 +223,7 @@ describe("InlineCode", () => {
     });
 
     it("applies custom className", () => {
-      const { container } = render(
-        <InlineCode className="custom-class">code</InlineCode>
-      );
+      const { container } = render(<InlineCode className="custom-class">code</InlineCode>);
       expect(container.firstChild).toHaveClass("custom-class");
     });
 

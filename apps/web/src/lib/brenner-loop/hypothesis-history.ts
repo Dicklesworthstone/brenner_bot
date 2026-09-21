@@ -158,7 +158,7 @@ export function addRootHypothesis(
   store: HypothesisHistoryStore,
   hypothesis: HypothesisCard,
   message: string,
-  createdBy?: string
+  createdBy?: string,
 ): { version: HypothesisVersion; store: HypothesisHistoryStore } {
   const version: HypothesisVersion = {
     id: hypothesis.id,
@@ -206,7 +206,7 @@ export function evolveHypothesis(
   trigger: EvolutionTrigger,
   message: string,
   createdBy?: string,
-  relatedEntityId?: string
+  relatedEntityId?: string,
 ): { version: HypothesisVersion; store: HypothesisHistoryStore } {
   const currentVersion = store.versions[currentId];
   if (!currentVersion) {
@@ -214,12 +214,7 @@ export function evolveHypothesis(
   }
 
   // Use the hypothesis.ts evolveHypothesisCard function
-  const evolvedCard = evolveHypothesisCard(
-    currentVersion.hypothesis,
-    changes,
-    message,
-    createdBy
-  );
+  const evolvedCard = evolveHypothesisCard(currentVersion.hypothesis, changes, message, createdBy);
 
   const newVersion: HypothesisVersion = {
     id: evolvedCard.id,
@@ -240,9 +235,7 @@ export function evolveHypothesis(
   };
 
   // Update current list (replace old with new)
-  const newCurrent = store.current
-    .filter((id) => id !== currentId)
-    .concat(newVersion.id);
+  const newCurrent = store.current.filter((id) => id !== currentId).concat(newVersion.id);
 
   const newStore: HypothesisHistoryStore = {
     ...store,
@@ -266,7 +259,7 @@ export function evolveHypothesis(
  */
 export function abandonHypothesis(
   store: HypothesisHistoryStore,
-  versionId: string
+  versionId: string,
 ): HypothesisHistoryStore {
   if (!store.versions[versionId]) {
     throw new Error(`Hypothesis version not found: ${versionId}`);
@@ -292,7 +285,7 @@ export function abandonHypothesis(
  */
 export function getAncestors(
   store: HypothesisHistoryStore,
-  versionId: string
+  versionId: string,
 ): HypothesisVersion[] {
   const ancestors: HypothesisVersion[] = [];
   let currentId: string | undefined = store.versions[versionId]?.parentId;
@@ -316,7 +309,7 @@ export function getAncestors(
  */
 export function getDescendants(
   store: HypothesisHistoryStore,
-  versionId: string
+  versionId: string,
 ): HypothesisVersion[] {
   const descendants: HypothesisVersion[] = [];
   const queue: string[] = [...(store.versions[versionId]?.children ?? [])];
@@ -343,7 +336,7 @@ export function getDescendants(
  */
 export function getRoot(
   store: HypothesisHistoryStore,
-  versionId: string
+  versionId: string,
 ): HypothesisVersion | undefined {
   const ancestors = getAncestors(store, versionId);
   if (ancestors.length === 0) {
@@ -359,10 +352,7 @@ export function getRoot(
  * @param versionId - The root of the subtree (or undefined for all roots)
  * @returns Array of leaf versions
  */
-export function getLeaves(
-  store: HypothesisHistoryStore,
-  versionId?: string
-): HypothesisVersion[] {
+export function getLeaves(store: HypothesisHistoryStore, versionId?: string): HypothesisVersion[] {
   const startIds = versionId ? [versionId] : store.roots;
   const leaves: HypothesisVersion[] = [];
 
@@ -392,9 +382,9 @@ export function getLeaves(
 export function findCommonAncestor(
   store: HypothesisHistoryStore,
   versionId1: string,
-  versionId2: string
+  versionId2: string,
 ): HypothesisVersion | undefined {
-  const ancestors1 = new Set([versionId1, ...getAncestors(store, versionId1).map(v => v.id)]);
+  const ancestors1 = new Set([versionId1, ...getAncestors(store, versionId1).map((v) => v.id)]);
 
   let currentId: string | undefined = versionId2;
   while (currentId) {
@@ -466,19 +456,11 @@ export interface HypothesisDiff {
  * @param v2 - The newer hypothesis card
  * @returns A detailed diff
  */
-export function diffHypotheses(
-  v1: HypothesisCard,
-  v2: HypothesisCard
-): HypothesisDiff {
+export function diffHypotheses(v1: HypothesisCard, v2: HypothesisCard): HypothesisDiff {
   const changes: HypothesisChange[] = [];
 
   // Compare scalar fields
-  const scalarFields: (keyof HypothesisCard)[] = [
-    "statement",
-    "mechanism",
-    "confidence",
-    "notes",
-  ];
+  const scalarFields: (keyof HypothesisCard)[] = ["statement", "mechanism", "confidence", "notes"];
 
   for (const field of scalarFields) {
     const oldVal = v1[field];
@@ -599,10 +581,7 @@ export function diffHypotheses(
 /**
  * Helper to diff two confounds.
  */
-function diffConfounds(
-  c1: IdentifiedConfound,
-  c2: IdentifiedConfound
-): string[] {
+function diffConfounds(c1: IdentifiedConfound, c2: IdentifiedConfound): string[] {
   const changes: string[] = [];
   if (c1.name !== c2.name) changes.push("name");
   if (c1.description !== c2.description) changes.push("description");
@@ -700,7 +679,7 @@ export interface EvolutionGraph {
  */
 export function generateEvolutionGraph(
   store: HypothesisHistoryStore,
-  maxLabelLength: number = 50
+  maxLabelLength: number = 50,
 ): EvolutionGraph {
   const nodes: EvolutionGraphNode[] = [];
   const edges: EvolutionGraphEdge[] = [];
@@ -768,7 +747,7 @@ export function generateEvolutionGraph(
 export function generateLineageGraph(
   store: HypothesisHistoryStore,
   versionId: string,
-  includeDescendants: boolean = true
+  includeDescendants: boolean = true,
 ): EvolutionGraph {
   const relevantIds = new Set<string>();
 
@@ -809,7 +788,7 @@ export function generateLineageGraph(
     let label = version.hypothesis.statement;
     // 50 chars hardcoded or passed as arg? The original fn signature didn't take maxLabelLength.
     // The previous implementation called generateEvolutionGraph which took maxLabelLength=50 default.
-    const maxLabelLength = 50; 
+    const maxLabelLength = 50;
     if (label.length > maxLabelLength) {
       label = label.slice(0, maxLabelLength - 3) + "...";
     }
@@ -827,7 +806,7 @@ export function generateLineageGraph(
     });
 
     if (!version.parentId) {
-        relevantRoots.add(id);
+      relevantRoots.add(id);
     }
 
     // Create edges to children IF they are in the relevant set
@@ -913,7 +892,7 @@ export function getEvolutionStats(store: HypothesisHistoryStore): {
  */
 export function findByTrigger(
   store: HypothesisHistoryStore,
-  trigger: EvolutionTrigger
+  trigger: EvolutionTrigger,
 ): HypothesisVersion[] {
   return Object.values(store.versions).filter((v) => v.trigger === trigger);
 }
@@ -924,10 +903,10 @@ export function findByTrigger(
 export function findByTimeRange(
   store: HypothesisHistoryStore,
   startTime: Date,
-  endTime: Date
+  endTime: Date,
 ): HypothesisVersion[] {
   return Object.values(store.versions).filter(
-    (v) => v.timestamp >= startTime && v.timestamp <= endTime
+    (v) => v.timestamp >= startTime && v.timestamp <= endTime,
   );
 }
 
@@ -937,7 +916,7 @@ export function findByTimeRange(
 export function isAncestor(
   store: HypothesisHistoryStore,
   potentialAncestorId: string,
-  descendantId: string
+  descendantId: string,
 ): boolean {
   const ancestors = getAncestors(store, descendantId);
   return ancestors.some((a) => a.id === potentialAncestorId);

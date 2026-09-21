@@ -558,19 +558,14 @@ export function validateHypothesisCard(card: HypothesisCard): ValidationResult {
   }
 
   // Check for generic mechanism patterns (use trimmed to match ^ correctly)
-  const genericMechanismPatterns = [
-    /^causes?\s/i,
-    /^leads?\sto\s/i,
-    /^results?\sin\s/i,
-  ];
+  const genericMechanismPatterns = [/^causes?\s/i, /^leads?\sto\s/i, /^results?\sin\s/i];
   if (
     mechanismTrimmed.length > 0 &&
     genericMechanismPatterns.some((p) => p.test(mechanismTrimmed))
   ) {
     warnings.push({
       field: "mechanism",
-      message:
-        "Mechanism appears generic. Consider specifying the causal pathway in more detail.",
+      message: "Mechanism appears generic. Consider specifying the causal pathway in more detail.",
       code: "GENERIC_MECHANISM",
     });
   }
@@ -721,8 +716,10 @@ export function isHypothesisCard(obj: unknown): obj is HypothesisCard {
 
   // Check arrays exist and contain correct element types
   if (!Array.isArray(card.domain) || !isStringArray(card.domain)) return false;
-  if (!Array.isArray(card.predictionsIfTrue) || !isStringArray(card.predictionsIfTrue)) return false;
-  if (!Array.isArray(card.predictionsIfFalse) || !isStringArray(card.predictionsIfFalse)) return false;
+  if (!Array.isArray(card.predictionsIfTrue) || !isStringArray(card.predictionsIfTrue))
+    return false;
+  if (!Array.isArray(card.predictionsIfFalse) || !isStringArray(card.predictionsIfFalse))
+    return false;
   if (!Array.isArray(card.impossibleIfTrue) || !isStringArray(card.impossibleIfTrue)) return false;
   if (!Array.isArray(card.assumptions) || !isStringArray(card.assumptions)) return false;
 
@@ -735,7 +732,8 @@ export function isHypothesisCard(obj: unknown): obj is HypothesisCard {
   if (!isValidDateOrString(card.updatedAt)) return false;
 
   // Validate ranges (use Number.isFinite to catch NaN/Infinity)
-  if (!Number.isFinite(card.confidence) || card.confidence < 0 || card.confidence > 100) return false;
+  if (!Number.isFinite(card.confidence) || card.confidence < 0 || card.confidence > 100)
+    return false;
   if (!Number.isInteger(card.version) || card.version < 1) return false;
 
   // Validate optional fields have correct types if present
@@ -744,7 +742,8 @@ export function isHypothesisCard(obj: unknown): obj is HypothesisCard {
   if (card.createdBy !== undefined && typeof card.createdBy !== "string") return false;
   if (card.sessionId !== undefined && typeof card.sessionId !== "string") return false;
   if (card.notes !== undefined && typeof card.notes !== "string") return false;
-  if (card.tags !== undefined && (!Array.isArray(card.tags) || !isStringArray(card.tags))) return false;
+  if (card.tags !== undefined && (!Array.isArray(card.tags) || !isStringArray(card.tags)))
+    return false;
 
   return true;
 }
@@ -770,12 +769,15 @@ export function isIdentifiedConfound(obj: unknown): obj is IdentifiedConfound {
   if (typeof confound.domain !== "string") return false;
 
   // Validate range (use Number.isFinite to catch NaN/Infinity)
-  if (!Number.isFinite(confound.likelihood) || confound.likelihood < 0 || confound.likelihood > 1) return false;
+  if (!Number.isFinite(confound.likelihood) || confound.likelihood < 0 || confound.likelihood > 1)
+    return false;
 
   // Validate optional fields have correct types if present
   if (confound.addressed !== undefined && typeof confound.addressed !== "boolean") return false;
-  if (confound.addressedHow !== undefined && typeof confound.addressedHow !== "string") return false;
-  if (confound.addressedAt !== undefined && !isValidDateOrString(confound.addressedAt)) return false;
+  if (confound.addressedHow !== undefined && typeof confound.addressedHow !== "string")
+    return false;
+  if (confound.addressedAt !== undefined && !isValidDateOrString(confound.addressedAt))
+    return false;
 
   return true;
 }
@@ -802,27 +804,23 @@ const SESSION_ID_PATTERN = /^[A-Za-z0-9][A-Za-z0-9-]*$/;
 export function generateHypothesisCardId(
   sessionId: string,
   sequence: number,
-  version: number = 1
+  version: number = 1,
 ): string {
   // Validate sessionId
   if (!sessionId || !SESSION_ID_PATTERN.test(sessionId)) {
     throw new Error(
-      `Invalid sessionId: must start with alphanumeric and contain only alphanumerics/hyphens (got "${sessionId}")`
+      `Invalid sessionId: must start with alphanumeric and contain only alphanumerics/hyphens (got "${sessionId}")`,
     );
   }
 
   // Validate sequence (must be integer 0-999)
   if (!Number.isInteger(sequence) || sequence < 0 || sequence > 999) {
-    throw new Error(
-      `Invalid sequence: must be an integer from 0-999 (got ${sequence})`
-    );
+    throw new Error(`Invalid sequence: must be an integer from 0-999 (got ${sequence})`);
   }
 
   // Validate version (must be positive integer)
   if (!Number.isInteger(version) || version < 1) {
-    throw new Error(
-      `Invalid version: must be a positive integer (got ${version})`
-    );
+    throw new Error(`Invalid version: must be a positive integer (got ${version})`);
   }
 
   const paddedSeq = sequence.toString().padStart(3, "0");
@@ -837,22 +835,17 @@ export function generateHypothesisCardId(
  * @returns A formatted confound ID
  * @throws Error if inputs are invalid
  */
-export function generateConfoundId(
-  hypothesisId: string,
-  sequence: number
-): string {
+export function generateConfoundId(hypothesisId: string, sequence: number): string {
   // Validate hypothesisId matches the expected pattern
   if (!hypothesisId || !HYPOTHESIS_CARD_ID_PATTERN.test(hypothesisId)) {
     throw new Error(
-      `Invalid hypothesisId: must match HC-{session}-{seq}-v{version} format (got "${hypothesisId}")`
+      `Invalid hypothesisId: must match HC-{session}-{seq}-v{version} format (got "${hypothesisId}")`,
     );
   }
 
   // Validate sequence (must be integer 0-99)
   if (!Number.isInteger(sequence) || sequence < 0 || sequence > 99) {
-    throw new Error(
-      `Invalid sequence: must be an integer from 0-99 (got ${sequence})`
-    );
+    throw new Error(`Invalid sequence: must be an integer from 0-99 (got ${sequence})`);
   }
 
   return `${hypothesisId}-CF${sequence.toString().padStart(2, "0")}`;
@@ -911,9 +904,7 @@ export function createHypothesisCard(input: {
   const result = validateHypothesisCard(card);
   if (!result.valid) {
     const errorMessages = result.errors.map((e) => `${e.field}: ${e.message}`);
-    throw new Error(
-      `Invalid HypothesisCard: ${errorMessages.join("; ")}`
-    );
+    throw new Error(`Invalid HypothesisCard: ${errorMessages.join("; ")}`);
   }
 
   return card;
@@ -933,9 +924,20 @@ export function createHypothesisCard(input: {
  */
 export function evolveHypothesisCard(
   current: HypothesisCard,
-  changes: Partial<Omit<HypothesisCard, "id" | "version" | "parentVersion" | "createdAt" | "updatedAt" | "evolutionReason" | "createdBy">>,
+  changes: Partial<
+    Omit<
+      HypothesisCard,
+      | "id"
+      | "version"
+      | "parentVersion"
+      | "createdAt"
+      | "updatedAt"
+      | "evolutionReason"
+      | "createdBy"
+    >
+  >,
   reason: string,
-  createdBy?: string
+  createdBy?: string,
 ): HypothesisCard {
   const now = new Date();
 
@@ -967,9 +969,7 @@ export function evolveHypothesisCard(
   const result = validateHypothesisCard(evolved);
   if (!result.valid) {
     const errorMessages = result.errors.map((e) => `${e.field}: ${e.message}`);
-    throw new Error(
-      `Invalid evolved HypothesisCard: ${errorMessages.join("; ")}`
-    );
+    throw new Error(`Invalid evolved HypothesisCard: ${errorMessages.join("; ")}`);
   }
 
   return evolved;
@@ -989,9 +989,7 @@ export function evolveHypothesisCard(
  */
 export function calculateFalsifiabilityScore(card: HypothesisCard): number {
   // Filter out empty/whitespace-only strings for accurate scoring
-  const validConditions = (card.impossibleIfTrue || []).filter(
-    (s) => s.trim().length > 0
-  );
+  const validConditions = (card.impossibleIfTrue || []).filter((s) => s.trim().length > 0);
 
   if (validConditions.length === 0) {
     return 0;
@@ -1007,15 +1005,12 @@ export function calculateFalsifiabilityScore(card: HypothesisCard): number {
 
   // Bonus for specificity (longer = more specific, up to a point)
   const avgLength =
-    validConditions.reduce((sum, c) => sum + c.trim().length, 0) /
-    validConditions.length;
+    validConditions.reduce((sum, c) => sum + c.trim().length, 0) / validConditions.length;
   if (avgLength > 50) score += 20;
   else if (avgLength > 25) score += 10;
 
   // Bonus for having predictionsIfFalse as well
-  const validPredictionsFalse = (card.predictionsIfFalse || []).filter(
-    (s) => s.trim().length > 0
-  );
+  const validPredictionsFalse = (card.predictionsIfFalse || []).filter((s) => s.trim().length > 0);
   if (validPredictionsFalse.length > 0) {
     score += 20;
   }
@@ -1039,9 +1034,7 @@ export function calculateSpecificityScore(card: HypothesisCard): number {
 
   // Filter out empty/whitespace-only strings for accurate scoring
   // Use defensive access pattern for runtime safety (e.g., malformed JSON input)
-  const validPredictions = (card.predictionsIfTrue || []).filter(
-    (s) => s.trim().length > 0
-  );
+  const validPredictions = (card.predictionsIfTrue || []).filter((s) => s.trim().length > 0);
   const validDomains = (card.domain || []).filter((s) => s.trim().length > 0);
 
   // Score based on predictions if true

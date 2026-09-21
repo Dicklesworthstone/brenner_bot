@@ -8,23 +8,22 @@
  * @see brenner_bot-719
  */
 
-import { readFileSync, writeFileSync, mkdirSync, existsSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import MiniSearch from "minisearch";
-
-// Import parsers - use relative paths for build script
-import { parseTranscript } from "../src/lib/transcript-parser";
-import { parseDistillation } from "../src/lib/distillation-parser";
-import { parseQuoteBank } from "../src/lib/quotebank-parser";
-import { parseMetaprompt } from "../src/lib/metaprompt-parser";
-import { CORPUS_DOCS, type DocCategory } from "../src/lib/corpus";
 import {
   makeDistillationSectionDomId,
   makeTranscriptSectionDomId,
   quoteBankDomIdFromSectionId,
   slugifyHeadingForAnchor,
 } from "../src/lib/anchors";
+import { CORPUS_DOCS, type DocCategory } from "../src/lib/corpus";
+import { parseDistillation } from "../src/lib/distillation-parser";
+import { parseMetaprompt } from "../src/lib/metaprompt-parser";
+import { parseQuoteBank } from "../src/lib/quotebank-parser";
+// Import parsers - use relative paths for build script
+import { parseTranscript } from "../src/lib/transcript-parser";
 
 // ============================================================================
 // Types
@@ -265,7 +264,13 @@ const buildSectionsMeta = (entries: SearchEntry[]): Record<number, SectionMeta> 
   return sections;
 };
 
-const buildIndex = (): { entries: SearchEntry[]; miniSearchIndex: object; stats: IndexStats; buildTimeMs: number; sectionsMeta: Record<number, SectionMeta> } => {
+const buildIndex = (): {
+  entries: SearchEntry[];
+  miniSearchIndex: object;
+  stats: IndexStats;
+  buildTimeMs: number;
+  sectionsMeta: Record<number, SectionMeta>;
+} => {
   const startTime = Date.now();
   const entries: SearchEntry[] = [];
   const byCategory: Record<string, number> = {};
@@ -315,7 +320,15 @@ const buildIndex = (): { entries: SearchEntry[]; miniSearchIndex: object; stats:
 
   const miniSearch = new MiniSearch<SearchEntry>({
     fields: ["content", "sectionTitle", "docTitle"],
-    storeFields: ["docId", "docTitle", "sectionTitle", "anchor", "category", "sectionNumber", "reference"],
+    storeFields: [
+      "docId",
+      "docTitle",
+      "sectionTitle",
+      "anchor",
+      "category",
+      "sectionNumber",
+      "reference",
+    ],
     searchOptions: {
       prefix: true,
       fuzzy: 0.2,
@@ -375,7 +388,9 @@ const main = (): void => {
   // Write sections metadata file
   const sectionsJson = JSON.stringify(sectionsMeta);
   writeFileSync(SECTIONS_FILE, sectionsJson + "\n");
-  console.log(`✓ Sections written to: ${SECTIONS_FILE} (${(Buffer.byteLength(sectionsJson, "utf-8") / 1024).toFixed(2)} KB)`);
+  console.log(
+    `✓ Sections written to: ${SECTIONS_FILE} (${(Buffer.byteLength(sectionsJson, "utf-8") / 1024).toFixed(2)} KB)`,
+  );
 
   // Summary
   console.log("\n╔══════════════════════════════════════════════════════════╗");

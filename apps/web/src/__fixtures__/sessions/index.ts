@@ -9,12 +9,12 @@
 
 import type {
   Artifact,
-  HypothesisItem,
-  TestItem,
   AssumptionItem,
   CritiqueItem,
+  HypothesisItem,
   PredictionItem,
   ResearchThreadItem,
+  TestItem,
 } from "../../lib/artifact-merge";
 
 // ============================================================================
@@ -56,8 +56,10 @@ export interface Session {
 export const sampleResearchThread: ResearchThreadItem = {
   id: "RT",
   statement: "Does role-separated prompting improve Brenner-style artifact quality?",
-  context: "Investigating whether structuring multi-agent sessions with explicit cognitive roles produces higher-quality artifacts compared to unified prompts.",
-  why_it_matters: "If role separation improves artifact quality, this validates the 3-role Brenner Protocol design. If not, we should simplify.",
+  context:
+    "Investigating whether structuring multi-agent sessions with explicit cognitive roles produces higher-quality artifacts compared to unified prompts.",
+  why_it_matters:
+    "If role separation improves artifact quality, this validates the 3-role Brenner Protocol design. If not, we should simplify.",
   anchors: ["§103", "§105", "§230"],
 };
 
@@ -69,8 +71,10 @@ export const sampleHypotheses: HypothesisItem[] = [
   {
     id: "H1",
     name: "Role-Separation Improves Quality",
-    claim: "Explicitly assigning cognitive roles (generator, tester, critic) produces artifacts with fewer errors",
-    mechanism: "Role separation creates productive ignorance—each agent focuses on their specialty without being biased by other concerns",
+    claim:
+      "Explicitly assigning cognitive roles (generator, tester, critic) produces artifacts with fewer errors",
+    mechanism:
+      "Role separation creates productive ignorance—each agent focuses on their specialty without being biased by other concerns",
     anchors: ["§230", "§105"],
     third_alternative: false,
   },
@@ -85,8 +89,10 @@ export const sampleHypotheses: HypothesisItem[] = [
   {
     id: "H3",
     name: "Both Wrong - Structure vs Content",
-    claim: "Neither role separation NOR unified prompts matter—artifact quality depends on excerpt selection",
-    mechanism: "We're measuring the wrong thing. Quality comes from the INPUT (excerpts) not the PROCESSING (prompt structure)",
+    claim:
+      "Neither role separation NOR unified prompts matter—artifact quality depends on excerpt selection",
+    mechanism:
+      "We're measuring the wrong thing. Quality comes from the INPUT (excerpts) not the PROCESSING (prompt structure)",
     anchors: ["§103", "§210"],
     third_alternative: true,
   },
@@ -100,7 +106,8 @@ export const sampleTests: TestItem[] = [
   {
     id: "T1",
     name: "Linter Error Count Comparison",
-    procedure: "Run 10 sessions with role-separated prompts and 10 with unified prompts. Compare artifact linter output.",
+    procedure:
+      "Run 10 sessions with role-separated prompts and 10 with unified prompts. Compare artifact linter output.",
     discriminates: "H1-roles-help vs H2-roles-neutral",
     expected_outcomes: {
       "H1-roles-help": "Role-separated artifacts have fewer errors (p < 0.05)",
@@ -118,10 +125,12 @@ export const sampleTests: TestItem[] = [
   {
     id: "T2",
     name: "Third-Alternative Detection Rate",
-    procedure: "Count explicit third alternatives in each artifact's hypothesis_slate. Role separation should increase 'both wrong' framings.",
+    procedure:
+      "Count explicit third alternatives in each artifact's hypothesis_slate. Role separation should increase 'both wrong' framings.",
     discriminates: "H1-roles-enable-third-alt vs H2-no-effect",
     expected_outcomes: {
-      "H1-roles-enable-third-alt": ">50% of role-separated artifacts contain explicit third alternatives",
+      "H1-roles-enable-third-alt":
+        ">50% of role-separated artifacts contain explicit third alternatives",
       "H2-no-effect": "Third alternative rate is similar across conditions",
     },
     potency_check: "At least one hypothesis_slate entry exists per artifact",
@@ -142,7 +151,8 @@ export const sampleAssumptions: AssumptionItem[] = [
   {
     id: "A1",
     name: "Agents are comparable across conditions",
-    statement: "The same models can be compared fairly across role-separated and unified conditions",
+    statement:
+      "The same models can be compared fairly across role-separated and unified conditions",
     load: "If models have different natural tendencies regardless of prompting, comparison is confounded",
     test: "Run single-model role-separated vs multi-model comparison",
     status: "unchecked",
@@ -160,7 +170,8 @@ export const sampleAssumptions: AssumptionItem[] = [
   {
     id: "A3",
     name: "Linter is valid quality proxy",
-    statement: "The artifact linter measures 'Brenner-style quality' and not just schema compliance",
+    statement:
+      "The artifact linter measures 'Brenner-style quality' and not just schema compliance",
     load: "If linter only checks structure, passing artifacts may still be intellectually empty",
     test: "Compare linter scores with expert human quality ratings",
     status: "unchecked",
@@ -175,16 +186,20 @@ export const sampleCritiques: CritiqueItem[] = [
   {
     id: "C1",
     name: "Confounding: Model Capability Differences",
-    attack: "We're comparing role-separated (different models) vs unified (same models). Role separation benefits may be entirely due to model selection.",
-    evidence: "If single-model role-separated performs similarly to multi-model, model differences explain nothing",
+    attack:
+      "We're comparing role-separated (different models) vs unified (same models). Role separation benefits may be entirely due to model selection.",
+    evidence:
+      "If single-model role-separated performs similarly to multi-model, model differences explain nothing",
     current_status: "Unresolved - need controlled experiment",
     real_third_alternative: true,
   },
   {
     id: "C2",
     name: "Premature Optimization Warning",
-    attack: "We're designing experiments before we have a single 'golden artifact' that demonstrates the protocol works AT ALL.",
-    evidence: "If we can't produce a high-quality artifact with ANY prompt structure, the comparison is moot",
+    attack:
+      "We're designing experiments before we have a single 'golden artifact' that demonstrates the protocol works AT ALL.",
+    evidence:
+      "If we can't produce a high-quality artifact with ANY prompt structure, the comparison is moot",
     current_status: "Acknowledged - this session is exploratory",
   },
 ];
@@ -198,18 +213,18 @@ export const samplePredictions: PredictionItem[] = [
     id: "P1",
     condition: "Role-separated sessions with 3 distinct agents",
     predictions: {
-      "H1": "Linter error count < 5 on average",
-      "H2": "Linter error count similar to unified (~10)",
-      "H3": "Linter error count varies with excerpt quality, not prompt structure",
+      H1: "Linter error count < 5 on average",
+      H2: "Linter error count similar to unified (~10)",
+      H3: "Linter error count varies with excerpt quality, not prompt structure",
     },
   },
   {
     id: "P2",
     condition: "Unified prompt sessions with same total token budget",
     predictions: {
-      "H1": "Higher error count than role-separated",
-      "H2": "Similar error count to role-separated",
-      "H3": "Depends on excerpt selection, not prompt type",
+      H1: "Higher error count than role-separated",
+      H2: "Similar error count to role-separated",
+      H3: "Depends on excerpt selection, not prompt type",
     },
   },
 ];
@@ -229,9 +244,24 @@ export const validArtifactFixture: Artifact = {
     version: 3,
     status: "active",
     contributors: [
-      { agent: "BlackCastle", program: "claude-code", model: "opus-4.5", contributed_at: "2025-12-30T22:30:00Z" },
-      { agent: "PurpleHill", program: "claude-code", model: "opus-4.5", contributed_at: "2025-12-30T22:45:00Z" },
-      { agent: "BlueMountain", program: "codex-cli", model: "gpt-5.2", contributed_at: "2025-12-30T23:00:00Z" },
+      {
+        agent: "BlackCastle",
+        program: "claude-code",
+        model: "opus-4.5",
+        contributed_at: "2025-12-30T22:30:00Z",
+      },
+      {
+        agent: "PurpleHill",
+        program: "claude-code",
+        model: "opus-4.5",
+        contributed_at: "2025-12-30T22:45:00Z",
+      },
+      {
+        agent: "BlueMountain",
+        program: "codex-cli",
+        model: "gpt-5.2",
+        contributed_at: "2025-12-30T23:00:00Z",
+      },
     ],
   },
   sections: {
@@ -255,9 +285,7 @@ export const draftArtifactFixture: Artifact = {
     updated_at: "2025-12-30T20:00:00Z",
     version: 1,
     status: "draft",
-    contributors: [
-      { agent: "TestAgent", contributed_at: "2025-12-30T20:00:00Z" },
-    ],
+    contributors: [{ agent: "TestAgent", contributed_at: "2025-12-30T20:00:00Z" }],
   },
   sections: {
     research_thread: {
@@ -320,13 +348,22 @@ export const activeSessionFixture: Session = {
   research_question: "Does role-separated prompting improve Brenner-style artifact quality?",
   excerpts: [
     { anchor: "§103", text: "You've forgotten there's a third alternative.", source: "transcript" },
-    { anchor: "§105", text: "Exclusion is always a tremendously good thing.", source: "transcript" },
+    {
+      anchor: "§105",
+      text: "Exclusion is always a tremendously good thing.",
+      source: "transcript",
+    },
     { anchor: "§230", text: "It is good to be ignorant about a new field.", source: "transcript" },
   ],
   created_at: "2025-12-30T22:30:00Z",
   updated_at: "2025-12-30T23:00:00Z",
   participants: [
-    { agent: "BlackCastle", model: "opus-4.5", role: "generator", joined_at: "2025-12-30T22:30:00Z" },
+    {
+      agent: "BlackCastle",
+      model: "opus-4.5",
+      role: "generator",
+      joined_at: "2025-12-30T22:30:00Z",
+    },
     { agent: "PurpleHill", model: "opus-4.5", role: "tester", joined_at: "2025-12-30T22:35:00Z" },
     { agent: "BlueMountain", model: "gpt-5.2", role: "critic", joined_at: "2025-12-30T22:40:00Z" },
   ],
@@ -378,7 +415,11 @@ export const pendingSessionFixture: Session = {
   status: "pending",
   research_question: "How should we structure multi-agent collaboration?",
   excerpts: [
-    { anchor: "§210", text: "Routine work generates its important problems.", source: "transcript" },
+    {
+      anchor: "§210",
+      text: "Routine work generates its important problems.",
+      source: "transcript",
+    },
   ],
   created_at: "2025-12-31T00:00:00Z",
   updated_at: "2025-12-31T00:00:00Z",
@@ -396,7 +437,5 @@ export const cancelledSessionFixture: Session = {
   excerpts: [],
   created_at: "2025-12-27T12:00:00Z",
   updated_at: "2025-12-27T12:30:00Z",
-  participants: [
-    { agent: "WhiteDog", model: "opus-4.5" },
-  ],
+  participants: [{ agent: "WhiteDog", model: "opus-4.5" }],
 };

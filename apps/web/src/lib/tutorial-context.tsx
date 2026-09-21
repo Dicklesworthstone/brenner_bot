@@ -14,10 +14,7 @@
  */
 
 import * as React from "react";
-import type {
-  TutorialPathId,
-  TutorialProgressJSON,
-} from "./tutorial-types";
+import type { TutorialPathId, TutorialProgressJSON } from "./tutorial-types";
 
 // ============================================================================
 // Constants
@@ -117,11 +114,12 @@ function saveProgress(progress: TutorialProgressJSON): void {
   if (typeof window === "undefined") return;
 
   try {
-    localStorage.setItem(getStorageKey(progress.pathId as TutorialPathId), JSON.stringify(progress));
-    // Dispatch custom event for cross-tab sync
-    window.dispatchEvent(
-      new CustomEvent(STORAGE_CHANGE_EVENT, { detail: progress })
+    localStorage.setItem(
+      getStorageKey(progress.pathId as TutorialPathId),
+      JSON.stringify(progress),
     );
+    // Dispatch custom event for cross-tab sync
+    window.dispatchEvent(new CustomEvent(STORAGE_CHANGE_EVENT, { detail: progress }));
   } catch (e) {
     console.warn("Failed to save tutorial progress:", e);
   }
@@ -220,11 +218,14 @@ export function TutorialProvider({
   }, [currentPath]);
 
   // Navigation functions
-  const goToStep = React.useCallback((stepIndex: number) => {
-    if (stepIndex >= 0 && stepIndex < totalSteps) {
-      setCurrentStep(stepIndex);
-    }
-  }, [totalSteps]);
+  const goToStep = React.useCallback(
+    (stepIndex: number) => {
+      if (stepIndex >= 0 && stepIndex < totalSteps) {
+        setCurrentStep(stepIndex);
+      }
+    },
+    [totalSteps],
+  );
 
   const goToNextStep = React.useCallback(() => {
     if (currentStep < totalSteps - 1) {
@@ -251,23 +252,26 @@ export function TutorialProvider({
   }, [currentStep, markStepComplete, goToNextStep]);
 
   // Path management
-  const setPath = React.useCallback((pathId: TutorialPathId, steps: number) => {
-    if (pathId !== currentPath) {
-      setCurrentPath(pathId);
-      setTotalSteps(steps);
-      // Load stored progress for this path
-      const stored = loadProgress(pathId);
-      if (stored) {
-        setCurrentStep(stored.currentStep);
-        setCompletedSteps(stored.completedSteps.map(Number));
-        startedAtRef.current = stored.startedAt ?? null;
-      } else {
-        setCurrentStep(0);
-        setCompletedSteps([]);
-        startedAtRef.current = null;
+  const setPath = React.useCallback(
+    (pathId: TutorialPathId, steps: number) => {
+      if (pathId !== currentPath) {
+        setCurrentPath(pathId);
+        setTotalSteps(steps);
+        // Load stored progress for this path
+        const stored = loadProgress(pathId);
+        if (stored) {
+          setCurrentStep(stored.currentStep);
+          setCompletedSteps(stored.completedSteps.map(Number));
+          startedAtRef.current = stored.startedAt ?? null;
+        } else {
+          setCurrentStep(0);
+          setCompletedSteps([]);
+          startedAtRef.current = null;
+        }
       }
-    }
-  }, [currentPath]);
+    },
+    [currentPath],
+  );
 
   const resetProgress = React.useCallback(() => {
     if (currentPath) {
@@ -291,9 +295,8 @@ export function TutorialProvider({
   const canGoBack = currentStep > 0;
   const isFirstStep = currentStep === 0;
   const isLastStep = currentStep === totalSteps - 1;
-  const progressPercent = totalSteps > 0
-    ? Math.round((completedSteps.length / totalSteps) * 100)
-    : 0;
+  const progressPercent =
+    totalSteps > 0 ? Math.round((completedSteps.length / totalSteps) * 100) : 0;
 
   const value: TutorialContextValue = {
     currentPath,
@@ -317,11 +320,7 @@ export function TutorialProvider({
     progressPercent,
   };
 
-  return (
-    <TutorialContext.Provider value={value}>
-      {children}
-    </TutorialContext.Provider>
-  );
+  return <TutorialContext.Provider value={value}>{children}</TutorialContext.Provider>;
 }
 
 // ============================================================================

@@ -20,11 +20,11 @@
  * @see brenner_bot-1v26.1 (bead)
  */
 
+import type { DocCategory } from "../globalSearchTypes";
 // Import and re-export HypothesisCard and related items from the dedicated module (bead an1n.1)
 // This avoids duplication while making them available from this module
 import type { HypothesisCard, IdentifiedConfound } from "./hypothesis";
-import type { DocCategory } from "../globalSearchTypes";
-export type { HypothesisCard, IdentifiedConfound };
+
 export {
   createHypothesisCard,
   evolveHypothesisCard,
@@ -32,19 +32,19 @@ export {
   isIdentifiedConfound,
   validateHypothesisCard,
 } from "./hypothesis";
-
 // Re-export hypothesis history types and functions (bead an1n.2)
 export type {
+  EvolutionGraph,
+  EvolutionGraphEdge,
+  EvolutionGraphNode,
+  EvolutionStatus,
   EvolutionTrigger,
-  HypothesisVersion,
-  HypothesisHistoryStore,
   HypothesisChange,
   HypothesisDiff,
-  EvolutionStatus,
-  EvolutionGraphNode,
-  EvolutionGraphEdge,
-  EvolutionGraph,
+  HypothesisHistoryStore,
+  HypothesisVersion,
 } from "./hypothesis-history";
+export type { HypothesisCard, IdentifiedConfound };
 
 // ============================================================================
 // Session Phases
@@ -64,17 +64,17 @@ export type {
  * @see brenner_bot-43o6 - Detailed phase definitions
  */
 export type SessionPhase =
-  | "intake"           // Initial hypothesis capture
-  | "sharpening"       // Hypothesis refinement
-  | "level_split"      // Apply Σ operator - identify levels
-  | "exclusion_test"   // Apply ⊘ operator - design discriminative tests
+  | "intake" // Initial hypothesis capture
+  | "sharpening" // Hypothesis refinement
+  | "level_split" // Apply Σ operator - identify levels
+  | "exclusion_test" // Apply ⊘ operator - design discriminative tests
   | "object_transpose" // Apply ⟳ operator - change reference frames
-  | "scale_check"      // Apply ⊙ operator - check scale-dependence
-  | "agent_dispatch"   // Send to agents for analysis
-  | "synthesis"        // Combine agent responses
+  | "scale_check" // Apply ⊙ operator - check scale-dependence
+  | "agent_dispatch" // Send to agents for analysis
+  | "synthesis" // Combine agent responses
   | "evidence_gathering" // Execute tests, collect evidence
-  | "revision"         // Revise based on evidence
-  | "complete";        // Session finished
+  | "revision" // Revise based on evidence
+  | "complete"; // Session finished
 
 /**
  * Simplified 4-phase model for UI display
@@ -111,7 +111,13 @@ export function isValidTransition(from: SessionPhase, to: SessionPhase): boolean
   const transitions: Record<SessionPhase, SessionPhase[]> = {
     intake: ["sharpening"],
     sharpening: ["level_split", "exclusion_test", "agent_dispatch"],
-    level_split: ["sharpening", "exclusion_test", "object_transpose", "scale_check", "agent_dispatch"],
+    level_split: [
+      "sharpening",
+      "exclusion_test",
+      "object_transpose",
+      "scale_check",
+      "agent_dispatch",
+    ],
     exclusion_test: ["level_split", "object_transpose", "scale_check", "agent_dispatch"],
     object_transpose: ["exclusion_test", "scale_check", "agent_dispatch"],
     scale_check: ["object_transpose", "agent_dispatch"],
@@ -492,12 +498,12 @@ export interface EvidenceEntry {
  * Types of research artifacts produced by a session
  */
 export type ArtifactType =
-  | "research_brief"      // Final summary document
-  | "hypothesis_slate"    // Current hypothesis set
-  | "predictions_table"   // Predictions matrix
-  | "test_queue"          // Prioritized test list
-  | "evidence_summary"    // Evidence overview
-  | "session_export";     // Full session export
+  | "research_brief" // Final summary document
+  | "hypothesis_slate" // Current hypothesis set
+  | "predictions_table" // Predictions matrix
+  | "test_queue" // Prioritized test list
+  | "evidence_summary" // Evidence overview
+  | "session_export"; // Full session export
 
 /**
  * A research artifact produced during or after a session
@@ -538,12 +544,12 @@ export interface ResearchArtifact {
  * What triggered a session commit
  */
 export type CommitTrigger =
-  | "manual"           // User explicitly saved
-  | "operator"         // Operator application
-  | "agent_response"   // Agent responded
-  | "evidence"         // Evidence recorded
-  | "phase_change"     // Phase transition
-  | "auto_save";       // Periodic auto-save
+  | "manual" // User explicitly saved
+  | "operator" // Operator application
+  | "agent_response" // Agent responded
+  | "evidence" // Evidence recorded
+  | "phase_change" // Phase transition
+  | "auto_save"; // Periodic auto-save
 
 /**
  * A commit in the session's version history
@@ -881,9 +887,17 @@ export interface HypothesisEvolution {
  */
 export function isSessionPhase(value: unknown): value is SessionPhase {
   const validPhases: SessionPhase[] = [
-    "intake", "sharpening", "level_split", "exclusion_test",
-    "object_transpose", "scale_check", "agent_dispatch",
-    "synthesis", "evidence_gathering", "revision", "complete"
+    "intake",
+    "sharpening",
+    "level_split",
+    "exclusion_test",
+    "object_transpose",
+    "scale_check",
+    "agent_dispatch",
+    "synthesis",
+    "evidence_gathering",
+    "revision",
+    "complete",
   ];
   return typeof value === "string" && validPhases.includes(value as SessionPhase);
 }

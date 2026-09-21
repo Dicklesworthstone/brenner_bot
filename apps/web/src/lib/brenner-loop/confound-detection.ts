@@ -629,39 +629,132 @@ export const GENERAL_CONFOUNDS: ConfoundTemplate[] = [
  */
 const DOMAIN_KEYWORDS: Record<ResearchDomain, string[]> = {
   psychology: [
-    "behavior", "cognitive", "emotion", "mental", "memory", "attention",
-    "perception", "personality", "development", "clinical", "therapy",
-    "anxiety", "depression", "social", "motivation", "learning",
+    "behavior",
+    "cognitive",
+    "emotion",
+    "mental",
+    "memory",
+    "attention",
+    "perception",
+    "personality",
+    "development",
+    "clinical",
+    "therapy",
+    "anxiety",
+    "depression",
+    "social",
+    "motivation",
+    "learning",
   ],
   epidemiology: [
-    "disease", "health", "mortality", "morbidity", "risk", "exposure",
-    "incidence", "prevalence", "cohort", "case-control", "outbreak",
-    "infection", "vaccine", "treatment", "patient", "hospital",
+    "disease",
+    "health",
+    "mortality",
+    "morbidity",
+    "risk",
+    "exposure",
+    "incidence",
+    "prevalence",
+    "cohort",
+    "case-control",
+    "outbreak",
+    "infection",
+    "vaccine",
+    "treatment",
+    "patient",
+    "hospital",
   ],
   economics: [
-    "market", "price", "income", "gdp", "employment", "trade",
-    "inflation", "growth", "policy", "fiscal", "monetary", "firm",
-    "consumer", "investment", "regression", "causal", "elasticity",
+    "market",
+    "price",
+    "income",
+    "gdp",
+    "employment",
+    "trade",
+    "inflation",
+    "growth",
+    "policy",
+    "fiscal",
+    "monetary",
+    "firm",
+    "consumer",
+    "investment",
+    "regression",
+    "causal",
+    "elasticity",
   ],
   biology: [
-    "gene", "protein", "cell", "organism", "evolution", "mutation",
-    "species", "genome", "pathway", "expression", "molecular", "enzyme",
-    "dna", "rna", "phenotype", "genotype", "metabolism",
+    "gene",
+    "protein",
+    "cell",
+    "organism",
+    "evolution",
+    "mutation",
+    "species",
+    "genome",
+    "pathway",
+    "expression",
+    "molecular",
+    "enzyme",
+    "dna",
+    "rna",
+    "phenotype",
+    "genotype",
+    "metabolism",
   ],
   sociology: [
-    "society", "culture", "institution", "inequality", "class", "race",
-    "gender", "community", "norm", "network", "stratification", "mobility",
-    "collective", "organization", "movement", "identity",
+    "society",
+    "culture",
+    "institution",
+    "inequality",
+    "class",
+    "race",
+    "gender",
+    "community",
+    "norm",
+    "network",
+    "stratification",
+    "mobility",
+    "collective",
+    "organization",
+    "movement",
+    "identity",
   ],
   computer_science: [
-    "algorithm", "model", "machine learning", "neural", "data", "accuracy",
-    "training", "prediction", "classification", "deep learning", "ai",
-    "performance", "benchmark", "optimization", "network", "compute",
+    "algorithm",
+    "model",
+    "machine learning",
+    "neural",
+    "data",
+    "accuracy",
+    "training",
+    "prediction",
+    "classification",
+    "deep learning",
+    "ai",
+    "performance",
+    "benchmark",
+    "optimization",
+    "network",
+    "compute",
   ],
   neuroscience: [
-    "brain", "neuron", "cortex", "fmri", "eeg", "activation", "neural",
-    "cognitive", "hippocampus", "prefrontal", "amygdala", "synapse",
-    "dopamine", "connectivity", "imaging", "lesion",
+    "brain",
+    "neuron",
+    "cortex",
+    "fmri",
+    "eeg",
+    "activation",
+    "neural",
+    "cognitive",
+    "hippocampus",
+    "prefrontal",
+    "amygdala",
+    "synapse",
+    "dopamine",
+    "connectivity",
+    "imaging",
+    "lesion",
   ],
   general: [],
 };
@@ -779,7 +872,7 @@ function getConfoundLibrary(domain: ResearchDomain): ConfoundTemplate[] {
  */
 function analyzeForConfound(
   hypothesis: HypothesisCard,
-  template: ConfoundTemplate
+  template: ConfoundTemplate,
 ): { likelihood: number; matchedKeywords: string[]; matchedPatterns: boolean } {
   const text = [
     hypothesis.statement,
@@ -848,13 +941,12 @@ export function detectConfounds(
     maxConfounds?: number;
     /** Override automatic domain detection */
     forceDomain?: ResearchDomain;
-  } = {}
+  } = {},
 ): ConfoundDetectionResult {
   const { threshold = 0.3, maxConfounds = 10, forceDomain } = options;
 
   // Classify domain
-  const { domain: detectedDomain, confidence: domainConfidence } =
-    classifyDomain(hypothesis);
+  const { domain: detectedDomain, confidence: domainConfidence } = classifyDomain(hypothesis);
   const domain = forceDomain || detectedDomain;
 
   // Get relevant confound library
@@ -906,7 +998,7 @@ export function detectConfounds(
  */
 export function getConfoundQuestions(
   confoundId: string,
-  domain: ResearchDomain = "general"
+  domain: ResearchDomain = "general",
 ): string[] {
   const library = getConfoundLibrary(domain);
   const template = library.find((t) => t.id === confoundId);

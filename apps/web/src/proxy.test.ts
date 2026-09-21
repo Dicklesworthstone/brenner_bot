@@ -4,8 +4,8 @@
  * Focus: security gating consistency with lib/auth.ts
  */
 
-import { describe, expect, it } from "vitest";
 import type { NextRequest } from "next/server";
+import { describe, expect, it } from "vitest";
 import { proxy } from "./proxy";
 
 function withEnv(overrides: Record<string, string | undefined>, fn: () => void) {
@@ -100,7 +100,11 @@ describe("proxy()", () => {
 
   it("does not trust Cloudflare Access headers unless BRENNER_TRUST_CF_ACCESS_HEADERS=1", () => {
     withEnv(
-      { BRENNER_LAB_MODE: "1", BRENNER_TRUST_CF_ACCESS_HEADERS: undefined, BRENNER_LAB_SECRET: undefined },
+      {
+        BRENNER_LAB_MODE: "1",
+        BRENNER_TRUST_CF_ACCESS_HEADERS: undefined,
+        BRENNER_LAB_SECRET: undefined,
+      },
       () => {
         const request = makeRequest({
           pathname: "/sessions/new",
@@ -108,51 +112,79 @@ describe("proxy()", () => {
         });
         const response = proxy(request);
         expect(response.status).toBe(404);
-      }
+      },
     );
   });
 
   it("allows Cloudflare Access headers when BRENNER_TRUST_CF_ACCESS_HEADERS=1", () => {
-    withEnv({ BRENNER_LAB_MODE: "1", BRENNER_TRUST_CF_ACCESS_HEADERS: "1", BRENNER_LAB_SECRET: undefined }, () => {
-      const request = makeRequest({
-        pathname: "/sessions/new",
-        headers: { "cf-access-jwt-assertion": "some.jwt.assertion" },
-      });
-      const response = proxy(request);
-      expect(response.headers.get("x-middleware-next")).toBe("1");
-    });
+    withEnv(
+      {
+        BRENNER_LAB_MODE: "1",
+        BRENNER_TRUST_CF_ACCESS_HEADERS: "1",
+        BRENNER_LAB_SECRET: undefined,
+      },
+      () => {
+        const request = makeRequest({
+          pathname: "/sessions/new",
+          headers: { "cf-access-jwt-assertion": "some.jwt.assertion" },
+        });
+        const response = proxy(request);
+        expect(response.headers.get("x-middleware-next")).toBe("1");
+      },
+    );
   });
 
   it("allows valid lab secret even when Cloudflare Access headers are not trusted", () => {
-    withEnv({ BRENNER_LAB_MODE: "1", BRENNER_TRUST_CF_ACCESS_HEADERS: undefined, BRENNER_LAB_SECRET: "secret123" }, () => {
-      const request = makeRequest({
-        pathname: "/sessions/new",
-        headers: { "x-brenner-lab-secret": "secret123" },
-      });
-      const response = proxy(request);
-      expect(response.headers.get("x-middleware-next")).toBe("1");
-    });
+    withEnv(
+      {
+        BRENNER_LAB_MODE: "1",
+        BRENNER_TRUST_CF_ACCESS_HEADERS: undefined,
+        BRENNER_LAB_SECRET: "secret123",
+      },
+      () => {
+        const request = makeRequest({
+          pathname: "/sessions/new",
+          headers: { "x-brenner-lab-secret": "secret123" },
+        });
+        const response = proxy(request);
+        expect(response.headers.get("x-middleware-next")).toBe("1");
+      },
+    );
   });
 
   it("allows orchestration API routes when valid lab secret is provided", () => {
-    withEnv({ BRENNER_LAB_MODE: "1", BRENNER_TRUST_CF_ACCESS_HEADERS: undefined, BRENNER_LAB_SECRET: "secret123" }, () => {
-      const request = makeRequest({
-        pathname: "/api/experiments",
-        headers: { "x-brenner-lab-secret": "secret123" },
-      });
-      const response = proxy(request);
-      expect(response.headers.get("x-middleware-next")).toBe("1");
-    });
+    withEnv(
+      {
+        BRENNER_LAB_MODE: "1",
+        BRENNER_TRUST_CF_ACCESS_HEADERS: undefined,
+        BRENNER_LAB_SECRET: "secret123",
+      },
+      () => {
+        const request = makeRequest({
+          pathname: "/api/experiments",
+          headers: { "x-brenner-lab-secret": "secret123" },
+        });
+        const response = proxy(request);
+        expect(response.headers.get("x-middleware-next")).toBe("1");
+      },
+    );
   });
 
   it("rejects lab secret when header has secret as a prefix", () => {
-    withEnv({ BRENNER_LAB_MODE: "1", BRENNER_TRUST_CF_ACCESS_HEADERS: undefined, BRENNER_LAB_SECRET: "secret123" }, () => {
-      const request = makeRequest({
-        pathname: "/api/experiments",
-        headers: { "x-brenner-lab-secret": "secret123x" },
-      });
-      const response = proxy(request);
-      expect(response.status).toBe(404);
-    });
+    withEnv(
+      {
+        BRENNER_LAB_MODE: "1",
+        BRENNER_TRUST_CF_ACCESS_HEADERS: undefined,
+        BRENNER_LAB_SECRET: "secret123",
+      },
+      () => {
+        const request = makeRequest({
+          pathname: "/api/experiments",
+          headers: { "x-brenner-lab-secret": "secret123x" },
+        });
+        const response = proxy(request);
+        expect(response.status).toBe(404);
+      },
+    );
   });
 });

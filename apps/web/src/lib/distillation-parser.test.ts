@@ -5,12 +5,12 @@
  * Uses real data fixtures - no mocks.
  */
 
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
 import {
-  parseDistillation,
-  getModelFromId,
-  getDistillationMeta,
   type DistillationContent,
+  getDistillationMeta,
+  getModelFromId,
+  parseDistillation,
 } from "./distillation-parser";
 
 // Type helpers for narrowing DistillationContent union
@@ -231,7 +231,9 @@ describe("parseDistillation", () => {
     it("identifies ordered lists", () => {
       const result = parseDistillation(SIMPLE_DISTILLATION, "test-doc");
       const allContent = result.parts.flatMap((p) => p.sections.flatMap((s) => s.content));
-      const orderedLists = allContent.filter((c): c is ListContent => c.type === "list" && c.ordered);
+      const orderedLists = allContent.filter(
+        (c): c is ListContent => c.type === "list" && c.ordered,
+      );
       expect(orderedLists.length).toBeGreaterThan(0);
       expect(orderedLists[0]?.items.length).toBe(3);
     });
@@ -239,7 +241,9 @@ describe("parseDistillation", () => {
     it("identifies unordered lists", () => {
       const result = parseDistillation(SIMPLE_DISTILLATION, "test-doc");
       const allContent = result.parts.flatMap((p) => p.sections.flatMap((s) => s.content));
-      const unorderedLists = allContent.filter((c): c is ListContent => c.type === "list" && !c.ordered);
+      const unorderedLists = allContent.filter(
+        (c): c is ListContent => c.type === "list" && !c.ordered,
+      );
       expect(unorderedLists.length).toBeGreaterThan(0);
       expect(unorderedLists[0]?.items.length).toBe(2);
     });
@@ -249,7 +253,9 @@ describe("parseDistillation", () => {
     it("extracts § references from quotes", () => {
       const result = parseDistillation(SIMPLE_DISTILLATION, "test-doc");
       const allContent = result.parts.flatMap((p) => p.sections.flatMap((s) => s.content));
-      const quotesWithRef = allContent.filter((c): c is QuoteContent => c.type === "quote" && !!c.reference);
+      const quotesWithRef = allContent.filter(
+        (c): c is QuoteContent => c.type === "quote" && !!c.reference,
+      );
       expect(quotesWithRef.length).toBeGreaterThan(0);
       expect(quotesWithRef[0]?.reference).toBe("42");
     });
@@ -257,7 +263,9 @@ describe("parseDistillation", () => {
     it("extracts range references (§58-59)", () => {
       const result = parseDistillation(MULTI_PART_DISTILLATION, "test-doc");
       const allContent = result.parts.flatMap((p) => p.sections.flatMap((s) => s.content));
-      const quotesWithRef = allContent.filter((c): c is QuoteContent => c.type === "quote" && !!c.reference);
+      const quotesWithRef = allContent.filter(
+        (c): c is QuoteContent => c.type === "quote" && !!c.reference,
+      );
       expect(quotesWithRef.some((q) => q.reference === "58-59")).toBe(true);
     });
   });
@@ -273,7 +281,9 @@ describe("parseDistillation", () => {
 This has **bold text** in it.
 `;
       const result = parseDistillation(withBold, "test-doc");
-      const paragraphs = result.parts[0]?.sections[0]?.content.filter((c) => c.type === "paragraph");
+      const paragraphs = result.parts[0]?.sections[0]?.content.filter(
+        (c) => c.type === "paragraph",
+      );
       expect(paragraphs?.[0]?.text).toContain("**bold text**");
     });
 
@@ -283,7 +293,9 @@ This has **bold text** in it.
 This has *italic text* in it.
 `;
       const result = parseDistillation(withItalic, "test-doc");
-      const paragraphs = result.parts[0]?.sections[0]?.content.filter((c) => c.type === "paragraph");
+      const paragraphs = result.parts[0]?.sections[0]?.content.filter(
+        (c) => c.type === "paragraph",
+      );
       expect(paragraphs?.[0]?.text).toContain("*italic text*");
     });
 
@@ -293,7 +305,9 @@ This has *italic text* in it.
 This has \`inline code\` in it.
 `;
       const result = parseDistillation(withCode, "test-doc");
-      const paragraphs = result.parts[0]?.sections[0]?.content.filter((c) => c.type === "paragraph");
+      const paragraphs = result.parts[0]?.sections[0]?.content.filter(
+        (c) => c.type === "paragraph",
+      );
       expect(paragraphs?.[0]?.text).toContain("`inline code`");
     });
   });
@@ -409,7 +423,9 @@ Rather than cataloging phenomena, we seek to reconstruct the system.
     expect(allContent.filter((c) => c.type === "list").length).toBe(2);
 
     // Check reference extraction
-    const quotesWithRef = allContent.filter((c): c is QuoteContent => c.type === "quote" && !!c.reference);
+    const quotesWithRef = allContent.filter(
+      (c): c is QuoteContent => c.type === "quote" && !!c.reference,
+    );
     expect(quotesWithRef[0]?.reference).toBe("12");
   });
 });

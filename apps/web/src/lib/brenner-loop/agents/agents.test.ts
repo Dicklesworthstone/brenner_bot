@@ -1,16 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
-import { createHypothesisCard, generateHypothesisCardId } from "../hypothesis";
-import type { HypothesisCard } from "../hypothesis";
 import type { AgentMailClient } from "../../agentMail";
-import {
-  TRIBUNAL_AGENTS,
-  TRIBUNAL_ORDER,
-  clearPromptCache,
-  getAgentConfig,
-  getTribunalAgentsInOrder,
-  isTribunalAgentRole,
-  loadPrompt,
-} from "./index";
+import type { HypothesisCard } from "../hypothesis";
+import { createHypothesisCard, generateHypothesisCardId } from "../hypothesis";
 import {
   AGENT_PERSONAS,
   buildSystemPromptContext,
@@ -24,10 +15,11 @@ import {
   shouldInvokePersona,
 } from "./agent-personas";
 import {
-  DEFAULT_DISPATCH_ROLES,
+  type AgentTask,
   buildAgentPrompt,
   checkAgentAvailability,
   createDispatch,
+  DEFAULT_DISPATCH_ROLES,
   dispatchAgentTask,
   dispatchAllTasks,
   formatHypothesisForPrompt,
@@ -36,8 +28,16 @@ import {
   getDispatchStatus,
   getFallbackContent,
   pollForResponses,
-  type AgentTask,
 } from "./dispatch";
+import {
+  clearPromptCache,
+  getAgentConfig,
+  getTribunalAgentsInOrder,
+  isTribunalAgentRole,
+  loadPrompt,
+  TRIBUNAL_AGENTS,
+  TRIBUNAL_ORDER,
+} from "./index";
 
 function makeHypothesis(overrides: Partial<HypothesisCard> = {}): HypothesisCard {
   const sessionId = overrides.sessionId ?? "TEST-SESSION";
@@ -63,7 +63,9 @@ describe("brenner-loop/agents index", () => {
     const ordered = getTribunalAgentsInOrder();
     expect(ordered.map((a) => a.role)).toEqual([...TRIBUNAL_ORDER]);
 
-    expect(getAgentConfig("statistician")?.promptPath).toBe(TRIBUNAL_AGENTS.statistician.promptPath);
+    expect(getAgentConfig("statistician")?.promptPath).toBe(
+      TRIBUNAL_AGENTS.statistician.promptPath,
+    );
 
     clearPromptCache();
     const prompt = await loadPrompt("devils_advocate");
@@ -151,7 +153,14 @@ describe("brenner-loop/agents dispatch", () => {
           appliedBy: "user",
           conflationDetected: true,
           conflationDescription: "Multiple levels mixed",
-          levels: [{ name: "Individual", description: "Person-level", levelType: "interpreter", hypothesisIds: ["H1"] }],
+          levels: [
+            {
+              name: "Individual",
+              description: "Person-level",
+              levelType: "interpreter",
+              hypothesisIds: ["H1"],
+            },
+          ],
         },
       ],
       exclusionTest: [
@@ -159,7 +168,12 @@ describe("brenner-loop/agents dispatch", () => {
           appliedAt: "2026-01-01T00:00:00Z",
           appliedBy: "user",
           designedTests: [
-            { name: "Block mechanism", procedure: "Do X", couldExclude: ["H1"], discriminativePower: 3 },
+            {
+              name: "Block mechanism",
+              procedure: "Do X",
+              couldExclude: ["H1"],
+              discriminativePower: 3,
+            },
           ],
           rejectedTests: [],
         },
@@ -179,7 +193,15 @@ describe("brenner-loop/agents dispatch", () => {
           appliedAt: "2026-01-01T00:00:00Z",
           appliedBy: "user",
           plausible: false,
-          calculations: [{ name: "Scale", quantities: "10^6 cells", result: "0", units: "u", implication: "bad" }],
+          calculations: [
+            {
+              name: "Scale",
+              quantities: "10^6 cells",
+              result: "0",
+              units: "u",
+              implication: "bad",
+            },
+          ],
           ruledOutByScale: ["H1"],
         },
       ],
@@ -220,9 +242,21 @@ describe("brenner-loop/agents dispatch", () => {
       readThread: vi.fn(async () => ({
         messages: [
           // dispatch message (ignored as a response)
-          { id: 101, subject: "TRIBUNAL[devils_advocate]: H", body_md: "# Tribunal Analysis Request", created_ts: "2026-01-01T00:00:00Z" },
+          {
+            id: 101,
+            subject: "TRIBUNAL[devils_advocate]: H",
+            body_md: "# Tribunal Analysis Request",
+            created_ts: "2026-01-01T00:00:00Z",
+          },
           // response, linked by reply_to
-          { id: 202, reply_to: 101, subject: "Re: TRIBUNAL[devils_advocate]: H", body_md: "OK", created_ts: "2026-01-01T00:01:00Z", from: "RedCanyon" },
+          {
+            id: 202,
+            reply_to: 101,
+            subject: "Re: TRIBUNAL[devils_advocate]: H",
+            body_md: "OK",
+            created_ts: "2026-01-01T00:01:00Z",
+            from: "RedCanyon",
+          },
         ],
       })),
     } as unknown as AgentMailClient;
@@ -257,20 +291,41 @@ describe("brenner-loop/agents dispatch", () => {
         roles: ["devils_advocate"],
       }),
       threadId: "TRIBUNAL-S-3-abc",
-      tasks: [{ role: "devils_advocate", status: "dispatched", messageId: 100, dispatchedAt: "2026-01-01T00:00:00Z" }] as AgentTask[],
+      tasks: [
+        {
+          role: "devils_advocate",
+          status: "dispatched",
+          messageId: 100,
+          dispatchedAt: "2026-01-01T00:00:00Z",
+        },
+      ] as AgentTask[],
     };
 
     const client = {
       readThread: vi.fn(async () => ({
         messages: [
-          { id: 100, subject: "TRIBUNAL[devils_advocate]: H", body_md: "# Tribunal Analysis Request", created_ts: "2026-01-01T00:00:00Z" },
+          {
+            id: 100,
+            subject: "TRIBUNAL[devils_advocate]: H",
+            body_md: "# Tribunal Analysis Request",
+            created_ts: "2026-01-01T00:00:00Z",
+          },
           // ambiguous reply: no subject role, no reply_to
-          { id: 201, subject: "Here you go", body_md: "OK", created_ts: "2026-01-01T00:02:00Z", from: "RedCanyon" },
+          {
+            id: 201,
+            subject: "Here you go",
+            body_md: "OK",
+            created_ts: "2026-01-01T00:02:00Z",
+            from: "RedCanyon",
+          },
         ],
       })),
     } as unknown as AgentMailClient;
 
-    const polled = await pollForResponses(client, dispatch, { projectKey: "/abs/path", agentName: "BlueLake" });
+    const polled = await pollForResponses(client, dispatch, {
+      projectKey: "/abs/path",
+      agentName: "BlueLake",
+    });
     expect(polled.tasks[0]?.status).toBe("received");
     expect(polled.responses[0]?.content).toBe("OK");
   });

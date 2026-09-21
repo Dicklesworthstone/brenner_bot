@@ -10,10 +10,10 @@
  * - Empty state
  */
 
-import * as React from "react";
-import { describe, expect, it, beforeEach, afterEach, vi } from "vitest";
-import { render, screen, fireEvent, waitFor, act } from "@testing-library/react";
-import { ExcerptBasket, createBasketItem, type BasketItem } from "./ExcerptBasket";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import type * as React from "react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { type BasketItem, createBasketItem, ExcerptBasket } from "./ExcerptBasket";
 
 // ============================================================================
 // Mocks
@@ -34,7 +34,10 @@ vi.mock("@/lib/excerpt-builder", () => ({
   composeExcerpt: vi.fn(({ sections, theme }) => ({
     markdown: `# ${theme || "Excerpt"}\n\n${sections.map((s: { quote: string }) => s.quote).join("\n\n")}`,
     anchors: sections.map((s: { anchor: string }) => s.anchor),
-    wordCount: sections.reduce((acc: number, s: { quote: string }) => acc + s.quote.split(" ").length, 0),
+    wordCount: sections.reduce(
+      (acc: number, s: { quote: string }) => acc + s.quote.split(" ").length,
+      0,
+    ),
     warnings: [],
   })),
 }));
@@ -167,7 +170,7 @@ describe("ExcerptBasket", () => {
       });
 
       expect(onItemsChange).toHaveBeenCalledWith(
-        expect.arrayContaining([expect.objectContaining({ id: "item-2" })])
+        expect.arrayContaining([expect.objectContaining({ id: "item-2" })]),
       );
     });
   });
@@ -295,10 +298,7 @@ describe("ExcerptBasket", () => {
 
   describe("item removal", () => {
     it("has remove button for each item", () => {
-      const items = [
-        createTestItem({ id: "item-1" }),
-        createTestItem({ id: "item-2" }),
-      ];
+      const items = [createTestItem({ id: "item-1" }), createTestItem({ id: "item-2" })];
 
       render(<ExcerptBasket items={items} />);
 
@@ -333,10 +333,7 @@ describe("ExcerptBasket", () => {
     });
 
     it("clears all items when clicked", async () => {
-      const items = [
-        createTestItem({ id: "item-1" }),
-        createTestItem({ id: "item-2" }),
-      ];
+      const items = [createTestItem({ id: "item-1" }), createTestItem({ id: "item-2" })];
       const onItemsChange = vi.fn();
 
       render(<ExcerptBasket items={items} onItemsChange={onItemsChange} />);
@@ -425,7 +422,7 @@ describe("ExcerptBasket", () => {
 
       expect(onExport).toHaveBeenCalledWith(
         expect.stringContaining("Export this quote"),
-        expect.objectContaining({ markdown: expect.any(String) })
+        expect.objectContaining({ markdown: expect.any(String) }),
       );
     });
   });
@@ -460,7 +457,7 @@ describe("ExcerptBasket", () => {
       // We want the one with aria-expanded attribute
       const toggleHeaders = screen.getAllByLabelText(/toggle excerpt basket/i);
       const headerWithExpanded = toggleHeaders.find(
-        (el) => el.getAttribute("aria-expanded") !== null
+        (el) => el.getAttribute("aria-expanded") !== null,
       );
       expect(headerWithExpanded).toBeInTheDocument();
       expect(headerWithExpanded).toHaveAttribute("aria-expanded", "true");

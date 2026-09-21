@@ -6,10 +6,7 @@
  */
 
 import Link from "next/link";
-import {
-  getDemoThreadSummaries,
-  type DemoThreadSummary,
-} from "@/lib/fixtures/demo-sessions";
+import { type DemoThreadSummary, getDemoThreadSummaries } from "@/lib/fixtures/demo-sessions";
 import type { SessionPhase } from "@/lib/threadStatus";
 
 // ============================================================================
@@ -43,11 +40,7 @@ function ChevronRightIcon({ className }: { className?: string }) {
       stroke="currentColor"
       strokeWidth={2}
     >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        d="M8.25 4.5l7.5 7.5-7.5 7.5"
-      />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
     </svg>
   );
 }
@@ -68,14 +61,11 @@ const PHASE_LABELS: Record<SessionPhase, string> = {
 
 const PHASE_BADGE_CLASSES: Record<SessionPhase, string> = {
   not_started: "bg-muted text-muted-foreground border-border",
-  awaiting_responses:
-    "bg-primary/15 text-primary border-primary/20 animate-pulse-glow",
+  awaiting_responses: "bg-primary/15 text-primary border-primary/20 animate-pulse-glow",
   partially_complete: "bg-info/15 text-info border-info/20",
-  awaiting_compilation:
-    "bg-warning/15 text-warning border-warning/20 animate-pulse-glow",
+  awaiting_compilation: "bg-warning/15 text-warning border-warning/20 animate-pulse-glow",
   compiled: "bg-success/15 text-success border-success/20",
-  in_critique:
-    "bg-purple-500/15 text-purple-600 border-purple-500/20 animate-pulse-glow",
+  in_critique: "bg-purple-500/15 text-purple-600 border-purple-500/20 animate-pulse-glow",
   closed: "bg-muted text-muted-foreground border-border",
 };
 
@@ -106,13 +96,7 @@ function formatRelativeTs(ts: string): string {
 // Demo Thread Card
 // ============================================================================
 
-function DemoThreadCard({
-  thread,
-  index,
-}: {
-  thread: DemoThreadSummary;
-  index: number;
-}) {
+function DemoThreadCard({ thread, index }: { thread: DemoThreadSummary; index: number }) {
   const staggerClass = `stagger-${Math.min(index + 1, 10)}`;
 
   return (
@@ -156,9 +140,7 @@ function DemoThreadCard({
           {/* Participants */}
           {thread.participants.length > 0 && (
             <div className="text-xs text-muted-foreground">
-              <span className="font-mono">
-                {thread.participants.slice(0, 4).join(", ")}
-              </span>
+              <span className="font-mono">{thread.participants.slice(0, 4).join(", ")}</span>
               {thread.participants.length > 4 && (
                 <span> +{thread.participants.length - 4} more</span>
               )}
@@ -201,12 +183,10 @@ export function DemoSessionsView({ sessions }: DemoSessionsViewProps) {
             <FlaskConicalIcon className="size-5" />
           </div>
           <div className="space-y-2">
-            <h3 className="font-semibold text-amber-900 dark:text-amber-100">
-              Demo Mode
-            </h3>
+            <h3 className="font-semibold text-amber-900 dark:text-amber-100">Demo Mode</h3>
             <p className="text-sm text-amber-700 dark:text-amber-300">
-              These are example sessions demonstrating the BrennerBot research
-              platform. Click any session to explore its structure and content.
+              These are example sessions demonstrating the BrennerBot research platform. Click any
+              session to explore its structure and content.
             </p>
             <div className="flex flex-wrap gap-3 pt-1">
               <Link

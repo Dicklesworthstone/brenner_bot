@@ -10,11 +10,11 @@
  * - important: Red, exclamation - critical information
  */
 
+import { AnimatePresence, motion } from "framer-motion";
+import { AlertCircle, AlertTriangle, ChevronDown, Info, Lightbulb } from "lucide-react";
 import * as React from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Lightbulb, AlertTriangle, Info, AlertCircle, ChevronDown } from "lucide-react";
-import { cn } from "@/lib/utils";
 import type { TipVariant } from "@/lib/tutorial-types";
+import { cn } from "@/lib/utils";
 
 // ============================================================================
 // Types
@@ -51,29 +51,34 @@ const variantConfigs: Record<TipVariant, VariantConfig> = {
   pro: {
     icon: <Lightbulb className="size-5" />,
     defaultTitle: "Pro Tip",
-    containerClass: "border-[oklch(0.72_0.19_145/0.3)] bg-gradient-to-br from-[oklch(0.72_0.19_145/0.08)] to-[oklch(0.72_0.19_145/0.02)]",
-    iconContainerClass: "bg-gradient-to-br from-[oklch(0.72_0.19_145/0.3)] to-[oklch(0.72_0.19_145/0.15)] text-[oklch(0.72_0.19_145)] shadow-sm shadow-[oklch(0.72_0.19_145/0.2)]",
+    containerClass:
+      "border-[oklch(0.72_0.19_145/0.3)] bg-gradient-to-br from-[oklch(0.72_0.19_145/0.08)] to-[oklch(0.72_0.19_145/0.02)]",
+    iconContainerClass:
+      "bg-gradient-to-br from-[oklch(0.72_0.19_145/0.3)] to-[oklch(0.72_0.19_145/0.15)] text-[oklch(0.72_0.19_145)] shadow-sm shadow-[oklch(0.72_0.19_145/0.2)]",
     titleClass: "text-[oklch(0.72_0.19_145)]",
   },
   warning: {
     icon: <AlertTriangle className="size-5" />,
     defaultTitle: "Warning",
     containerClass: "border-amber-500/30 bg-gradient-to-br from-amber-500/8 to-amber-500/2",
-    iconContainerClass: "bg-gradient-to-br from-amber-500/30 to-amber-500/15 text-amber-600 dark:text-amber-400 shadow-sm shadow-amber-500/20",
+    iconContainerClass:
+      "bg-gradient-to-br from-amber-500/30 to-amber-500/15 text-amber-600 dark:text-amber-400 shadow-sm shadow-amber-500/20",
     titleClass: "text-amber-600 dark:text-amber-400",
   },
   note: {
     icon: <Info className="size-5" />,
     defaultTitle: "Note",
     containerClass: "border-blue-500/30 bg-gradient-to-br from-blue-500/8 to-blue-500/2",
-    iconContainerClass: "bg-gradient-to-br from-blue-500/30 to-blue-500/15 text-blue-600 dark:text-blue-400 shadow-sm shadow-blue-500/20",
+    iconContainerClass:
+      "bg-gradient-to-br from-blue-500/30 to-blue-500/15 text-blue-600 dark:text-blue-400 shadow-sm shadow-blue-500/20",
     titleClass: "text-blue-600 dark:text-blue-400",
   },
   important: {
     icon: <AlertCircle className="size-5" />,
     defaultTitle: "Important",
     containerClass: "border-destructive/30 bg-gradient-to-br from-destructive/8 to-destructive/2",
-    iconContainerClass: "bg-gradient-to-br from-destructive/30 to-destructive/15 text-destructive shadow-sm shadow-destructive/20",
+    iconContainerClass:
+      "bg-gradient-to-br from-destructive/30 to-destructive/15 text-destructive shadow-sm shadow-destructive/20",
     titleClass: "text-destructive",
   },
 };
@@ -106,7 +111,7 @@ export function TutorialTip({
         className: cn(
           "w-full flex items-center gap-3 text-left",
           "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-lg",
-          "touch-manipulation active:scale-[0.99] transition-transform"
+          "touch-manipulation active:scale-[0.99] transition-transform",
         ),
       }
     : { className: "flex items-center gap-3" };
@@ -125,7 +130,7 @@ export function TutorialTip({
         "relative rounded-xl border p-4 transition-all duration-300 overflow-hidden",
         config.containerClass,
         "hover:shadow-lg hover:shadow-current/10",
-        className
+        className,
       )}
       role={isAttention ? "alert" : "note"}
       whileHover={{ y: -2 }}
@@ -138,7 +143,7 @@ export function TutorialTip({
         <motion.div
           className={cn(
             "absolute -inset-px rounded-xl border-2",
-            variant === "warning" ? "border-amber-500/30" : "border-destructive/30"
+            variant === "warning" ? "border-amber-500/30" : "border-destructive/30",
           )}
           animate={{
             opacity: [0.5, 0, 0.5],
@@ -152,13 +157,14 @@ export function TutorialTip({
         <motion.div
           className={cn(
             "relative flex items-center justify-center size-9 rounded-xl shrink-0",
-            config.iconContainerClass
+            config.iconContainerClass,
           )}
           animate={
             isHovered
               ? {
                   scale: 1.1,
-                  rotate: variant === "pro" ? [0, -10, 10, 0] : variant === "warning" ? [0, 5, -5, 0] : 0,
+                  rotate:
+                    variant === "pro" ? [0, -10, 10, 0] : variant === "warning" ? [0, 5, -5, 0] : 0,
                 }
               : { scale: 1, rotate: 0 }
           }
@@ -227,9 +233,7 @@ export function TutorialTip({
           )}
         </AnimatePresence>
       ) : (
-        <div className="pt-3 pl-11 text-sm text-muted-foreground leading-relaxed">
-          {children}
-        </div>
+        <div className="pt-3 pl-11 text-sm text-muted-foreground leading-relaxed">{children}</div>
       )}
     </motion.div>
   );
@@ -239,11 +243,7 @@ export function TutorialTip({
 // Convenience Components
 // ============================================================================
 
-export function ProTip({
-  title,
-  children,
-  ...props
-}: Omit<TutorialTipProps, "variant">) {
+export function ProTip({ title, children, ...props }: Omit<TutorialTipProps, "variant">) {
   return (
     <TutorialTip variant="pro" title={title} {...props}>
       {children}
@@ -251,11 +251,7 @@ export function ProTip({
   );
 }
 
-export function Warning({
-  title,
-  children,
-  ...props
-}: Omit<TutorialTipProps, "variant">) {
+export function Warning({ title, children, ...props }: Omit<TutorialTipProps, "variant">) {
   return (
     <TutorialTip variant="warning" title={title} {...props}>
       {children}
@@ -263,11 +259,7 @@ export function Warning({
   );
 }
 
-export function Note({
-  title,
-  children,
-  ...props
-}: Omit<TutorialTipProps, "variant">) {
+export function Note({ title, children, ...props }: Omit<TutorialTipProps, "variant">) {
   return (
     <TutorialTip variant="note" title={title} {...props}>
       {children}
@@ -275,11 +267,7 @@ export function Note({
   );
 }
 
-export function Important({
-  title,
-  children,
-  ...props
-}: Omit<TutorialTipProps, "variant">) {
+export function Important({ title, children, ...props }: Omit<TutorialTipProps, "variant">) {
   return (
     <TutorialTip variant="important" title={title} {...props}>
       {children}

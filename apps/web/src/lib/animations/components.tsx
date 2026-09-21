@@ -9,26 +9,26 @@
 
 "use client";
 
+import { AnimatePresence, type MotionProps, motion, type Variants } from "framer-motion";
 import * as React from "react";
-import { motion, AnimatePresence, type Variants, type MotionProps } from "framer-motion";
 import { cn } from "@/lib/utils";
+import { useIntersectionAnimation, useParallax, useReducedMotion } from "./hooks";
 import {
-  fadeUp,
-  fadeIn,
-  scaleIn,
-  popIn,
-  slideInRight,
-  slideInLeft,
   blurIn,
-  staggerNormal,
-  cardHover,
   buttonHover,
   buttonTap,
+  cardHover,
+  fadeIn,
+  fadeUp,
   iconHover,
-  viewport,
+  popIn,
+  scaleIn,
+  slideInLeft,
+  slideInRight,
+  staggerNormal,
   transitions,
+  viewport,
 } from "./motion-variants";
-import { useReducedMotion, useParallax, useIntersectionAnimation } from "./hooks";
 
 // ============================================================================
 // ANIMATE ON SCROLL COMPONENT
@@ -54,7 +54,26 @@ const variantMap: Record<AnimationVariant, Variants> = {
 };
 
 // Supported HTML elements for AnimateOnScroll
-type SupportedElement = "div" | "section" | "article" | "main" | "aside" | "header" | "footer" | "nav" | "span" | "p" | "h1" | "h2" | "h3" | "h4" | "h5" | "h6" | "ul" | "ol" | "li";
+type SupportedElement =
+  | "div"
+  | "section"
+  | "article"
+  | "main"
+  | "aside"
+  | "header"
+  | "footer"
+  | "nav"
+  | "span"
+  | "p"
+  | "h1"
+  | "h2"
+  | "h3"
+  | "h4"
+  | "h5"
+  | "h6"
+  | "ul"
+  | "ol"
+  | "li";
 
 // Motion component map - typed as any internally since each motion element has a unique type
 // but they all share the same runtime interface for our use case
@@ -287,12 +306,7 @@ interface ParallaxProps {
  * </Parallax>
  * ```
  */
-export function Parallax({
-  children,
-  speed = 0.5,
-  direction = "up",
-  className,
-}: ParallaxProps) {
+export function Parallax({ children, speed = 0.5, direction = "up", className }: ParallaxProps) {
   const prefersReducedMotion = useReducedMotion();
   const y = useParallax({ speed, direction, respectReducedMotion: true });
 
@@ -420,7 +434,8 @@ export function InteractiveButton({
 // Props that conflict between HTML and Framer Motion for span
 type ConflictingSpanProps = "onAnimationStart" | "onDragStart" | "onDrag" | "onDragEnd";
 
-interface InteractiveIconProps extends Omit<React.HTMLAttributes<HTMLSpanElement>, ConflictingSpanProps> {
+interface InteractiveIconProps
+  extends Omit<React.HTMLAttributes<HTMLSpanElement>, ConflictingSpanProps> {
   children: React.ReactNode;
   /** Disable hover effects */
   disabled?: boolean;
@@ -520,4 +535,4 @@ export function PresenceAnimation({
 // EXPORTS
 // ============================================================================
 
-export type { AnimateOnScrollProps, StaggerChildrenProps, ParallaxProps, AnimationVariant };
+export type { AnimateOnScrollProps, AnimationVariant, ParallaxProps, StaggerChildrenProps };

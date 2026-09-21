@@ -11,9 +11,9 @@
  * @see brenner_bot-u38r (Tutorial Content: Prompt Templates Library)
  */
 
-import * as React from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { Search } from "lucide-react";
+import * as React from "react";
 import { PromptCard } from "@/components/tutorial";
 import { getAllPrompts, getAllTags } from "@/lib/tutorial-data/prompts";
 
@@ -45,7 +45,7 @@ export function PromptLibraryClient() {
           p.name.toLowerCase().includes(query) ||
           p.content.toLowerCase().includes(query) ||
           p.explanation.toLowerCase().includes(query) ||
-          p.tags.some((t) => t.toLowerCase().includes(query))
+          p.tags.some((t) => t.toLowerCase().includes(query)),
       );
     }
 

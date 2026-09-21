@@ -9,11 +9,11 @@
 
 import { describe, expect, it } from "vitest";
 import {
-  isLabModeEnabled,
-  hasValidLabSecret,
-  checkOrchestrationAuth,
-  assertOrchestrationAuth,
   AUTH_CONSTANTS,
+  assertOrchestrationAuth,
+  checkOrchestrationAuth,
+  hasValidLabSecret,
+  isLabModeEnabled,
 } from "./auth";
 
 // ============================================================================
@@ -58,7 +58,9 @@ function makeHeaders(values: Record<string, string>): { get: (name: string) => s
 /**
  * Create a mock cookies object that simulates NextJS cookies().
  */
-function makeCookies(values: Record<string, string>): { get: (name: string) => { value: string } | undefined } {
+function makeCookies(values: Record<string, string>): {
+  get: (name: string) => { value: string } | undefined;
+} {
   return {
     get: (name: string) => (values[name] !== undefined ? { value: values[name] } : undefined),
   };
@@ -170,7 +172,9 @@ describe("hasValidLabSecret", () => {
       withEnv({ BRENNER_LAB_SECRET: undefined }, () => {
         expect(hasValidLabSecret()).toBe(false);
         expect(hasValidLabSecret(makeHeaders({ "x-brenner-lab-secret": "anything" }))).toBe(false);
-        expect(hasValidLabSecret(undefined, makeCookies({ brenner_lab_secret: "anything" }))).toBe(false);
+        expect(hasValidLabSecret(undefined, makeCookies({ brenner_lab_secret: "anything" }))).toBe(
+          false,
+        );
       });
     });
 
@@ -312,46 +316,83 @@ describe("checkOrchestrationAuth", () => {
   describe("when lab mode is enabled", () => {
     describe("with Cloudflare Access headers", () => {
       it("authorizes with JWT header", () => {
-        withEnv({ BRENNER_LAB_MODE: "1", BRENNER_LAB_SECRET: undefined, BRENNER_TRUST_CF_ACCESS_HEADERS: "1" }, () => {
-          const headers = makeHeaders({ "cf-access-jwt-assertion": "some-jwt-token" });
-          const result = checkOrchestrationAuth(headers);
-          expect(result.authorized).toBe(true);
-          expect(result.reason).toContain("Cloudflare Access");
-        });
+        withEnv(
+          {
+            BRENNER_LAB_MODE: "1",
+            BRENNER_LAB_SECRET: undefined,
+            BRENNER_TRUST_CF_ACCESS_HEADERS: "1",
+          },
+          () => {
+            const headers = makeHeaders({ "cf-access-jwt-assertion": "some-jwt-token" });
+            const result = checkOrchestrationAuth(headers);
+            expect(result.authorized).toBe(true);
+            expect(result.reason).toContain("Cloudflare Access");
+          },
+        );
       });
 
       it("authorizes with email header", () => {
-        withEnv({ BRENNER_LAB_MODE: "1", BRENNER_LAB_SECRET: undefined, BRENNER_TRUST_CF_ACCESS_HEADERS: "1" }, () => {
-          const headers = makeHeaders({ "cf-access-authenticated-user-email": "user@example.com" });
-          const result = checkOrchestrationAuth(headers);
-          expect(result.authorized).toBe(true);
-          expect(result.reason).toContain("Cloudflare Access");
-        });
+        withEnv(
+          {
+            BRENNER_LAB_MODE: "1",
+            BRENNER_LAB_SECRET: undefined,
+            BRENNER_TRUST_CF_ACCESS_HEADERS: "1",
+          },
+          () => {
+            const headers = makeHeaders({
+              "cf-access-authenticated-user-email": "user@example.com",
+            });
+            const result = checkOrchestrationAuth(headers);
+            expect(result.authorized).toBe(true);
+            expect(result.reason).toContain("Cloudflare Access");
+          },
+        );
       });
 
       it("does not trust Cloudflare Access headers unless explicitly enabled", () => {
-        withEnv({ BRENNER_LAB_MODE: "1", BRENNER_LAB_SECRET: undefined, BRENNER_TRUST_CF_ACCESS_HEADERS: undefined }, () => {
-          const headers = makeHeaders({ "cf-access-jwt-assertion": "some-jwt-token" });
-          const result = checkOrchestrationAuth(headers);
-          expect(result.authorized).toBe(false);
-          expect(result.reason).toContain("BRENNER_TRUST_CF_ACCESS_HEADERS");
-        });
+        withEnv(
+          {
+            BRENNER_LAB_MODE: "1",
+            BRENNER_LAB_SECRET: undefined,
+            BRENNER_TRUST_CF_ACCESS_HEADERS: undefined,
+          },
+          () => {
+            const headers = makeHeaders({ "cf-access-jwt-assertion": "some-jwt-token" });
+            const result = checkOrchestrationAuth(headers);
+            expect(result.authorized).toBe(false);
+            expect(result.reason).toContain("BRENNER_TRUST_CF_ACCESS_HEADERS");
+          },
+        );
       });
 
       it("ignores empty JWT header", () => {
-        withEnv({ BRENNER_LAB_MODE: "1", BRENNER_LAB_SECRET: undefined, BRENNER_TRUST_CF_ACCESS_HEADERS: "1" }, () => {
-          const headers = makeHeaders({ "cf-access-jwt-assertion": "" });
-          const result = checkOrchestrationAuth(headers);
-          expect(result.authorized).toBe(false);
-        });
+        withEnv(
+          {
+            BRENNER_LAB_MODE: "1",
+            BRENNER_LAB_SECRET: undefined,
+            BRENNER_TRUST_CF_ACCESS_HEADERS: "1",
+          },
+          () => {
+            const headers = makeHeaders({ "cf-access-jwt-assertion": "" });
+            const result = checkOrchestrationAuth(headers);
+            expect(result.authorized).toBe(false);
+          },
+        );
       });
 
       it("ignores whitespace-only JWT header", () => {
-        withEnv({ BRENNER_LAB_MODE: "1", BRENNER_LAB_SECRET: undefined, BRENNER_TRUST_CF_ACCESS_HEADERS: "1" }, () => {
-          const headers = makeHeaders({ "cf-access-jwt-assertion": "   " });
-          const result = checkOrchestrationAuth(headers);
-          expect(result.authorized).toBe(false);
-        });
+        withEnv(
+          {
+            BRENNER_LAB_MODE: "1",
+            BRENNER_LAB_SECRET: undefined,
+            BRENNER_TRUST_CF_ACCESS_HEADERS: "1",
+          },
+          () => {
+            const headers = makeHeaders({ "cf-access-jwt-assertion": "   " });
+            const result = checkOrchestrationAuth(headers);
+            expect(result.authorized).toBe(false);
+          },
+        );
       });
     });
 
@@ -397,15 +438,22 @@ describe("checkOrchestrationAuth", () => {
 
     describe("priority order", () => {
       it("prefers Cloudflare Access over lab secret", () => {
-        withEnv({ BRENNER_LAB_MODE: "1", BRENNER_LAB_SECRET: "test-key", BRENNER_TRUST_CF_ACCESS_HEADERS: "1" }, () => {
-          const headers = makeHeaders({
-            "cf-access-jwt-assertion": "jwt-token",
-            "x-brenner-lab-secret": "test-key",
-          });
-          const result = checkOrchestrationAuth(headers);
-          expect(result.authorized).toBe(true);
-          expect(result.reason).toContain("Cloudflare Access");
-        });
+        withEnv(
+          {
+            BRENNER_LAB_MODE: "1",
+            BRENNER_LAB_SECRET: "test-key",
+            BRENNER_TRUST_CF_ACCESS_HEADERS: "1",
+          },
+          () => {
+            const headers = makeHeaders({
+              "cf-access-jwt-assertion": "jwt-token",
+              "x-brenner-lab-secret": "test-key",
+            });
+            const result = checkOrchestrationAuth(headers);
+            expect(result.authorized).toBe(true);
+            expect(result.reason).toContain("Cloudflare Access");
+          },
+        );
       });
     });
   });

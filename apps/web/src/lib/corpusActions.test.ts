@@ -23,4 +23,3 @@ describe("corpusActions", () => {
     expect(results.every((r) => typeof r.content === "string" && r.content.length > 10)).toBe(true);
   });
 });
-

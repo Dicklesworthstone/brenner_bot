@@ -1,5 +1,5 @@
-import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { resolve, win32 } from "node:path";
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   AgentMailTestServer,
   createMockRequest,
@@ -66,9 +66,9 @@ describe("POST /api/sessions", () => {
           sender: "Operator",
           recipients: [" "],
           threadId: "TEST-1",
-          excerpt: "### Excerpt\n\n> **§1**: \"Hello\"\n",
+          excerpt: '### Excerpt\n\n> **§1**: "Hello"\n',
         },
-      })
+      }),
     );
 
     expect(response.status).toBe(400);
@@ -80,46 +80,45 @@ describe("POST /api/sessions", () => {
     });
   });
 
-  it.each([
-    ["/abs/path/to/repo"],
-    ["C:\\repo\\brenner_bot"],
-    ["\\\\server\\share\\brenner_bot"],
-  ])("calls ensure_project for absolute projectKey: %s", async (projectKey) => {
-    const response = await POST(
-      createMockRequest({
-        method: "POST",
-        body: {
-          projectKey,
-          sender: "Operator",
-          recipients: ["Claude"],
-          threadId: "TEST-ABS",
-          excerpt: "### Excerpt\n\n> **§1**: \"Hello\"\n",
-        },
-      })
-    );
+  it.each([["/abs/path/to/repo"], ["C:\\repo\\brenner_bot"], ["\\\\server\\share\\brenner_bot"]])(
+    "calls ensure_project for absolute projectKey: %s",
+    async (projectKey) => {
+      const response = await POST(
+        createMockRequest({
+          method: "POST",
+          body: {
+            projectKey,
+            sender: "Operator",
+            recipients: ["Claude"],
+            threadId: "TEST-ABS",
+            excerpt: '### Excerpt\n\n> **§1**: "Hello"\n',
+          },
+        }),
+      );
 
-    expect(response.status).toBe(200);
-    const json = await response.json();
-    expect(json).toMatchObject({ success: true, threadId: "TEST-ABS" });
+      expect(response.status).toBe(200);
+      const json = await response.json();
+      expect(json).toMatchObject({ success: true, threadId: "TEST-ABS" });
 
-    // Verify project was created in test server
-    const normalizedProjectKey = normalizeProjectKey(projectKey);
-    const project = server.getProject(normalizedProjectKey);
-    expect(project).toBeDefined();
-    expect(project?.human_key).toBe(normalizedProjectKey);
+      // Verify project was created in test server
+      const normalizedProjectKey = normalizeProjectKey(projectKey);
+      const project = server.getProject(normalizedProjectKey);
+      expect(project).toBeDefined();
+      expect(project?.human_key).toBe(normalizedProjectKey);
 
-    // Verify sender agent was registered (recipients are auto-registered)
-    const agents = server.getProjectAgents(normalizedProjectKey);
-    expect(agents.length).toBeGreaterThanOrEqual(1);
-    const operatorAgent = agents.find((a) => a.name === "Operator");
-    expect(operatorAgent).toBeDefined();
-    expect(operatorAgent?.program).toBe("brenner-web");
+      // Verify sender agent was registered (recipients are auto-registered)
+      const agents = server.getProjectAgents(normalizedProjectKey);
+      expect(agents.length).toBeGreaterThanOrEqual(1);
+      const operatorAgent = agents.find((a) => a.name === "Operator");
+      expect(operatorAgent).toBeDefined();
+      expect(operatorAgent?.program).toBe("brenner-web");
 
-    // Verify message was sent to recipients
-    const messages = server.getMessagesTo("Claude");
-    expect(messages).toHaveLength(1);
-    expect(messages[0].subject).toContain("KICKOFF");
-  });
+      // Verify message was sent to recipients
+      const messages = server.getMessagesTo("Claude");
+      expect(messages).toHaveLength(1);
+      expect(messages[0].subject).toContain("KICKOFF");
+    },
+  );
 
   it("rejects relative projectKey", async () => {
     const response = await POST(
@@ -130,9 +129,9 @@ describe("POST /api/sessions", () => {
           sender: "Operator",
           recipients: ["Claude"],
           threadId: "TEST-REL",
-          excerpt: "### Excerpt\n\n> **§1**: \"Hello\"\n",
+          excerpt: '### Excerpt\n\n> **§1**: "Hello"\n',
         },
-      })
+      }),
     );
 
     expect(response.status).toBe(400);
@@ -154,9 +153,9 @@ describe("POST /api/sessions", () => {
           sender: "Operator",
           recipients: ["Claude"],
           threadId: "TEST-ENV",
-          excerpt: "### Excerpt\n\n> **§1**: \"Hello\"\n",
+          excerpt: '### Excerpt\n\n> **§1**: "Hello"\n',
         },
-      })
+      }),
     );
 
     expect(response.status).toBe(200);
@@ -182,9 +181,9 @@ describe("POST /api/sessions", () => {
           sender: "Operator",
           recipients: ["Claude", "Codex"],
           threadId: "THREAD-123",
-          excerpt: "### Excerpt\n\n> **§1**: \"Test content\"\n",
+          excerpt: '### Excerpt\n\n> **§1**: "Test content"\n',
         },
-      })
+      }),
     );
 
     expect(response.status).toBe(200);
@@ -209,9 +208,9 @@ describe("POST /api/sessions", () => {
           recipients: ["Claude"],
           threadId: "TEST-SUBJECT",
           subject: "Custom topic",
-          excerpt: "### Excerpt\n\n> **§1**: \"Hello\"\n",
+          excerpt: '### Excerpt\n\n> **§1**: "Hello"\n',
         },
-      })
+      }),
     );
 
     expect(response.status).toBe(200);
@@ -231,9 +230,9 @@ describe("POST /api/sessions", () => {
           recipients: ["Claude"],
           threadId: "TEST-PREFIX",
           subject: "KICKOFF: Already has prefix",
-          excerpt: "### Excerpt\n\n> **§1**: \"Hello\"\n",
+          excerpt: '### Excerpt\n\n> **§1**: "Hello"\n',
         },
-      })
+      }),
     );
 
     expect(response.status).toBe(200);
@@ -252,9 +251,9 @@ describe("POST /api/sessions", () => {
           sender: "Operator",
           recipients: ["Claude", "Claude", "Codex", "claude"],
           threadId: "TEST-DEDUP",
-          excerpt: "### Excerpt\n\n> **§1**: \"Hello\"\n",
+          excerpt: '### Excerpt\n\n> **§1**: "Hello"\n',
         },
-      })
+      }),
     );
 
     expect(response.status).toBe(200);

@@ -5,56 +5,56 @@
  * These tests ensure the fixtures themselves are usable in other tests.
  */
 
-import { describe, it, expect, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 import {
-  // Document fixtures
-  minimalTranscript,
-  comprehensiveTranscript,
-  emptyTranscript,
-  opusDistillation,
-  gptDistillation,
-  geminiDistillation,
-  quoteBankFixture,
-  metapromptFixture,
-  rawTranscriptMarkdown,
-  // Session fixtures
-  sampleResearchThread,
-  sampleHypotheses,
-  sampleTests,
-  validArtifactFixture,
-  draftArtifactFixture,
-  emptyArtifactFixture,
   activeSessionFixture,
-  errorSessionFixture,
-  pendingSessionFixture,
-  // User fixtures
-  authenticatedUserFixture,
   adminUserFixture,
-  observerUserFixture,
-  guestUserFixture,
-  validAuthSessionFixture,
-  expiredAuthSessionFixture,
-  permissionMatrixFixture,
   // API fixtures
   agentMailInboxFixture,
-  emptyInboxFixture,
   agentMailThreadFixture,
   agentProfileFixture,
+  // User fixtures
+  authenticatedUserFixture,
+  comprehensiveTranscript,
+  createAgentMailInbox,
+  createAgentMailMessage,
+  createHypothesis,
+  createSession,
+  createTranscriptDocument,
+  createUser,
+  createValidArtifact,
+  draftArtifactFixture,
+  emptyArtifactFixture,
+  emptyInboxFixture,
+  emptyTranscript,
   error404Fixture,
   error500Fixture,
-  jsonRpcSuccessFixture,
-  jsonRpcErrorFixture,
+  errorSessionFixture,
+  expiredAuthSessionFixture,
+  geminiDistillation,
   // Factories
   generateId,
-  resetIdCounter,
   generateTimestamp,
-  createTranscriptDocument,
-  createSession,
-  createHypothesis,
-  createValidArtifact,
-  createUser,
-  createAgentMailMessage,
-  createAgentMailInbox,
+  gptDistillation,
+  guestUserFixture,
+  jsonRpcErrorFixture,
+  jsonRpcSuccessFixture,
+  metapromptFixture,
+  // Document fixtures
+  minimalTranscript,
+  observerUserFixture,
+  opusDistillation,
+  pendingSessionFixture,
+  permissionMatrixFixture,
+  quoteBankFixture,
+  rawTranscriptMarkdown,
+  resetIdCounter,
+  sampleHypotheses,
+  // Session fixtures
+  sampleResearchThread,
+  sampleTests,
+  validArtifactFixture,
+  validAuthSessionFixture,
 } from "./index";
 
 // ============================================================================
@@ -74,7 +74,7 @@ describe("Document Fixtures", () => {
       expect(comprehensiveTranscript.totalSections).toBe(8);
 
       // Check for key section numbers
-      const sectionNumbers = comprehensiveTranscript.sections.map(s => s.number);
+      const sectionNumbers = comprehensiveTranscript.sections.map((s) => s.number);
       expect(sectionNumbers).toContain(103); // Third alternative
       expect(sectionNumbers).toContain(105); // Exclusion
       expect(sectionNumbers).toContain(230); // Productive ignorance
@@ -122,7 +122,7 @@ describe("Document Fixtures", () => {
     });
 
     it("tags are consistent with quotes", () => {
-      const allQuoteTags = quoteBankFixture.quotes.flatMap(q => q.tags);
+      const allQuoteTags = quoteBankFixture.quotes.flatMap((q) => q.tags);
       for (const tag of quoteBankFixture.tags) {
         expect(allQuoteTags).toContain(tag);
       }
@@ -162,7 +162,7 @@ describe("Session Fixtures", () => {
 
   describe("Hypothesis fixtures", () => {
     it("includes a third alternative", () => {
-      const thirdAlt = sampleHypotheses.find(h => h.third_alternative === true);
+      const thirdAlt = sampleHypotheses.find((h) => h.third_alternative === true);
       expect(thirdAlt).toBeDefined();
       expect(thirdAlt?.name).toContain("Both Wrong");
     });
@@ -198,7 +198,7 @@ describe("Session Fixtures", () => {
 
     it("validArtifactFixture has third alternative", () => {
       const thirdAlt = validArtifactFixture.sections.hypothesis_slate.find(
-        h => h.third_alternative === true
+        (h) => h.third_alternative === true,
       );
       expect(thirdAlt).toBeDefined();
     });
@@ -263,7 +263,7 @@ describe("User Fixtures", () => {
       expect(validAuthSessionFixture.access_token).toBeDefined();
       expect(validAuthSessionFixture.user).toBeDefined();
       expect(new Date(validAuthSessionFixture.expires_at).getTime()).toBeGreaterThan(
-        new Date(validAuthSessionFixture.issued_at).getTime()
+        new Date(validAuthSessionFixture.issued_at).getTime(),
       );
     });
 
@@ -312,10 +312,8 @@ describe("API Fixtures", () => {
 
       // Check chronological order
       for (let i = 1; i < messages.length; i++) {
-        expect(
-          new Date(messages[i].created_ts).getTime()
-        ).toBeGreaterThanOrEqual(
-          new Date(messages[i - 1].created_ts).getTime()
+        expect(new Date(messages[i].created_ts).getTime()).toBeGreaterThanOrEqual(
+          new Date(messages[i - 1].created_ts).getTime(),
         );
       }
     });
@@ -455,11 +453,11 @@ describe("Factory Functions", () => {
       expect(artifact.sections.adversarial_critique.length).toBeGreaterThanOrEqual(2);
 
       // Check third alternative exists
-      const hasThirdAlt = artifact.sections.hypothesis_slate.some(h => h.third_alternative);
+      const hasThirdAlt = artifact.sections.hypothesis_slate.some((h) => h.third_alternative);
       expect(hasThirdAlt).toBe(true);
 
       // Check scale check exists
-      const hasScaleCheck = artifact.sections.assumption_ledger.some(a => a.scale_check);
+      const hasScaleCheck = artifact.sections.assumption_ledger.some((a) => a.scale_check);
       expect(hasScaleCheck).toBe(true);
     });
   });

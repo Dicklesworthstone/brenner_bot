@@ -8,31 +8,31 @@
 
 // Embeddings
 export {
-  embedText,
   cosineSimilarity,
   EMBEDDING_DIMENSION,
+  embedText,
 } from "./embeddings";
 
 // Hypothesis Similarity
 export {
+  cardToIndexed,
+  clusterSimilarHypotheses,
+  // Similarity computation
+  computeSimilarity,
+  // Domain similarity
+  domainSimilarity,
+  embedHypothesis,
+  findDuplicates,
+  // Search functions
+  findSimilarHypotheses,
+  getSimilarityStats,
+  // Embedding helpers
+  hypothesisToSearchText,
   // Types
   type IndexedHypothesis,
   type SimilarityMatch,
   type SimilaritySearchConfig,
-  // Embedding helpers
-  hypothesisToSearchText,
-  embedHypothesis,
-  cardToIndexed,
-  // Domain similarity
-  domainSimilarity,
-  // Similarity computation
-  computeSimilarity,
-  // Search functions
-  findSimilarHypotheses,
   searchHypothesesByText,
-  clusterSimilarHypotheses,
-  findDuplicates,
-  getSimilarityStats,
   // Storage integration
   storageToIndexed,
   storageToIndexedBatch,
@@ -40,14 +40,14 @@ export {
 
 // Quote matching
 export {
-  embeddingEntryToQuote,
   buildQuoteQueryText,
+  computeOperatorRelevance,
+  embeddingEntryToQuote,
   filterQuoteEntriesByTags,
+  findRelevantQuotes,
   findSimilarQuotes,
+  getOperatorQuotes,
+  OPERATOR_QUOTE_KEYWORDS,
   // Operator-aware quote matching (bead brenner_bot-v2zy)
   type RankedQuote,
-  OPERATOR_QUOTE_KEYWORDS,
-  computeOperatorRelevance,
-  findRelevantQuotes,
-  getOperatorQuotes,
 } from "./quote-matcher";

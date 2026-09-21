@@ -1,15 +1,15 @@
 "use client";
 
-import * as React from "react";
-import Link from "next/link";
 import {
-  useReactTable,
+  createColumnHelper,
+  flexRender,
   getCoreRowModel,
   getSortedRowModel,
-  flexRender,
-  createColumnHelper,
   type SortingState,
+  useReactTable,
 } from "@tanstack/react-table";
+import Link from "next/link";
+import * as React from "react";
 import { cn } from "@/lib/utils";
 
 // ============================================================================
@@ -43,12 +43,14 @@ const CROSSWALK_DATA: CrosswalkRow[] = [
     },
     gpt: {
       label: "One sentence + objective function",
-      fullText: "Define the thesis in one sentence, then derive an optimization objective that naturally includes constraints.",
+      fullText:
+        "Define the thesis in one sentence, then derive an optimization objective that naturally includes constraints.",
       anchor: "define-the-thesis-one-sentence",
     },
     gemini: {
       label: "Root Access",
-      fullText: "Begin at the most fundamental level, like Brenner accessing biology from first principles via molecular structure.",
+      fullText:
+        "Begin at the most fundamental level, like Brenner accessing biology from first principles via molecular structure.",
       anchor: "root-access",
     },
   },
@@ -56,12 +58,14 @@ const CROSSWALK_DATA: CrosswalkRow[] = [
     concept: "Operators",
     opus: {
       label: "Operator algebra + compositions",
-      fullText: "Primitives like SLICE, SCALE, SWITCH that combine following algebraic rules to form complex research moves.",
+      fullText:
+        "Primitives like SLICE, SCALE, SWITCH that combine following algebraic rules to form complex research moves.",
       anchor: "operators-as-an-algebra",
     },
     gpt: {
       label: "Operator basis + loop + rubric",
-      fullText: "A set of operator primitives, a loop structure for iteration, and rubrics for evaluation.",
+      fullText:
+        "A set of operator primitives, a loop structure for iteration, and rubrics for evaluation.",
       anchor: "operator-basis",
     },
     gemini: {
@@ -74,17 +78,20 @@ const CROSSWALK_DATA: CrosswalkRow[] = [
     concept: "Execution",
     opus: {
       label: "Brenner Loop",
-      fullText: "Iterate: Select simplest adequate model organism, define one falsifiable prediction, run minimal discriminative test, update.",
+      fullText:
+        "Iterate: Select simplest adequate model organism, define one falsifiable prediction, run minimal discriminative test, update.",
       anchor: "the-brenner-loop",
     },
     gpt: {
       label: "9-step loop + worksheet",
-      fullText: "A structured 9-step research cycle with worksheets for each phase, from thesis to validation.",
+      fullText:
+        "A structured 9-step research cycle with worksheets for each phase, from thesis to validation.",
       anchor: "the-9-step-brenner-research-cycle",
     },
     gemini: {
       label: "Debug protocol + scheduler",
-      fullText: "Treat research as debugging, with a scheduler that manages attention and priorities.",
+      fullText:
+        "Treat research as debugging, with a scheduler that manages attention and priorities.",
       anchor: "debug-protocol",
     },
   },
@@ -92,12 +99,14 @@ const CROSSWALK_DATA: CrosswalkRow[] = [
     concept: "Quality",
     opus: {
       label: "Failure modes section",
-      fullText: "Explicit catalog of common failure modes: technique worship, mechanism fetish, over-engineering.",
+      fullText:
+        "Explicit catalog of common failure modes: technique worship, mechanism fetish, over-engineering.",
       anchor: "failure-modes",
     },
     gpt: {
       label: "12 guardrails",
-      fullText: "Twelve specific guardrails to prevent methodological drift and maintain research integrity.",
+      fullText:
+        "Twelve specific guardrails to prevent methodological drift and maintain research integrity.",
       anchor: "guardrails",
     },
     gemini: {
@@ -110,17 +119,20 @@ const CROSSWALK_DATA: CrosswalkRow[] = [
     concept: "Social",
     opus: {
       label: "Conversation as technology",
-      fullText: "Dialogue as a tool for hypothesis refinement: 'If you can't explain it simply, you don't understand it.'",
+      fullText:
+        "Dialogue as a tool for hypothesis refinement: 'If you can't explain it simply, you don't understand it.'",
       anchor: "conversation-as-technology",
     },
     gpt: {
       label: "Conversation as hypothesis search",
-      fullText: "Use conversation to explore the hypothesis space, test ideas, and refine understanding.",
+      fullText:
+        "Use conversation to explore the hypothesis space, test ideas, and refine understanding.",
       anchor: "conversation-as-hypothesis-search",
     },
     gemini: {
       label: "Brenner-Crick GAN",
-      fullText: "Model the Brenner-Crick dynamic as a generative adversarial network for idea generation and critique.",
+      fullText:
+        "Model the Brenner-Crick dynamic as a generative adversarial network for idea generation and critique.",
       anchor: "brenner-crick-gan",
     },
   },
@@ -212,9 +224,7 @@ interface TableCellContentProps {
 
 function TableCellContent({ cell, model }: TableCellContentProps) {
   const config = MODEL_CONFIGS[model];
-  const href = cell.anchor
-    ? `/corpus/${config.docId}#${cell.anchor}`
-    : `/corpus/${config.docId}`;
+  const href = cell.anchor ? `/corpus/${config.docId}#${cell.anchor}` : `/corpus/${config.docId}`;
 
   const content = (
     <Link
@@ -222,7 +232,7 @@ function TableCellContent({ cell, model }: TableCellContentProps) {
       className={cn(
         "block px-4 py-3 h-full transition-colors",
         "hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50",
-        "text-sm leading-relaxed text-foreground/90"
+        "text-sm leading-relaxed text-foreground/90",
       )}
     >
       {cell.label}
@@ -270,18 +280,14 @@ function MobileCard({ row }: MobileCardProps) {
               <div
                 className={cn(
                   "flex-shrink-0 size-8 rounded-lg flex items-center justify-center text-white text-xs font-bold",
-                  `bg-gradient-to-br ${config.color}`
+                  `bg-gradient-to-br ${config.color}`,
                 )}
               >
                 {config.name[0]}
               </div>
               <div className="flex-1 min-w-0">
-                <div className="text-xs text-muted-foreground mb-0.5">
-                  {config.name}
-                </div>
-                <div className="text-sm text-foreground truncate">
-                  {cell.label}
-                </div>
+                <div className="text-xs text-muted-foreground mb-0.5">{config.name}</div>
+                <div className="text-sm text-foreground truncate">{cell.label}</div>
               </div>
               <ChevronRightIcon />
             </Link>
@@ -304,15 +310,9 @@ const columnHelper = createColumnHelper<CrosswalkRow>();
 
 function SortIndicator({ direction }: { direction: false | "asc" | "desc" }) {
   if (!direction) {
-    return (
-      <span className="ml-1 text-muted-foreground/40 text-xs">⇅</span>
-    );
+    return <span className="ml-1 text-muted-foreground/40 text-xs">⇅</span>;
   }
-  return (
-    <span className="ml-1 text-foreground text-xs">
-      {direction === "asc" ? "↑" : "↓"}
-    </span>
-  );
+  return <span className="ml-1 text-foreground text-xs">{direction === "asc" ? "↑" : "↓"}</span>;
 }
 
 // ============================================================================
@@ -331,14 +331,12 @@ function ModelHeader({ model, sortDirection }: ModelHeaderProps) {
       <div
         className={cn(
           "size-6 rounded-md flex items-center justify-center text-white text-xs font-bold",
-          `bg-gradient-to-br ${config.color}`
+          `bg-gradient-to-br ${config.color}`,
         )}
       >
         {config.name[0]}
       </div>
-      <span className={cn("font-semibold text-sm", config.textColor)}>
-        {config.name}
-      </span>
+      <span className={cn("font-semibold text-sm", config.textColor)}>{config.name}</span>
       <SortIndicator direction={sortDirection} />
     </div>
   );
@@ -371,37 +369,23 @@ export function CrosswalkTable({ className }: CrosswalkTableProps) {
         ),
       }),
       columnHelper.accessor("opus", {
-        header: ({ column }) => (
-          <ModelHeader model="opus" sortDirection={column.getIsSorted()} />
-        ),
-        cell: (info) => (
-          <TableCellContent cell={info.getValue() as CrosswalkCell} model="opus" />
-        ),
-        sortingFn: (rowA, rowB) =>
-          (rowA.original.opus.label).localeCompare(rowB.original.opus.label),
+        header: ({ column }) => <ModelHeader model="opus" sortDirection={column.getIsSorted()} />,
+        cell: (info) => <TableCellContent cell={info.getValue() as CrosswalkCell} model="opus" />,
+        sortingFn: (rowA, rowB) => rowA.original.opus.label.localeCompare(rowB.original.opus.label),
       }),
       columnHelper.accessor("gpt", {
-        header: ({ column }) => (
-          <ModelHeader model="gpt" sortDirection={column.getIsSorted()} />
-        ),
-        cell: (info) => (
-          <TableCellContent cell={info.getValue() as CrosswalkCell} model="gpt" />
-        ),
-        sortingFn: (rowA, rowB) =>
-          (rowA.original.gpt.label).localeCompare(rowB.original.gpt.label),
+        header: ({ column }) => <ModelHeader model="gpt" sortDirection={column.getIsSorted()} />,
+        cell: (info) => <TableCellContent cell={info.getValue() as CrosswalkCell} model="gpt" />,
+        sortingFn: (rowA, rowB) => rowA.original.gpt.label.localeCompare(rowB.original.gpt.label),
       }),
       columnHelper.accessor("gemini", {
-        header: ({ column }) => (
-          <ModelHeader model="gemini" sortDirection={column.getIsSorted()} />
-        ),
-        cell: (info) => (
-          <TableCellContent cell={info.getValue() as CrosswalkCell} model="gemini" />
-        ),
+        header: ({ column }) => <ModelHeader model="gemini" sortDirection={column.getIsSorted()} />,
+        cell: (info) => <TableCellContent cell={info.getValue() as CrosswalkCell} model="gemini" />,
         sortingFn: (rowA, rowB) =>
-          (rowA.original.gemini.label).localeCompare(rowB.original.gemini.label),
+          rowA.original.gemini.label.localeCompare(rowB.original.gemini.label),
       }),
     ],
-    []
+    [],
   );
 
   // Create table instance
@@ -453,15 +437,12 @@ export function CrosswalkTable({ className }: CrosswalkTableProps) {
                         "hover:bg-muted/70 transition-colors",
                         isConceptColumn
                           ? "sticky left-0 z-10 bg-muted/50 text-sm font-semibold text-muted-foreground uppercase tracking-wider w-32"
-                          : config?.bgColor
+                          : config?.bgColor,
                       )}
                     >
                       {header.isPlaceholder
                         ? null
-                        : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
+                        : flexRender(header.column.columnDef.header, header.getContext())}
                     </th>
                   );
                 })}
@@ -477,8 +458,8 @@ export function CrosswalkTable({ className }: CrosswalkTableProps) {
                   hoveredRowId === row.id
                     ? "bg-muted/30"
                     : rowIndex % 2 === 0
-                    ? "bg-card"
-                    : "bg-muted/10"
+                      ? "bg-card"
+                      : "bg-muted/10",
                 )}
                 onMouseEnter={() => setHoveredRowId(row.id)}
                 onMouseLeave={() => setHoveredRowId(null)}
@@ -492,9 +473,7 @@ export function CrosswalkTable({ className }: CrosswalkTableProps) {
                       role="gridcell"
                       className={cn(
                         "border-r border-border last:border-r-0",
-                        isConceptColumn
-                          ? "sticky left-0 z-10 bg-inherit px-4 py-3"
-                          : "p-0"
+                        isConceptColumn ? "sticky left-0 z-10 bg-inherit px-4 py-3" : "p-0",
                       )}
                     >
                       {flexRender(cell.column.columnDef.cell, cell.getContext())}

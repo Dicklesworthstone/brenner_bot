@@ -4,30 +4,30 @@
  * @see brenner_bot-xlk2.7 (Agent Debate Mode feature)
  */
 
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
+import { createHypothesisCard } from "../hypothesis";
 import {
-  createDebate,
-  generateDebateId,
-  generateDebateThreadId,
-  generateDefaultTopic,
-  getNextSpeaker,
-  buildDebateOpeningPrompt,
-  buildDebateFollowUpPrompt,
+  type AgentDebate,
   addRound,
   addUserInjection,
   analyzeRound,
-  generateConclusion,
+  buildDebateFollowUpPrompt,
+  buildDebateOpeningPrompt,
   concludeDebate,
-  shouldConclude,
+  createDebate,
+  DEBATE_FORMAT_CONFIGS,
+  type DebateRound,
+  generateConclusion,
+  generateDebateId,
+  generateDebateThreadId,
+  generateDefaultTopic,
   getDebateStatus,
+  getNextSpeaker,
+  isAgentDebate,
   isDebateFormat,
   isDebateStatus,
-  isAgentDebate,
-  DEBATE_FORMAT_CONFIGS,
-  type AgentDebate,
-  type DebateRound,
+  shouldConclude,
 } from "./debate";
-import { createHypothesisCard } from "../hypothesis";
 
 // ============================================================================
 // Test Fixtures
@@ -203,10 +203,7 @@ describe("debate", () => {
       const debate = createTestDebate({
         maxRounds: 2,
         status: "in_progress",
-        rounds: [
-          createTestRound({ number: 1 }),
-          createTestRound({ number: 2 }),
-        ],
+        rounds: [createTestRound({ number: 1 }), createTestRound({ number: 2 })],
       });
 
       const speaker = getNextSpeaker(debate);
@@ -332,11 +329,7 @@ describe("debate", () => {
         rounds: [createTestRound()],
       });
 
-      const updated = addUserInjection(
-        debate,
-        "What about selection bias?",
-        "devils_advocate"
-      );
+      const updated = addUserInjection(debate, "What about selection bias?", "devils_advocate");
 
       expect(updated.userInjections).toHaveLength(1);
       expect(updated.userInjections[0]!.content).toBe("What about selection bias?");
@@ -355,7 +348,8 @@ describe("debate", () => {
   describe("analyzeRound", () => {
     it("detects objections", () => {
       const round = createTestRound({
-        content: "However, this approach has a fatal flaw. The design fails to account for confounds.",
+        content:
+          "However, this approach has a fatal flaw. The design fails to account for confounds.",
       });
 
       const analysis = analyzeRound(round);
@@ -376,7 +370,8 @@ describe("debate", () => {
 
     it("detects new points", () => {
       const round = createTestRound({
-        content: "I propose a new experimental design. Therefore, we should consider alternative methods.",
+        content:
+          "I propose a new experimental design. Therefore, we should consider alternative methods.",
       });
 
       const analysis = analyzeRound(round);
@@ -459,10 +454,7 @@ Key findings:
 
     it("generates conclusion with all required fields", () => {
       const debate = createTestDebate({
-        rounds: [
-          createTestRound({ number: 1 }),
-          createTestRound({ number: 2 }),
-        ],
+        rounds: [createTestRound({ number: 1 }), createTestRound({ number: 2 })],
       });
 
       const concluded = concludeDebate(debate);
@@ -490,10 +482,7 @@ Key findings:
       const debate = createTestDebate({
         status: "in_progress",
         maxRounds: 2,
-        rounds: [
-          createTestRound({ number: 1 }),
-          createTestRound({ number: 2 }),
-        ],
+        rounds: [createTestRound({ number: 1 }), createTestRound({ number: 2 })],
       });
 
       expect(shouldConclude(debate)).toBe(true);

@@ -10,11 +10,11 @@
  * @module components/brenner-loop/operators/OperatorProgress
  */
 
-import * as React from "react";
 import { motion } from "framer-motion";
 import { Check, Circle } from "lucide-react";
-import { cn } from "@/lib/utils";
+import * as React from "react";
 import type { OperatorStepState } from "@/lib/brenner-loop/operators/framework";
+import { cn } from "@/lib/utils";
 
 // ============================================================================
 // Types
@@ -44,13 +44,7 @@ function VerticalProgress({
   className,
 }: OperatorProgressProps) {
   return (
-    <nav
-      className={cn(
-        "flex flex-col gap-1",
-        className
-      )}
-      aria-label="Operator progress"
-    >
+    <nav className={cn("flex flex-col gap-1", className)} aria-label="Operator progress">
       <ol className="flex flex-col" role="list">
         {steps.map((step, index) => {
           const isCurrent = index === currentStepIndex;
@@ -76,8 +70,11 @@ function VerticalProgress({
                   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
                   isCurrent && "bg-primary/10",
                   (isCompleted || isSkipped) && !isCurrent && "hover:bg-muted/50",
-                  !isCompleted && !isSkipped && !isCurrent && (canClick ? "hover:bg-muted/30" : "opacity-50 cursor-not-allowed"),
-                  canClick && "cursor-pointer touch-manipulation active:scale-[0.98]"
+                  !isCompleted &&
+                    !isSkipped &&
+                    !isCurrent &&
+                    (canClick ? "hover:bg-muted/30" : "opacity-50 cursor-not-allowed"),
+                  canClick && "cursor-pointer touch-manipulation active:scale-[0.98]",
                 )}
                 aria-current={isCurrent ? "step" : undefined}
                 aria-label={`Step ${index + 1}: ${step.config.name}${isCompleted ? " (completed)" : ""}${isSkipped ? " (skipped)" : ""}${isCurrent ? " (current)" : ""}`}
@@ -92,7 +89,7 @@ function VerticalProgress({
                       "absolute left-[22px] top-[40px] h-[calc(100%-12px)] w-px origin-top",
                       isCompleted || isSkipped
                         ? "bg-gradient-to-b from-[oklch(0.72_0.19_145)] to-[oklch(0.72_0.19_145/0.3)]"
-                        : "bg-gradient-to-b from-border/50 to-transparent"
+                        : "bg-gradient-to-b from-border/50 to-transparent",
                     )}
                   />
                 )}
@@ -102,8 +99,10 @@ function VerticalProgress({
                   className={cn(
                     "relative z-10 flex items-center justify-center size-8 rounded-full shrink-0 text-sm font-medium transition-all duration-200",
                     isCurrent && "bg-primary text-primary-foreground shadow-md shadow-primary/30",
-                    (isCompleted || isSkipped) && !isCurrent && "bg-[oklch(0.72_0.19_145)] text-[oklch(0.15_0.02_145)]",
-                    !isCompleted && !isSkipped && !isCurrent && "bg-muted text-muted-foreground"
+                    (isCompleted || isSkipped) &&
+                      !isCurrent &&
+                      "bg-[oklch(0.72_0.19_145)] text-[oklch(0.15_0.02_145)]",
+                    !isCompleted && !isSkipped && !isCurrent && "bg-muted text-muted-foreground",
                   )}
                   whileHover={canClick && !isCurrent ? { scale: 1.1 } : undefined}
                   whileTap={canClick ? { scale: 0.95 } : undefined}
@@ -152,7 +151,7 @@ function VerticalProgress({
                       "text-sm font-medium truncate transition-colors duration-200",
                       isCurrent && "text-foreground",
                       (isCompleted || isSkipped) && !isCurrent && "text-muted-foreground",
-                      !isCompleted && !isSkipped && !isCurrent && "text-muted-foreground"
+                      !isCompleted && !isSkipped && !isCurrent && "text-muted-foreground",
                     )}
                   >
                     {step.config.name}
@@ -194,17 +193,18 @@ function VerticalProgress({
             className="h-full bg-gradient-to-r from-primary to-accent rounded-full"
             initial={{ width: 0 }}
             animate={{
-              width: `${((steps.filter(s => s.complete || s.skipped).length) / steps.length) * 100}%`,
+              width: `${(steps.filter((s) => s.complete || s.skipped).length / steps.length) * 100}%`,
             }}
             transition={{ type: "spring", stiffness: 100, damping: 20 }}
           />
         </div>
         <div className="flex items-center justify-between text-xs text-muted-foreground mt-2">
           <span>
-            {steps.filter(s => s.complete || s.skipped).length} of {steps.length} complete
+            {steps.filter((s) => s.complete || s.skipped).length} of {steps.length} complete
           </span>
           <span className="font-mono font-semibold">
-            {Math.round((steps.filter(s => s.complete || s.skipped).length / steps.length) * 100)}%
+            {Math.round((steps.filter((s) => s.complete || s.skipped).length / steps.length) * 100)}
+            %
           </span>
         </div>
       </motion.div>
@@ -226,7 +226,7 @@ function HorizontalProgress({
     <nav
       className={cn(
         "flex flex-col gap-3 px-4 py-3 bg-card/95 backdrop-blur-md border-b border-border/50",
-        className
+        className,
       )}
       aria-label="Operator progress"
     >
@@ -258,7 +258,7 @@ function HorizontalProgress({
               disabled={!canClick}
               className={cn(
                 "relative flex items-center justify-center touch-manipulation",
-                canClick ? "cursor-pointer" : "cursor-not-allowed"
+                canClick ? "cursor-pointer" : "cursor-not-allowed",
               )}
               style={{ minWidth: 44, minHeight: 44 }}
               aria-label={`Go to step ${index + 1}: ${step.config.name}`}
@@ -273,12 +273,12 @@ function HorizontalProgress({
                   "rounded-full transition-colors",
                   (isCompleted || isSkipped) && "bg-[oklch(0.72_0.19_145)]",
                   isCurrent && !isCompleted && !isSkipped && "bg-primary",
-                  !isCompleted && !isSkipped && !isCurrent && "bg-muted-foreground/30"
+                  !isCompleted && !isSkipped && !isCurrent && "bg-muted-foreground/30",
                 )}
                 initial={false}
                 animate={{
-                  width: isCurrent ? 14 : (isCompleted || isSkipped) ? 12 : 8,
-                  height: isCurrent ? 14 : (isCompleted || isSkipped) ? 12 : 8,
+                  width: isCurrent ? 14 : isCompleted || isSkipped ? 12 : 8,
+                  height: isCurrent ? 14 : isCompleted || isSkipped ? 12 : 8,
                 }}
                 transition={{ type: "spring", stiffness: 400, damping: 25 }}
               />
@@ -336,10 +336,7 @@ function HorizontalProgress({
 // Main Component
 // ============================================================================
 
-export function OperatorProgress({
-  variant,
-  ...props
-}: OperatorProgressProps) {
+export function OperatorProgress({ variant, ...props }: OperatorProgressProps) {
   if (variant === "horizontal") {
     return <HorizontalProgress {...props} />;
   }

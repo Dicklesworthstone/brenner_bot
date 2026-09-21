@@ -1,7 +1,7 @@
 "use client";
 
+import { AnimatePresence, motion } from "framer-motion";
 import * as React from "react";
-import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 
 const ChevronIcon = ({ className }: { className?: string }) => (
@@ -136,7 +136,7 @@ export function CollapsibleTrigger({
         "w-full flex items-center justify-between gap-3 cursor-pointer",
         "transition-all touch-manipulation active:scale-[0.99]",
         "focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
-        className
+        className,
       )}
     >
       {showChevron && chevronPosition === "left" && (
@@ -280,13 +280,13 @@ export function CollapsibleCard({
         "transition-all duration-200",
         "hover:border-border-hover hover:shadow-sm",
         "data-[state=open]:border-primary/30 data-[state=open]:shadow-lg data-[state=open]:shadow-primary/5",
-        className
+        className,
       )}
     >
       <CollapsibleTrigger
         className={cn(
           "p-4 hover:bg-muted/50 active:bg-muted/70 transition-all duration-150",
-          "group-data-[state=open]:border-b group-data-[state=open]:border-border/50"
+          "group-data-[state=open]:border-b group-data-[state=open]:border-border/50",
         )}
       >
         <div className="flex items-center gap-3 min-w-0">
@@ -347,7 +347,7 @@ export function CollapsibleSection({
         "transition-all duration-200",
         "hover:border-border-hover",
         "data-[state=open]:border-primary/20 data-[state=open]:bg-muted/50",
-        className
+        className,
       )}
     >
       <CollapsibleTrigger className="p-4 hover:bg-muted/50 active:bg-muted/70 transition-all duration-150">
@@ -358,9 +358,7 @@ export function CollapsibleSection({
       <CollapsibleContent>
         <div className="px-4 pb-4 space-y-4">
           {children}
-          {hint && (
-            <p className="text-xs text-muted-foreground">{hint}</p>
-          )}
+          {hint && <p className="text-xs text-muted-foreground">{hint}</p>}
         </div>
       </CollapsibleContent>
     </Collapsible>

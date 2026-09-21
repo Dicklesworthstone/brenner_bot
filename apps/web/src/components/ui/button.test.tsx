@@ -7,9 +7,9 @@
  * @see @/components/ui/button.tsx
  */
 
-import { createRef } from "react";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { createRef } from "react";
 import { describe, expect, it, vi } from "vitest";
 import { Button } from "./button";
 
@@ -163,7 +163,7 @@ describe("Button", () => {
       render(
         <Button disabled onClick={handleClick}>
           Disabled
-        </Button>
+        </Button>,
       );
 
       await user.click(screen.getByRole("button"));
@@ -176,7 +176,7 @@ describe("Button", () => {
       render(
         <Button loading onClick={handleClick}>
           Loading
-        </Button>
+        </Button>,
       );
 
       await user.click(screen.getByRole("button"));
@@ -189,7 +189,7 @@ describe("Button", () => {
       render(
         <Button asChild>
           <a href="/test">Link Button</a>
-        </Button>
+        </Button>,
       );
       expect(screen.getByRole("link", { name: "Link Button" })).toBeInTheDocument();
     });

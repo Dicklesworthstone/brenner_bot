@@ -5,28 +5,28 @@
  * @module brenner-loop/sessionHypothesis.test
  */
 
-import { describe, it, expect } from "vitest";
-import {
-  getSessionHypotheses,
-  getAllHypothesisIds,
-  getHypothesisState,
-  getHypothesisCard,
-  getActiveHypotheses,
-  hasThirdAlternative,
-  getHypothesisCounts,
-  setPrimaryHypothesis,
-  addCompetingHypothesis,
-  resolveCompetition,
-  archiveHypothesis,
-  restoreHypothesis,
-  getRelatedHypotheses,
-  getEvolutionChain,
-  findCommonAncestor,
-} from "./sessionHypothesis";
-import { createSession } from "./types";
-import { createHypothesisCard, generateHypothesisCardId } from "./hypothesis";
-import type { Session } from "./types";
+import { describe, expect, it } from "vitest";
 import type { HypothesisCard } from "./hypothesis";
+import { createHypothesisCard, generateHypothesisCardId } from "./hypothesis";
+import {
+  addCompetingHypothesis,
+  archiveHypothesis,
+  findCommonAncestor,
+  getActiveHypotheses,
+  getAllHypothesisIds,
+  getEvolutionChain,
+  getHypothesisCard,
+  getHypothesisCounts,
+  getHypothesisState,
+  getRelatedHypotheses,
+  getSessionHypotheses,
+  hasThirdAlternative,
+  resolveCompetition,
+  restoreHypothesis,
+  setPrimaryHypothesis,
+} from "./sessionHypothesis";
+import type { Session } from "./types";
+import { createSession } from "./types";
 
 // ============================================================================
 // Test Fixtures
@@ -35,7 +35,7 @@ import type { HypothesisCard } from "./hypothesis";
 function createTestHypothesis(
   sessionId: string,
   sequence: number,
-  overrides: Partial<Parameters<typeof createHypothesisCard>[0]> = {}
+  overrides: Partial<Parameters<typeof createHypothesisCard>[0]> = {},
 ): HypothesisCard {
   const id = generateHypothesisCardId(sessionId, sequence, 1);
   return createHypothesisCard({
@@ -172,9 +172,9 @@ describe("getActiveHypotheses", () => {
     const active = getActiveHypotheses(session);
 
     expect(active).toHaveLength(3); // 1 primary + 2 alternatives
-    expect(active.some(h => h.id === session.primaryHypothesisId)).toBe(true);
-    expect(active.some(h => h.id === session.alternativeHypothesisIds[0])).toBe(true);
-    expect(active.some(h => h.id === session.alternativeHypothesisIds[1])).toBe(true);
+    expect(active.some((h) => h.id === session.primaryHypothesisId)).toBe(true);
+    expect(active.some((h) => h.id === session.alternativeHypothesisIds[0])).toBe(true);
+    expect(active.some((h) => h.id === session.alternativeHypothesisIds[1])).toBe(true);
   });
 
   it("should not include archived hypotheses", () => {
@@ -182,7 +182,7 @@ describe("getActiveHypotheses", () => {
     const active = getActiveHypotheses(session);
     const archivedId = session.archivedHypothesisIds[0];
 
-    expect(active.some(h => h.id === archivedId)).toBe(false);
+    expect(active.some((h) => h.id === archivedId)).toBe(false);
   });
 
   it("should return only alternatives when no primary", () => {
@@ -192,8 +192,8 @@ describe("getActiveHypotheses", () => {
     const active = getActiveHypotheses(session);
 
     expect(active).toHaveLength(2); // Only alternatives
-    expect(active.some(h => h.id === session.alternativeHypothesisIds[0])).toBe(true);
-    expect(active.some(h => h.id === session.alternativeHypothesisIds[1])).toBe(true);
+    expect(active.some((h) => h.id === session.alternativeHypothesisIds[0])).toBe(true);
+    expect(active.some((h) => h.id === session.alternativeHypothesisIds[1])).toBe(true);
   });
 
   it("should skip alternatives not in hypothesisCards", () => {
@@ -205,7 +205,7 @@ describe("getActiveHypotheses", () => {
 
     // Should only include the valid ones
     expect(active).toHaveLength(3);
-    expect(active.some(h => h.id === "orphaned-id")).toBe(false);
+    expect(active.some((h) => h.id === "orphaned-id")).toBe(false);
   });
 });
 
@@ -264,9 +264,7 @@ describe("setPrimaryHypothesis", () => {
   it("should throw if hypothesis not found", () => {
     const session = createSessionWithMultipleHypotheses();
 
-    expect(() => setPrimaryHypothesis(session, "unknown-id")).toThrow(
-      "not found in session"
-    );
+    expect(() => setPrimaryHypothesis(session, "unknown-id")).toThrow("not found in session");
   });
 
   it("should throw if trying to promote archived hypothesis", () => {
@@ -274,7 +272,7 @@ describe("setPrimaryHypothesis", () => {
     const archivedId = session.archivedHypothesisIds[0];
 
     expect(() => setPrimaryHypothesis(session, archivedId)).toThrow(
-      "Cannot make archived hypothesis"
+      "Cannot make archived hypothesis",
     );
   });
 });
@@ -324,7 +322,7 @@ describe("addCompetingHypothesis", () => {
         mechanism: "Test mechanism that is long enough",
         predictionsIfTrue: ["Prediction"],
         impossibleIfTrue: ["Falsification"],
-      })
+      }),
     ).toThrow("not found");
   });
 });
@@ -339,7 +337,7 @@ describe("resolveCompetition", () => {
       session,
       winnerId,
       loserId,
-      "Evidence from test X supported winner"
+      "Evidence from test X supported winner",
     );
 
     expect(result.session.archivedHypothesisIds).toContain(loserId);
@@ -351,12 +349,7 @@ describe("resolveCompetition", () => {
     const loserId = session.primaryHypothesisId;
     const winnerId = session.alternativeHypothesisIds[0];
 
-    const result = resolveCompetition(
-      session,
-      winnerId,
-      loserId,
-      "Evidence disproved primary"
-    );
+    const result = resolveCompetition(session, winnerId, loserId, "Evidence disproved primary");
 
     expect(result.session.primaryHypothesisId).toBe(winnerId);
     expect(result.session.archivedHypothesisIds).toContain(loserId);
@@ -370,9 +363,7 @@ describe("resolveCompetition", () => {
     const result = resolveCompetition(session, winnerId, loserId, "Test reason");
 
     const lastEvolution =
-      result.session.hypothesisEvolution[
-        result.session.hypothesisEvolution.length - 1
-      ];
+      result.session.hypothesisEvolution[result.session.hypothesisEvolution.length - 1];
 
     expect(lastEvolution.fromVersionId).toBe(loserId);
     expect(lastEvolution.toVersionId).toBe(winnerId);
@@ -384,27 +375,27 @@ describe("resolveCompetition", () => {
     const archivedId = session.archivedHypothesisIds[0];
     const winnerId = session.primaryHypothesisId;
 
-    expect(() =>
-      resolveCompetition(session, winnerId, archivedId, "Test")
-    ).toThrow("already archived");
+    expect(() => resolveCompetition(session, winnerId, archivedId, "Test")).toThrow(
+      "already archived",
+    );
   });
 
   it("should throw if winner not found", () => {
     const session = createSessionWithMultipleHypotheses();
     const loserId = session.alternativeHypothesisIds[0];
 
-    expect(() =>
-      resolveCompetition(session, "unknown-winner", loserId, "Test")
-    ).toThrow("Winner hypothesis");
+    expect(() => resolveCompetition(session, "unknown-winner", loserId, "Test")).toThrow(
+      "Winner hypothesis",
+    );
   });
 
   it("should throw if loser not found", () => {
     const session = createSessionWithMultipleHypotheses();
     const winnerId = session.primaryHypothesisId;
 
-    expect(() =>
-      resolveCompetition(session, winnerId, "unknown-loser", "Test")
-    ).toThrow("Loser hypothesis");
+    expect(() => resolveCompetition(session, winnerId, "unknown-loser", "Test")).toThrow(
+      "Loser hypothesis",
+    );
   });
 });
 
@@ -433,9 +424,9 @@ describe("archiveHypothesis", () => {
   it("should throw if trying to archive only active hypothesis", () => {
     const session = createTestSession();
 
-    expect(() =>
-      archiveHypothesis(session, session.primaryHypothesisId, "Test")
-    ).toThrow("Cannot archive the only active hypothesis");
+    expect(() => archiveHypothesis(session, session.primaryHypothesisId, "Test")).toThrow(
+      "Cannot archive the only active hypothesis",
+    );
   });
 
   it("should return session unchanged if already archived", () => {
@@ -450,9 +441,7 @@ describe("archiveHypothesis", () => {
   it("should throw if hypothesis is orphaned", () => {
     const session = createSessionWithMultipleHypotheses();
 
-    expect(() =>
-      archiveHypothesis(session, "orphaned-id", "Test")
-    ).toThrow("not found in session");
+    expect(() => archiveHypothesis(session, "orphaned-id", "Test")).toThrow("not found in session");
   });
 });
 
@@ -543,23 +532,19 @@ describe("getEvolutionChain", () => {
     const session = createTestSession();
 
     // Add a competing hypothesis
-    const result1 = addCompetingHypothesis(
-      session,
-      session.primaryHypothesisId,
-      {
-        statement: "First evolution - statement long enough",
-        mechanism: "First evolution - mechanism long enough",
-        predictionsIfTrue: ["Prediction"],
-        impossibleIfTrue: ["Falsification"],
-      }
-    );
+    const result1 = addCompetingHypothesis(session, session.primaryHypothesisId, {
+      statement: "First evolution - statement long enough",
+      mechanism: "First evolution - mechanism long enough",
+      predictionsIfTrue: ["Prediction"],
+      impossibleIfTrue: ["Falsification"],
+    });
 
     // Evolve that one further (resolve competition with original winning)
     const result2 = resolveCompetition(
       result1.session,
       result1.hypothesis.id,
       session.primaryHypothesisId,
-      "Evidence supported the alternative"
+      "Evidence supported the alternative",
     );
 
     const chain = getEvolutionChain(result2.session, result1.hypothesis.id);
@@ -567,7 +552,7 @@ describe("getEvolutionChain", () => {
     expect(chain).toContain(session.primaryHypothesisId);
     expect(chain).toContain(result1.hypothesis.id);
     expect(chain.indexOf(session.primaryHypothesisId)).toBeLessThan(
-      chain.indexOf(result1.hypothesis.id)
+      chain.indexOf(result1.hypothesis.id),
     );
   });
 });
@@ -595,7 +580,7 @@ describe("findCommonAncestor", () => {
     const ancestor = findCommonAncestor(
       result2.session,
       result1.hypothesis.id,
-      result2.hypothesis.id
+      result2.hypothesis.id,
     );
 
     expect(ancestor).toBe(rootId);

@@ -1,10 +1,10 @@
-import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { randomUUID } from "node:crypto";
 import { promises as fs } from "fs";
-import { join } from "path";
 import { tmpdir } from "os";
-import { TestStorage, type SessionTestFile } from "./test-storage";
+import { join } from "path";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { createTestRecord, type TestRecord } from "../schemas/test-record";
+import { type SessionTestFile, TestStorage } from "./test-storage";
 
 // ============================================================================
 // Test Helpers
@@ -196,7 +196,7 @@ describe("TestStorage", () => {
       const content2 = JSON.parse(await fs.readFile(filePath, "utf-8")) as SessionTestFile;
       expect(content2.createdAt).toBe(originalCreatedAt);
       expect(new Date(content2.updatedAt).getTime()).toBeGreaterThan(
-        new Date(originalCreatedAt).getTime()
+        new Date(originalCreatedAt).getTime(),
       );
     });
 
@@ -219,7 +219,7 @@ describe("TestStorage", () => {
       await fs.mkdir(join(tempDir, ".research", "tests"), { recursive: true });
       await fs.writeFile(
         join(tempDir, ".research", "tests", "MALFORMED-tests.json"),
-        JSON.stringify({ sessionId: "MALFORMED", createdAt: "2025-01-01", tests: "not-an-array" })
+        JSON.stringify({ sessionId: "MALFORMED", createdAt: "2025-01-01", tests: "not-an-array" }),
       );
 
       const loaded = await storage.loadSessionTests("MALFORMED");
@@ -240,7 +240,7 @@ describe("TestStorage", () => {
             { invalid: "entry", missing: "required fields" },
             { id: "also-invalid" },
           ],
-        })
+        }),
       );
 
       const loaded = await storage.loadSessionTests("MIXED");
@@ -304,7 +304,7 @@ describe("TestStorage", () => {
       await fs.mkdir(join(tempDir, ".research", "tests"), { recursive: true });
       await fs.writeFile(
         join(tempDir, ".research", "tests", "NOARRAY-tests.json"),
-        JSON.stringify({ sessionId: "NOARRAY", tests: { not: "an-array" } })
+        JSON.stringify({ sessionId: "NOARRAY", tests: { not: "an-array" } }),
       );
 
       const index = await storage.rebuildIndex();
@@ -319,11 +319,8 @@ describe("TestStorage", () => {
           sessionId: "HASINVALID",
           createdAt: "2025-01-01",
           updatedAt: "2025-01-01",
-          tests: [
-            { invalid: "test1" },
-            { invalid: "test2" },
-          ],
-        })
+          tests: [{ invalid: "test1" }, { invalid: "test2" }],
+        }),
       );
 
       const index = await storage.rebuildIndex();
@@ -833,8 +830,16 @@ describe("TestStorage", () => {
 
   describe("getNextTestToExecute", () => {
     it("returns highest priority ready test", async () => {
-      const ready1 = { ...createTestTestRecord("RS20251230", 1), status: "ready" as const, priority: 5 };
-      const ready2 = { ...createTestTestRecord("RS20251230", 2), status: "ready" as const, priority: 1 };
+      const ready1 = {
+        ...createTestTestRecord("RS20251230", 1),
+        status: "ready" as const,
+        priority: 5,
+      };
+      const ready2 = {
+        ...createTestTestRecord("RS20251230", 2),
+        status: "ready" as const,
+        priority: 1,
+      };
       const designed = createTestTestRecord("RS20251230", 3); // Not ready
 
       await storage.saveTest(ready1);

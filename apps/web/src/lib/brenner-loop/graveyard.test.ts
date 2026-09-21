@@ -6,34 +6,34 @@
  * @see brenner_bot-7usw (bead)
  */
 import { describe, expect, it } from "vitest";
+import type { EvidenceEntry } from "./evidence";
 import {
-  isDeathType,
-  getRandomBrennerQuote,
-  validateFalsifiedHypothesis,
-  isFalsifiedHypothesis,
-  generateGraveyardId,
-  createFalsifiedHypothesis,
-  addSuccessor,
   addContributedTo,
-  updateEpitaph,
-  updateLearning,
-  calculateGraveyardStats,
+  addSuccessor,
   analyzeFailurePatterns,
-  getDeathTypeDisplay,
-  formatFalsificationDate,
-  summarizeFalsification,
-  DEATH_TYPE_LABELS,
+  BRENNER_FALSIFICATION_QUOTES,
+  calculateGraveyardStats,
+  createFalsifiedHypothesis,
   DEATH_TYPE_DESCRIPTIONS,
   DEATH_TYPE_ICONS,
-  BRENNER_FALSIFICATION_QUOTES,
-  GRAVEYARD_ID_PATTERN,
+  DEATH_TYPE_LABELS,
   type DeathType,
-  type FalsifiedHypothesis,
   type FalsificationLearning,
+  type FalsifiedHypothesis,
+  formatFalsificationDate,
+  GRAVEYARD_ID_PATTERN,
+  generateGraveyardId,
+  getDeathTypeDisplay,
+  getRandomBrennerQuote,
+  isDeathType,
+  isFalsifiedHypothesis,
+  summarizeFalsification,
+  updateEpitaph,
+  updateLearning,
+  validateFalsifiedHypothesis,
 } from "./graveyard";
-import { createHypothesisCard, generateHypothesisCardId } from "./hypothesis";
 import type { HypothesisCard } from "./hypothesis";
-import type { EvidenceEntry } from "./evidence";
+import { createHypothesisCard, generateHypothesisCardId } from "./hypothesis";
 
 // ============================================================================
 // Test Fixtures
@@ -87,7 +87,7 @@ function makeLearning(): FalsificationLearning {
 }
 
 function makeFalsifiedHypothesis(
-  overrides: Partial<FalsifiedHypothesis> = {}
+  overrides: Partial<FalsifiedHypothesis> = {},
 ): FalsifiedHypothesis {
   const sessionId = "TEST-SESSION";
   return {
@@ -312,7 +312,7 @@ describe("graveyard creation", () => {
         deathType: "direct_falsification",
         deathSummary: "",
         learning: makeLearning(),
-      })
+      }),
     ).toThrow(/Invalid FalsifiedHypothesis/);
   });
 });
@@ -416,8 +416,12 @@ describe("graveyard validation", () => {
     const invalidDate = { ...entry, falsifiedAt: new Date("not-a-date") } as never;
     const invalidString = { ...entry, falsifiedAt: "not-a-date" } as never;
 
-    expect(validateFalsifiedHypothesis(invalidDate).errors.some((e) => e.field === "falsifiedAt")).toBe(true);
-    expect(validateFalsifiedHypothesis(invalidString).errors.some((e) => e.field === "falsifiedAt")).toBe(true);
+    expect(
+      validateFalsifiedHypothesis(invalidDate).errors.some((e) => e.field === "falsifiedAt"),
+    ).toBe(true);
+    expect(
+      validateFalsifiedHypothesis(invalidString).errors.some((e) => e.field === "falsifiedAt"),
+    ).toBe(true);
   });
 
   it("flags missing learning object and missing session id", () => {
@@ -529,7 +533,11 @@ describe("graveyard failure patterns", () => {
 
   it("reports productive + unprocessed failures when present", () => {
     const entries = [
-      makeFalsifiedHypothesis({ id: "GY-TEST-001", successorHypothesisIds: ["HC-NEW-001-v1"], epitaph: "" }),
+      makeFalsifiedHypothesis({
+        id: "GY-TEST-001",
+        successorHypothesisIds: ["HC-NEW-001-v1"],
+        epitaph: "",
+      }),
       makeFalsifiedHypothesis({ id: "GY-TEST-002", epitaph: "" }),
       makeFalsifiedHypothesis({ id: "GY-TEST-003", epitaph: "Learned a lot" }),
     ];

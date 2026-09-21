@@ -1,10 +1,11 @@
-import { Metadata } from "next";
+import type { Metadata } from "next";
 import Link from "next/link";
 import { HeroBackground } from "@/components/ui/animated-element";
 
 export const metadata: Metadata = {
   title: "Multi-Agent Cockpit",
-  description: "Orchestrate a research group with Claude, GPT, and Gemini working in parallel via Agent Mail.",
+  description:
+    "Orchestrate a research group with Claude, GPT, and Gemini working in parallel via Agent Mail.",
 };
 
 // ============================================================================
@@ -12,32 +13,68 @@ export const metadata: Metadata = {
 // ============================================================================
 
 const ArrowLeftIcon = () => (
-  <svg className="size-4 transition-transform group-hover:-translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+  <svg
+    className="size-4 transition-transform group-hover:-translate-x-1"
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+    strokeWidth={2}
+  >
     <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
   </svg>
 );
 
 const ArrowRightIcon = () => (
-  <svg className="size-4 transition-transform group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+  <svg
+    className="size-4 transition-transform group-hover:translate-x-1"
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+    strokeWidth={2}
+  >
     <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
   </svg>
 );
 
 const UsersIcon = () => (
   <svg className="size-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" />
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z"
+    />
   </svg>
 );
 
 const ClockIcon = () => (
-  <svg className="size-4 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+  <svg
+    className="size-4 text-muted-foreground"
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+    strokeWidth={1.5}
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"
+    />
   </svg>
 );
 
 const CheckCircleIcon = () => (
-  <svg className="size-5 text-destructive" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+  <svg
+    className="size-5 text-destructive"
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+    strokeWidth={2}
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+    />
   </svg>
 );
 
@@ -61,40 +98,28 @@ const steps = [
     title: "Configure Agent Subscriptions",
     duration: "~10 min",
     description: "Ensure you have active API access to Claude, GPT, and Gemini.",
-    whatYouLearn: [
-      "API key management across providers",
-      "Rate limits and cost considerations",
-    ],
+    whatYouLearn: ["API key management across providers", "Rate limits and cost considerations"],
   },
   {
     number: 3,
     title: "Define Your Roster",
     duration: "~10 min",
     description: "Map agents to roles: Hypothesis Generator, Test Designer, Adversarial Critic.",
-    whatYouLearn: [
-      "Role-based agent orchestration",
-      "The three canonical Brenner roles",
-    ],
+    whatYouLearn: ["Role-based agent orchestration", "The three canonical Brenner roles"],
   },
   {
     number: 4,
     title: "Write Your Kickoff Prompt",
     duration: "~10 min",
     description: "Craft the initial research prompt that will seed all three agents.",
-    whatYouLearn: [
-      "Multi-agent prompt design",
-      "How to seed productive disagreement",
-    ],
+    whatYouLearn: ["Multi-agent prompt design", "How to seed productive disagreement"],
   },
   {
     number: 5,
     title: "Launch the Session",
     duration: "~5 min",
     description: "Use the brenner CLI to spawn agents and send the kickoff via Agent Mail.",
-    whatYouLearn: [
-      "The session start workflow",
-      "How Agent Mail threads work",
-    ],
+    whatYouLearn: ["The session start workflow", "How Agent Mail threads work"],
   },
   {
     number: 6,
@@ -110,31 +135,23 @@ const steps = [
     number: 7,
     title: "Compile Deltas into Artifact",
     duration: "~10 min",
-    description: "Use the brenner CLI to merge agent contributions into a unified research artifact.",
-    whatYouLearn: [
-      "The delta merge algorithm",
-      "Artifact structure and versioning",
-    ],
+    description:
+      "Use the brenner CLI to merge agent contributions into a unified research artifact.",
+    whatYouLearn: ["The delta merge algorithm", "Artifact structure and versioning"],
   },
   {
     number: 8,
     title: "Score the Session",
     duration: "~10 min",
     description: "Evaluate the session using the 7-dimension Brenner scorecard.",
-    whatYouLearn: [
-      "The evaluation rubric",
-      "How to identify session quality issues",
-    ],
+    whatYouLearn: ["The evaluation rubric", "How to identify session quality issues"],
   },
   {
     number: 9,
     title: "Iterate or Publish",
     duration: "~10 min",
     description: "Either start a new session round or publish the artifact for external review.",
-    whatYouLearn: [
-      "Multi-session research programs",
-      "Sharing artifacts with collaborators",
-    ],
+    whatYouLearn: ["Multi-session research programs", "Sharing artifacts with collaborators"],
   },
   {
     number: 10,
@@ -188,8 +205,8 @@ export default function MultiAgentPage() {
           </h1>
 
           <p className="max-w-xl mx-auto text-base sm:text-lg text-muted-foreground leading-relaxed">
-            Orchestrate a research group with Claude, GPT, and Gemini working in parallel via Agent Mail.
-            Full infrastructure setup for serious research.
+            Orchestrate a research group with Claude, GPT, and Gemini working in parallel via Agent
+            Mail. Full infrastructure setup for serious research.
           </p>
 
           <div className="flex items-center justify-center gap-4 text-sm text-muted-foreground">
@@ -300,7 +317,8 @@ export default function MultiAgentPage() {
           <h3 className="text-xl font-semibold">Ready to Begin?</h3>
           <p className="text-sm text-muted-foreground">
             This advanced path requires infrastructure setup. Make sure you have the prerequisites
-            above before starting. If you&apos;re new to Brenner-style research, try Quick Start first.
+            above before starting. If you&apos;re new to Brenner-style research, try Quick Start
+            first.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
             <Link

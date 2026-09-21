@@ -10,15 +10,10 @@
  */
 
 import * as React from "react";
-import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import type { SessionCommand } from "@/lib/brenner-loop/undoManager";
+import { cn } from "@/lib/utils";
 
 // ============================================================================
 // Icons (inline SVGs to avoid import dependencies)
@@ -142,7 +137,7 @@ function HistoryItem({ command, onClick }: HistoryItemProps) {
       className={cn(
         "w-full flex items-center gap-3 px-3 py-2 text-left",
         "hover:bg-muted rounded-md transition-colors",
-        "group"
+        "group",
       )}
     >
       <div className="flex-shrink-0">
@@ -175,8 +170,7 @@ export function UndoRedoControls({
 }: UndoRedoControlsProps) {
   const [historyOpen, setHistoryOpen] = React.useState(false);
   const isMac =
-    typeof navigator !== "undefined" &&
-    navigator.platform.toUpperCase().indexOf("MAC") >= 0;
+    typeof navigator !== "undefined" && navigator.platform.toUpperCase().indexOf("MAC") >= 0;
   const modKey = isMac ? "Cmd" : "Ctrl";
 
   return (
@@ -191,10 +185,7 @@ export function UndoRedoControls({
                 size={compact ? "icon" : "sm"}
                 onClick={onUndo}
                 disabled={!canUndo}
-                className={cn(
-                  "gap-1.5",
-                  !canUndo && "opacity-50 cursor-not-allowed"
-                )}
+                className={cn("gap-1.5", !canUndo && "opacity-50 cursor-not-allowed")}
               >
                 <UndoIcon className="size-4" />
                 {!compact && <span>Undo</span>}
@@ -204,12 +195,8 @@ export function UndoRedoControls({
               {canUndo ? (
                 <div className="text-center">
                   <p className="font-medium">Undo</p>
-                  <p className="text-xs text-muted-foreground">
-                    {nextUndoDescription}
-                  </p>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    {modKey}+Z
-                  </p>
+                  <p className="text-xs text-muted-foreground">{nextUndoDescription}</p>
+                  <p className="text-xs text-muted-foreground mt-1">{modKey}+Z</p>
                 </div>
               ) : (
                 <p>Nothing to undo</p>
@@ -225,10 +212,7 @@ export function UndoRedoControls({
                 size={compact ? "icon" : "sm"}
                 onClick={onRedo}
                 disabled={!canRedo}
-                className={cn(
-                  "gap-1.5",
-                  !canRedo && "opacity-50 cursor-not-allowed"
-                )}
+                className={cn("gap-1.5", !canRedo && "opacity-50 cursor-not-allowed")}
               >
                 <RedoIcon className="size-4" />
                 {!compact && <span>Redo</span>}
@@ -238,12 +222,8 @@ export function UndoRedoControls({
               {canRedo ? (
                 <div className="text-center">
                   <p className="font-medium">Redo</p>
-                  <p className="text-xs text-muted-foreground">
-                    {nextRedoDescription}
-                  </p>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    {modKey}+Shift+Z
-                  </p>
+                  <p className="text-xs text-muted-foreground">{nextRedoDescription}</p>
+                  <p className="text-xs text-muted-foreground mt-1">{modKey}+Shift+Z</p>
                 </div>
               ) : (
                 <p>Nothing to redo</p>
@@ -261,9 +241,7 @@ export function UndoRedoControls({
             >
               <HistoryIcon className="size-4" />
               {!compact && (
-                <span className="ml-1.5 text-xs text-muted-foreground">
-                  {recentHistory.length}
-                </span>
+                <span className="ml-1.5 text-xs text-muted-foreground">{recentHistory.length}</span>
               )}
             </Button>
           )}
@@ -275,9 +253,7 @@ export function UndoRedoControls({
             <div className="space-y-1">
               <div className="px-3 py-2">
                 <h4 className="text-sm font-medium">Recent Actions</h4>
-                <p className="text-xs text-muted-foreground">
-                  Click to undo to that point
-                </p>
+                <p className="text-xs text-muted-foreground">Click to undo to that point</p>
               </div>
               <div className="max-h-64 overflow-y-auto">
                 {recentHistory.map((cmd) => (
@@ -330,7 +306,7 @@ export function InlineUndoButton({
             className={cn(
               "inline-flex items-center gap-1 text-xs text-muted-foreground",
               "hover:text-foreground transition-colors",
-              className
+              className,
             )}
           >
             <UndoIcon className="size-3" />
@@ -351,22 +327,17 @@ export function InlineUndoButton({
 
 export function KeyboardShortcutHint() {
   const isMac =
-    typeof navigator !== "undefined" &&
-    navigator.platform.toUpperCase().indexOf("MAC") >= 0;
+    typeof navigator !== "undefined" && navigator.platform.toUpperCase().indexOf("MAC") >= 0;
   const modKey = isMac ? "Cmd" : "Ctrl";
 
   return (
     <div className="flex items-center gap-4 text-xs text-muted-foreground">
       <div className="flex items-center gap-1">
-        <kbd className="px-1.5 py-0.5 rounded border bg-muted text-xs">
-          {modKey}+Z
-        </kbd>
+        <kbd className="px-1.5 py-0.5 rounded border bg-muted text-xs">{modKey}+Z</kbd>
         <span>Undo</span>
       </div>
       <div className="flex items-center gap-1">
-        <kbd className="px-1.5 py-0.5 rounded border bg-muted text-xs">
-          {modKey}+Shift+Z
-        </kbd>
+        <kbd className="px-1.5 py-0.5 rounded border bg-muted text-xs">{modKey}+Shift+Z</kbd>
         <span>Redo</span>
       </div>
     </div>

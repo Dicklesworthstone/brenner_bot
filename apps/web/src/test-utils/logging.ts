@@ -65,7 +65,8 @@ function formatLogEntry(entry: LogEntry): string {
   const categoryStr = entry.category ? ` [${entry.category}]` : "";
   const stepStr = entry.step !== undefined ? ` [Step ${entry.step}]` : "";
   const durationStr = entry.duration ? ` (${formatDuration(entry.duration)})` : "";
-  const dataStr = entry.data !== undefined ? `\n  Data: ${JSON.stringify(entry.data, null, 2)}` : "";
+  const dataStr =
+    entry.data !== undefined ? `\n  Data: ${JSON.stringify(entry.data, null, 2)}` : "";
   return `[${time}] ${levelStr}${categoryStr}${stepStr} [${entry.context}] ${entry.message}${durationStr}${dataStr}`;
 }
 
@@ -137,7 +138,8 @@ export function createTestLogger(context: string) {
   return {
     debug: (message: string, options?: LogOptions) => log("debug", message, options),
     info: (message: string, options?: LogOptions) => log("info", message, options),
-    step: (message: string, options?: Omit<LogOptions, "category">) => log("step", message, options),
+    step: (message: string, options?: Omit<LogOptions, "category">) =>
+      log("step", message, options),
     warn: (message: string, options?: LogOptions) => log("warn", message, options),
     error: (message: string, options?: LogOptions) => log("error", message, options),
     /** Get current step count */
@@ -189,7 +191,7 @@ export function formatLogBufferAsJson(): string {
       entries: logBuffer,
     },
     null,
-    2
+    2,
   );
 }
 
@@ -233,7 +235,9 @@ export function setupTestLogging(): void {
     if (context.task.result?.state === "fail") {
       const summary = getLogSummary();
       console.log("\n=== Test Log Buffer ===");
-      console.log(`Duration: ${summary.totalDuration} | Steps: ${summary.stepCount} | Errors: ${summary.errorCount}`);
+      console.log(
+        `Duration: ${summary.totalDuration} | Steps: ${summary.stepCount} | Errors: ${summary.errorCount}`,
+      );
       console.log("-".repeat(60));
       console.log(formatLogBuffer());
       console.log("======================\n");
@@ -253,7 +257,8 @@ export function setupTestLogging(): void {
  */
 export function createLoggingFetch(logger: ReturnType<typeof createTestLogger>): typeof fetch {
   return async (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
-    const url = typeof input === "string" ? input : input instanceof URL ? input.toString() : input.url;
+    const url =
+      typeof input === "string" ? input : input instanceof URL ? input.toString() : input.url;
     const method = init?.method || "GET";
 
     logger.info(`Fetch: ${method} ${url}`, {
@@ -285,9 +290,10 @@ export function createLoggingFetch(logger: ReturnType<typeof createTestLogger>):
         category: LogCategories.NETWORK,
         duration,
         data: {
-          error: error instanceof Error
-            ? { name: error.name, message: error.message, stack: error.stack }
-            : error,
+          error:
+            error instanceof Error
+              ? { name: error.name, message: error.message, stack: error.stack }
+              : error,
         },
       });
       throw error;
@@ -309,7 +315,7 @@ export function createLoggingFetch(logger: ReturnType<typeof createTestLogger>):
 export async function withStep<T>(
   logger: ReturnType<typeof createTestLogger>,
   description: string,
-  action: () => Promise<T>
+  action: () => Promise<T>,
 ): Promise<T> {
   const startTime = Date.now();
   logger.step(`Starting: ${description}`);
@@ -324,9 +330,10 @@ export async function withStep<T>(
     logger.error(`Failed: ${description}`, {
       duration: Date.now() - startTime,
       data: {
-        error: error instanceof Error
-          ? { name: error.name, message: error.message, stack: error.stack }
-          : error,
+        error:
+          error instanceof Error
+            ? { name: error.name, message: error.message, stack: error.stack }
+            : error,
       },
     });
     throw error;

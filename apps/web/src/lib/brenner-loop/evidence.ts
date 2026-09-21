@@ -358,10 +358,7 @@ function isValidDateOrString(value: unknown): boolean {
 /**
  * Validate a TestDescription object
  */
-function validateTestDescription(
-  test: unknown,
-  errors: EvidenceValidationError[]
-): boolean {
+function validateTestDescription(test: unknown, errors: EvidenceValidationError[]): boolean {
   if (typeof test !== "object" || test === null) {
     errors.push({
       field: "test",
@@ -505,10 +502,7 @@ export function validateEvidenceEntry(entry: EvidenceEntry): EvidenceValidationR
 
   // === Confidence ===
 
-  if (
-    typeof entry.confidenceBefore !== "number" ||
-    !Number.isFinite(entry.confidenceBefore)
-  ) {
+  if (typeof entry.confidenceBefore !== "number" || !Number.isFinite(entry.confidenceBefore)) {
     errors.push({
       field: "confidenceBefore",
       message: "Confidence before must be a finite number",
@@ -522,10 +516,7 @@ export function validateEvidenceEntry(entry: EvidenceEntry): EvidenceValidationR
     });
   }
 
-  if (
-    typeof entry.confidenceAfter !== "number" ||
-    !Number.isFinite(entry.confidenceAfter)
-  ) {
+  if (typeof entry.confidenceAfter !== "number" || !Number.isFinite(entry.confidenceAfter)) {
     errors.push({
       field: "confidenceAfter",
       message: "Confidence after must be a finite number",
@@ -592,7 +583,8 @@ export function validateEvidenceEntry(entry: EvidenceEntry): EvidenceValidationR
   ) {
     warnings.push({
       field: "confidenceAfter",
-      message: "Very small confidence change - verify this evidence is being weighted appropriately",
+      message:
+        "Very small confidence change - verify this evidence is being weighted appropriately",
       code: "SMALL_CONFIDENCE_CHANGE",
     });
   }
@@ -702,7 +694,7 @@ export const EVIDENCE_ID_PATTERN = /^EV-[A-Za-z0-9][A-Za-z0-9-]*-\d{3}$/;
 export function generateEvidenceId(sessionId: string, sequence: number): string {
   if (!sessionId || !SESSION_ID_PATTERN.test(sessionId)) {
     throw new Error(
-      `Invalid sessionId: must be alphanumeric with optional hyphens, starting with alphanumeric (got "${sessionId}")`
+      `Invalid sessionId: must be alphanumeric with optional hyphens, starting with alphanumeric (got "${sessionId}")`,
     );
   }
 

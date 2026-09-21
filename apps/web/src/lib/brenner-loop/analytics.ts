@@ -1,5 +1,5 @@
-import type { OperatorType } from "./operators/framework";
 import { calculateFalsifiabilityScore, calculateSpecificityScore } from "./hypothesis";
+import type { OperatorType } from "./operators/framework";
 import type { HypothesisCard, IdentifiedConfound, Session } from "./types";
 
 // Threshold constants for hypothesis outcome classification
@@ -174,8 +174,10 @@ function countOperatorUsage(session: Session, distribution: Record<OperatorType,
   if (!apps) return;
 
   if (Array.isArray(apps.levelSplit) && apps.levelSplit.length > 0) distribution.level_split += 1;
-  if (Array.isArray(apps.exclusionTest) && apps.exclusionTest.length > 0) distribution.exclusion_test += 1;
-  if (Array.isArray(apps.objectTranspose) && apps.objectTranspose.length > 0) distribution.object_transpose += 1;
+  if (Array.isArray(apps.exclusionTest) && apps.exclusionTest.length > 0)
+    distribution.exclusion_test += 1;
+  if (Array.isArray(apps.objectTranspose) && apps.objectTranspose.length > 0)
+    distribution.object_transpose += 1;
   if (Array.isArray(apps.scaleCheck) && apps.scaleCheck.length > 0) distribution.scale_check += 1;
 }
 
@@ -216,8 +218,10 @@ function hasUnaddressedConfound(params: {
   for (const confound of params.confounds) {
     if (!confound || confound.addressed === true) continue;
 
-    const normalizedDomain = typeof confound.domain === "string" ? normalizeKey(confound.domain) : "";
-    if (params.domain && normalizedDomain && normalizeKey(params.domain) !== normalizedDomain) continue;
+    const normalizedDomain =
+      typeof confound.domain === "string" ? normalizeKey(confound.domain) : "";
+    if (params.domain && normalizedDomain && normalizeKey(params.domain) !== normalizedDomain)
+      continue;
 
     const extracted = extractAutoConfoundTemplateId(confound.id);
     if (extracted && normalizeKey(extracted) === wanted) return true;
@@ -234,7 +238,10 @@ export function computeFailureAnalytics(params: { sessions: Session[] }): Failur
 
   const byDomain: Record<string, FailureModeDistribution> = Object.create(null);
 
-  const byOperator: Record<OperatorType, CommonFailures> = Object.create(null) as Record<OperatorType, CommonFailures>;
+  const byOperator: Record<OperatorType, CommonFailures> = Object.create(null) as Record<
+    OperatorType,
+    CommonFailures
+  >;
   for (const op of OPERATOR_KEYS) {
     byOperator[op] = {
       sessionsWithOperator: 0,
@@ -262,7 +269,8 @@ export function computeFailureAnalytics(params: { sessions: Session[] }): Failur
     {
       id: "thin_falsification_set",
       name: "Thin Falsification Set",
-      description: "Add 2–3 concrete 'impossible if true' conditions to sharpen the likelihood ratio.",
+      description:
+        "Add 2–3 concrete 'impossible if true' conditions to sharpen the likelihood ratio.",
       match: (_session, card) => (card.impossibleIfTrue?.length ?? 0) < 2,
     },
     {
@@ -274,14 +282,17 @@ export function computeFailureAnalytics(params: { sessions: Session[] }): Failur
     {
       id: "no_confounds_listed",
       name: "No Confounds Listed",
-      description: "List likely confounds and mark them addressed/unaddressed as evidence accumulates.",
+      description:
+        "List likely confounds and mark them addressed/unaddressed as evidence accumulates.",
       match: (_session, card) => (card.confounds?.length ?? 0) === 0,
     },
     {
       id: "high_likelihood_confound_unaddressed",
       name: "High-Likelihood Confound Unaddressed",
-      description: "Address confounds with likelihood ≥ 50% or your tests will mostly move the confound, not the hypothesis.",
-      match: (_session, card) => (card.confounds ?? []).some((c) => c.addressed !== true && (c.likelihood ?? 0) >= 0.5),
+      description:
+        "Address confounds with likelihood ≥ 50% or your tests will mostly move the confound, not the hypothesis.",
+      match: (_session, card) =>
+        (card.confounds ?? []).some((c) => c.addressed !== true && (c.likelihood ?? 0) >= 0.5),
     },
   ];
 
@@ -321,10 +332,14 @@ export function computeFailureAnalytics(params: { sessions: Session[] }): Failur
       const used = (() => {
         const apps = session.operatorApplications;
         if (!apps) return false;
-        if (op === "level_split") return Array.isArray(apps.levelSplit) && apps.levelSplit.length > 0;
-        if (op === "exclusion_test") return Array.isArray(apps.exclusionTest) && apps.exclusionTest.length > 0;
-        if (op === "object_transpose") return Array.isArray(apps.objectTranspose) && apps.objectTranspose.length > 0;
-        if (op === "scale_check") return Array.isArray(apps.scaleCheck) && apps.scaleCheck.length > 0;
+        if (op === "level_split")
+          return Array.isArray(apps.levelSplit) && apps.levelSplit.length > 0;
+        if (op === "exclusion_test")
+          return Array.isArray(apps.exclusionTest) && apps.exclusionTest.length > 0;
+        if (op === "object_transpose")
+          return Array.isArray(apps.objectTranspose) && apps.objectTranspose.length > 0;
+        if (op === "scale_check")
+          return Array.isArray(apps.scaleCheck) && apps.scaleCheck.length > 0;
         return false;
       })();
 
@@ -356,7 +371,8 @@ export function computeFailureAnalytics(params: { sessions: Session[] }): Failur
 
       if (selectionBiasUnaddressed) {
         const reachedExclusion =
-          (session.operatorApplications?.exclusionTest?.length ?? 0) > 0 || session.phase === "exclusion_test";
+          (session.operatorApplications?.exclusionTest?.length ?? 0) > 0 ||
+          session.phase === "exclusion_test";
         selectionBiasCases.push({ failed, reachedExclusion });
       }
     }
@@ -370,8 +386,14 @@ export function computeFailureAnalytics(params: { sessions: Session[] }): Failur
 
   for (const op of OPERATOR_KEYS) {
     const stats = byOperator[op];
-    stats.failureRateWithOperator = safeRate(stats.failuresWithOperator, stats.sessionsWithOperator);
-    stats.failureRateWithoutOperator = safeRate(stats.failuresWithoutOperator, stats.sessionsWithoutOperator);
+    stats.failureRateWithOperator = safeRate(
+      stats.failuresWithOperator,
+      stats.sessionsWithOperator,
+    );
+    stats.failureRateWithoutOperator = safeRate(
+      stats.failuresWithoutOperator,
+      stats.sessionsWithoutOperator,
+    );
     stats.failureRateDelta = stats.failureRateWithOperator - stats.failureRateWithoutOperator;
     byOperator[op] = stats;
   }
@@ -398,7 +420,7 @@ export function computeFailureAnalytics(params: { sessions: Session[] }): Failur
     if (pattern.total < 3) continue;
     if (pattern.failureRate < 0.7) continue;
     insights.push(
-      `${Math.round(pattern.failureRate * 100)}% of sessions with "${pattern.name}" ended in failure (${pattern.failures}/${pattern.total}). ${pattern.description}`
+      `${Math.round(pattern.failureRate * 100)}% of sessions with "${pattern.name}" ended in failure (${pattern.failures}/${pattern.total}). ${pattern.description}`,
     );
     if (insights.length >= 2) break;
   }
@@ -407,7 +429,7 @@ export function computeFailureAnalytics(params: { sessions: Session[] }): Failur
     const total = selectionBiasCases.length;
     const failures = selectionBiasCases.filter((c) => c.failed).length;
     insights.push(
-      `Psychology hypotheses with unaddressed selection bias failed ${Math.round(safeRate(failures, total) * 100)}% of the time (${failures}/${total}).`
+      `Psychology hypotheses with unaddressed selection bias failed ${Math.round(safeRate(failures, total) * 100)}% of the time (${failures}/${total}).`,
     );
 
     const atExclusion = selectionBiasCases.filter((c) => c.reachedExclusion);
@@ -416,8 +438,8 @@ export function computeFailureAnalytics(params: { sessions: Session[] }): Failur
       const failuresExclusion = atExclusion.filter((c) => c.failed).length;
       insights.push(
         `After reaching Exclusion Test, psychology + unaddressed selection bias failed ${Math.round(
-          safeRate(failuresExclusion, totalExclusion) * 100
-        )}% of the time (${failuresExclusion}/${totalExclusion}).`
+          safeRate(failuresExclusion, totalExclusion) * 100,
+        )}% of the time (${failuresExclusion}/${totalExclusion}).`,
       );
     }
   }
@@ -502,12 +524,10 @@ function computeAverageDurationMinutes(sessions: Session[]): number {
   return mean(minutes);
 }
 
-function buildTrendData(params: {
-  sessions: Session[];
-  windowDays: number;
-  now: Date;
-}): TrendData {
-  const end = new Date(Date.UTC(params.now.getUTCFullYear(), params.now.getUTCMonth(), params.now.getUTCDate()));
+function buildTrendData(params: { sessions: Session[]; windowDays: number; now: Date }): TrendData {
+  const end = new Date(
+    Date.UTC(params.now.getUTCFullYear(), params.now.getUTCMonth(), params.now.getUTCDate()),
+  );
   const start = new Date(end);
   start.setUTCDate(start.getUTCDate() - (params.windowDays - 1));
 
@@ -515,7 +535,9 @@ function buildTrendData(params: {
   for (const session of params.sessions) {
     const createdAt = safeParseIsoDate(session.createdAt);
     if (!createdAt) continue;
-    const createdDay = new Date(Date.UTC(createdAt.getUTCFullYear(), createdAt.getUTCMonth(), createdAt.getUTCDate()));
+    const createdDay = new Date(
+      Date.UTC(createdAt.getUTCFullYear(), createdAt.getUTCMonth(), createdAt.getUTCDate()),
+    );
     if (createdDay < start || createdDay > end) continue;
     const key = toUtcDateKey(createdDay);
     const bucket = byDay.get(key) ?? [];
@@ -530,7 +552,9 @@ function buildTrendData(params: {
     const key = toUtcDateKey(day);
     const sessions = byDay.get(key) ?? [];
 
-    const scores: SessionScores[] = sessions.map(getSessionScores).filter((s): s is SessionScores => s !== null);
+    const scores: SessionScores[] = sessions
+      .map(getSessionScores)
+      .filter((s): s is SessionScores => s !== null);
     const completed = sessions.filter((s) => s.phase === "complete").length;
 
     points.push({
@@ -555,25 +579,35 @@ function buildInsights(params: {
   const insights: string[] = [];
 
   if (params.sessionsTotal === 0) {
-    insights.push("No local Brenner Loop sessions found yet. Start one to build your analytics history.");
+    insights.push(
+      "No local Brenner Loop sessions found yet. Start one to build your analytics history.",
+    );
     return insights;
   }
 
   if (params.completionRate < 0.4) {
-    insights.push("Low completion rate: consider shorter session templates or skipping non-essential phases early.");
+    insights.push(
+      "Low completion rate: consider shorter session templates or skipping non-essential phases early.",
+    );
   }
 
   if (params.averageFalsifiability < 30) {
-    insights.push("Your falsification criteria are often underspecified. Add 2–3 concrete 'impossible if true' conditions.");
+    insights.push(
+      "Your falsification criteria are often underspecified. Add 2–3 concrete 'impossible if true' conditions.",
+    );
   }
 
   const scaleUsed = params.operatorsUsedDistribution.scale_check;
   if (scaleUsed / Math.max(1, params.sessionsTotal) < 0.25) {
-    insights.push("Scale Check is underused. Add at least one order-of-magnitude constraint in important sessions.");
+    insights.push(
+      "Scale Check is underused. Add at least one order-of-magnitude constraint in important sessions.",
+    );
   }
 
   if (params.hypothesesWithCompetitors / Math.max(1, params.sessionsTotal) < 0.5) {
-    insights.push("Third alternatives are underused. Add at least one competing hypothesis before designing tests.");
+    insights.push(
+      "Third alternatives are underused. Add at least one competing hypothesis before designing tests.",
+    );
   }
 
   return insights;
@@ -586,7 +620,9 @@ function buildAchievements(params: {
   hypothesesFalsified: number;
   hypothesesRobust: number;
 }): Achievement[] {
-  const operatorsUsedCount = OPERATOR_KEYS.filter((op) => params.operatorsUsedDistribution[op] > 0).length;
+  const operatorsUsedCount = OPERATOR_KEYS.filter(
+    (op) => params.operatorsUsedDistribution[op] > 0,
+  ).length;
 
   return [
     {
@@ -728,7 +764,7 @@ export function computePersonalAnalytics(params: {
   }, 0);
 
   const hypothesesWithCompetitors = sessions.filter(
-    (s) => Array.isArray(s.alternativeHypothesisIds) && s.alternativeHypothesisIds.length > 0
+    (s) => Array.isArray(s.alternativeHypothesisIds) && s.alternativeHypothesisIds.length > 0,
   ).length;
 
   const testsRecorded = sessions.reduce((sum, session) => sum + (session.testIds?.length ?? 0), 0);

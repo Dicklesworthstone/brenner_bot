@@ -41,7 +41,7 @@ function parseInlineFormatting(text: string): { clean: string; highlights: strin
   // Clean the text (remove markdown formatting, [sic] markers preserved as-is)
   const clean = text
     .replace(/\*\*(?=\S)([\s\S]*?\S)\*\*/g, "$1") // Remove bold markers
-    .replace(/\*(?=\S)([\s\S]*?\S)\*/g, "$1")     // Remove italic markers
+    .replace(/\*(?=\S)([\s\S]*?\S)\*/g, "$1") // Remove italic markers
     .trim();
 
   return { clean, highlights };
@@ -200,7 +200,7 @@ export function parseTranscript(markdown: string): ParsedTranscript {
 export function getTranscriptSections(
   parsed: ParsedTranscript,
   start: number,
-  count: number
+  count: number,
 ): TranscriptSection[] {
   return parsed.sections.slice(start, start + count);
 }
@@ -208,10 +208,7 @@ export function getTranscriptSections(
 /**
  * Search transcript for a query
  */
-export function searchTranscript(
-  parsed: ParsedTranscript,
-  query: string
-): TranscriptSection[] {
+export function searchTranscript(parsed: ParsedTranscript, query: string): TranscriptSection[] {
   const lowerQuery = query.toLowerCase();
   return parsed.sections.filter((section) => {
     if (section.title.toLowerCase().includes(lowerQuery)) return true;

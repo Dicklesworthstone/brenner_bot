@@ -114,11 +114,12 @@ export function CopyButton({
       }, 2000);
 
       // Show toast with preview
-      const preview = showPreview && text.length > 0
-        ? text.length > 60
-          ? `"${text.slice(0, 60)}..."`
-          : `"${text}"`
-        : undefined;
+      const preview =
+        showPreview && text.length > 0
+          ? text.length > 60
+            ? `"${text.slice(0, 60)}..."`
+            : `"${text}"`
+          : undefined;
 
       toast.success(successMessage, preview, 3000);
 
@@ -160,28 +161,28 @@ export function CopyButton({
       "hover:bg-muted/80 active:scale-95",
       "transition-all duration-200",
       "opacity-0 group-hover:opacity-100 focus:opacity-100",
-      buttonSizeClasses[size]
+      buttonSizeClasses[size],
     ),
     badge: cn(
       "relative inline-flex items-center gap-1.5 rounded-lg",
       "px-2.5 py-1 text-xs font-medium",
       "bg-primary/10 text-primary border border-primary/20",
       "hover:bg-primary/20 active:scale-95",
-      "transition-all duration-200"
+      "transition-all duration-200",
     ),
     inline: cn(
       "relative inline-flex items-center gap-1.5 rounded-md",
       "px-2 py-0.5 text-sm",
       "text-muted-foreground hover:text-foreground",
       "hover:bg-muted/60 active:scale-95",
-      "transition-all duration-200"
+      "transition-all duration-200",
     ),
     ghost: cn(
       "relative inline-flex items-center justify-center rounded-md",
       "text-muted-foreground hover:text-foreground",
       "hover:bg-muted/60 active:scale-95",
       "transition-all duration-200",
-      buttonSizeClasses[size]
+      buttonSizeClasses[size],
     ),
   };
 
@@ -193,7 +194,7 @@ export function CopyButton({
         "touch-manipulation focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
         variantClasses[variant],
         copied && "text-success",
-        className
+        className,
       )}
       aria-label={copied ? "Copied!" : label}
       title={copied ? "Copied!" : label}
@@ -204,7 +205,7 @@ export function CopyButton({
         <span
           className={cn(
             "transition-all duration-200",
-            copied ? "opacity-0 scale-75" : "opacity-100 scale-100"
+            copied ? "opacity-0 scale-75" : "opacity-100 scale-100",
           )}
         >
           <CopyIcon className={sizeClasses[size]} />
@@ -215,7 +216,7 @@ export function CopyButton({
           className={cn(
             "absolute inset-0 flex items-center justify-center",
             "transition-all duration-200",
-            copied ? "opacity-100 scale-100" : "opacity-0 scale-75"
+            copied ? "opacity-100 scale-100" : "opacity-0 scale-75",
           )}
         >
           <CheckIcon className={cn(sizeClasses[size], "text-success")} />
@@ -224,9 +225,7 @@ export function CopyButton({
 
       {/* Label for inline/badge variants */}
       {(variant === "inline" || variant === "badge") && (
-        <span className={cn(copied && "text-success")}>
-          {copied ? "Copied!" : label}
-        </span>
+        <span className={cn(copied && "text-success")}>{copied ? "Copied!" : label}</span>
       )}
 
       {/* Ripple effect on click */}
@@ -234,7 +233,7 @@ export function CopyButton({
         className={cn(
           "absolute inset-0 rounded-lg",
           "pointer-events-none",
-          copied && "animate-ripple bg-success/20"
+          copied && "animate-ripple bg-success/20",
         )}
       />
     </button>
@@ -278,9 +277,7 @@ export function ReferenceCopyButton({
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
       timeoutRef.current = setTimeout(() => setCopied(false), 2000);
 
-      const preview = quoteText.length > 50
-        ? `"${quoteText.slice(0, 50)}..."`
-        : `"${quoteText}"`;
+      const preview = quoteText.length > 50 ? `"${quoteText.slice(0, 50)}..."` : `"${quoteText}"`;
 
       toast.success(`Copied ${reference}`, preview, 3000);
     } catch {
@@ -305,38 +302,45 @@ export function ReferenceCopyButton({
         "hover:bg-primary/20 active:scale-95",
         "transition-all duration-200",
         "cursor-pointer touch-manipulation",
-        className
+        className,
       )}
       title={`Copy ${reference}`}
     >
       {/* Reference text */}
-      <span className={cn(
-        "transition-opacity duration-200",
-        copied ? "opacity-0" : "opacity-100"
-      )}>
+      <span className={cn("transition-opacity duration-200", copied ? "opacity-0" : "opacity-100")}>
         {reference}
       </span>
 
       {/* Success checkmark overlay */}
-      <span className={cn(
-        "absolute inset-0 flex items-center justify-center",
-        "transition-all duration-200",
-        copied ? "opacity-100 scale-100" : "opacity-0 scale-0"
-      )}>
-        <svg className="size-3.5 text-success" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+      <span
+        className={cn(
+          "absolute inset-0 flex items-center justify-center",
+          "transition-all duration-200",
+          copied ? "opacity-100 scale-100" : "opacity-0 scale-0",
+        )}
+      >
+        <svg
+          className="size-3.5 text-success"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          strokeWidth={2.5}
+        >
           <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
         </svg>
       </span>
 
       {/* Subtle copy hint on hover */}
-      <span className={cn(
-        "absolute -right-1 -top-1 size-3",
-        "flex items-center justify-center",
-        "rounded-full bg-card border border-border",
-        "opacity-0 group-hover/ref:opacity-100",
-        "transition-opacity duration-200",
-        copied && "hidden"
-      )}>
+      <span
+        className={cn(
+          "absolute -right-1 -top-1 size-3",
+          "flex items-center justify-center",
+          "rounded-full bg-card border border-border",
+          "opacity-0 group-hover/ref:opacity-100",
+          "transition-opacity duration-200",
+          copied && "hidden",
+        )}
+      >
         <CopyIcon className="size-2 text-muted-foreground" />
       </span>
     </button>

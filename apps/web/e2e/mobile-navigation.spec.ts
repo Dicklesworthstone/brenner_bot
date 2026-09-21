@@ -6,15 +6,15 @@
  */
 
 import {
-  test,
+  assertPageHasContent,
+  assertUrl,
+  clickElement,
   expect,
   navigateTo,
-  clickElement,
   takeScreenshot,
-  assertUrl,
-  waitForNetworkIdle,
-  assertPageHasContent,
+  test,
   waitForContent,
+  waitForNetworkIdle,
 } from "./utils";
 
 test.describe("Mobile Navigation", () => {

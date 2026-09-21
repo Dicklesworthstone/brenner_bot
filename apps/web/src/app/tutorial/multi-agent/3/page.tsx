@@ -8,12 +8,11 @@
  * @see brenner_bot-nm89 (Tutorial Path: Multi-Agent Cockpit)
  */
 
-import * as React from "react";
 import { useRouter } from "next/navigation";
-import { TutorialStep } from "@/components/tutorial";
-import { TutorialCodeBlock, ProTip } from "@/components/tutorial";
+import * as React from "react";
+import { ProTip, TutorialCodeBlock, TutorialStep } from "@/components/tutorial";
 import { useTutorial } from "@/lib/tutorial-context";
-import type { TutorialStep as TutorialStepType, TroubleshootingItem } from "@/lib/tutorial-types";
+import type { TroubleshootingItem, TutorialStep as TutorialStepType } from "@/lib/tutorial-types";
 
 // ============================================================================
 // Step Data
@@ -22,11 +21,13 @@ import type { TutorialStep as TutorialStepType, TroubleshootingItem } from "@/li
 const troubleshooting: TroubleshootingItem[] = [
   {
     problem: "Unsure which agent to assign to which role",
-    solution: "Start with the default mapping: Codex for hypotheses, Claude for tests, Gemini for critique. Adjust based on results.",
+    solution:
+      "Start with the default mapping: Codex for hypotheses, Claude for tests, Gemini for critique. Adjust based on results.",
   },
   {
     problem: "One agent consistently underperforms",
-    solution: "Try swapping roles. Sometimes Claude generates better hypotheses for certain domains, or Codex provides sharper critiques.",
+    solution:
+      "Try swapping roles. Sometimes Claude generates better hypotheses for certain domains, or Codex provides sharper critiques.",
   },
 ];
 
@@ -77,7 +78,9 @@ function RoleCard({ role, agent, agentColor, operators, produces, discipline }: 
 
       <div className="space-y-3">
         <div>
-          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">Primary Operators</p>
+          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">
+            Primary Operators
+          </p>
           <div className="flex flex-wrap gap-2">
             {operators.map((op, i) => (
               <span key={i} className="px-2 py-1 rounded bg-muted text-xs font-mono">
@@ -88,12 +91,16 @@ function RoleCard({ role, agent, agentColor, operators, produces, discipline }: 
         </div>
 
         <div>
-          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">Produces</p>
+          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">
+            Produces
+          </p>
           <p className="text-sm text-muted-foreground">{produces}</p>
         </div>
 
         <div className="p-3 rounded-lg bg-muted/50 border-l-2 border-destructive">
-          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">Key Discipline</p>
+          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">
+            Key Discipline
+          </p>
           <p className="text-sm text-foreground">{discipline}</p>
         </div>
       </div>
@@ -131,9 +138,9 @@ export default function MultiAgentStep3() {
         {/* Introduction */}
         <div className="space-y-4">
           <p className="text-muted-foreground leading-relaxed">
-            The Brenner method uses <strong className="text-foreground">role specialization</strong> to
-            ensure productive disagreement. Each agent gets a role-specific prompt that emphasizes
-            different operators and disciplines.
+            The Brenner method uses <strong className="text-foreground">role specialization</strong>{" "}
+            to ensure productive disagreement. Each agent gets a role-specific prompt that
+            emphasizes different operators and disciplines.
           </p>
 
           <div className="p-4 rounded-xl border border-primary/30 bg-primary/5">
@@ -189,8 +196,8 @@ export default function MultiAgentStep3() {
             Configure the Roster
           </h2>
           <p className="text-sm text-muted-foreground">
-            The brenner CLI accepts a role map that assigns each agent identity to a role.
-            Agent identities in Agent Mail use adjective+noun names (like BlueLake, PurpleMountain).
+            The brenner CLI accepts a role map that assigns each agent identity to a role. Agent
+            identities in Agent Mail use adjective+noun names (like BlueLake, PurpleMountain).
           </p>
 
           <TutorialCodeBlock
@@ -221,16 +228,26 @@ export default function MultiAgentStep3() {
 
           <div className="grid gap-3 sm:grid-cols-3">
             <div className="p-3 rounded-lg border border-emerald-500/30 bg-emerald-500/5">
-              <p className="font-medium text-sm text-emerald-600 dark:text-emerald-400">Codex Agent</p>
+              <p className="font-medium text-sm text-emerald-600 dark:text-emerald-400">
+                Codex Agent
+              </p>
               <p className="text-xs text-muted-foreground mt-1">Suggested: BlueLake, GreenMeadow</p>
             </div>
             <div className="p-3 rounded-lg border border-purple-500/30 bg-purple-500/5">
-              <p className="font-medium text-sm text-purple-600 dark:text-purple-400">Claude Agent</p>
-              <p className="text-xs text-muted-foreground mt-1">Suggested: PurpleMountain, VioletForest</p>
+              <p className="font-medium text-sm text-purple-600 dark:text-purple-400">
+                Claude Agent
+              </p>
+              <p className="text-xs text-muted-foreground mt-1">
+                Suggested: PurpleMountain, VioletForest
+              </p>
             </div>
             <div className="p-3 rounded-lg border border-orange-500/30 bg-orange-500/5">
-              <p className="font-medium text-sm text-orange-600 dark:text-orange-400">Gemini Agent</p>
-              <p className="text-xs text-muted-foreground mt-1">Suggested: GreenValley, OrangeDesert</p>
+              <p className="font-medium text-sm text-orange-600 dark:text-orange-400">
+                Gemini Agent
+              </p>
+              <p className="text-xs text-muted-foreground mt-1">
+                Suggested: GreenValley, OrangeDesert
+              </p>
             </div>
           </div>
         </div>

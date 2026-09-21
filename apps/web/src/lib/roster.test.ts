@@ -1,17 +1,17 @@
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
 import {
-  validateRoster,
-  validateRosterCoverage,
-  getRosterEntry,
-  getAgentsByRole,
-  formatRosterAsMarkdown,
-  parseRosterJson,
   applyPreset,
-  findPreset,
-  DEFAULT_3_AGENT_PRESET,
   BUILT_IN_PRESETS,
+  DEFAULT_3_AGENT_PRESET,
+  findPreset,
+  formatRosterAsMarkdown,
+  getAgentsByRole,
+  getRosterEntry,
+  parseRosterJson,
   type Roster,
   type RosterEntry,
+  validateRoster,
+  validateRosterCoverage,
 } from "./roster";
 
 describe("validateRoster", () => {
@@ -57,22 +57,18 @@ describe("validateRoster", () => {
     expect(result.valid).toBe(true);
   });
 
-	  it("rejects invalid roles", () => {
-	    const roster: Roster = {
-	      entries: [
-	        { agentName: "BlueLake", role: "researcher" as unknown as RosterEntry["role"] },
-	      ],
-	    };
-	    const result = validateRoster(roster);
-	    expect(result.valid).toBe(false);
+  it("rejects invalid roles", () => {
+    const roster: Roster = {
+      entries: [{ agentName: "BlueLake", role: "researcher" as unknown as RosterEntry["role"] }],
+    };
+    const result = validateRoster(roster);
+    expect(result.valid).toBe(false);
     expect(result.errors).toContain("Invalid role for BlueLake: researcher");
   });
 
   it("rejects empty agent names", () => {
     const roster: Roster = {
-      entries: [
-        { agentName: "", role: "hypothesis_generator" },
-      ],
+      entries: [{ agentName: "", role: "hypothesis_generator" }],
     };
     const result = validateRoster(roster);
     expect(result.valid).toBe(false);
@@ -82,14 +78,12 @@ describe("validateRoster", () => {
   it("warns on deprecated heuristic mode", () => {
     const roster: Roster = {
       mode: "heuristic",
-      entries: [
-        { agentName: "BlueLake", role: "hypothesis_generator" },
-      ],
+      entries: [{ agentName: "BlueLake", role: "hypothesis_generator" }],
     };
     const result = validateRoster(roster);
     expect(result.valid).toBe(true);
     expect(result.warnings).toContain(
-      "Heuristic roster mode is deprecated. Use explicit role mappings."
+      "Heuristic roster mode is deprecated. Use explicit role mappings.",
     );
   });
 });
@@ -109,9 +103,7 @@ describe("validateRosterCoverage", () => {
 
   it("rejects when recipient is missing from roster", () => {
     const roster: Roster = {
-      entries: [
-        { agentName: "BlueLake", role: "hypothesis_generator" },
-      ],
+      entries: [{ agentName: "BlueLake", role: "hypothesis_generator" }],
     };
     const result = validateRosterCoverage(roster, ["BlueLake", "GreenValley"]);
     expect(result.valid).toBe(false);
@@ -180,7 +172,12 @@ describe("formatRosterAsMarkdown", () => {
       mode: "role_separated",
       name: "Test Roster",
       entries: [
-        { agentName: "BlueLake", role: "hypothesis_generator", program: "codex-cli", model: "GPT-5" },
+        {
+          agentName: "BlueLake",
+          role: "hypothesis_generator",
+          program: "codex-cli",
+          model: "GPT-5",
+        },
         { agentName: "PurpleMountain", role: "test_designer" },
       ],
     };
@@ -204,9 +201,7 @@ describe("formatRosterAsMarkdown", () => {
 
 describe("parseRosterJson", () => {
   it("parses array of entries", () => {
-    const json = JSON.stringify([
-      { agentName: "BlueLake", role: "hypothesis_generator" },
-    ]);
+    const json = JSON.stringify([{ agentName: "BlueLake", role: "hypothesis_generator" }]);
     const roster = parseRosterJson(json);
     expect(roster.entries).toHaveLength(1);
     expect(roster.mode).toBe("role_separated");
@@ -251,7 +246,7 @@ describe("applyPreset", () => {
       "A",
       "B",
       "C",
-      "D",  // Extra agent
+      "D", // Extra agent
     ]);
 
     expect(roster.entries).toHaveLength(4);

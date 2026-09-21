@@ -4,30 +4,30 @@
  * @see brenner_bot-reew.7 - FEATURE: Session Templates
  */
 
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
 import {
-  SESSION_TEMPLATES,
-  TEMPLATE_BY_ID,
-  getSessionTemplate,
-  getFeaturedSessionTemplates,
-  getSortedSessionTemplates,
-  getTemplatesByDepth,
-  getTemplateForTimeConstraint,
-  isPhaseRequired,
-  isPhaseOptional,
-  isPhaseSkipped,
-  isPhaseEnabled,
-  getActivePhases,
-  getPhaseOrderForTemplate,
+  AGENT_ROLE_INFO,
   createTemplateSettings,
   customizeTemplateSettings,
-  getEffectivePhases,
-  getEffectiveAgents,
-  validateTemplate,
-  AGENT_ROLE_INFO,
-  getAgentRoleName,
+  getActivePhases,
   getAgentRoleDescription,
+  getAgentRoleName,
+  getEffectiveAgents,
+  getEffectivePhases,
+  getFeaturedSessionTemplates,
+  getPhaseOrderForTemplate,
+  getSessionTemplate,
+  getSortedSessionTemplates,
+  getTemplateForTimeConstraint,
+  getTemplatesByDepth,
+  isPhaseEnabled,
+  isPhaseOptional,
+  isPhaseRequired,
+  isPhaseSkipped,
+  SESSION_TEMPLATES,
   type SessionTemplate,
+  TEMPLATE_BY_ID,
+  validateTemplate,
 } from "./session-templates";
 
 // ============================================================================
@@ -144,9 +144,7 @@ describe("getFeaturedSessionTemplates", () => {
   it("returns templates sorted by display order", () => {
     const featured = getFeaturedSessionTemplates();
     for (let i = 1; i < featured.length; i++) {
-      expect(featured[i].displayOrder).toBeGreaterThanOrEqual(
-        featured[i - 1].displayOrder
-      );
+      expect(featured[i].displayOrder).toBeGreaterThanOrEqual(featured[i - 1].displayOrder);
     }
   });
 });
@@ -157,9 +155,7 @@ describe("getSortedSessionTemplates", () => {
     expect(sorted.length).toBe(SESSION_TEMPLATES.length);
 
     for (let i = 1; i < sorted.length; i++) {
-      expect(sorted[i].displayOrder).toBeGreaterThanOrEqual(
-        sorted[i - 1].displayOrder
-      );
+      expect(sorted[i].displayOrder).toBeGreaterThanOrEqual(sorted[i - 1].displayOrder);
     }
   });
 });
@@ -354,14 +350,11 @@ describe("getEffectivePhases", () => {
 
   it("returns customized phases when settings have them", () => {
     const template = getSessionTemplate("quick-check")!;
-    const settings = customizeTemplateSettings(
-      createTemplateSettings("quick-check"),
-      {
-        required: ["intake", "sharpening", "level_split"],
-        optional: ["exclusion_test"],
-        skipped: [],
-      }
-    );
+    const settings = customizeTemplateSettings(createTemplateSettings("quick-check"), {
+      required: ["intake", "sharpening", "level_split"],
+      optional: ["exclusion_test"],
+      skipped: [],
+    });
 
     const effective = getEffectivePhases(template, settings);
 
@@ -380,11 +373,10 @@ describe("getEffectiveAgents", () => {
 
   it("returns customized agents when settings have them", () => {
     const template = getSessionTemplate("quick-check")!;
-    const settings = customizeTemplateSettings(
-      createTemplateSettings("quick-check"),
-      undefined,
-      ["experiment_designer", "statistician"]
-    );
+    const settings = customizeTemplateSettings(createTemplateSettings("quick-check"), undefined, [
+      "experiment_designer",
+      "statistician",
+    ]);
 
     const effective = getEffectiveAgents(template, settings);
 
@@ -456,9 +448,7 @@ describe("AGENT_ROLE_INFO", () => {
   });
 
   it("all roles have name, description, and icon", () => {
-    for (const role of Object.keys(AGENT_ROLE_INFO) as Array<
-      keyof typeof AGENT_ROLE_INFO
-    >) {
+    for (const role of Object.keys(AGENT_ROLE_INFO) as Array<keyof typeof AGENT_ROLE_INFO>) {
       const info = AGENT_ROLE_INFO[role];
       expect(typeof info.name).toBe("string");
       expect(info.name.length).toBeGreaterThan(0);
@@ -620,8 +610,6 @@ describe("Template: Custom", () => {
   });
 
   it("has most phases as optional", () => {
-    expect(template.optionalPhases.length).toBeGreaterThan(
-      template.requiredPhases.length
-    );
+    expect(template.optionalPhases.length).toBeGreaterThan(template.requiredPhases.length);
   });
 });

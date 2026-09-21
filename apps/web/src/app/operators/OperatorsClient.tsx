@@ -1,10 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useMemo, useState, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import type { BrennerOperatorPaletteEntry } from "@/lib/operators";
 import { Jargon } from "@/components/jargon";
+import type { BrennerOperatorPaletteEntry } from "@/lib/operators";
 import { generatePromptBundle, type PromptBundle } from "@/lib/prompt-builder";
 
 // ============================================================================
@@ -57,7 +57,11 @@ function getOperatorCategory(tag: string): CategoryKey | null {
 
 const SearchIcon = ({ className = "size-5" }: { className?: string }) => (
   <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"
+    />
   </svg>
 );
 
@@ -74,50 +78,126 @@ const ChevronRightIcon = ({ className = "size-4" }: { className?: string }) => (
 );
 
 const QuoteIcon = ({ className = "size-4" }: { className?: string }) => (
-  <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 8.25h1.5A2.25 2.25 0 0111.25 10.5v3A2.25 2.25 0 019 15.75H7.5a2.25 2.25 0 01-2.25-2.25v-3A2.25 2.25 0 017.5 8.25zM15 8.25h1.5A2.25 2.25 0 0118.75 10.5v3A2.25 2.25 0 0116.5 15.75H15a2.25 2.25 0 01-2.25-2.25v-3A2.25 2.25 0 0115 8.25z" />
+  <svg
+    className={className}
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+    strokeWidth={1.5}
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M7.5 8.25h1.5A2.25 2.25 0 0111.25 10.5v3A2.25 2.25 0 019 15.75H7.5a2.25 2.25 0 01-2.25-2.25v-3A2.25 2.25 0 017.5 8.25zM15 8.25h1.5A2.25 2.25 0 0118.75 10.5v3A2.25 2.25 0 0116.5 15.75H15a2.25 2.25 0 01-2.25-2.25v-3A2.25 2.25 0 0115 8.25z"
+    />
   </svg>
 );
 
 const BookOpenIcon = ({ className = "size-4" }: { className?: string }) => (
-  <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" />
+  <svg
+    className={className}
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+    strokeWidth={1.5}
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25"
+    />
   </svg>
 );
 
 const LightBulbIcon = ({ className = "size-4" }: { className?: string }) => (
-  <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M12 18v-5.25m0 0a6.01 6.01 0 001.5-.189m-1.5.189a6.01 6.01 0 01-1.5-.189m3.75 7.478a12.06 12.06 0 01-4.5 0m3.75 2.383a14.406 14.406 0 01-3 0M14.25 18v-.192c0-.983.658-1.823 1.508-2.316a7.5 7.5 0 10-7.517 0c.85.493 1.509 1.333 1.509 2.316V18" />
+  <svg
+    className={className}
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+    strokeWidth={1.5}
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M12 18v-5.25m0 0a6.01 6.01 0 001.5-.189m-1.5.189a6.01 6.01 0 01-1.5-.189m3.75 7.478a12.06 12.06 0 01-4.5 0m3.75 2.383a14.406 14.406 0 01-3 0M14.25 18v-.192c0-.983.658-1.823 1.508-2.316a7.5 7.5 0 10-7.517 0c.85.493 1.509 1.333 1.509 2.316V18"
+    />
   </svg>
 );
 
 const AlertTriangleIcon = ({ className = "size-4" }: { className?: string }) => (
-  <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+  <svg
+    className={className}
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+    strokeWidth={1.5}
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"
+    />
   </svg>
 );
 
 const LinkIcon = ({ className = "size-4" }: { className?: string }) => (
-  <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" />
+  <svg
+    className={className}
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+    strokeWidth={1.5}
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244"
+    />
   </svg>
 );
 
 const CheckIcon = ({ className = "size-4" }: { className?: string }) => (
-  <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+  <svg
+    className={className}
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+    strokeWidth={2.5}
+  >
     <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
   </svg>
 );
 
 const ClipboardIcon = ({ className = "size-4" }: { className?: string }) => (
-  <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M15.666 3.888A2.25 2.25 0 0013.5 2.25h-3c-1.03 0-1.9.693-2.166 1.638m7.332 0c.055.194.084.4.084.612v0a.75.75 0 01-.75.75H9a.75.75 0 01-.75-.75v0c0-.212.03-.418.084-.612m7.332 0c.646.049 1.288.11 1.927.184 1.1.128 1.907 1.077 1.907 2.185V19.5a2.25 2.25 0 01-2.25 2.25H6.75A2.25 2.25 0 014.5 19.5V6.257c0-1.108.806-2.057 1.907-2.185a48.208 48.208 0 011.927-.184" />
+  <svg
+    className={className}
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+    strokeWidth={1.5}
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M15.666 3.888A2.25 2.25 0 0013.5 2.25h-3c-1.03 0-1.9.693-2.166 1.638m7.332 0c.055.194.084.4.084.612v0a.75.75 0 01-.75.75H9a.75.75 0 01-.75-.75v0c0-.212.03-.418.084-.612m7.332 0c.646.049 1.288.11 1.927.184 1.1.128 1.907 1.077 1.907 2.185V19.5a2.25 2.25 0 01-2.25 2.25H6.75A2.25 2.25 0 014.5 19.5V6.257c0-1.108.806-2.057 1.907-2.185a48.208 48.208 0 011.927-.184"
+    />
   </svg>
 );
 
 const SparklesIcon = ({ className = "size-4" }: { className?: string }) => (
-  <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 001.423 1.423l1.183.394-1.183.394a2.25 2.25 0 00-1.423 1.423z" />
+  <svg
+    className={className}
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+    strokeWidth={1.5}
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 001.423 1.423l1.183.394-1.183.394a2.25 2.25 0 00-1.423 1.423z"
+    />
   </svg>
 );
 
@@ -145,7 +225,9 @@ function operatorMatchesQuery(operator: BrennerOperatorPaletteEntry, query: stri
   if (!q) return true;
 
   const quoteText = operator.supportingQuotes
-    .map((quote) => [quote.sectionId, quote.title, quote.quote, quote.context, quote.tags.join(" ")].join(" "))
+    .map((quote) =>
+      [quote.sectionId, quote.title, quote.quote, quote.context, quote.tags.join(" ")].join(" "),
+    )
     .join(" ");
 
   const haystack = [
@@ -261,20 +343,26 @@ function OperatorCard({
       </div>
 
       {/* Gradient accent top */}
-      <div className={`absolute inset-x-0 top-0 h-1 bg-gradient-to-r ${categoryData?.color ?? "from-primary/30 to-primary/10"}`} />
+      <div
+        className={`absolute inset-x-0 top-0 h-1 bg-gradient-to-r ${categoryData?.color ?? "from-primary/30 to-primary/10"}`}
+      />
 
       <div className="p-5 sm:p-6">
         {/* Header */}
         <div className="flex items-start gap-4">
           {/* Symbol */}
-          <div className={`flex size-14 sm:size-16 flex-shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br ${categoryData?.color ?? "from-primary/20 to-primary/5"} border ${categoryData?.borderColor ?? "border-primary/20"}`}>
+          <div
+            className={`flex size-14 sm:size-16 flex-shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br ${categoryData?.color ?? "from-primary/20 to-primary/5"} border ${categoryData?.borderColor ?? "border-primary/20"}`}
+          >
             <span className="text-2xl sm:text-3xl font-bold leading-none">{operator.symbol}</span>
           </div>
 
           <div className="min-w-0 flex-1">
             {/* Category badge */}
             {categoryData && (
-              <span className={`inline-block px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider rounded-md ${categoryData.bgColor} ${categoryData.textColor} mb-2`}>
+              <span
+                className={`inline-block px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider rounded-md ${categoryData.bgColor} ${categoryData.textColor} mb-2`}
+              >
                 {categoryData.label}
               </span>
             )}
@@ -360,8 +448,18 @@ function OperatorDetailSheet({
   }, [onClose]);
 
   const tabs = [
-    { key: "triggers" as const, label: "When to Use", icon: LightBulbIcon, count: operator.whenToUseTriggers.length },
-    { key: "failures" as const, label: "Pitfalls", icon: AlertTriangleIcon, count: operator.failureModes.length },
+    {
+      key: "triggers" as const,
+      label: "When to Use",
+      icon: LightBulbIcon,
+      count: operator.whenToUseTriggers.length,
+    },
+    {
+      key: "failures" as const,
+      label: "Pitfalls",
+      icon: AlertTriangleIcon,
+      count: operator.failureModes.length,
+    },
     { key: "quotes" as const, label: "Quotes", icon: QuoteIcon, count: quotes.length },
   ];
 
@@ -388,7 +486,9 @@ function OperatorDetailSheet({
           flex flex-col"
       >
         {/* Gradient accent */}
-        <div className={`absolute inset-x-0 top-0 h-1.5 rounded-t-3xl lg:rounded-t-2xl bg-gradient-to-r ${categoryData?.color ?? "from-primary/30 to-primary/10"}`} />
+        <div
+          className={`absolute inset-x-0 top-0 h-1.5 rounded-t-3xl lg:rounded-t-2xl bg-gradient-to-r ${categoryData?.color ?? "from-primary/30 to-primary/10"}`}
+        />
 
         {/* Mobile handle */}
         <div className="lg:hidden flex justify-center pt-3 pb-1 flex-shrink-0">
@@ -400,17 +500,26 @@ function OperatorDetailSheet({
           <div className="flex items-start justify-between gap-4">
             <div className="flex items-start gap-4 min-w-0">
               {/* Symbol */}
-              <div className={`flex size-14 sm:size-16 flex-shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br ${categoryData?.color ?? "from-primary/20 to-primary/5"} border ${categoryData?.borderColor ?? "border-primary/20"}`}>
-                <span className="text-2xl sm:text-3xl font-bold leading-none">{operator.symbol}</span>
+              <div
+                className={`flex size-14 sm:size-16 flex-shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br ${categoryData?.color ?? "from-primary/20 to-primary/5"} border ${categoryData?.borderColor ?? "border-primary/20"}`}
+              >
+                <span className="text-2xl sm:text-3xl font-bold leading-none">
+                  {operator.symbol}
+                </span>
               </div>
 
               <div className="min-w-0">
                 {categoryData && (
-                  <span className={`inline-block px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider rounded-md ${categoryData.bgColor} ${categoryData.textColor} mb-1`}>
+                  <span
+                    className={`inline-block px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider rounded-md ${categoryData.bgColor} ${categoryData.textColor} mb-1`}
+                  >
                     {categoryData.label}
                   </span>
                 )}
-                <h2 id="operator-sheet-title" className="text-xl sm:text-2xl font-bold text-foreground">
+                <h2
+                  id="operator-sheet-title"
+                  className="text-xl sm:text-2xl font-bold text-foreground"
+                >
                   {operator.title}
                 </h2>
                 <code className="text-sm text-muted-foreground font-mono">
@@ -448,8 +557,18 @@ function OperatorDetailSheet({
               href={`/sessions/new?operator=${operator.canonicalTag}`}
               className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-medium shadow-md shadow-primary/20 hover:shadow-lg hover:shadow-primary/30 hover:-translate-y-0.5 active:scale-[0.98] transition-all touch-manipulation"
             >
-              <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.348a1.125 1.125 0 010 1.971l-11.54 6.347a1.125 1.125 0 01-1.667-.985V5.653z" />
+              <svg
+                className="size-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={1.5}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.348a1.125 1.125 0 010 1.971l-11.54 6.347a1.125 1.125 0 01-1.667-.985V5.653z"
+                />
               </svg>
               Try in Session
             </Link>
@@ -465,15 +584,18 @@ function OperatorDetailSheet({
               className={`
                 flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap
                 transition-all duration-200 active:scale-[0.97] touch-manipulation
-                ${activeTab === tab.key
-                  ? "bg-primary/10 text-primary"
-                  : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                ${
+                  activeTab === tab.key
+                    ? "bg-primary/10 text-primary"
+                    : "text-muted-foreground hover:bg-muted hover:text-foreground"
                 }
               `}
             >
               <tab.icon className="size-4" />
               <span>{tab.label}</span>
-              <span className={`text-xs tabular-nums ${activeTab === tab.key ? "opacity-80" : "opacity-50"}`}>
+              <span
+                className={`text-xs tabular-nums ${activeTab === tab.key ? "opacity-80" : "opacity-50"}`}
+              >
                 {tab.count}
               </span>
             </button>
@@ -499,7 +621,9 @@ function OperatorDetailSheet({
                   >
                     <div className="flex-shrink-0 mt-0.5">
                       <div className="size-6 rounded-full bg-emerald-500/20 flex items-center justify-center">
-                        <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400">{index + 1}</span>
+                        <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400">
+                          {index + 1}
+                        </span>
                       </div>
                     </div>
                     <p className="text-sm text-foreground/90 leading-relaxed">{trigger}</p>
@@ -560,7 +684,9 @@ function OperatorDetailSheet({
                               {quote.sectionId}
                             </span>
                           )}
-                          <h4 className="font-medium text-foreground text-sm truncate">{quote.title}</h4>
+                          <h4 className="font-medium text-foreground text-sm truncate">
+                            {quote.title}
+                          </h4>
                         </div>
                         {transcriptHref && (
                           <Link
@@ -580,7 +706,10 @@ function OperatorDetailSheet({
 
                         {quote.context && (
                           <p className="mt-3 text-sm text-muted-foreground leading-relaxed">
-                            <span className="font-semibold text-foreground/70">Why it matters:</span> {quote.context}
+                            <span className="font-semibold text-foreground/70">
+                              Why it matters:
+                            </span>{" "}
+                            {quote.context}
                           </p>
                         )}
 
@@ -622,7 +751,7 @@ function OperatorDetailSheet({
         </div>
       </div>
     </>,
-    document.body
+    document.body,
   );
 }
 
@@ -633,7 +762,9 @@ function OperatorDetailSheet({
 export function OperatorsClient({ operators }: { operators: BrennerOperatorPaletteEntry[] }) {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<CategoryKey | null>(null);
-  const [selectedOperator, setSelectedOperator] = useState<BrennerOperatorPaletteEntry | null>(null);
+  const [selectedOperator, setSelectedOperator] = useState<BrennerOperatorPaletteEntry | null>(
+    null,
+  );
   const searchInputRef = useRef<HTMLInputElement>(null);
 
   // Prompt builder selection state
@@ -654,21 +785,26 @@ export function OperatorsClient({ operators }: { operators: BrennerOperatorPalet
 
   const selectedOperatorsForPrompt = useMemo(
     () => operators.filter((op) => selectedForPrompt.has(op.canonicalTag)),
-    [operators, selectedForPrompt]
+    [operators, selectedForPrompt],
   );
 
   const promptBundle = useMemo(
     () => generatePromptBundle(selectedOperatorsForPrompt),
-    [selectedOperatorsForPrompt]
+    [selectedOperatorsForPrompt],
   );
 
   const totalQuotes = useMemo(
     () => operators.reduce((sum, op) => sum + op.supportingQuotes.length, 0),
-    [operators]
+    [operators],
   );
 
   const categoryCounts = useMemo(() => {
-    const counts: Record<CategoryKey | "all", number> = { all: operators.length, thinking: 0, experimentation: 0, epistemics: 0 };
+    const counts: Record<CategoryKey | "all", number> = {
+      all: operators.length,
+      thinking: 0,
+      experimentation: 0,
+      epistemics: 0,
+    };
     for (const op of operators) {
       const cat = getOperatorCategory(op.canonicalTag);
       if (cat) counts[cat]++;
@@ -701,7 +837,12 @@ export function OperatorsClient({ operators }: { operators: BrennerOperatorPalet
       if (e.key !== "/") return;
       if (e.target instanceof HTMLElement) {
         const tag = e.target.tagName.toLowerCase();
-        if (e.target.isContentEditable || tag === "input" || tag === "textarea" || tag === "select") {
+        if (
+          e.target.isContentEditable ||
+          tag === "input" ||
+          tag === "textarea" ||
+          tag === "select"
+        ) {
           return;
         }
       }
@@ -780,7 +921,9 @@ export function OperatorsClient({ operators }: { operators: BrennerOperatorPalet
           {/* Stats */}
           <div className="mt-8 flex flex-wrap items-center gap-3 sm:gap-4">
             <div className="flex items-center gap-3 px-4 py-2.5 rounded-xl bg-background/60 backdrop-blur-sm border border-border/50 shadow-sm">
-              <span className="text-2xl sm:text-3xl font-bold text-foreground">{operators.length}</span>
+              <span className="text-2xl sm:text-3xl font-bold text-foreground">
+                {operators.length}
+              </span>
               <span className="text-sm text-muted-foreground">operators</span>
             </div>
             <div className="flex items-center gap-3 px-4 py-2.5 rounded-xl bg-background/60 backdrop-blur-sm border border-border/50 shadow-sm">
@@ -788,11 +931,17 @@ export function OperatorsClient({ operators }: { operators: BrennerOperatorPalet
               <span className="text-sm text-muted-foreground">anchored quotes</span>
             </div>
             <div className="hidden sm:flex items-center gap-4 ml-2 text-sm text-muted-foreground">
-              <Link href="/corpus/transcript" className="hover:text-foreground hover:underline transition-colors">
+              <Link
+                href="/corpus/transcript"
+                className="hover:text-foreground hover:underline transition-colors"
+              >
                 Browse transcript
               </Link>
               <span aria-hidden="true">·</span>
-              <Link href="/corpus/quote-bank" className="hover:text-foreground hover:underline transition-colors">
+              <Link
+                href="/corpus/quote-bank"
+                className="hover:text-foreground hover:underline transition-colors"
+              >
                 Browse quote bank
               </Link>
             </div>
@@ -838,21 +987,26 @@ export function OperatorsClient({ operators }: { operators: BrennerOperatorPalet
         {/* Category pills with scroll fade hint */}
         <div className="relative -mx-4 sm:mx-0">
           <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide px-4 sm:px-0">
-          <CategoryPill
-            category={null}
-            isActive={selectedCategory === null}
-            onClick={() => setSelectedCategory(null)}
-            count={categoryCounts.all}
-          />
-          {(Object.entries(OPERATOR_CATEGORIES) as [CategoryKey, typeof OPERATOR_CATEGORIES[CategoryKey]][]).map(([key, category]) => (
             <CategoryPill
-              key={key}
-              category={category}
-              isActive={selectedCategory === key}
-              onClick={() => setSelectedCategory(key)}
-              count={categoryCounts[key]}
+              category={null}
+              isActive={selectedCategory === null}
+              onClick={() => setSelectedCategory(null)}
+              count={categoryCounts.all}
             />
-          ))}
+            {(
+              Object.entries(OPERATOR_CATEGORIES) as [
+                CategoryKey,
+                (typeof OPERATOR_CATEGORIES)[CategoryKey],
+              ][]
+            ).map(([key, category]) => (
+              <CategoryPill
+                key={key}
+                category={category}
+                isActive={selectedCategory === key}
+                onClick={() => setSelectedCategory(key)}
+                count={categoryCounts[key]}
+              />
+            ))}
           </div>
           {/* Fade hint on mobile */}
           <div className="absolute right-0 top-0 bottom-1 w-8 bg-gradient-to-l from-background to-transparent pointer-events-none sm:hidden" />
@@ -862,12 +1016,14 @@ export function OperatorsClient({ operators }: { operators: BrennerOperatorPalet
         <div className="text-sm text-muted-foreground">
           {searchQuery || selectedCategory ? (
             <>
-              Showing <span className="font-medium text-foreground">{filteredOperators.length}</span> of{" "}
+              Showing{" "}
+              <span className="font-medium text-foreground">{filteredOperators.length}</span> of{" "}
               <span className="font-medium text-foreground">{operators.length}</span> operators
             </>
           ) : (
             <>
-              <span className="font-medium text-foreground">{operators.length}</span> operators available
+              <span className="font-medium text-foreground">{operators.length}</span> operators
+              available
             </>
           )}
         </div>
@@ -909,10 +1065,7 @@ export function OperatorsClient({ operators }: { operators: BrennerOperatorPalet
 
       {/* Detail Sheet */}
       {selectedOperator && (
-        <OperatorDetailSheet
-          operator={selectedOperator}
-          onClose={handleCloseSheet}
-        />
+        <OperatorDetailSheet operator={selectedOperator} onClose={handleCloseSheet} />
       )}
 
       {/* Floating Prompt Builder Bar */}
@@ -1053,7 +1206,10 @@ function PromptBuilderPanel({
         <div className="flex-shrink-0 px-6 pt-6 pb-4 border-b border-border/50">
           <div className="flex items-center justify-between gap-4">
             <div>
-              <h2 id="prompt-builder-title" className="text-xl font-bold text-foreground flex items-center gap-2">
+              <h2
+                id="prompt-builder-title"
+                className="text-xl font-bold text-foreground flex items-center gap-2"
+              >
                 <SparklesIcon className="size-5 text-primary" />
                 Prompt Builder
               </h2>
@@ -1140,6 +1296,6 @@ function PromptBuilderPanel({
         </div>
       </div>
     </>,
-    document.body
+    document.body,
   );
 }

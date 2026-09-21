@@ -13,4 +13,3 @@ export default async function OperatorsPage() {
   const operators = await loadBrennerOperatorPalette();
   return <OperatorsClient operators={operators} />;
 }
-

@@ -9,19 +9,18 @@
  * @see brenner_bot-xlk2.2 (Implement Agent Dispatch via Agent Mail)
  */
 
-import type { AgentMailMessage } from "../../agentMail";
-import { AgentMailClient } from "../../agentMail";
+import type { AgentMailClient, AgentMailMessage } from "../../agentMail";
 import type { HypothesisCard } from "../hypothesis";
-// NOTE: Import directly from agent-personas to avoid circular dependency with index.ts
-// (index.ts re-exports from both agent-personas.ts and dispatch.ts)
-import type { TribunalAgentRole } from "./index";
-import { getPersona, buildSystemPromptContext } from "./agent-personas";
 import type {
-  LevelSplitResult,
   ExclusionTestResult,
+  LevelSplitResult,
   ObjectTransposeResult,
   ScaleCheckResult,
 } from "../types";
+import { buildSystemPromptContext, getPersona } from "./agent-personas";
+// NOTE: Import directly from agent-personas to avoid circular dependency with index.ts
+// (index.ts re-exports from both agent-personas.ts and dispatch.ts)
+import type { TribunalAgentRole } from "./index";
 
 // ============================================================================
 // Types
@@ -31,10 +30,10 @@ import type {
  * Status of an agent task
  */
 export type AgentTaskStatus =
-  | "pending"     // Not yet dispatched
-  | "dispatched"  // Message sent, awaiting response
-  | "received"    // Response received
-  | "error";      // Error occurred
+  | "pending" // Not yet dispatched
+  | "dispatched" // Message sent, awaiting response
+  | "received" // Response received
+  | "error"; // Error occurred
 
 /**
  * A task representing a single agent's involvement
@@ -190,7 +189,8 @@ export const FALLBACK_BRENNER_QUOTES = [
   { quote: "Get the scale of everything right.", section: "§66" },
   { quote: "You've forgotten there's a third alternative. Both could be wrong.", section: "§103" },
   {
-    quote: "The choice of the experimental object remains one of the most important things to do in biology.",
+    quote:
+      "The choice of the experimental object remains one of the most important things to do in biology.",
     section: "§91",
   },
   { quote: "Exclusion is always a tremendously good thing in science.", section: "§147" },
@@ -350,7 +350,7 @@ export function formatOperatorResultsForPrompt(results: OperatorResults): string
 export function buildAgentPrompt(
   role: TribunalAgentRole,
   hypothesis: HypothesisCard,
-  operatorResults: OperatorResults
+  operatorResults: OperatorResults,
 ): string {
   const persona = getPersona(role);
   const systemContext = buildSystemPromptContext(role);
@@ -383,7 +383,7 @@ export function buildAgentPrompt(
       "",
       "- Include 2–4 transcript citations using the `§NN` anchor format.",
       "- Prefer citing from the quote bank above; if you cite beyond it, do not fabricate anchors.",
-      ""
+      "",
     );
   }
 
@@ -397,7 +397,7 @@ export function buildAgentPrompt(
     `${persona.corePurpose}`,
     "",
     "Provide your analysis in markdown format. Be specific and actionable.",
-    ""
+    "",
   );
 
   return parts.join("\n");
@@ -414,7 +414,7 @@ export async function dispatchAgentTask(
     projectKey: string;
     senderName: string;
     recipients: string[];
-  }
+  },
 ): Promise<{ messageId: number; messageIds: number[] } | { error: string }> {
   const promptBody = buildAgentPrompt(role, dispatch.hypothesis, dispatch.operatorResults);
 
@@ -433,9 +433,10 @@ export async function dispatchAgentTask(
     });
 
     const deliveries = result.deliveries;
-    const messageIds = deliveries
-      ?.map((delivery) => delivery.payload?.id)
-      .filter((id): id is number => typeof id === "number") ?? [];
+    const messageIds =
+      deliveries
+        ?.map((delivery) => delivery.payload?.id)
+        .filter((id): id is number => typeof id === "number") ?? [];
 
     if (messageIds.length > 0) {
       return { messageId: messageIds[0], messageIds };
@@ -458,7 +459,7 @@ export async function dispatchAllTasks(
     projectKey: string;
     senderName: string;
     recipients: string[];
-  }
+  },
 ): Promise<AgentDispatch> {
   // Generate thread ID if not set
   if (!dispatch.threadId) {
@@ -507,7 +508,7 @@ export async function dispatchAllTasks(
 export async function pollForResponses(
   client: AgentMailClient,
   dispatch: AgentDispatch,
-  options: PollOptions
+  options: PollOptions,
 ): Promise<AgentDispatch> {
   if (!dispatch.threadId) {
     return dispatch;
@@ -590,16 +591,15 @@ export async function pollForResponses(
     }
 
     const unresolvedRoles = dispatch.tasks
-      .filter(
-        (task) =>
-          task.status === "dispatched" && !roleToResponseMessage.has(task.role)
-      )
+      .filter((task) => task.status === "dispatched" && !roleToResponseMessage.has(task.role))
       .map((task) => task.role);
-    const unmatchedMessages = thread.messages.filter((m): m is AgentMailMessage & { body_md: string } => {
-      if (!m.body_md) return false;
-      if (dispatchMessageIds.has(m.id)) return false;
-      return inferRoleFromSubject(m.subject) === null && typeof m.reply_to !== "number";
-    });
+    const unmatchedMessages = thread.messages.filter(
+      (m): m is AgentMailMessage & { body_md: string } => {
+        if (!m.body_md) return false;
+        if (dispatchMessageIds.has(m.id)) return false;
+        return inferRoleFromSubject(m.subject) === null && typeof m.reply_to !== "number";
+      },
+    );
 
     for (const task of dispatch.tasks) {
       if (task.status === "received" || task.status === "pending" || task.status === "error") {
@@ -611,7 +611,11 @@ export async function pollForResponses(
 
       if (!responseMessage || !responseMessage.body_md) {
         // If there's exactly one outstanding task, allow a single ambiguous reply.
-        if (unresolvedRoles.length === 1 && unresolvedRoles[0] === task.role && unmatchedMessages.length === 1) {
+        if (
+          unresolvedRoles.length === 1 &&
+          unresolvedRoles[0] === task.role &&
+          unmatchedMessages.length === 1
+        ) {
           const fallbackMsg = unmatchedMessages[0];
           const response: TribunalAgentResponse = {
             role: task.role,
@@ -658,9 +662,7 @@ export async function pollForResponses(
     }
 
     // Check if all tasks are complete
-    const allReceived = updatedTasks.every(
-      (t) => t.status === "received" || t.status === "error"
-    );
+    const allReceived = updatedTasks.every((t) => t.status === "received" || t.status === "error");
 
     return {
       ...dispatch,
@@ -680,7 +682,7 @@ export async function pollForResponses(
  */
 export async function checkAgentAvailability(
   client: AgentMailClient,
-  projectKey: string
+  projectKey: string,
 ): Promise<{ available: boolean; agents: string[] }> {
   const parseAgents = (result: unknown): string[] | null => {
     if (!result || typeof result !== "object") return null;

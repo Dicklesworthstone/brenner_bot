@@ -8,10 +8,20 @@
 
 "use client";
 
-import React, { useCallback } from "react";
-import { cn } from "@/lib/utils";
+import {
+  BookOpen,
+  Lightbulb,
+  MessageSquare,
+  PauseCircle,
+  Quote,
+  RotateCcw,
+  Settings2,
+  Shield,
+} from "lucide-react";
+import type React from "react";
+import { useCallback } from "react";
 import { Button } from "@/components/ui/button";
-import { Switch } from "@/components/ui/switch";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -20,29 +30,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
-  Lightbulb,
-  BookOpen,
-  Quote,
-  MessageSquare,
-  PauseCircle,
-  Shield,
-  RotateCcw,
-  Settings2,
-} from "lucide-react";
-import {
-  useCoach,
-  type CoachLevel,
-  type CoachSettings,
-} from "@/lib/brenner-loop/coach-context";
-import { LevelBadge, CoachProgressStats } from "./CoachProgress";
+import { Switch } from "@/components/ui/switch";
+import { type CoachLevel, type CoachSettings, useCoach } from "@/lib/brenner-loop/coach-context";
+import { cn } from "@/lib/utils";
+import { CoachProgressStats, LevelBadge } from "./CoachProgress";
 
 // ============================================================================
 // Types
@@ -68,20 +59,14 @@ export function CoachSettingsPanel({
   onSettingsChange,
   className,
 }: CoachSettingsPanelProps): React.ReactElement {
-  const {
-    settings,
-    effectiveLevel,
-    updateSettings,
-    resetSettings,
-    resetProgress,
-  } = useCoach();
+  const { settings, effectiveLevel, updateSettings, resetSettings, resetProgress } = useCoach();
 
   const handleToggle = useCallback(
     (key: keyof CoachSettings, value: boolean) => {
       updateSettings({ [key]: value });
       onSettingsChange?.({ ...settings, [key]: value });
     },
-    [updateSettings, onSettingsChange, settings]
+    [updateSettings, onSettingsChange, settings],
   );
 
   const handleLevelChange = useCallback(
@@ -89,7 +74,7 @@ export function CoachSettingsPanel({
       updateSettings({ level });
       onSettingsChange?.({ ...settings, level });
     },
-    [updateSettings, onSettingsChange, settings]
+    [updateSettings, onSettingsChange, settings],
   );
 
   const settingItems = [
@@ -142,9 +127,7 @@ export function CoachSettingsPanel({
                 <Settings2 className="h-5 w-5" />
                 Coach Mode
               </CardTitle>
-              <CardDescription>
-                Get guided help learning the Brenner Method
-              </CardDescription>
+              <CardDescription>Get guided help learning the Brenner Method</CardDescription>
             </div>
             <Switch
               checked={settings.enabled}
@@ -161,28 +144,20 @@ export function CoachSettingsPanel({
               <div className="flex items-center gap-4">
                 <Select
                   value={settings.level}
-                  onValueChange={(value) =>
-                    handleLevelChange(value as CoachLevel)
-                  }
+                  onValueChange={(value) => handleLevelChange(value as CoachLevel)}
                 >
                   <SelectTrigger className="w-48">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="beginner">
-                      <span className="flex items-center gap-2">
-                        🌱 Beginner
-                      </span>
+                      <span className="flex items-center gap-2">🌱 Beginner</span>
                     </SelectItem>
                     <SelectItem value="intermediate">
-                      <span className="flex items-center gap-2">
-                        🌿 Intermediate
-                      </span>
+                      <span className="flex items-center gap-2">🌿 Intermediate</span>
                     </SelectItem>
                     <SelectItem value="advanced">
-                      <span className="flex items-center gap-2">
-                        🌳 Advanced
-                      </span>
+                      <span className="flex items-center gap-2">🌳 Advanced</span>
                     </SelectItem>
                   </SelectContent>
                 </Select>
@@ -193,30 +168,21 @@ export function CoachSettingsPanel({
                   "Full explanations and guidance for every concept."}
                 {settings.level === "intermediate" &&
                   "Reduced explanations; help only when needed."}
-                {settings.level === "advanced" &&
-                  "Minimal guidance; coach available on demand."}
+                {settings.level === "advanced" && "Minimal guidance; coach available on demand."}
               </p>
             </div>
 
             {/* Setting toggles */}
             <div className="space-y-4">
               {settingItems.map((item) => (
-                <div
-                  key={item.key}
-                  className="flex items-start justify-between gap-4"
-                >
+                <div key={item.key} className="flex items-start justify-between gap-4">
                   <div className="flex items-start gap-3">
                     <item.icon className="h-5 w-5 text-muted-foreground mt-0.5" />
                     <div>
-                      <Label
-                        htmlFor={item.key}
-                        className="text-sm font-medium cursor-pointer"
-                      >
+                      <Label htmlFor={item.key} className="text-sm font-medium cursor-pointer">
                         {item.label}
                       </Label>
-                      <p className="text-xs text-muted-foreground">
-                        {item.description}
-                      </p>
+                      <p className="text-xs text-muted-foreground">{item.description}</p>
                     </div>
                   </div>
                   <Switch
@@ -230,12 +196,7 @@ export function CoachSettingsPanel({
 
             {/* Reset button */}
             <div className="pt-4 border-t">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={resetSettings}
-                className="w-full"
-              >
+              <Button variant="outline" size="sm" onClick={resetSettings} className="w-full">
                 <RotateCcw className="h-4 w-4 mr-2" />
                 Reset to Defaults
               </Button>
@@ -249,9 +210,7 @@ export function CoachSettingsPanel({
         <Card>
           <CardHeader>
             <CardTitle>Learning Progress</CardTitle>
-            <CardDescription>
-              Track your journey learning the Brenner Method
-            </CardDescription>
+            <CardDescription>Track your journey learning the Brenner Method</CardDescription>
           </CardHeader>
           <CardContent>
             <CoachProgressStats />
@@ -262,11 +221,7 @@ export function CoachSettingsPanel({
                 variant="ghost"
                 size="sm"
                 onClick={() => {
-                  if (
-                    confirm(
-                      "Are you sure? This will reset all your learning progress."
-                    )
-                  ) {
+                  if (confirm("Are you sure? This will reset all your learning progress.")) {
                     resetProgress();
                   }
                 }}
@@ -305,14 +260,12 @@ export function CoachToggle({ className }: CoachToggleProps): React.ReactElement
           "flex items-center gap-2 px-3 py-1.5 rounded-full text-sm transition-colors",
           settings.enabled
             ? "bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200"
-            : "bg-muted text-muted-foreground"
+            : "bg-muted text-muted-foreground",
         )}
         title={settings.enabled ? "Coach mode enabled" : "Coach mode disabled"}
       >
         <Lightbulb className="h-4 w-4" />
-        <span className="hidden sm:inline">
-          {settings.enabled ? "Coach On" : "Coach Off"}
-        </span>
+        <span className="hidden sm:inline">{settings.enabled ? "Coach On" : "Coach Off"}</span>
       </button>
       {settings.enabled && <LevelBadge level={effectiveLevel} compact />}
     </div>

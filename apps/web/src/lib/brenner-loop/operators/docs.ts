@@ -353,8 +353,7 @@ to one mechanism were actually caused by something else entirely.
         "Consider: (1) Reverse causation (Y→X), (2) Third variable (Z→X and Z→Y), (3) Selection effects, (4) Bidirectional, (5) Pure coincidence.",
       example:
         "If 'exercise causes happiness': Maybe happy people exercise more (reverse). Maybe healthy lifestyle causes both (third variable). Maybe we only study gym-goers (selection).",
-      antiPattern:
-        "Don't generate weak strawman alternatives. Make them genuinely plausible.",
+      antiPattern: "Don't generate weak strawman alternatives. Make them genuinely plausible.",
     },
     "rate-plausibility": {
       headline: "Honestly assess each alternative",
@@ -512,9 +511,7 @@ export const OPERATOR_DOCUMENTATION: Record<OperatorType, OperatorDocumentation>
 /**
  * Get documentation for an operator
  */
-export function getOperatorDocumentation(
-  operatorType: OperatorType
-): OperatorDocumentation {
+export function getOperatorDocumentation(operatorType: OperatorType): OperatorDocumentation {
   return OPERATOR_DOCUMENTATION[operatorType];
 }
 
@@ -523,7 +520,7 @@ export function getOperatorDocumentation(
  */
 export function getStepTip(
   operatorType: OperatorType,
-  stepId: string
+  stepId: string,
 ): OperatorStepTip | undefined {
   return OPERATOR_DOCUMENTATION[operatorType]?.stepTips[stepId];
 }

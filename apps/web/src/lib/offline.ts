@@ -20,7 +20,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 function hasOwn(obj: Record<string, unknown>, key: string): boolean {
-  return Object.prototype.hasOwnProperty.call(obj, key);
+  return Object.hasOwn(obj, key);
 }
 
 function isQueueItem(value: unknown): value is OfflineQueueItem {
@@ -32,7 +32,11 @@ function isQueueItem(value: unknown): value is OfflineQueueItem {
   }
 
   if (!hasOwn(record, "id") || typeof record.id !== "string") return false;
-  if (!hasOwn(record, "kind") || (record.kind !== "session-kickoff" && record.kind !== "session-action")) return false;
+  if (
+    !hasOwn(record, "kind") ||
+    (record.kind !== "session-kickoff" && record.kind !== "session-action")
+  )
+    return false;
   if (!hasOwn(record, "createdAt") || typeof record.createdAt !== "string") return false;
   if (!hasOwn(record, "attemptCount") || typeof record.attemptCount !== "number") return false;
   if (!hasOwn(record, "payload") || !isRecord(record.payload)) return false;
@@ -75,7 +79,7 @@ function writeOfflineQueue(items: OfflineQueueItem[]) {
 
 export function enqueueOfflineAction(
   kind: OfflineActionKind,
-  payload: Record<string, unknown>
+  payload: Record<string, unknown>,
 ): OfflineQueueItem {
   const item: OfflineQueueItem = {
     id: createQueueId(),

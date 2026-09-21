@@ -8,12 +8,11 @@
  * @see brenner_bot-s797 (Tutorial Path: Quick Start)
  */
 
-import * as React from "react";
 import { useRouter } from "next/navigation";
-import { TutorialStep } from "@/components/tutorial";
-import { TutorialCodeBlock, ProTip, Note } from "@/components/tutorial";
+import * as React from "react";
+import { Note, ProTip, TutorialCodeBlock, TutorialStep } from "@/components/tutorial";
 import { useTutorial } from "@/lib/tutorial-context";
-import type { TutorialStep as TutorialStepType, TroubleshootingItem } from "@/lib/tutorial-types";
+import type { TroubleshootingItem, TutorialStep as TutorialStepType } from "@/lib/tutorial-types";
 
 // ============================================================================
 // Step Data
@@ -23,17 +22,15 @@ const troubleshooting: TroubleshootingItem[] = [
   {
     problem: "No results found for my search",
     symptoms: ["Empty results", "No matching segments"],
-    solution: "Try broader or different terms. The corpus uses Brenner's vocabulary, which may differ from modern terminology.",
-    commands: [
-      "./brenner corpus search \"mechanism\"",
-      "./brenner corpus search \"experiment\"",
-    ],
+    solution:
+      "Try broader or different terms. The corpus uses Brenner's vocabulary, which may differ from modern terminology.",
+    commands: ['./brenner corpus search "mechanism"', './brenner corpus search "experiment"'],
   },
   {
     problem: "Command not found: brenner",
     symptoms: ["'brenner' is not recognized"],
     solution: "Make sure you're in the brenner_bot directory and use the full path.",
-    commands: ["./brenner corpus search \"your topic\""],
+    commands: ['./brenner corpus search "your topic"'],
   },
 ];
 
@@ -96,7 +93,8 @@ export default function QuickStartStep4() {
             Try an Example Search
           </h2>
           <p className="text-sm text-muted-foreground">
-            Let&apos;s start with a search Brenner would have loved — pattern formation in development:
+            Let&apos;s start with a search Brenner would have loved — pattern formation in
+            development:
           </p>
           <TutorialCodeBlock
             code={`./brenner corpus search "pattern formation"`}
@@ -104,8 +102,8 @@ export default function QuickStartStep4() {
             title="Terminal"
           />
           <p className="text-sm text-muted-foreground">
-            You&apos;ll see results with <strong>§n</strong> section numbers — these are stable anchors
-            for citing specific passages:
+            You&apos;ll see results with <strong>§n</strong> section numbers — these are stable
+            anchors for citing specific passages:
           </p>
           <TutorialCodeBlock
             code={`§58: "The best thing in science is to work out of phase.
@@ -129,9 +127,15 @@ export default function QuickStartStep4() {
             These don&apos;t change between versions, so you can cite them reliably:
           </p>
           <ul className="text-sm text-muted-foreground space-y-1 ml-4">
-            <li>• <strong>§58</strong> — Always refers to the same passage</li>
-            <li>• <strong>§78</strong> — Can be linked to the full transcript</li>
-            <li>• <strong>§161</strong> — Works as citation anchors in your artifacts</li>
+            <li>
+              • <strong>§58</strong> — Always refers to the same passage
+            </li>
+            <li>
+              • <strong>§78</strong> — Can be linked to the full transcript
+            </li>
+            <li>
+              • <strong>§161</strong> — Works as citation anchors in your artifacts
+            </li>
           </ul>
         </div>
 
@@ -168,8 +172,8 @@ export default function QuickStartStep4() {
             Note Your References
           </h2>
           <p className="text-sm text-muted-foreground">
-            As you search, <strong>note 3-5 §n references</strong> that seem most relevant to
-            your question. You&apos;ll use these in the next step to build an excerpt.
+            As you search, <strong>note 3-5 §n references</strong> that seem most relevant to your
+            question. You&apos;ll use these in the next step to build an excerpt.
           </p>
           <div className="p-4 rounded-lg border border-border bg-card">
             <p className="text-sm font-medium text-muted-foreground mb-2">My relevant sections:</p>
@@ -187,22 +191,22 @@ export default function QuickStartStep4() {
         </div>
 
         <ProTip>
-          Don&apos;t worry about finding &quot;perfect&quot; matches. Brenner&apos;s wisdom often applies
-          metaphorically — insights about molecular biology can illuminate problems in economics
-          or computer science. Look for methodological parallels, not just topic matches.
+          Don&apos;t worry about finding &quot;perfect&quot; matches. Brenner&apos;s wisdom often
+          applies metaphorically — insights about molecular biology can illuminate problems in
+          economics or computer science. Look for methodological parallels, not just topic matches.
         </ProTip>
 
         <Note>
-          The corpus includes three distillation sources (GPT, Gemini, Opus) that provide
-          different perspectives on Brenner&apos;s ideas. Try <code>./brenner corpus list</code> to
-          see all available content.
+          The corpus includes three distillation sources (GPT, Gemini, Opus) that provide different
+          perspectives on Brenner&apos;s ideas. Try <code>./brenner corpus list</code> to see all
+          available content.
         </Note>
 
         {/* Next Step */}
         <div className="p-4 rounded-xl border border-border bg-card/50">
           <p className="text-sm text-muted-foreground">
-            <strong className="text-foreground">Next up:</strong> You&apos;ll take your noted
-            §n references and build them into a focused excerpt document.
+            <strong className="text-foreground">Next up:</strong> You&apos;ll take your noted §n
+            references and build them into a focused excerpt document.
           </p>
         </div>
       </section>

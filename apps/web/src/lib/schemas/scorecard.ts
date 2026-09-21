@@ -39,11 +39,7 @@ export type OptionalScore = z.infer<typeof OptionalScoreSchema>;
  * - test_designer: Designs discriminative tests (typically Opus)
  * - adversarial_critic: Challenges and validates work (typically Gemini)
  */
-export const RoleSchema = z.enum([
-  "hypothesis_generator",
-  "test_designer",
-  "adversarial_critic",
-]);
+export const RoleSchema = z.enum(["hypothesis_generator", "test_designer", "adversarial_critic"]);
 export type Role = z.infer<typeof RoleSchema>;
 
 // ============================================================================
@@ -394,7 +390,7 @@ export const ContributionScoreSchema = z.object({
       z.object({
         gate: z.string(),
         reason: z.string(),
-      })
+      }),
     ),
   }),
 
@@ -405,7 +401,7 @@ export const ContributionScoreSchema = z.object({
       message: z.string(),
       suggestion: z.string().optional(),
       brennerQuote: z.string().optional(),
-    })
+    }),
   ),
 
   /** When this score was computed */
@@ -574,7 +570,7 @@ export function calculateUniversalScore(criteria: UniversalCriteria): number {
  */
 export function calculateHypothesisGeneratorScore(
   universal: UniversalCriteria,
-  specific: HypothesisGeneratorCriteria
+  specific: HypothesisGeneratorCriteria,
 ): { score: number; maxScore: number } {
   const universalScore = calculateUniversalScore(universal);
 
@@ -588,7 +584,8 @@ export function calculateHypothesisGeneratorScore(
   // Adjust max score if paradox exploitation is not applicable
   const maxScore = specific.paradoxExploitation.applicable
     ? MAX_ROLE_SCORES.hypothesis_generator
-    : MAX_ROLE_SCORES.hypothesis_generator - MAX_SCORES.paradoxExploitation * SCORE_WEIGHTS.paradoxExploitation;
+    : MAX_ROLE_SCORES.hypothesis_generator -
+      MAX_SCORES.paradoxExploitation * SCORE_WEIGHTS.paradoxExploitation;
 
   return {
     score: universalScore + specificScore,
@@ -601,7 +598,7 @@ export function calculateHypothesisGeneratorScore(
  */
 export function calculateTestDesignerScore(
   universal: UniversalCriteria,
-  specific: TestDesignerCriteria
+  specific: TestDesignerCriteria,
 ): { score: number; maxScore: number } {
   const universalScore = calculateUniversalScore(universal);
 
@@ -635,7 +632,7 @@ export function calculateTestDesignerScore(
  */
 export function calculateAdversarialCriticScore(
   universal: UniversalCriteria,
-  specific: AdversarialCriticCriteria
+  specific: AdversarialCriticCriteria,
 ): { score: number; maxScore: number } {
   const universalScore = calculateUniversalScore(universal);
 
@@ -676,7 +673,8 @@ export const PASS_FAIL_GATES = {
   },
   missingPotencyCheck: {
     check: (score: ContributionScore) =>
-      score.role !== "test_designer" || (score.testDesigner?.potencyCheckSufficiency.hasPotencyCheck ?? true),
+      score.role !== "test_designer" ||
+      (score.testDesigner?.potencyCheckSufficiency.hasPotencyCheck ?? true),
     message: "Missing potency check in test design",
   },
   fakeAnchor: {
@@ -707,13 +705,15 @@ export const WARNING_THRESHOLDS = {
   },
   missingScaleCheck: {
     check: (score: ContributionScore) =>
-      score.role === "adversarial_critic" && (score.adversarialCritic?.scaleCheckRigor.score ?? 0) === 0,
+      score.role === "adversarial_critic" &&
+      (score.adversarialCritic?.scaleCheckRigor.score ?? 0) === 0,
     message: "Scale check missing for mechanism claim",
     criterion: "scaleCheckRigor",
   },
   weakPotency: {
     check: (score: ContributionScore) =>
-      score.role === "test_designer" && (score.testDesigner?.potencyCheckSufficiency.score ?? 0) < 2,
+      score.role === "test_designer" &&
+      (score.testDesigner?.potencyCheckSufficiency.score ?? 0) < 2,
     message: "Weak assay design (potency score < 2)",
     criterion: "potencyCheckSufficiency",
   },
@@ -737,12 +737,14 @@ export const SESSION_WARNING_THRESHOLDS = {
   },
   lowConvergence: {
     check: (session: SessionScore) =>
-      session.sessionMetrics.totalContributions >= 5 && !session.sessionMetrics.convergence.converging,
+      session.sessionMetrics.totalContributions >= 5 &&
+      !session.sessionMetrics.convergence.converging,
     message: "Session has not converged (more ADDs than KILLs at end)",
     criterion: "convergence",
   },
   lowOperatorCoverage: {
-    check: (session: SessionScore) => session.sessionMetrics.operatorCoverage.coveragePercentage < 50,
+    check: (session: SessionScore) =>
+      session.sessionMetrics.operatorCoverage.coveragePercentage < 50,
     message: "Less than 50% of operators used in session",
     criterion: "operatorCoverage",
   },
@@ -756,7 +758,9 @@ export const SESSION_WARNING_THRESHOLDS = {
 /**
  * Generate warnings for a session.
  */
-export function generateSessionWarnings(session: SessionScore): SessionScore["contributions"][0]["warnings"] {
+export function generateSessionWarnings(
+  session: SessionScore,
+): SessionScore["contributions"][0]["warnings"] {
   const warnings: SessionScore["contributions"][0]["warnings"] = [];
 
   for (const [, threshold] of Object.entries(SESSION_WARNING_THRESHOLDS)) {
@@ -794,7 +798,10 @@ export const BRENNER_QUOTES: Record<string, string> = {
 /**
  * Check if a score passes all gates.
  */
-export function checkPassFailGates(score: ContributionScore): { passed: boolean; failures: { gate: string; reason: string }[] } {
+export function checkPassFailGates(score: ContributionScore): {
+  passed: boolean;
+  failures: { gate: string; reason: string }[];
+} {
   const failures: { gate: string; reason: string }[] = [];
 
   for (const [gateName, gate] of Object.entries(PASS_FAIL_GATES)) {
@@ -936,10 +943,12 @@ export interface SessionDimensionScore {
 /**
  * Compute a dimension score from signals.
  */
-function computeDimensionScore(dimension: string, signals: ScoreSignal[], maxPoints: number): DimensionScore {
-  const points = signals
-    .filter((s) => s.found)
-    .reduce((sum, s) => sum + s.points, 0);
+function computeDimensionScore(
+  dimension: string,
+  signals: ScoreSignal[],
+  maxPoints: number,
+): DimensionScore {
+  const points = signals.filter((s) => s.found).reduce((sum, s) => sum + s.points, 0);
 
   return {
     dimension,
@@ -1013,10 +1022,7 @@ function checkForParadigmChallenge(text: string | undefined): boolean {
  */
 export function scoreParadoxGrounding(session: SessionData): DimensionScore {
   const researchThread = session.artifact.sections.research_thread;
-  const questionText =
-    session.researchQuestion ??
-    researchThread?.statement ??
-    "";
+  const questionText = session.researchQuestion ?? researchThread?.statement ?? "";
 
   const anomalies = session.artifact.sections.anomaly_register ?? [];
   const assumptions = session.artifact.sections.assumption_ledger ?? [];
@@ -1044,9 +1050,10 @@ export function scoreParadoxGrounding(session: SessionData): DimensionScore {
       signal: "Foundational assumptions questioned",
       points: 5,
       found: assumptions.some((a) => a.status === "falsified"),
-      evidence: assumptions.filter((a) => a.status === "falsified").length > 0
-        ? `${assumptions.filter((a) => a.status === "falsified").length} assumptions falsified`
-        : undefined,
+      evidence:
+        assumptions.filter((a) => a.status === "falsified").length > 0
+          ? `${assumptions.filter((a) => a.status === "falsified").length} assumptions falsified`
+          : undefined,
     },
   ];
 
@@ -1072,26 +1079,26 @@ export function scoreHypothesisKillRate(session: SessionData): DimensionScore {
   const hypotheses = session.artifact.sections.hypothesis_slate ?? [];
 
   // Count kills from transitions or from killed flag on hypotheses
-  const killsFromTransitions = transitions.filter((t) => t.toState === "refuted" || t.toState === "killed");
+  const killsFromTransitions = transitions.filter(
+    (t) => t.toState === "refuted" || t.toState === "killed",
+  );
   const killsFromFlags = hypotheses.filter((h) => h.killed);
   const totalKills = Math.max(killsFromTransitions.length, killsFromFlags.length);
 
   // Check if kills are linked to test results (from transitions)
   const killsWithTestLink = killsFromTransitions.filter(
-    (t) => t.triggeredBy?.startsWith("T-") || t.triggeredBy?.startsWith("test-")
+    (t) => t.triggeredBy?.startsWith("T-") || t.triggeredBy?.startsWith("test-"),
   );
   // Check if flagged kills are linked to test results (via killed_by field)
   const flaggedKillsWithTestLink = killsFromFlags.filter(
-    (h) => h.killed_by?.startsWith("T-") || h.killed_by?.startsWith("test-")
+    (h) => h.killed_by?.startsWith("T-") || h.killed_by?.startsWith("test-"),
   );
   const totalKillsWithTestLink = killsWithTestLink.length + flaggedKillsWithTestLink.length;
 
   // Check if kill reasoning is documented
-  const killsWithReasoning = killsFromTransitions.filter(
-    (t) => t.reason && t.reason.length >= 10
-  );
+  const killsWithReasoning = killsFromTransitions.filter((t) => t.reason && t.reason.length >= 10);
   const flaggedKillsWithReasoning = killsFromFlags.filter(
-    (h) => h.kill_reason && h.kill_reason.length >= 10
+    (h) => h.kill_reason && h.kill_reason.length >= 10,
   );
   const totalKillsWithReasoning = killsWithReasoning.length + flaggedKillsWithReasoning.length;
 
@@ -1107,18 +1114,14 @@ export function scoreHypothesisKillRate(session: SessionData): DimensionScore {
       points: 5,
       found: totalKillsWithTestLink > 0,
       evidence:
-        totalKillsWithTestLink > 0
-          ? `${totalKillsWithTestLink} kills linked to tests`
-          : undefined,
+        totalKillsWithTestLink > 0 ? `${totalKillsWithTestLink} kills linked to tests` : undefined,
     },
     {
       signal: "Kill reasoning documented",
       points: 5,
       found: totalKillsWithReasoning > 0,
       evidence:
-        totalKillsWithReasoning > 0
-          ? `${totalKillsWithReasoning} kills with reasoning`
-          : undefined,
+        totalKillsWithReasoning > 0 ? `${totalKillsWithReasoning} kills with reasoning` : undefined,
     },
   ];
 
@@ -1151,9 +1154,7 @@ export function scoreTestDiscriminability(session: SessionData): DimensionScore 
 
   // Check for different predictions
   const testsWithDifferentPredictions = tests.filter(
-    (t) =>
-      t.expected_outcomes &&
-      Object.keys(t.expected_outcomes).length >= 2
+    (t) => t.expected_outcomes && Object.keys(t.expected_outcomes).length >= 2,
   );
 
   // Check for observable outcomes (look for measurement language)
@@ -1176,7 +1177,7 @@ export function scoreTestDiscriminability(session: SessionData): DimensionScore 
 
   // Check for potency checks
   const testsWithPotencyChecks = tests.filter(
-    (t) => t.potency_check && t.potency_check.length > 10
+    (t) => t.potency_check && t.potency_check.length > 10,
   );
 
   const signals: ScoreSignal[] = [
@@ -1230,9 +1231,7 @@ export function scoreAssumptionTracking(session: SessionData): DimensionScore {
   const hasAssumptions = assumptions.length > 0;
 
   // Check for linked assumptions (load field references hypothesis)
-  const linkedAssumptions = assumptions.filter(
-    (a) => a.load && a.load.length > 5
-  );
+  const linkedAssumptions = assumptions.filter((a) => a.load && a.load.length > 5);
 
   // Check for scale/physics checks
   const scaleChecks = assumptions.filter((a) => a.scale_check === true);
@@ -1257,10 +1256,7 @@ export function scoreAssumptionTracking(session: SessionData): DimensionScore {
       signal: "Scale/physics checks performed",
       points: 5,
       found: scaleChecks.length > 0,
-      evidence:
-        scaleChecks.length > 0
-          ? `${scaleChecks.length} scale checks performed`
-          : undefined,
+      evidence: scaleChecks.length > 0 ? `${scaleChecks.length} scale checks performed` : undefined,
     },
   ];
 
@@ -1306,7 +1302,15 @@ export function scoreThirdAlternativeDiscovery(session: SessionData): DimensionS
   });
 
   // Check for different causal structure (look for distinct causal keywords)
-  const causalKeywords = ["because", "causes", "leads to", "results in", "triggers", "enables", "prevents"];
+  const causalKeywords = [
+    "because",
+    "causes",
+    "leads to",
+    "results in",
+    "triggers",
+    "enables",
+    "prevents",
+  ];
   const thirdAltsWithCausalStructure = thirdAlts.filter((ta) => {
     const mechLower = (ta.mechanism ?? "").toLowerCase();
     return causalKeywords.some((kw) => mechLower.includes(kw));
@@ -1352,9 +1356,7 @@ export function scoreExperimentalFeasibility(session: SessionData): DimensionSco
   const tests = session.artifact.sections.discriminative_tests ?? [];
 
   // Check for feasibility assessments
-  const testsWithFeasibility = tests.filter(
-    (t) => t.feasibility && t.feasibility.length > 10
-  );
+  const testsWithFeasibility = tests.filter((t) => t.feasibility && t.feasibility.length > 10);
 
   // Check for executed tests
   const executedTests = tests.filter((t) => t.status && t.status !== "untested");
@@ -1400,9 +1402,7 @@ export function scoreAdversarialPressure(session: SessionData): DimensionScore {
   const hasCritiques = critiques.length > 0;
 
   // Check for evidence-backed critiques
-  const critiquesWithEvidence = critiques.filter(
-    (c) => c.evidence && c.evidence.length > 20
-  );
+  const critiquesWithEvidence = critiques.filter((c) => c.evidence && c.evidence.length > 20);
 
   // Check for real third alternatives from critique
   const realThirdAlts = critiques.filter((c) => c.real_third_alternative === true);

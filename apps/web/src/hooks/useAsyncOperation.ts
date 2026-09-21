@@ -102,31 +102,28 @@ export function useAsyncOperation(): UseAsyncOperationResult {
     setState(initialState);
   }, []);
 
-  const run = useCallback(async <T,>(operation: () => Promise<T>, options?: RunOperationOptions<T>) => {
-    const {
-      optimisticUpdate,
-      rollback,
-      onSuccess,
-      onError,
-      ...stateOptions
-    } = options ?? {};
+  const run = useCallback(
+    async <T>(operation: () => Promise<T>, options?: RunOperationOptions<T>) => {
+      const { optimisticUpdate, rollback, onSuccess, onError, ...stateOptions } = options ?? {};
 
-    start(stateOptions);
-    optimisticUpdate?.();
+      start(stateOptions);
+      optimisticUpdate?.();
 
-    try {
-      const result = await operation();
-      succeed(stateOptions.message);
-      onSuccess?.(result);
-      return result;
-    } catch (error) {
-      rollback?.();
-      const err = error instanceof Error ? error : new Error("Operation failed");
-      fail(err, stateOptions.message);
-      onError?.(err);
-      return null;
-    }
-  }, [fail, start, succeed]);
+      try {
+        const result = await operation();
+        succeed(stateOptions.message);
+        onSuccess?.(result);
+        return result;
+      } catch (error) {
+        rollback?.();
+        const err = error instanceof Error ? error : new Error("Operation failed");
+        fail(err, stateOptions.message);
+        onError?.(err);
+        return null;
+      }
+    },
+    [fail, start, succeed],
+  );
 
   const derived = useMemo(() => {
     return {

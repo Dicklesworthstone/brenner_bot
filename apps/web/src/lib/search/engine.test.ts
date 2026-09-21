@@ -7,15 +7,15 @@
  * Run with: cd apps/web && bun run test -- src/lib/search/engine.test.ts
  */
 
-import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
-  searchEngine,
+  getSearchError,
+  isSearchIndexLoaded,
   loadSearchIndex,
   search,
-  isSearchIndexLoaded,
-  getSearchError,
+  searchEngine,
 } from "./engine";
-import type { SearchResult, SearchOptions, SearchScope } from "./types";
+import type { SearchOptions, SearchResult, SearchScope } from "./types";
 
 function parseSearchIndexJson(indexContent: string): unknown {
   try {
@@ -200,10 +200,7 @@ describe("loadSearchIndex error handling", () => {
   it("allows retry after transient fetch failure", async () => {
     const { readFile } = await import("node:fs/promises");
     const { resolve } = await import("node:path");
-    const indexContent = await readFile(
-      resolve(process.cwd(), "public/search/index.json"),
-      "utf8"
-    );
+    const indexContent = await readFile(resolve(process.cwd(), "public/search/index.json"), "utf8");
     const indexData = parseSearchIndexJson(indexContent);
 
     const fetchSpy = vi
@@ -339,10 +336,7 @@ describe("loadSearchIndex with real index", () => {
     // Mock fetch to return the real index from the file system
     const { readFile } = await import("node:fs/promises");
     const { resolve } = await import("node:path");
-    const indexContent = await readFile(
-      resolve(process.cwd(), "public/search/index.json"),
-      "utf8"
-    );
+    const indexContent = await readFile(resolve(process.cwd(), "public/search/index.json"), "utf8");
     const indexData = parseSearchIndexJson(indexContent);
 
     vi.spyOn(globalThis, "fetch").mockResolvedValueOnce({
@@ -361,10 +355,7 @@ describe("loadSearchIndex with real index", () => {
     // Load real index via mock
     const { readFile } = await import("node:fs/promises");
     const { resolve } = await import("node:path");
-    const indexContent = await readFile(
-      resolve(process.cwd(), "public/search/index.json"),
-      "utf8"
-    );
+    const indexContent = await readFile(resolve(process.cwd(), "public/search/index.json"), "utf8");
     const indexData = parseSearchIndexJson(indexContent);
 
     vi.spyOn(globalThis, "fetch").mockResolvedValueOnce({
@@ -395,10 +386,7 @@ describe("loadSearchIndex with real index", () => {
     // Load real index via mock
     const { readFile } = await import("node:fs/promises");
     const { resolve } = await import("node:path");
-    const indexContent = await readFile(
-      resolve(process.cwd(), "public/search/index.json"),
-      "utf8"
-    );
+    const indexContent = await readFile(resolve(process.cwd(), "public/search/index.json"), "utf8");
     const indexData = parseSearchIndexJson(indexContent);
 
     vi.spyOn(globalThis, "fetch").mockResolvedValueOnce({
@@ -421,10 +409,7 @@ describe("loadSearchIndex with real index", () => {
     // Load real index
     const { readFile } = await import("node:fs/promises");
     const { resolve } = await import("node:path");
-    const indexContent = await readFile(
-      resolve(process.cwd(), "public/search/index.json"),
-      "utf8"
-    );
+    const indexContent = await readFile(resolve(process.cwd(), "public/search/index.json"), "utf8");
     const indexData = parseSearchIndexJson(indexContent);
 
     vi.spyOn(globalThis, "fetch").mockResolvedValueOnce({
@@ -442,10 +427,7 @@ describe("loadSearchIndex with real index", () => {
     // Load real index
     const { readFile } = await import("node:fs/promises");
     const { resolve } = await import("node:path");
-    const indexContent = await readFile(
-      resolve(process.cwd(), "public/search/index.json"),
-      "utf8"
-    );
+    const indexContent = await readFile(resolve(process.cwd(), "public/search/index.json"), "utf8");
     const indexData = parseSearchIndexJson(indexContent);
 
     vi.spyOn(globalThis, "fetch").mockResolvedValueOnce({
@@ -473,10 +455,7 @@ describe("snippet generation", () => {
     // Load real index
     const { readFile } = await import("node:fs/promises");
     const { resolve } = await import("node:path");
-    const indexContent = await readFile(
-      resolve(process.cwd(), "public/search/index.json"),
-      "utf8"
-    );
+    const indexContent = await readFile(resolve(process.cwd(), "public/search/index.json"), "utf8");
     const indexData = parseSearchIndexJson(indexContent);
 
     vi.spyOn(globalThis, "fetch").mockResolvedValueOnce({
@@ -512,10 +491,7 @@ describe("URL generation", () => {
     // Load real index
     const { readFile } = await import("node:fs/promises");
     const { resolve } = await import("node:path");
-    const indexContent = await readFile(
-      resolve(process.cwd(), "public/search/index.json"),
-      "utf8"
-    );
+    const indexContent = await readFile(resolve(process.cwd(), "public/search/index.json"), "utf8");
     const indexData = parseSearchIndexJson(indexContent);
 
     vi.spyOn(globalThis, "fetch").mockResolvedValueOnce({

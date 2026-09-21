@@ -13,17 +13,16 @@
 
 import React, {
   createContext,
-  useContext,
-  useReducer,
-  useEffect,
-  useCallback,
-  useMemo,
-  useRef,
   type ReactNode,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useReducer,
+  useRef,
 } from "react";
-
-import type { SessionPhase } from "./types";
 import type { ResearchDomain } from "./confound-detection";
+import type { SessionPhase } from "./types";
 
 // ============================================================================
 // Types
@@ -300,28 +299,27 @@ isn't just a guess—it proposes a specific mechanism that could be tested.`,
       section: "§12",
     },
     commonMistakes: [
-      "Being too vague (\"X affects Y\" without specifying how)",
+      'Being too vague ("X affects Y" without specifying how)',
       "Stating a correlation without proposing causation",
       "Not specifying the mechanism",
       "Making the hypothesis unfalsifiable",
     ],
     examples: {
       psychology:
-        "\"Social media use causes depression in teenagers\" → Better: \"Curated social media content triggers negative social comparison, releasing cortisol and reducing dopamine sensitivity.\"",
+        '"Social media use causes depression in teenagers" → Better: "Curated social media content triggers negative social comparison, releasing cortisol and reducing dopamine sensitivity."',
       epidemiology:
-        "\"Air pollution increases mortality\" → Better: \"PM2.5 particles cross the blood-brain barrier, triggering neuroinflammation that accelerates cognitive decline.\"",
+        '"Air pollution increases mortality" → Better: "PM2.5 particles cross the blood-brain barrier, triggering neuroinflammation that accelerates cognitive decline."',
       economics:
-        "\"Education increases income\" → Better: \"Additional education signals unobservable ability to employers, leading to higher wage offers.\"",
+        '"Education increases income" → Better: "Additional education signals unobservable ability to employers, leading to higher wage offers."',
       biology:
-        "\"Gene X causes cancer\" → Better: \"BRCA1 mutations impair DNA double-strand break repair, allowing oncogenic mutations to accumulate.\"",
+        '"Gene X causes cancer" → Better: "BRCA1 mutations impair DNA double-strand break repair, allowing oncogenic mutations to accumulate."',
       sociology:
-        "\"Inequality causes crime\" → Better: \"Visible wealth disparities increase perceived relative deprivation, triggering status-seeking through illicit means.\"",
+        '"Inequality causes crime" → Better: "Visible wealth disparities increase perceived relative deprivation, triggering status-seeking through illicit means."',
       computer_science:
-        "\"Bigger models perform better\" → Better: \"Increased model capacity enables learning more fine-grained feature representations.\"",
+        '"Bigger models perform better" → Better: "Increased model capacity enables learning more fine-grained feature representations."',
       neuroscience:
-        "\"Sleep improves memory\" → Better: \"Sleep spindles during NREM trigger hippocampal replay, consolidating episodic memories to neocortex.\"",
-      general:
-        "Start with your observation, then propose HOW and WHY it happens.",
+        '"Sleep improves memory" → Better: "Sleep spindles during NREM trigger hippocampal replay, consolidating episodic memories to neocortex."',
+      general: "Start with your observation, then propose HOW and WHY it happens.",
     },
   },
 
@@ -351,22 +349,14 @@ What would you expect to see if you're right? What would prove you wrong?`,
       "Falsification conditions that are actually just weak support",
     ],
     examples: {
-      psychology:
-        "Define 'depression' — clinical diagnosis? PHQ-9 score? Self-reported sadness?",
-      epidemiology:
-        "Define 'exposure' — dose? duration? timing in life? route of exposure?",
-      economics:
-        "Define 'education' — years? degree? type? quality? timing?",
-      biology:
-        "Define 'gene expression' — mRNA levels? protein levels? functional activity?",
-      sociology:
-        "Define 'inequality' — income? wealth? opportunity? perception?",
-      computer_science:
-        "Define 'performance' — accuracy? latency? throughput? robustness?",
-      neuroscience:
-        "Define 'memory' — episodic? semantic? procedural? short-term? long-term?",
-      general:
-        "Ask: If someone else read this, would they know exactly what I mean?",
+      psychology: "Define 'depression' — clinical diagnosis? PHQ-9 score? Self-reported sadness?",
+      epidemiology: "Define 'exposure' — dose? duration? timing in life? route of exposure?",
+      economics: "Define 'education' — years? degree? type? quality? timing?",
+      biology: "Define 'gene expression' — mRNA levels? protein levels? functional activity?",
+      sociology: "Define 'inequality' — income? wealth? opportunity? perception?",
+      computer_science: "Define 'performance' — accuracy? latency? throughput? robustness?",
+      neuroscience: "Define 'memory' — episodic? semantic? procedural? short-term? long-term?",
+      general: "Ask: If someone else read this, would they know exactly what I mean?",
     },
   },
 
@@ -396,20 +386,13 @@ Are you explaining cellular behavior with population statistics? Individual psyc
       "Confusing correlation at one level with causation at another",
     ],
     examples: {
-      psychology:
-        "Is the effect at neural, cognitive, behavioral, or social level?",
-      epidemiology:
-        "Is this an individual risk factor or population-level determinant?",
-      economics:
-        "Micro (individual choice) vs macro (aggregate behavior) vs institutional level?",
-      biology:
-        "Molecular → cellular → tissue → organ → organism → population?",
-      sociology:
-        "Individual → dyad → group → organization → institution → society?",
-      computer_science:
-        "Instruction → function → module → system → distributed system?",
-      neuroscience:
-        "Synapse → neuron → circuit → region → network → brain → behavior?",
+      psychology: "Is the effect at neural, cognitive, behavioral, or social level?",
+      epidemiology: "Is this an individual risk factor or population-level determinant?",
+      economics: "Micro (individual choice) vs macro (aggregate behavior) vs institutional level?",
+      biology: "Molecular → cellular → tissue → organ → organism → population?",
+      sociology: "Individual → dyad → group → organization → institution → society?",
+      computer_science: "Instruction → function → module → system → distributed system?",
+      neuroscience: "Synapse → neuron → circuit → region → network → brain → behavior?",
       general: "Ask: at which level does my proposed mechanism actually operate?",
     },
   },
@@ -447,16 +430,14 @@ tells you nothing.`,
         "If PM2.5 causes mortality, then populations with equal PM2.5 but different compositions should have equal mortality.",
       economics:
         "If education is signaling, then degree-holders should earn more even when employers can directly assess ability.",
-      biology:
-        "If gene X is necessary, then knockout should completely prevent the phenotype.",
+      biology: "If gene X is necessary, then knockout should completely prevent the phenotype.",
       sociology:
         "If relative deprivation causes crime, then reducing visible inequality without changing absolute levels should reduce crime.",
       computer_science:
         "If attention is key, then removing attention mechanism should dramatically hurt performance.",
       neuroscience:
         "If hippocampus is necessary for memory, then hippocampal lesion should prevent new memory formation.",
-      general:
-        "Ask: What observation would make me abandon this hypothesis?",
+      general: "Ask: What observation would make me abandon this hypothesis?",
     },
   },
 
@@ -490,18 +471,12 @@ If you can't distinguish your hypothesis from alternatives, you haven't learned 
         "Social media causes depression OR depressed people use more social media (reverse causation)?",
       epidemiology:
         "Exercise prevents disease OR healthy people exercise more (healthy user bias)?",
-      economics:
-        "Education increases productivity OR signals pre-existing ability?",
-      biology:
-        "Gene causes phenotype OR is merely correlated with causal gene?",
-      sociology:
-        "Culture causes behavior OR behavior creates culture?",
-      computer_science:
-        "Architecture matters OR just more parameters?",
-      neuroscience:
-        "Region causes behavior OR just correlates with causal region?",
-      general:
-        "What else could explain exactly the same observations?",
+      economics: "Education increases productivity OR signals pre-existing ability?",
+      biology: "Gene causes phenotype OR is merely correlated with causal gene?",
+      sociology: "Culture causes behavior OR behavior creates culture?",
+      computer_science: "Architecture matters OR just more parameters?",
+      neuroscience: "Region causes behavior OR just correlates with causal region?",
+      general: "What else could explain exactly the same observations?",
     },
   },
 
@@ -531,22 +506,14 @@ This includes checking effect sizes (is it big enough to matter?), generalizabil
       "Confusing statistical significance with practical importance",
     ],
     examples: {
-      psychology:
-        "Does a 30-minute intervention with college students generalize to real therapy?",
-      epidemiology:
-        "Does a risk factor from one population apply to others?",
-      economics:
-        "Do small-scale experiments predict market behavior?",
-      biology:
-        "Do in-vitro results predict in-vivo effects?",
-      sociology:
-        "Do patterns in one society generalize?",
-      computer_science:
-        "Does benchmark performance predict real-world utility?",
-      neuroscience:
-        "Do findings in mice translate to humans?",
-      general:
-        "Ask: would this matter if it scaled to the real world?",
+      psychology: "Does a 30-minute intervention with college students generalize to real therapy?",
+      epidemiology: "Does a risk factor from one population apply to others?",
+      economics: "Do small-scale experiments predict market behavior?",
+      biology: "Do in-vitro results predict in-vivo effects?",
+      sociology: "Do patterns in one society generalize?",
+      computer_science: "Does benchmark performance predict real-world utility?",
+      neuroscience: "Do findings in mice translate to humans?",
+      general: "Ask: would this matter if it scaled to the real world?",
     },
   },
 
@@ -900,18 +867,13 @@ function deserializeProgress(json: string): LearningProgress {
   return {
     seenConcepts,
     operatorsUsed,
-    sessionsCompleted:
-      typeof data.sessionsCompleted === "number" ? data.sessionsCompleted : 0,
+    sessionsCompleted: typeof data.sessionsCompleted === "number" ? data.sessionsCompleted : 0,
     hypothesesFormulated:
       typeof data.hypothesesFormulated === "number" ? data.hypothesesFormulated : 0,
-    mistakesCaught:
-      typeof data.mistakesCaught === "number" ? data.mistakesCaught : 0,
-    checkpointsPassed:
-      typeof data.checkpointsPassed === "number" ? data.checkpointsPassed : 0,
-    firstSessionDate:
-      typeof data.firstSessionDate === "string" ? data.firstSessionDate : undefined,
-    lastSessionDate:
-      typeof data.lastSessionDate === "string" ? data.lastSessionDate : undefined,
+    mistakesCaught: typeof data.mistakesCaught === "number" ? data.mistakesCaught : 0,
+    checkpointsPassed: typeof data.checkpointsPassed === "number" ? data.checkpointsPassed : 0,
+    firstSessionDate: typeof data.firstSessionDate === "string" ? data.firstSessionDate : undefined,
+    lastSessionDate: typeof data.lastSessionDate === "string" ? data.lastSessionDate : undefined,
   };
 }
 
@@ -997,12 +959,8 @@ export function CoachProvider({ children }: CoachProviderProps): React.ReactElem
       const settingsJson = localStorage.getItem(STORAGE_KEY_SETTINGS);
       const progressJson = localStorage.getItem(STORAGE_KEY_PROGRESS);
 
-      const settings = settingsJson
-        ? deserializeSettings(settingsJson)
-        : DEFAULT_SETTINGS;
-      const progress = progressJson
-        ? deserializeProgress(progressJson)
-        : DEFAULT_PROGRESS;
+      const settings = settingsJson ? deserializeSettings(settingsJson) : DEFAULT_SETTINGS;
+      const progress = progressJson ? deserializeProgress(progressJson) : DEFAULT_PROGRESS;
 
       dispatch({ type: "HYDRATE", settings, progress });
     } catch (error) {
@@ -1114,7 +1072,7 @@ export function CoachProvider({ children }: CoachProviderProps): React.ReactElem
     (conceptId: ConceptId): boolean => {
       return state.progress.seenConcepts.has(conceptId);
     },
-    [state.progress.seenConcepts]
+    [state.progress.seenConcepts],
   );
 
   const shouldShowExplanation = useCallback(
@@ -1128,15 +1086,12 @@ export function CoachProvider({ children }: CoachProviderProps): React.ReactElem
       // For intermediate/advanced, only show if not seen
       return !state.progress.seenConcepts.has(conceptId);
     },
-    [state.settings, state.progress.seenConcepts, effectiveLevel]
+    [state.settings, state.progress.seenConcepts, effectiveLevel],
   );
 
-  const getPhaseCoaching = useCallback(
-    (phase: SessionPhase): PhaseCoachingContent => {
-      return PHASE_COACHING[phase];
-    },
-    []
-  );
+  const getPhaseCoaching = useCallback((phase: SessionPhase): PhaseCoachingContent => {
+    return PHASE_COACHING[phase];
+  }, []);
 
   // -------------------------------------------------------------------------
   // Context Value
@@ -1188,12 +1143,10 @@ export function CoachProvider({ children }: CoachProviderProps): React.ReactElem
       shouldShowExplanation,
       getPhaseCoaching,
       needsOnboarding,
-    ]
+    ],
   );
 
-  return (
-    <CoachContext.Provider value={value}>{children}</CoachContext.Provider>
-  );
+  return <CoachContext.Provider value={value}>{children}</CoachContext.Provider>;
 }
 
 // ============================================================================
@@ -1256,4 +1209,4 @@ export function useCoachProgress(): {
 // Exports
 // ============================================================================
 
-export { CoachContext, PHASE_COACHING, LEVEL_THRESHOLDS };
+export { CoachContext, LEVEL_THRESHOLDS, PHASE_COACHING };

@@ -18,9 +18,9 @@
  * @module brenner-loop/sessionHypothesis
  */
 
-import type { Session, HypothesisEvolution } from "./types";
 import type { HypothesisCard } from "./hypothesis";
 import { createHypothesisCard, generateHypothesisCardId } from "./hypothesis";
+import type { HypothesisEvolution, Session } from "./types";
 
 // ============================================================================
 // Relationship Types
@@ -30,9 +30,9 @@ import { createHypothesisCard, generateHypothesisCardId } from "./hypothesis";
  * Relationship between hypotheses within a session
  */
 export type HypothesisRelationshipType =
-  | "alternative_to"  // Competing hypothesis
-  | "refinement_of"   // Evolved/refined from parent
-  | "supersedes";     // Replaced another after evidence
+  | "alternative_to" // Competing hypothesis
+  | "refinement_of" // Evolved/refined from parent
+  | "supersedes"; // Replaced another after evidence
 
 /**
  * A link describing the relationship between two hypotheses
@@ -103,10 +103,10 @@ export interface ResolveCompetitionResult {
  * Hypothesis state within a session
  */
 export type HypothesisSessionState =
-  | "primary"      // The main hypothesis being investigated
-  | "alternative"  // A competing hypothesis
-  | "archived"     // Discarded or superseded
-  | "orphaned";    // Not in any list (error state)
+  | "primary" // The main hypothesis being investigated
+  | "alternative" // A competing hypothesis
+  | "archived" // Discarded or superseded
+  | "orphaned"; // Not in any list (error state)
 
 // ============================================================================
 // Query Functions
@@ -152,10 +152,7 @@ export function getAllHypothesisIds(session: Session): string[] {
  * @param hypothesisId - The hypothesis ID to find
  * @returns The hypothesis state
  */
-export function getHypothesisState(
-  session: Session,
-  hypothesisId: string
-): HypothesisSessionState {
+export function getHypothesisState(session: Session, hypothesisId: string): HypothesisSessionState {
   if (session.primaryHypothesisId === hypothesisId) {
     return "primary";
   }
@@ -180,7 +177,7 @@ export function getHypothesisState(
  */
 export function getHypothesisCard(
   session: Session,
-  hypothesisId: string
+  hypothesisId: string,
 ): HypothesisCard | undefined {
   return session.hypothesisCards[hypothesisId];
 }
@@ -254,10 +251,7 @@ export function getHypothesisCounts(session: Session): {
  * @param hypothesisId - The hypothesis ID to make primary
  * @returns Updated session
  */
-export function setPrimaryHypothesis(
-  session: Session,
-  hypothesisId: string
-): Session {
+export function setPrimaryHypothesis(session: Session, hypothesisId: string): Session {
   if (!session.hypothesisCards[hypothesisId]) {
     throw new Error(`Hypothesis ${hypothesisId} not found in session`);
   }
@@ -279,7 +273,7 @@ export function setPrimaryHypothesis(
   let newAlternatives = [...session.alternativeHypothesisIds];
 
   // Remove new primary from alternatives if it was there
-  newAlternatives = newAlternatives.filter(id => id !== hypothesisId);
+  newAlternatives = newAlternatives.filter((id) => id !== hypothesisId);
 
   // Add old primary to alternatives (if it exists)
   if (oldPrimary && !newAlternatives.includes(oldPrimary)) {
@@ -316,7 +310,7 @@ export function addCompetingHypothesis(
     assumptions?: string[];
     confidence?: number;
     createdBy?: string;
-  }
+  },
 ): AddCompetingResult {
   // Validate the competing hypothesis exists
   if (!session.hypothesisCards[competingWith]) {
@@ -382,7 +376,7 @@ export function resolveCompetition(
   session: Session,
   winnerId: string,
   loserId: string,
-  reason: string
+  reason: string,
 ): ResolveCompetitionResult {
   // Validate both hypotheses exist
   if (!session.hypothesisCards[winnerId]) {
@@ -428,11 +422,11 @@ export function resolveCompetition(
   if (session.primaryHypothesisId === loserId) {
     newPrimaryId = winnerId;
     // Remove winner from alternatives if it was there
-    newAlternatives = newAlternatives.filter(id => id !== winnerId);
+    newAlternatives = newAlternatives.filter((id) => id !== winnerId);
   }
 
   // Remove loser from alternatives (if it was there)
-  newAlternatives = newAlternatives.filter(id => id !== loserId);
+  newAlternatives = newAlternatives.filter((id) => id !== loserId);
 
   // Add loser to archived
   if (!newArchived.includes(loserId)) {
@@ -480,11 +474,7 @@ export function resolveCompetition(
  * @param reason - Reason for archiving
  * @returns Updated session
  */
-export function archiveHypothesis(
-  session: Session,
-  hypothesisId: string,
-  reason: string
-): Session {
+export function archiveHypothesis(session: Session, hypothesisId: string, reason: string): Session {
   const state = getHypothesisState(session, hypothesisId);
 
   if (state === "archived") {
@@ -507,9 +497,7 @@ export function archiveHypothesis(
   const updatedCard: HypothesisCard = {
     ...card,
     updatedAt: new Date(),
-    notes: card.notes
-      ? `${card.notes}\n\nArchived: ${reason}`
-      : `Archived: ${reason}`,
+    notes: card.notes ? `${card.notes}\n\nArchived: ${reason}` : `Archived: ${reason}`,
   };
 
   // Build updated state
@@ -522,7 +510,7 @@ export function archiveHypothesis(
     newAlternatives = newAlternatives.slice(1);
   } else {
     // Remove from alternatives
-    newAlternatives = newAlternatives.filter(id => id !== hypothesisId);
+    newAlternatives = newAlternatives.filter((id) => id !== hypothesisId);
   }
 
   return {
@@ -545,10 +533,7 @@ export function archiveHypothesis(
  * @param hypothesisId - ID of the hypothesis to restore
  * @returns Updated session
  */
-export function restoreHypothesis(
-  session: Session,
-  hypothesisId: string
-): Session {
+export function restoreHypothesis(session: Session, hypothesisId: string): Session {
   const state = getHypothesisState(session, hypothesisId);
 
   if (state !== "archived") {
@@ -562,15 +547,13 @@ export function restoreHypothesis(
   const updatedCard: HypothesisCard = {
     ...card,
     updatedAt: new Date(),
-    notes: card.notes
-      ? `${card.notes}\n\nRestored at ${now}`
-      : `Restored at ${now}`,
+    notes: card.notes ? `${card.notes}\n\nRestored at ${now}` : `Restored at ${now}`,
   };
 
   return {
     ...session,
     alternativeHypothesisIds: [...session.alternativeHypothesisIds, hypothesisId],
-    archivedHypothesisIds: session.archivedHypothesisIds.filter(id => id !== hypothesisId),
+    archivedHypothesisIds: session.archivedHypothesisIds.filter((id) => id !== hypothesisId),
     hypothesisCards: {
       ...session.hypothesisCards,
       [hypothesisId]: updatedCard,
@@ -592,7 +575,7 @@ export function restoreHypothesis(
  */
 export function getRelatedHypotheses(
   session: Session,
-  hypothesisId: string
+  hypothesisId: string,
 ): {
   /** Hypotheses that this one evolved from */
   ancestors: string[];
@@ -626,9 +609,7 @@ export function getRelatedHypotheses(
     if (session.primaryHypothesisId) {
       alternatives.push(session.primaryHypothesisId);
     }
-    alternatives.push(
-      ...session.alternativeHypothesisIds.filter(id => id !== hypothesisId)
-    );
+    alternatives.push(...session.alternativeHypothesisIds.filter((id) => id !== hypothesisId));
   }
 
   return { ancestors, descendants, alternatives };
@@ -641,18 +622,13 @@ export function getRelatedHypotheses(
  * @param hypothesisId - The hypothesis ID to trace
  * @returns Array of hypothesis IDs from oldest to newest
  */
-export function getEvolutionChain(
-  session: Session,
-  hypothesisId: string
-): string[] {
+export function getEvolutionChain(session: Session, hypothesisId: string): string[] {
   const chain: string[] = [hypothesisId];
   let currentId = hypothesisId;
 
   // Walk backwards through evolution
   while (true) {
-    const evolution = session.hypothesisEvolution.find(
-      e => e.toVersionId === currentId
-    );
+    const evolution = session.hypothesisEvolution.find((e) => e.toVersionId === currentId);
     if (!evolution) break;
     chain.unshift(evolution.fromVersionId);
     currentId = evolution.fromVersionId;
@@ -672,7 +648,7 @@ export function getEvolutionChain(
 export function findCommonAncestor(
   session: Session,
   hypo1Id: string,
-  hypo2Id: string
+  hypo2Id: string,
 ): string | undefined {
   const chain1 = new Set(getEvolutionChain(session, hypo1Id));
   const chain2 = getEvolutionChain(session, hypo2Id);

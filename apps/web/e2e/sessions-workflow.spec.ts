@@ -11,12 +11,12 @@
  */
 
 import {
-  test,
+  assertTextContent,
+  assertUrl,
   expect,
   fillInput,
   takeScreenshot,
-  assertTextContent,
-  assertUrl,
+  test,
   waitForNetworkIdle,
 } from "./utils";
 
@@ -54,7 +54,7 @@ test.describe("Sessions Workflow", () => {
           page,
           logger,
           "body",
-          /BRENNER_LAB_MODE|Lab Mode|Cloudflare Access|Shared Secret/i
+          /BRENNER_LAB_MODE|Lab Mode|Cloudflare Access|Shared Secret/i,
         );
 
         await takeScreenshot(page, logger, "sessions-locked-state");
@@ -284,7 +284,7 @@ test.describe("Sessions Workflow", () => {
         page,
         logger,
         'textarea[name="excerpt"]',
-        "This is a test excerpt for E2E testing.\n\nIt contains multiple lines to test the textarea."
+        "This is a test excerpt for E2E testing.\n\nIt contains multiple lines to test the textarea.",
       );
 
       // Fill optional fields
@@ -307,7 +307,11 @@ test.describe("Sessions Workflow", () => {
   });
 
   test.describe("Success State", () => {
-    test("should display success message when thread is sent", async ({ page, logger, context }) => {
+    test("should display success message when thread is sent", async ({
+      page,
+      logger,
+      context,
+    }) => {
       const labSecret = process.env.BRENNER_LAB_SECRET || "test-secret-for-e2e";
       await context.addCookies([
         {

@@ -5,12 +5,8 @@
  * Uses real data fixtures - no mocks.
  */
 
-import { describe, it, expect } from "vitest";
-import {
-  parseQuoteBank,
-  filterQuotesByTag,
-  searchQuotes,
-} from "./quotebank-parser";
+import { describe, expect, it } from "vitest";
+import { filterQuotesByTag, parseQuoteBank, searchQuotes } from "./quotebank-parser";
 
 // ============================================================================
 // Test Fixtures

@@ -7,9 +7,9 @@
  * @see brenner_bot-ft14 (bead)
  */
 
+import { recoverSessions, StorageError, sessionStorage } from "./storage";
 import type { Session } from "./types";
 import { isSession } from "./types";
-import { sessionStorage, StorageError, recoverSessions } from "./storage";
 
 // ============================================================================
 // Types
@@ -81,10 +81,7 @@ function withJitter(delay: number, jitterRatio: number): number {
 /**
  * Retry wrapper with exponential backoff.
  */
-export async function withRetry<T>(
-  fn: () => Promise<T>,
-  options: RetryOptions = {}
-): Promise<T> {
+export async function withRetry<T>(fn: () => Promise<T>, options: RetryOptions = {}): Promise<T> {
   const {
     maxAttempts = 3,
     baseDelayMs = 1000,
@@ -103,7 +100,7 @@ export async function withRetry<T>(
       const allowRetry = shouldRetry ? shouldRetry(error, attempt) : true;
       if (!allowRetry || attempt === maxAttempts) break;
 
-      const delay = Math.min(maxDelayMs, baseDelayMs * Math.pow(2, attempt - 1));
+      const delay = Math.min(maxDelayMs, baseDelayMs * 2 ** (attempt - 1));
       await sleep(withJitter(delay, jitterRatio));
     }
   }
@@ -114,10 +111,7 @@ export async function withRetry<T>(
 /**
  * Promise wrapper that rejects with TimeoutError after a timeout.
  */
-export async function withTimeout<T>(
-  promise: Promise<T>,
-  options: TimeoutOptions
-): Promise<T> {
+export async function withTimeout<T>(promise: Promise<T>, options: TimeoutOptions): Promise<T> {
   const { timeoutMs, timeoutMessage = "Operation timed out" } = options;
 
   let timeoutId: ReturnType<typeof setTimeout> | null = null;
@@ -176,7 +170,7 @@ export function createRecoveryNotice(
   severity: RecoverySeverity,
   actions?: RecoveryAction[],
   detail?: string,
-  safeStateMessage?: string
+  safeStateMessage?: string,
 ): RecoveryNotice {
   return {
     title,

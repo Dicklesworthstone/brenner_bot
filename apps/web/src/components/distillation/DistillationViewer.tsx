@@ -1,18 +1,18 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
 import type { ReactNode } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { JargonText } from "@/components/jargon-text";
+import { SectionReference } from "@/components/section-reference";
+import { CopyButton, ReferenceCopyButton } from "@/components/ui/copy-button";
+import { makeDistillationSectionDomId } from "@/lib/anchors";
 import type {
-  ParsedDistillation,
+  DistillationContent,
   DistillationPart,
   DistillationSection,
-  DistillationContent,
+  ParsedDistillation,
 } from "@/lib/distillation-parser";
 import { getDistillationMeta } from "@/lib/distillation-parser";
-import { makeDistillationSectionDomId } from "@/lib/anchors";
-import { ReferenceCopyButton, CopyButton } from "@/components/ui/copy-button";
-import { SectionReference } from "@/components/section-reference";
-import { JargonText } from "@/components/jargon-text";
 
 // ============================================================================
 // MODEL THEME SYSTEM - Stripe-level color consistency
@@ -85,11 +85,7 @@ interface DistillationHeroProps {
   docId: string;
 }
 
-export function DistillationHero({
-  title,
-  wordCount,
-  docId,
-}: DistillationHeroProps) {
+export function DistillationHero({ title, wordCount, docId }: DistillationHeroProps) {
   const meta = getDistillationMeta(docId);
   const theme = getModelTheme(docId);
   const readTime = Math.ceil(wordCount / 200);
@@ -113,8 +109,12 @@ export function DistillationHero({
       />
 
       {/* Accent glow orbs */}
-      <div className={`absolute -top-16 -right-16 sm:-top-24 sm:-right-24 size-48 sm:size-80 rounded-full ${theme.accent} opacity-15 blur-[80px]`} />
-      <div className={`absolute -bottom-12 -left-12 sm:-bottom-20 sm:-left-20 size-36 sm:size-60 rounded-full ${theme.accent} opacity-10 blur-[60px]`} />
+      <div
+        className={`absolute -top-16 -right-16 sm:-top-24 sm:-right-24 size-48 sm:size-80 rounded-full ${theme.accent} opacity-15 blur-[80px]`}
+      />
+      <div
+        className={`absolute -bottom-12 -left-12 sm:-bottom-20 sm:-left-20 size-36 sm:size-60 rounded-full ${theme.accent} opacity-10 blur-[60px]`}
+      />
 
       <div className="relative px-5 py-6 sm:px-6 sm:py-8 lg:px-8 lg:py-10">
         {/* Top row: Model identity + Date */}
@@ -122,7 +122,9 @@ export function DistillationHero({
           {/* Model identity */}
           <div className="flex items-center gap-2.5 sm:gap-3">
             {/* Model icon */}
-            <div className={`size-10 sm:size-12 rounded-lg sm:rounded-xl ${theme.accent} flex items-center justify-center ${theme.textOnAccent} text-lg sm:text-xl font-bold shadow-lg ${theme.shadowAccent}`}>
+            <div
+              className={`size-10 sm:size-12 rounded-lg sm:rounded-xl ${theme.accent} flex items-center justify-center ${theme.textOnAccent} text-lg sm:text-xl font-bold shadow-lg ${theme.shadowAccent}`}
+            >
               {meta.icon}
             </div>
 
@@ -133,9 +135,7 @@ export function DistillationHero({
               </h2>
 
               {/* Tagline */}
-              <p className="text-xs sm:text-sm text-foreground/60">
-                {meta.tagline}
-              </p>
+              <p className="text-xs sm:text-sm text-foreground/60">{meta.tagline}</p>
             </div>
           </div>
 
@@ -170,12 +170,7 @@ export function DistillationHero({
           <div className="relative -mx-5 sm:mx-0">
             <div className="flex gap-3 overflow-x-auto pb-2 sm:pb-0 sm:flex-wrap scrollbar-hide px-5 sm:px-0 snap-x snap-mandatory">
               {meta.strengths.map((strength, i) => (
-                <StrengthPill
-                  key={i}
-                  strength={strength}
-                  theme={theme}
-                  index={i}
-                />
+                <StrengthPill key={i} strength={strength} theme={theme} index={i} />
               ))}
             </div>
             {/* Fade hint on mobile */}
@@ -219,12 +214,10 @@ function StrengthPill({ strength, theme, index }: StrengthPillProps) {
       style={{ animationDelay: `${index * 30}ms` }}
     >
       {/* Minimal checkmark */}
-      <CheckIcon className={`size-3.5 flex-shrink-0 ${theme.accent.replace('bg-', 'text-')}`} />
+      <CheckIcon className={`size-3.5 flex-shrink-0 ${theme.accent.replace("bg-", "text-")}`} />
 
       {/* Strength text - tighter */}
-      <span className="text-xs sm:text-[13px] text-foreground/80 leading-snug">
-        {strength}
-      </span>
+      <span className="text-xs sm:text-[13px] text-foreground/80 leading-snug">{strength}</span>
     </div>
   );
 }
@@ -242,27 +235,22 @@ interface StatChipProps {
 
 function StatChip({ icon, value, label, accent }: StatChipProps) {
   return (
-    <div className={`
+    <div
+      className={`
       inline-flex items-center gap-1.5 sm:gap-2
       px-2.5 sm:px-3 py-1.5 sm:py-2
       rounded-md
-      ${accent
-        ? "bg-primary/8 border-primary/15"
-        : "bg-foreground/[0.03] border-border/40"
-      }
+      ${accent ? "bg-primary/8 border-primary/15" : "bg-foreground/[0.03] border-border/40"}
       border
       transition-colors
-    `}>
+    `}
+    >
       <span className={`size-3.5 ${accent ? "text-primary/70" : "text-muted-foreground/60"}`}>
         {icon}
       </span>
       <div className="flex items-baseline gap-1">
-        <span className="font-medium text-foreground/90 text-xs sm:text-sm">
-          {value}
-        </span>
-        <span className="text-muted-foreground/70 text-[10px] sm:text-xs">
-          {label}
-        </span>
+        <span className="font-medium text-foreground/90 text-xs sm:text-sm">{value}</span>
+        <span className="text-muted-foreground/70 text-[10px] sm:text-xs">{label}</span>
       </div>
     </div>
   );
@@ -321,7 +309,11 @@ function extractTocEntries(data: ParsedDistillation): TocEntry[] {
     // Add sections
     for (const section of part.sections) {
       entries.push({
-        id: generateAnchorId(section.title, data.parts.length > 1 ? part.number : undefined, sectionIndex),
+        id: generateAnchorId(
+          section.title,
+          data.parts.length > 1 ? part.number : undefined,
+          sectionIndex,
+        ),
         title: section.title,
         level: section.level,
         partNumber: data.parts.length > 1 ? part.number : undefined,
@@ -353,7 +345,9 @@ function DistillationTOC({ entries, activeSection, onSectionClick, docId }: Dist
         className="lg:hidden w-full flex items-center justify-between px-4 py-3 rounded-xl bg-card border border-border mb-2 touch-manipulation active:scale-[0.99] transition-transform focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       >
         <span className="text-sm font-medium text-foreground">Table of Contents</span>
-        <ChevronIcon className={`size-5 text-muted-foreground transition-transform ${isOpen ? "rotate-180" : ""}`} />
+        <ChevronIcon
+          className={`size-5 text-muted-foreground transition-transform ${isOpen ? "rotate-180" : ""}`}
+        />
       </button>
 
       {/* TOC list */}
@@ -378,9 +372,10 @@ function DistillationTOC({ entries, activeSection, onSectionClick, docId }: Dist
                       w-full text-left px-3 py-2 rounded-lg text-sm transition-all touch-manipulation active:scale-[0.98]
                       focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset
                       ${isPart ? "font-semibold" : "font-normal"}
-                      ${isActive
-                        ? `${theme.bgSubtle} text-foreground`
-                        : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                      ${
+                        isActive
+                          ? `${theme.bgSubtle} text-foreground`
+                          : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
                       }
                     `}
                     style={{ paddingLeft: isPart ? undefined : `${12 + (entry.level - 1) * 12}px` }}
@@ -403,7 +398,13 @@ function DistillationTOC({ entries, activeSection, onSectionClick, docId }: Dist
 
 function CheckIcon({ className }: { className?: string }) {
   return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+    <svg
+      className={className}
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+      strokeWidth={2.5}
+    >
       <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
     </svg>
   );
@@ -412,15 +413,29 @@ function CheckIcon({ className }: { className?: string }) {
 function SparklesIcon() {
   return (
     <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456z" />
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456z"
+      />
     </svg>
   );
 }
 
 function CalendarIcon({ className }: { className?: string }) {
   return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
+    <svg
+      className={className}
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+      strokeWidth={1.5}
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5"
+      />
     </svg>
   );
 }
@@ -428,7 +443,11 @@ function CalendarIcon({ className }: { className?: string }) {
 function ClockIcon() {
   return (
     <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"
+      />
     </svg>
   );
 }
@@ -436,14 +455,24 @@ function ClockIcon() {
 function DocumentIcon() {
   return (
     <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"
+      />
     </svg>
   );
 }
 
 function ChevronIcon({ className = "" }: { className?: string }) {
   return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+    <svg
+      className={className}
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+      strokeWidth={2}
+    >
       <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
     </svg>
   );
@@ -451,8 +480,18 @@ function ChevronIcon({ className = "" }: { className?: string }) {
 
 function LinkIcon({ className }: { className?: string }) {
   return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" />
+    <svg
+      className={className}
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+      strokeWidth={1.5}
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244"
+      />
     </svg>
   );
 }
@@ -476,12 +515,18 @@ function PartHeader({ part, docId }: PartHeaderProps) {
 
       {/* Part badge */}
       <div className="relative flex flex-col items-center gap-2 sm:gap-3">
-        <div className={`
+        <div
+          className={`
           relative inline-flex items-center gap-2 px-4 py-2 rounded-lg
           ${theme.bgSubtle} border ${theme.borderAccent}
-        `}>
-          <span className="text-[10px] sm:text-xs font-semibold uppercase tracking-wider text-foreground/60">Part</span>
-          <span className="text-base sm:text-lg font-bold text-foreground">{toRoman(part.number)}</span>
+        `}
+        >
+          <span className="text-[10px] sm:text-xs font-semibold uppercase tracking-wider text-foreground/60">
+            Part
+          </span>
+          <span className="text-base sm:text-lg font-bold text-foreground">
+            {toRoman(part.number)}
+          </span>
         </div>
         <h2 className="text-lg sm:text-xl font-semibold text-center text-foreground tracking-tight px-4">
           {part.title}
@@ -493,7 +538,11 @@ function PartHeader({ part, docId }: PartHeaderProps) {
 
 function toRoman(num: number): string {
   const romans: [number, string][] = [
-    [10, "X"], [9, "IX"], [5, "V"], [4, "IV"], [1, "I"],
+    [10, "X"],
+    [9, "IX"],
+    [5, "V"],
+    [4, "IV"],
+    [1, "I"],
   ];
   let result = "";
   for (const [value, symbol] of romans) {
@@ -545,11 +594,7 @@ function Section({ section, docId, sectionId }: SectionProps) {
           className="opacity-0 group-hover/section:opacity-100 transition-opacity mt-2 p-1.5 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground"
           title={copied ? "Copied!" : "Copy link to section"}
         >
-          {copied ? (
-            <CheckIcon className="size-4" />
-          ) : (
-            <LinkIcon className="size-4" />
-          )}
+          {copied ? <CheckIcon className="size-4" /> : <LinkIcon className="size-4" />}
         </button>
       </div>
 
@@ -570,7 +615,10 @@ function renderFormattedText(text: string): ReactNode {
   if (!text) return null;
 
   // Tokenize: find all formatting markers and section references
-  const tokens: Array<{ type: "text" | "bold" | "italic" | "code" | "section-ref"; content: string }> = [];
+  const tokens: Array<{
+    type: "text" | "bold" | "italic" | "code" | "section-ref";
+    content: string;
+  }> = [];
   // Order matters: check bold (**) before italic (*) since bold uses double asterisks
   // Also capture section references like §42, §106, or ranges like §106-108
   const regex = /(\*\*[^*]+\*\*|\*[^*]+\*|`[^`]+`|§\d+(?:-\d+)?)/g;
@@ -623,17 +671,15 @@ function renderFormattedText(text: string): ReactNode {
         );
       case "code":
         return (
-          <code key={i} className="px-1.5 py-0.5 mx-0.5 rounded-md bg-muted/70 font-mono text-[0.9em] text-foreground/90">
+          <code
+            key={i}
+            className="px-1.5 py-0.5 mx-0.5 rounded-md bg-muted/70 font-mono text-[0.9em] text-foreground/90"
+          >
             {token.content}
           </code>
         );
       case "section-ref":
-        return (
-          <SectionReference
-            key={i}
-            sectionNumber={parseInt(token.content, 10)}
-          />
-        );
+        return <SectionReference key={i} sectionNumber={parseInt(token.content, 10)} />;
       default:
         // Apply jargon detection to plain text segments
         return <JargonText key={i}>{token.content}</JargonText>;
@@ -669,7 +715,9 @@ function ContentRenderer({ content, docId }: ContentRendererProps) {
             <div className="absolute right-2 top-2 opacity-0 group-hover:opacity-100 transition-opacity">
               <CopyButton
                 text={content.text}
-                attribution={content.reference ? `— Sydney Brenner, §${content.reference}` : "— Sydney Brenner"}
+                attribution={
+                  content.reference ? `— Sydney Brenner, §${content.reference}` : "— Sydney Brenner"
+                }
                 variant="ghost"
                 size="sm"
                 showPreview={true}
@@ -696,12 +744,17 @@ function ContentRenderer({ content, docId }: ContentRendererProps) {
         return (
           <ol className="my-3 space-y-2 ml-1">
             {content.items.map((item, i) => (
-              <li key={i} className="flex items-start gap-2.5 text-[15px] sm:text-base text-foreground/90">
-                <span className={`
+              <li
+                key={i}
+                className="flex items-start gap-2.5 text-[15px] sm:text-base text-foreground/90"
+              >
+                <span
+                  className={`
                   flex-shrink-0 size-5 rounded-md
                   ${theme.bgSubtle} text-foreground/70
                   flex items-center justify-center text-xs font-medium
-                `}>
+                `}
+                >
                   {i + 1}
                 </span>
                 <span className="leading-[1.65] pt-px">{renderFormattedText(item)}</span>
@@ -713,7 +766,10 @@ function ContentRenderer({ content, docId }: ContentRendererProps) {
       return (
         <ul className="my-3 space-y-1.5 ml-1">
           {content.items.map((item, i) => (
-            <li key={i} className="flex items-start gap-2.5 text-[15px] sm:text-base text-foreground/90">
+            <li
+              key={i}
+              className="flex items-start gap-2.5 text-[15px] sm:text-base text-foreground/90"
+            >
               <span className={`flex-shrink-0 size-1 rounded-full ${theme.accent} mt-[0.6em]`} />
               <span className="leading-[1.65]">{renderFormattedText(item)}</span>
             </li>
@@ -828,7 +884,11 @@ export function DistillationViewer({ data, docId }: DistillationViewerProps) {
   const renderPartSections = (part: DistillationPart) => {
     return part.sections.map((section) => {
       const sectionIndex = sectionIndexForRender++;
-      const sectionId = generateAnchorId(section.title, includePartPrefix ? part.number : undefined, sectionIndex);
+      const sectionId = generateAnchorId(
+        section.title,
+        includePartPrefix ? part.number : undefined,
+        sectionIndex,
+      );
 
       return (
         <Section
@@ -851,11 +911,7 @@ export function DistillationViewer({ data, docId }: DistillationViewerProps) {
         />
       </div>
 
-      <DistillationHero
-        title={data.title}
-        wordCount={data.wordCount}
-        docId={docId}
-      />
+      <DistillationHero title={data.title} wordCount={data.wordCount} docId={docId} />
 
       {data.parts.length > 0 ? (
         showTOC ? (
@@ -893,7 +949,10 @@ export function DistillationViewer({ data, docId }: DistillationViewerProps) {
                 </section>
               )}
               {data.parts.map((part) => (
-                <div key={part.number} id={data.parts.length > 1 ? `part-${part.number}` : undefined}>
+                <div
+                  key={part.number}
+                  id={data.parts.length > 1 ? `part-${part.number}` : undefined}
+                >
                   {data.parts.length > 1 && <PartHeader part={part} docId={docId} />}
 
                   {renderPartSections(part)}

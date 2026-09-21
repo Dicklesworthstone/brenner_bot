@@ -11,25 +11,25 @@
  * @module components/brenner-loop/operators/OperatorShell
  */
 
+import { AnimatePresence, motion } from "framer-motion";
+import { HelpCircle, X } from "lucide-react";
 import * as React from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { X, HelpCircle } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import {
-  Collapsible,
-  CollapsibleTrigger,
-  CollapsibleContent,
-} from "@/components/ui/collapsible";
-import type { OperatorType, OperatorStepState, StepValidation } from "@/lib/brenner-loop/operators/framework";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import type {
+  OperatorStepState,
+  OperatorType,
+  StepValidation,
+} from "@/lib/brenner-loop/operators/framework";
 import { OPERATOR_METADATA } from "@/lib/brenner-loop/operators/framework";
 import type { Quote } from "@/lib/quotebank-parser";
-import { OperatorProgress } from "./OperatorProgress";
+import { cn } from "@/lib/utils";
 import { BrennerQuoteSidebar } from "./BrennerQuoteSidebar";
-import { OperatorNavigation } from "./OperatorNavigation";
 import { OperatorHelp } from "./OperatorHelp";
+import { OperatorNavigation } from "./OperatorNavigation";
+import { OperatorProgress } from "./OperatorProgress";
 
 // ============================================================================
 // Types
@@ -92,7 +92,8 @@ function useKeyboardNavigation({
 }) {
   React.useEffect(() => {
     const firstIncompleteIndex = steps.findIndex((step) => !step.complete && !step.skipped);
-    const lastReachableIndex = firstIncompleteIndex === -1 ? steps.length - 1 : firstIncompleteIndex;
+    const lastReachableIndex =
+      firstIncompleteIndex === -1 ? steps.length - 1 : firstIncompleteIndex;
 
     const handleKeyDown = (e: KeyboardEvent) => {
       // Ignore if user is typing in an input/textarea
@@ -131,22 +132,19 @@ function useKeyboardNavigation({
             onAbandon();
           }
           break;
-        default:
+        default: {
           // Number keys 1-9 for step navigation
           const num = parseInt(e.key, 10);
           if (num >= 1 && num <= 9 && num <= steps.length && onStepClick) {
             const targetIndex = num - 1;
             const targetStep = steps[targetIndex];
             // Can only navigate to completed, skipped, or current/previous steps
-            if (
-              targetStep?.complete ||
-              targetStep?.skipped ||
-              targetIndex <= lastReachableIndex
-            ) {
+            if (targetStep?.complete || targetStep?.skipped || targetIndex <= lastReachableIndex) {
               e.preventDefault();
               onStepClick(targetIndex);
             }
           }
+        }
       }
     };
 
@@ -186,7 +184,7 @@ function OperatorHeader({
             operatorType === "level_split" && "bg-blue-500/10 text-blue-500",
             operatorType === "exclusion_test" && "bg-green-500/10 text-green-500",
             operatorType === "object_transpose" && "bg-purple-500/10 text-purple-500",
-            operatorType === "scale_check" && "bg-orange-500/10 text-orange-500"
+            operatorType === "scale_check" && "bg-orange-500/10 text-orange-500",
           )}
         >
           {metadata.symbol}
@@ -202,11 +200,7 @@ function OperatorHeader({
 
       {/* Help and close buttons */}
       <div className="flex items-center gap-1">
-        <OperatorHelp
-          operatorType={operatorType}
-          currentStepId={currentStepId}
-          variant="icon"
-        />
+        <OperatorHelp operatorType={operatorType} currentStepId={currentStepId} variant="icon" />
         {onAbandon && (
           <Button
             variant="ghost"
@@ -253,12 +247,8 @@ function HelpPanel({ helpText, className }: HelpPanelProps) {
           animate={{ opacity: 1 }}
           className="mt-3 p-4 rounded-lg bg-muted/50 border border-border"
         >
-          <div
-            className="text-sm text-muted-foreground prose prose-sm dark:prose-invert"
-          >
-            <ReactMarkdown remarkPlugins={[remarkGfm]}>
-              {helpText}
-            </ReactMarkdown>
+          <div className="text-sm text-muted-foreground prose prose-sm dark:prose-invert">
+            <ReactMarkdown remarkPlugins={[remarkGfm]}>{helpText}</ReactMarkdown>
           </div>
         </motion.div>
       </CollapsibleContent>
@@ -306,12 +296,7 @@ export function OperatorShell({
   });
 
   return (
-    <div
-      className={cn(
-        "flex flex-col h-full min-h-screen bg-background",
-        className
-      )}
-    >
+    <div className={cn("flex flex-col h-full min-h-screen bg-background", className)}>
       {/* Header */}
       <OperatorHeader
         operatorType={operatorType}
@@ -358,18 +343,11 @@ export function OperatorShell({
                     transition={{ duration: 0.3 }}
                     className="mb-6"
                   >
-                    <h2 className="text-xl font-semibold mb-2">
-                      {currentStep.config.name}
-                    </h2>
-                    <p className="text-muted-foreground">
-                      {currentStep.config.description}
-                    </p>
+                    <h2 className="text-xl font-semibold mb-2">{currentStep.config.name}</h2>
+                    <p className="text-muted-foreground">{currentStep.config.description}</p>
 
                     {/* Help panel */}
-                    <HelpPanel
-                      helpText={currentStep.config.helpText}
-                      className="mt-4"
-                    />
+                    <HelpPanel helpText={currentStep.config.helpText} className="mt-4" />
                   </motion.div>
                 )}
 
@@ -390,10 +368,7 @@ export function OperatorShell({
 
             {/* Desktop quote sidebar (hidden on mobile) */}
             <aside className="hidden xl:block w-80 border-l border-border bg-card/30 p-4 overflow-y-auto">
-              <BrennerQuoteSidebar
-                quotes={brennerQuotes}
-                currentStepId={currentStep?.config.id}
-              />
+              <BrennerQuoteSidebar quotes={brennerQuotes} currentStepId={currentStep?.config.id} />
             </aside>
           </div>
 

@@ -11,12 +11,12 @@
  * @module components/brenner-loop/operators/OperatorTip
  */
 
+import { AnimatePresence, motion } from "framer-motion";
+import { AlertTriangle, ChevronDown, ChevronUp, HelpCircle, Lightbulb } from "lucide-react";
 import * as React from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Lightbulb, AlertTriangle, HelpCircle, ChevronDown, ChevronUp } from "lucide-react";
-import { cn } from "@/lib/utils";
-import type { OperatorType } from "@/lib/brenner-loop/operators/framework";
 import { getStepTip, type OperatorStepTip } from "@/lib/brenner-loop/operators/docs";
+import type { OperatorType } from "@/lib/brenner-loop/operators/framework";
+import { cn } from "@/lib/utils";
 
 // ============================================================================
 // Types
@@ -142,7 +142,7 @@ function InlineTip({
     <div
       className={cn(
         "p-3 rounded-lg bg-amber-50 dark:bg-amber-950/20 border border-amber-100 dark:border-amber-900/50",
-        className
+        className,
       )}
     >
       {content}
@@ -161,17 +161,12 @@ interface CardTipProps {
   className?: string;
 }
 
-function CardTip({
-  tip,
-  showExample = true,
-  showAntiPattern = true,
-  className,
-}: CardTipProps) {
+function CardTip({ tip, showExample = true, showAntiPattern = true, className }: CardTipProps) {
   return (
     <div
       className={cn(
         "p-4 rounded-xl bg-gradient-to-br from-primary/5 to-primary/10 border border-primary/20",
-        className
+        className,
       )}
     >
       <div className="flex items-start gap-3">

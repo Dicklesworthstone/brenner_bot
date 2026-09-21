@@ -1,20 +1,20 @@
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
 import {
+  AgentRosterEntrySchema,
+  computeContentHash,
+  createEmptySessionRecord,
+  createRecordId,
+  createTraceMessage,
+  isReplayable,
+  isReplayMatch,
+  KickoffInputSchema,
+  type ReplayReport,
+  ReplayReportSchema,
+  type SessionRecord,
   SessionRecordSchema,
   TraceMessageSchema,
   TraceRoundSchema,
-  AgentRosterEntrySchema,
-  KickoffInputSchema,
-  ReplayReportSchema,
-  createRecordId,
-  createEmptySessionRecord,
-  computeContentHash,
-  createTraceMessage,
   validateSessionRecord,
-  isReplayable,
-  isReplayMatch,
-  type SessionRecord,
-  type ReplayReport,
 } from "./session-replay";
 
 describe("Session Replay Schema", () => {
@@ -153,7 +153,17 @@ describe("Session Replay Schema", () => {
     });
 
     it("should accept all message types", () => {
-      const types = ["KICKOFF", "DELTA", "CRITIQUE", "ACK", "EVIDENCE", "RESULT", "ADMIN", "COMPILE", "PUBLISH"];
+      const types = [
+        "KICKOFF",
+        "DELTA",
+        "CRITIQUE",
+        "ACK",
+        "EVIDENCE",
+        "RESULT",
+        "ADMIN",
+        "COMPILE",
+        "PUBLISH",
+      ];
       for (const type of types) {
         const message = {
           timestamp: "2026-01-01T12:00:00.000Z",
@@ -328,7 +338,7 @@ describe("Session Replay Schema", () => {
         "BlueLake",
         "DELTA",
         "# Hypothesis\n\nH1: Cell fate is determined by...",
-        { message_id: 123, subject: "New hypothesis" }
+        { message_id: 123, subject: "New hypothesis" },
       );
       const result = TraceMessageSchema.safeParse(message);
       expect(result.success).toBe(true);
@@ -397,14 +407,18 @@ describe("Session Replay Schema", () => {
 
     it("should return false for empty roster", () => {
       const record = createEmptySessionRecord("test");
-      record.trace.rounds = [{ round_number: 0, started_at: new Date().toISOString(), messages: [] }];
+      record.trace.rounds = [
+        { round_number: 0, started_at: new Date().toISOString(), messages: [] },
+      ];
       record.inputs.agent_roster = [];
       expect(isReplayable(record)).toBe(false);
     });
 
     it("should return false for missing artifact hash", () => {
       const record = createEmptySessionRecord("test");
-      record.trace.rounds = [{ round_number: 0, started_at: new Date().toISOString(), messages: [] }];
+      record.trace.rounds = [
+        { round_number: 0, started_at: new Date().toISOString(), messages: [] },
+      ];
       record.inputs.agent_roster = [
         { agent_name: "Test", role: "hypothesis_generator", program: "test", model: "test" },
       ];

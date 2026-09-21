@@ -6,15 +6,15 @@
  */
 
 import {
-  test,
-  expect,
-  navigateTo,
-  clickElement,
-  takeScreenshot,
+  assertPageHasContent,
   assertTextContent,
   assertUrl,
+  clickElement,
+  expect,
+  navigateTo,
+  takeScreenshot,
+  test,
   waitForNetworkIdle,
-  assertPageHasContent,
 } from "./utils";
 
 test.describe("Corpus Index", () => {
@@ -47,9 +47,12 @@ test.describe("Corpus Index", () => {
     // Should mention key document types
     const hasTranscript = content?.toLowerCase().includes("transcript");
     const hasDistillation = content?.toLowerCase().includes("distillation");
-    const hasMetaprompt = content?.toLowerCase().includes("metaprompt") || content?.toLowerCase().includes("prompt");
+    const hasMetaprompt =
+      content?.toLowerCase().includes("metaprompt") || content?.toLowerCase().includes("prompt");
 
-    logger.info(`Categories found - Transcript: ${hasTranscript}, Distillation: ${hasDistillation}, Metaprompt: ${hasMetaprompt}`);
+    logger.info(
+      `Categories found - Transcript: ${hasTranscript}, Distillation: ${hasDistillation}, Metaprompt: ${hasMetaprompt}`,
+    );
 
     // At least one category should be present
     expect(hasTranscript || hasDistillation || hasMetaprompt).toBe(true);
@@ -133,8 +136,13 @@ test.describe("Transcript Viewer", () => {
     logger.info(`Section markers found: ${hasSectionMarkers}`);
 
     // Check for any TOC or navigation element
-    const tocElement = page.locator('[class*="toc"], [class*="table-of-contents"], [class*="nav"], aside');
-    const hasToc = await tocElement.first().isVisible().catch(() => false);
+    const tocElement = page.locator(
+      '[class*="toc"], [class*="table-of-contents"], [class*="nav"], aside',
+    );
+    const hasToc = await tocElement
+      .first()
+      .isVisible()
+      .catch(() => false);
     logger.info(`Table of contents visible: ${hasToc}`);
 
     await takeScreenshot(page, logger, "transcript-navigation", { fullPage: false });
@@ -168,7 +176,13 @@ test.describe("Distillation Viewer", () => {
     await waitForNetworkIdle(page, logger);
 
     await assertPageHasContent(page, logger, 500);
-    await assertTextContent(page, logger, "body", /Opus|Claude|Brenner/i, "Contains expected content");
+    await assertTextContent(
+      page,
+      logger,
+      "body",
+      /Opus|Claude|Brenner/i,
+      "Contains expected content",
+    );
 
     await takeScreenshot(page, logger, "distillation-opus", { fullPage: false });
   });
@@ -178,7 +192,13 @@ test.describe("Distillation Viewer", () => {
     await waitForNetworkIdle(page, logger);
 
     await assertPageHasContent(page, logger, 500);
-    await assertTextContent(page, logger, "body", /GPT|Brenner|method/i, "Contains expected content");
+    await assertTextContent(
+      page,
+      logger,
+      "body",
+      /GPT|Brenner|method/i,
+      "Contains expected content",
+    );
 
     await takeScreenshot(page, logger, "distillation-gpt", { fullPage: false });
   });
@@ -188,7 +208,13 @@ test.describe("Distillation Viewer", () => {
     await waitForNetworkIdle(page, logger);
 
     await assertPageHasContent(page, logger, 500);
-    await assertTextContent(page, logger, "body", /Gemini|Brenner|method/i, "Contains expected content");
+    await assertTextContent(
+      page,
+      logger,
+      "body",
+      /Gemini|Brenner|method/i,
+      "Contains expected content",
+    );
 
     await takeScreenshot(page, logger, "distillation-gemini", { fullPage: false });
   });

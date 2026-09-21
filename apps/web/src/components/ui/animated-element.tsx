@@ -1,9 +1,9 @@
 "use client";
 
 import * as React from "react";
-import { cn } from "@/lib/utils";
 import { useInView } from "@/hooks/useInView";
 import { useReducedMotion } from "@/lib/animations/hooks";
+import { cn } from "@/lib/utils";
 
 // ============================================================================
 // TYPES
@@ -98,7 +98,7 @@ export function AnimatedElement({
       className: cn(animationClass, className),
       style,
     },
-    children
+    children,
   );
 }
 
@@ -143,11 +143,7 @@ export function StaggerContainer({
   return (
     <div className={className}>
       {childArray.map((child, index) => (
-        <AnimatedElement
-          key={index}
-          animation={animation}
-          delay={baseDelay + index * staggerDelay}
-        >
+        <AnimatedElement key={index} animation={animation} delay={baseDelay + index * staggerDelay}>
           {child}
         </AnimatedElement>
       ))}
@@ -195,7 +191,7 @@ export function HeroBackground({
             className={cn(
               "absolute -top-40 -right-40 size-96 rounded-full blur-3xl",
               "animate-orb-float-1",
-              primaryOrbClass
+              primaryOrbClass,
             )}
           />
           {/* Accent orb - bottom left */}
@@ -203,7 +199,7 @@ export function HeroBackground({
             className={cn(
               "absolute -bottom-40 -left-40 size-80 rounded-full blur-3xl",
               "animate-orb-float-2",
-              accentOrbClass
+              accentOrbClass,
             )}
           />
           {/* Third orb - center */}
@@ -212,7 +208,7 @@ export function HeroBackground({
               "absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2",
               "size-64 rounded-full blur-3xl opacity-50",
               "animate-orb-float-3",
-              primaryOrbClass
+              primaryOrbClass,
             )}
           />
         </div>
@@ -239,4 +235,4 @@ export function HeroBackground({
 // EXPORTS
 // ============================================================================
 
-export type { AnimatedElementProps, StaggerContainerProps, HeroBackgroundProps, RevealAnimation };
+export type { AnimatedElementProps, HeroBackgroundProps, RevealAnimation, StaggerContainerProps };

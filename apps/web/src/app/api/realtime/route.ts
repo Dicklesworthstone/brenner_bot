@@ -1,5 +1,5 @@
 import { isAbsolute, resolve, win32 } from "node:path";
-import { headers, cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import type { NextRequest } from "next/server";
 import { AgentMailClient } from "@/lib/agentMail";
 import { checkOrchestrationAuth } from "@/lib/auth";
@@ -12,7 +12,9 @@ function repoRootFromWebCwd(): string {
   return resolve(process.cwd(), "../..");
 }
 
-function resolveProjectKey(rawProjectKey: string | null): { ok: true; projectKey: string } | { ok: false; error: string; status: number } {
+function resolveProjectKey(
+  rawProjectKey: string | null,
+): { ok: true; projectKey: string } | { ok: false; error: string; status: number } {
   const fallback = process.env.BRENNER_PROJECT_KEY || repoRootFromWebCwd();
   const trimmed = rawProjectKey?.trim();
   const candidate = trimmed && trimmed.length > 0 ? trimmed : fallback;
@@ -20,7 +22,9 @@ function resolveProjectKey(rawProjectKey: string | null): { ok: true; projectKey
   if (!isAbs) {
     return {
       ok: false,
-      error: trimmed ? "Invalid projectKey: must be an absolute path" : "Server misconfigured: BRENNER_PROJECT_KEY must be absolute",
+      error: trimmed
+        ? "Invalid projectKey: must be an absolute path"
+        : "Server misconfigured: BRENNER_PROJECT_KEY must be absolute",
       status: trimmed ? 400 : 500,
     };
   }
@@ -117,13 +121,21 @@ export async function GET(request: NextRequest): Promise<Response> {
   const projectKey = projectKeyResult.projectKey;
   const includeBodies = parseBoolean(url.searchParams.get("includeBodies"));
 
-  const pollIntervalMs = clamp(parsePositiveInt(url.searchParams.get("pollIntervalMs")) ?? 2000, 500, 10_000);
+  const pollIntervalMs = clamp(
+    parsePositiveInt(url.searchParams.get("pollIntervalMs")) ?? 2000,
+    500,
+    10_000,
+  );
 
   const lastEventIdHeader = request.headers.get("last-event-id");
   const cursorParam = parseNonNegativeInt(url.searchParams.get("cursor"));
   const headerCursor = parseNonNegativeInt(lastEventIdHeader);
   const cursor =
-    cursorParam === null ? headerCursor : headerCursor === null ? cursorParam : Math.max(cursorParam, headerCursor);
+    cursorParam === null
+      ? headerCursor
+      : headerCursor === null
+        ? cursorParam
+        : Math.max(cursorParam, headerCursor);
 
   const encoder = new TextEncoder();
 

@@ -1,8 +1,8 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { randomUUID } from "node:crypto";
-import { mkdirSync, existsSync, readFileSync, rmSync } from "node:fs";
-import { join } from "node:path";
+import { existsSync, mkdirSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 // Auth mock state
 let authAuthorized = true;
@@ -59,7 +59,7 @@ describe("POST /api/experiments", () => {
           threadId: "TEST-1",
           testId: "T1",
           command: ["echo", "hello"],
-        })
+        }),
       );
 
       expect(response.status).toBe(404);
@@ -78,7 +78,7 @@ describe("POST /api/experiments", () => {
         makeRequest({
           testId: "T1",
           command: ["echo", "hello"],
-        })
+        }),
       );
 
       expect(response.status).toBe(400);
@@ -95,7 +95,7 @@ describe("POST /api/experiments", () => {
         makeRequest({
           threadId: "TEST-1",
           command: ["echo", "hello"],
-        })
+        }),
       );
 
       expect(response.status).toBe(400);
@@ -112,7 +112,7 @@ describe("POST /api/experiments", () => {
         makeRequest({
           threadId: "TEST-1",
           testId: "T1",
-        })
+        }),
       );
 
       expect(response.status).toBe(400);
@@ -130,7 +130,7 @@ describe("POST /api/experiments", () => {
           threadId: "TEST-1",
           testId: "T1",
           command: [],
-        })
+        }),
       );
 
       expect(response.status).toBe(400);
@@ -148,7 +148,7 @@ describe("POST /api/experiments", () => {
           threadId: "TEST-1",
           testId: "T1",
           command: ["echo", 123],
-        })
+        }),
       );
 
       expect(response.status).toBe(400);
@@ -166,7 +166,7 @@ describe("POST /api/experiments", () => {
           threadId: "TEST-1",
           testId: "T1",
           command: ["", "hello"],
-        })
+        }),
       );
 
       expect(response.status).toBe(400);
@@ -185,7 +185,7 @@ describe("POST /api/experiments", () => {
           testId: "T1",
           command: ["echo", "hello"],
           timeout: 0,
-        })
+        }),
       );
 
       expect(response.status).toBe(400);
@@ -204,7 +204,7 @@ describe("POST /api/experiments", () => {
           testId: "T1",
           command: ["echo", "hello"],
           timeout: 7200,
-        })
+        }),
       );
 
       expect(response.status).toBe(400);
@@ -224,7 +224,7 @@ describe("POST /api/experiments", () => {
           testId: "T1",
           command: ["echo", "hello"],
           timeout: 10,
-        })
+        }),
       );
 
       expect(response.status).toBe(400);
@@ -245,7 +245,7 @@ describe("POST /api/experiments", () => {
           command: ["echo", "hello"],
           cwd: "..",
           timeout: 10,
-        })
+        }),
       );
 
       expect(response.status).toBe(400);
@@ -267,7 +267,7 @@ describe("POST /api/experiments", () => {
           testId: "T1",
           command: ["echo", "hello world"],
           timeout: 10,
-        })
+        }),
       );
 
       expect(response.status).toBe(200);
@@ -305,7 +305,7 @@ describe("POST /api/experiments", () => {
           testId: "T2",
           command: ["bash", "-c", "echo error 1>&2"],
           timeout: 10,
-        })
+        }),
       );
 
       expect(response.status).toBe(200);
@@ -323,7 +323,7 @@ describe("POST /api/experiments", () => {
           testId: "T3",
           command: ["bash", "-c", "exit 42"],
           timeout: 10,
-        })
+        }),
       );
 
       expect(response.status).toBe(200);
@@ -341,7 +341,7 @@ describe("POST /api/experiments", () => {
           testId: "T4",
           command: ["echo", "test"],
           timeout: 10,
-        })
+        }),
       );
 
       expect(response.status).toBe(200);
@@ -361,7 +361,7 @@ describe("POST /api/experiments", () => {
           testId: "T5",
           command: ["bash", "-c", "yes a | head -c 250000"],
           timeout: 10,
-        })
+        }),
       );
 
       expect(response.status).toBe(200);

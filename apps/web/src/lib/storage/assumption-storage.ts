@@ -2,9 +2,9 @@ import { promises as fs } from "fs";
 import { join } from "path";
 import {
   type Assumption,
+  AssumptionSchema,
   type AssumptionStatus,
   type AssumptionType,
-  AssumptionSchema,
 } from "../schemas/assumption";
 import { withFileLock } from "./file-lock";
 
@@ -156,12 +156,16 @@ export class AssumptionStorage {
       try {
         data = JSON.parse(content) as SessionAssumptionFile;
       } catch {
-        console.warn(`[AssumptionStorage] Corrupted JSON in ${filePath}; returning empty assumptions.`);
+        console.warn(
+          `[AssumptionStorage] Corrupted JSON in ${filePath}; returning empty assumptions.`,
+        );
         return [];
       }
 
       if (!Array.isArray(data.assumptions)) {
-        console.warn(`[AssumptionStorage] Malformed session file ${filePath}; returning empty assumptions.`);
+        console.warn(
+          `[AssumptionStorage] Malformed session file ${filePath}; returning empty assumptions.`,
+        );
         return [];
       }
 
@@ -192,7 +196,10 @@ export class AssumptionStorage {
     });
   }
 
-  private async saveSessionAssumptionsUnlocked(sessionId: string, assumptions: Assumption[]): Promise<void> {
+  private async saveSessionAssumptionsUnlocked(
+    sessionId: string,
+    assumptions: Assumption[],
+  ): Promise<void> {
     await ensureStorageStructure(this.baseDir);
 
     const filePath = getSessionFilePath(this.baseDir, sessionId);
@@ -222,7 +229,10 @@ export class AssumptionStorage {
     }
   }
 
-  private async updateIndexForSessionUnlocked(sessionId: string, assumptions: Assumption[]): Promise<void> {
+  private async updateIndexForSessionUnlocked(
+    sessionId: string,
+    assumptions: Assumption[],
+  ): Promise<void> {
     const indexPath = getIndexPath(this.baseDir);
     let index: AssumptionIndex;
 
@@ -402,7 +412,10 @@ export class AssumptionStorage {
         }
 
         if (invalidCount > 0) {
-          warnings.push({ file: filePath, message: `Skipped ${invalidCount} invalid assumptions.` });
+          warnings.push({
+            file: filePath,
+            message: `Skipped ${invalidCount} invalid assumptions.`,
+          });
         }
       }
     } catch (error) {
@@ -522,20 +535,14 @@ export class AssumptionStorage {
    */
   async getAssumptionsForHypothesis(hypothesisId: string): Promise<Assumption[]> {
     const index = await this.loadIndex();
-    const matching = index.entries.filter((e) =>
-      e.affectedHypotheses.includes(hypothesisId)
-    );
+    const matching = index.entries.filter((e) => e.affectedHypotheses.includes(hypothesisId));
 
     const results: Assumption[] = [];
     const sessionIds = [...new Set(matching.map((e) => e.sessionId))];
 
     for (const sessionId of sessionIds) {
       const assumptions = await this.loadSessionAssumptions(sessionId);
-      results.push(
-        ...assumptions.filter((a) =>
-          a.load.affectedHypotheses.includes(hypothesisId)
-        )
-      );
+      results.push(...assumptions.filter((a) => a.load.affectedHypotheses.includes(hypothesisId)));
     }
 
     return results;
@@ -546,20 +553,14 @@ export class AssumptionStorage {
    */
   async getAssumptionsForTest(testId: string): Promise<Assumption[]> {
     const index = await this.loadIndex();
-    const matching = index.entries.filter((e) =>
-      e.affectedTests.includes(testId)
-    );
+    const matching = index.entries.filter((e) => e.affectedTests.includes(testId));
 
     const results: Assumption[] = [];
     const sessionIds = [...new Set(matching.map((e) => e.sessionId))];
 
     for (const sessionId of sessionIds) {
       const assumptions = await this.loadSessionAssumptions(sessionId);
-      results.push(
-        ...assumptions.filter((a) =>
-          a.load.affectedTests.includes(testId)
-        )
-      );
+      results.push(...assumptions.filter((a) => a.load.affectedTests.includes(testId)));
     }
 
     return results;
@@ -570,9 +571,7 @@ export class AssumptionStorage {
    */
   async getScaleAssumptionsWithCalculations(): Promise<Assumption[]> {
     const index = await this.loadIndex();
-    const matching = index.entries.filter(
-      (e) => e.type === "scale_physics" && e.hasCalculation
-    );
+    const matching = index.entries.filter((e) => e.type === "scale_physics" && e.hasCalculation);
 
     const results: Assumption[] = [];
     const sessionIds = [...new Set(matching.map((e) => e.sessionId))];
@@ -580,9 +579,7 @@ export class AssumptionStorage {
     for (const sessionId of sessionIds) {
       const assumptions = await this.loadSessionAssumptions(sessionId);
       results.push(
-        ...assumptions.filter(
-          (a) => a.type === "scale_physics" && Boolean(a.calculation)
-        )
+        ...assumptions.filter((a) => a.type === "scale_physics" && Boolean(a.calculation)),
       );
     }
 
@@ -679,7 +676,8 @@ export class AssumptionStorage {
       return {
         present: false,
         count: 0,
-        message: "No scale_physics assumption found. Every research program MUST have at least one.",
+        message:
+          "No scale_physics assumption found. Every research program MUST have at least one.",
       };
     }
 

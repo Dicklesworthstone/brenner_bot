@@ -10,18 +10,18 @@
  * @see brenner_bot-w5p6 (Tutorial Path: Agent-Assisted Research)
  */
 
-import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import * as React from "react";
 import {
-  TutorialStep,
-  TutorialCodeBlock,
-  TutorialCheckpoint,
   ProTip,
+  TutorialCheckpoint,
+  TutorialCodeBlock,
+  TutorialStep,
   Warning,
 } from "@/components/tutorial";
 import { useTutorial } from "@/lib/tutorial-context";
-import type { TutorialStep as TutorialStepType, CheckpointData } from "@/lib/tutorial-types";
+import type { CheckpointData, TutorialStep as TutorialStepType } from "@/lib/tutorial-types";
 
 // ============================================================================
 // Step Data
@@ -36,7 +36,8 @@ const checkpoint: CheckpointData = {
     "Produced discriminative tests ranked by potency",
     "Reviewed the artifact with a failure-mode checklist",
   ],
-  nextPreview: "Next: run another loop on a new question, or move to Multi-Agent Cockpit for parallel role-separated orchestration.",
+  nextPreview:
+    "Next: run another loop on a new question, or move to Multi-Agent Cockpit for parallel role-separated orchestration.",
 };
 
 const stepData: TutorialStepType = {
@@ -86,17 +87,20 @@ const checklistGroups: Array<{ title: string; items: ChecklistItem[] }> = [
       {
         id: "hyp-4plus",
         label: "4+ distinct hypotheses (not variants of one idea)",
-        fixHint: "Ask for 2 additional hypotheses that would require different tests to distinguish.",
+        fixHint:
+          "Ask for 2 additional hypotheses that would require different tests to distinguish.",
       },
       {
         id: "hyp-mechanism",
         label: "Each hypothesis includes an explicit mechanism",
-        fixHint: "For each hypothesis: 'state mechanism in 1–2 sentences; if unknown, mark as unknown and propose tests to identify it.'",
+        fixHint:
+          "For each hypothesis: 'state mechanism in 1–2 sentences; if unknown, mark as unknown and propose tests to identify it.'",
       },
       {
         id: "hyp-third-alt",
         label: "At least one genuine third alternative is treated as first-class",
-        fixHint: "Explicitly demand a third alternative that is neither A nor B, with its own predictions and tests.",
+        fixHint:
+          "Explicitly demand a third alternative that is neither A nor B, with its own predictions and tests.",
       },
     ],
   },
@@ -106,22 +110,26 @@ const checklistGroups: Array<{ title: string; items: ChecklistItem[] }> = [
       {
         id: "test-discriminate",
         label: "Each test makes different predictions across hypotheses",
-        fixHint: "Rewrite tests as prediction tables: H1/H2/H3 predict different outcomes; remove tests that don't discriminate.",
+        fixHint:
+          "Rewrite tests as prediction tables: H1/H2/H3 predict different outcomes; remove tests that don't discriminate.",
       },
       {
         id: "test-exclusion-logic",
         label: "Each test states exclusion logic (what outcome rules out what)",
-        fixHint: "Add an explicit 'If we observe X, we exclude H2 because…' for each hypothesis/test pair.",
+        fixHint:
+          "Add an explicit 'If we observe X, we exclude H2 because…' for each hypothesis/test pair.",
       },
       {
         id: "test-potency",
         label: "Each test includes a potency check (🎭) for null/ambiguous outcomes",
-        fixHint: "Ask the agent: 'If null, what do we learn? If ambiguous, redesign the test until it's informative.'",
+        fixHint:
+          "Ask the agent: 'If null, what do we learn? If ambiguous, redesign the test until it's informative.'",
       },
       {
         id: "test-ranking",
         label: "Tests are ranked by discriminative power + feasibility",
-        fixHint: "Require a ranked list and pick the top 1 test that eliminates the most hypotheses with realistic effort.",
+        fixHint:
+          "Require a ranked list and pick the top 1 test that eliminates the most hypotheses with realistic effort.",
       },
     ],
   },
@@ -136,7 +144,8 @@ const checklistGroups: Array<{ title: string; items: ChecklistItem[] }> = [
       {
         id: "scale-check",
         label: "Scale checks include numbers or order-of-magnitude estimates (⊙)",
-        fixHint: "Demand explicit numbers: 'Give rough magnitudes; if unknown, bound ranges and state what would falsify them.'",
+        fixHint:
+          "Demand explicit numbers: 'Give rough magnitudes; if unknown, bound ranges and state what would falsify them.'",
       },
     ],
   },
@@ -151,7 +160,8 @@ const checklistGroups: Array<{ title: string; items: ChecklistItem[] }> = [
       {
         id: "next-steps",
         label: "Next steps are specific and test-first (not vague reading)",
-        fixHint: "Ask for the single most discriminative next test + the minimum evidence needed to run it.",
+        fixHint:
+          "Ask for the single most discriminative next test + the minimum evidence needed to run it.",
       },
     ],
   },
@@ -175,7 +185,7 @@ export default function AgentAssistedStep8() {
   const totalCount = allChecklistItems.length;
 
   const [checked, setChecked] = React.useState<Record<string, boolean>>(() =>
-    Object.fromEntries(allChecklistItems.map((item) => [item.id, false]))
+    Object.fromEntries(allChecklistItems.map((item) => [item.id, false])),
   );
 
   const completedCount = Object.values(checked).filter(Boolean).length;
@@ -208,16 +218,11 @@ Return the updated artifact in full.`;
   };
 
   return (
-    <TutorialStep
-      step={stepData}
-      totalSteps={8}
-      onBack={handleBack}
-      onNext={handleComplete}
-    >
+    <TutorialStep step={stepData} totalSteps={8} onBack={handleBack} onNext={handleComplete}>
       <section className="space-y-6">
         <p className="text-muted-foreground leading-relaxed">
-          Your agent can produce a beautiful artifact that still fails Brenner&apos;s standards.
-          Use this checklist to catch the most common failure modes.
+          Your agent can produce a beautiful artifact that still fails Brenner&apos;s standards. Use
+          this checklist to catch the most common failure modes.
         </p>
 
         <div className="p-5 rounded-xl border border-border bg-card/50 space-y-3">
@@ -260,8 +265,8 @@ Return the updated artifact in full.`;
         ))}
 
         <Warning>
-          If the artifact fails multiple checks, don&apos;t &quot;accept and move on&quot;.
-          The whole point is to force the loop into a discriminative, excludable shape.
+          If the artifact fails multiple checks, don&apos;t &quot;accept and move on&quot;. The
+          whole point is to force the loop into a discriminative, excludable shape.
         </Warning>
 
         <div className="space-y-4">
@@ -275,20 +280,30 @@ Return the updated artifact in full.`;
         <div className="p-5 rounded-xl border border-border bg-card/50 space-y-2">
           <h2 className="text-xl font-semibold">Compare to Worked Examples</h2>
           <p className="text-muted-foreground">
-            If you’re unsure what “good” looks like, compare your artifact to the canonical worked examples.
-            Notice how hypotheses are genuinely different, predictions are contrastive, and tests are designed to exclude.
+            If you’re unsure what “good” looks like, compare your artifact to the canonical worked
+            examples. Notice how hypotheses are genuinely different, predictions are contrastive,
+            and tests are designed to exclude.
           </p>
           <div className="flex flex-wrap gap-x-4 gap-y-2 text-sm">
             <Link href="/tutorial/examples" className="text-primary hover:underline">
               Browse all examples →
             </Link>
-            <Link href="/tutorial/examples/biology-cell-fate" className="text-primary hover:underline">
+            <Link
+              href="/tutorial/examples/biology-cell-fate"
+              className="text-primary hover:underline"
+            >
               Biology
             </Link>
-            <Link href="/tutorial/examples/cs-llm-hallucination" className="text-primary hover:underline">
+            <Link
+              href="/tutorial/examples/cs-llm-hallucination"
+              className="text-primary hover:underline"
+            >
               Computer Science
             </Link>
-            <Link href="/tutorial/examples/social-community-toxicity" className="text-primary hover:underline">
+            <Link
+              href="/tutorial/examples/social-community-toxicity"
+              className="text-primary hover:underline"
+            >
               Social Science
             </Link>
           </div>

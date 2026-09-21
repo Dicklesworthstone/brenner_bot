@@ -19,12 +19,19 @@
  * - Estimated time remaining
  */
 
-import * as React from "react";
-import { motion, AnimatePresence, useMotionValue, useTransform, useSpring, type Variants } from "framer-motion";
 import { useDrag } from "@use-gesture/react";
-import { Check, Clock, Circle, ChevronUp, ChevronDown, Sparkles } from "lucide-react";
-import { cn } from "@/lib/utils";
+import {
+  AnimatePresence,
+  motion,
+  useMotionValue,
+  useSpring,
+  useTransform,
+  type Variants,
+} from "framer-motion";
+import { Check, ChevronDown, ChevronUp, Circle, Clock, Sparkles } from "lucide-react";
+import * as React from "react";
 import type { TutorialStepMeta } from "@/lib/tutorial-types";
+import { cn } from "@/lib/utils";
 
 // ============================================================================
 // Types
@@ -51,10 +58,7 @@ export interface TutorialProgressProps {
 // Helpers
 // ============================================================================
 
-function calculateTimeRemaining(
-  steps: TutorialStepMeta[],
-  completedSteps: number[]
-): string {
+function calculateTimeRemaining(steps: TutorialStepMeta[], completedSteps: number[]): string {
   const completedSet = new Set(completedSteps);
   let totalMinutes = 0;
 
@@ -137,15 +141,19 @@ function SidebarProgress({
   // Transform to gradient position
   const spotlightBackground = useTransform(
     [smoothX, smoothY],
-    ([x, y]) => `radial-gradient(300px circle at ${x}px ${y}px, oklch(0.58 0.19 195 / 0.08), transparent 60%)`
+    ([x, y]) =>
+      `radial-gradient(300px circle at ${x}px ${y}px, oklch(0.58 0.19 195 / 0.08), transparent 60%)`,
   );
 
-  const handleMouseMove = React.useCallback((e: React.MouseEvent) => {
-    if (!containerRef.current) return;
-    const rect = containerRef.current.getBoundingClientRect();
-    mouseX.set(e.clientX - rect.left);
-    mouseY.set(e.clientY - rect.top);
-  }, [mouseX, mouseY]);
+  const handleMouseMove = React.useCallback(
+    (e: React.MouseEvent) => {
+      if (!containerRef.current) return;
+      const rect = containerRef.current.getBoundingClientRect();
+      mouseX.set(e.clientX - rect.left);
+      mouseY.set(e.clientY - rect.top);
+    },
+    [mouseX, mouseY],
+  );
 
   const handleMouseEnter = React.useCallback(() => {
     spotlightOpacity.set(1);
@@ -160,7 +168,7 @@ function SidebarProgress({
   const prevCompletedRef = React.useRef(completedSteps);
 
   React.useEffect(() => {
-    const newlyCompleted = completedSteps.filter(s => !prevCompletedRef.current.includes(s));
+    const newlyCompleted = completedSteps.filter((s) => !prevCompletedRef.current.includes(s));
     if (newlyCompleted.length > 0) {
       setCelebratingStep(newlyCompleted[newlyCompleted.length - 1]);
       const timer = setTimeout(() => setCelebratingStep(null), 1500);
@@ -171,31 +179,29 @@ function SidebarProgress({
   }, [completedSteps]);
 
   // Keyboard navigation
-  const handleKeyDown = React.useCallback(
-    (e: React.KeyboardEvent) => {
-      if (e.key === "ArrowDown" || e.key === "ArrowUp") {
-        e.preventDefault();
-        const buttons = listRef.current?.querySelectorAll("button:not([disabled])");
-        if (!buttons) return;
+  const handleKeyDown = React.useCallback((e: React.KeyboardEvent) => {
+    if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+      e.preventDefault();
+      const buttons = listRef.current?.querySelectorAll("button:not([disabled])");
+      if (!buttons) return;
 
-        const currentIndex = Array.from(buttons).findIndex((btn) => btn === e.currentTarget);
-        const nextIndex = e.key === "ArrowDown"
+      const currentIndex = Array.from(buttons).findIndex((btn) => btn === e.currentTarget);
+      const nextIndex =
+        e.key === "ArrowDown"
           ? Math.min(currentIndex + 1, buttons.length - 1)
           : Math.max(currentIndex - 1, 0);
 
-        (buttons[nextIndex] as HTMLButtonElement)?.focus();
-      } else if (e.key === "Home") {
-        e.preventDefault();
-        const buttons = listRef.current?.querySelectorAll("button:not([disabled])");
-        (buttons?.[0] as HTMLButtonElement)?.focus();
-      } else if (e.key === "End") {
-        e.preventDefault();
-        const buttons = listRef.current?.querySelectorAll("button:not([disabled])");
-        if (buttons) (buttons[buttons.length - 1] as HTMLButtonElement)?.focus();
-      }
-    },
-    []
-  );
+      (buttons[nextIndex] as HTMLButtonElement)?.focus();
+    } else if (e.key === "Home") {
+      e.preventDefault();
+      const buttons = listRef.current?.querySelectorAll("button:not([disabled])");
+      (buttons?.[0] as HTMLButtonElement)?.focus();
+    } else if (e.key === "End") {
+      e.preventDefault();
+      const buttons = listRef.current?.querySelectorAll("button:not([disabled])");
+      if (buttons) (buttons[buttons.length - 1] as HTMLButtonElement)?.focus();
+    }
+  }, []);
 
   return (
     <motion.nav
@@ -204,7 +210,7 @@ function SidebarProgress({
         "relative flex flex-col gap-2 rounded-2xl p-2",
         "bg-card/50 backdrop-blur-sm border border-border/50",
         "shadow-lg shadow-black/5",
-        className
+        className,
       )}
       aria-label="Tutorial progress"
       onMouseMove={handleMouseMove}
@@ -268,9 +274,13 @@ function SidebarProgress({
                   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background",
                   isCurrent && "bg-primary/10 shadow-sm shadow-primary/5",
                   isCompleted && !isCurrent && "hover:bg-muted/50 hover:translate-x-1",
-                  !isCompleted && !isCurrent && (canClick ? "hover:bg-muted/30 hover:translate-x-1" : "opacity-40 cursor-not-allowed"),
+                  !isCompleted &&
+                    !isCurrent &&
+                    (canClick
+                      ? "hover:bg-muted/30 hover:translate-x-1"
+                      : "opacity-40 cursor-not-allowed"),
                   canClick && !isCurrent && "cursor-pointer",
-                  canClick && "touch-manipulation active:scale-[0.98]"
+                  canClick && "touch-manipulation active:scale-[0.98]",
                 )}
                 aria-current={isCurrent ? "step" : undefined}
                 aria-label={`Step ${step.stepNumber}: ${step.title}${isCompleted ? " (completed)" : ""}${isCurrent ? " (current)" : ""}`}
@@ -286,7 +296,7 @@ function SidebarProgress({
                       "absolute left-[22px] top-[42px] h-[calc(100%-16px)] w-px",
                       isCompleted
                         ? "bg-gradient-to-b from-[oklch(0.72_0.19_145)] to-[oklch(0.72_0.19_145/0.3)]"
-                        : "bg-gradient-to-b from-border/50 to-transparent"
+                        : "bg-gradient-to-b from-border/50 to-transparent",
                     )}
                   />
                 )}
@@ -296,8 +306,12 @@ function SidebarProgress({
                   className={cn(
                     "relative z-10 flex items-center justify-center size-8 rounded-full shrink-0 text-sm font-medium transition-all duration-300",
                     isCurrent && "bg-primary text-primary-foreground shadow-md shadow-primary/30",
-                    isCompleted && !isCurrent && "bg-[oklch(0.72_0.19_145)] text-[oklch(0.15_0.02_145)] shadow-sm shadow-[oklch(0.72_0.19_145/0.3)]",
-                    !isCompleted && !isCurrent && "bg-muted text-muted-foreground group-hover:bg-muted/80"
+                    isCompleted &&
+                      !isCurrent &&
+                      "bg-[oklch(0.72_0.19_145)] text-[oklch(0.15_0.02_145)] shadow-sm shadow-[oklch(0.72_0.19_145/0.3)]",
+                    !isCompleted &&
+                      !isCurrent &&
+                      "bg-muted text-muted-foreground group-hover:bg-muted/80",
                   )}
                   whileHover={canClick && !isCurrent ? { scale: 1.1 } : undefined}
                   whileTap={canClick ? { scale: 0.95 } : undefined}
@@ -368,8 +382,10 @@ function SidebarProgress({
                     className={cn(
                       "text-sm font-medium truncate transition-colors duration-200",
                       isCurrent && "text-foreground",
-                      isCompleted && !isCurrent && "text-muted-foreground group-hover:text-foreground",
-                      !isCompleted && !isCurrent && "text-muted-foreground"
+                      isCompleted &&
+                        !isCurrent &&
+                        "text-muted-foreground group-hover:text-foreground",
+                      !isCompleted && !isCurrent && "text-muted-foreground",
                     )}
                   >
                     {step.title}
@@ -422,7 +438,7 @@ function SidebarProgress({
             className="h-full bg-gradient-to-r from-primary via-accent to-primary bg-[length:200%_100%] rounded-full"
             initial={{ width: 0 }}
             animate={{
-              width: `${((completedSteps.length) / steps.length) * 100}%`,
+              width: `${(completedSteps.length / steps.length) * 100}%`,
               backgroundPosition: ["0% 0%", "100% 0%", "0% 0%"],
             }}
             transition={{
@@ -434,14 +450,16 @@ function SidebarProgress({
           {completedSteps.length > 0 && (
             <motion.div
               className="absolute inset-y-0 left-0 bg-gradient-to-r from-transparent via-white/25 to-transparent"
-              style={{ width: `${((completedSteps.length) / steps.length) * 100}%` }}
+              style={{ width: `${(completedSteps.length / steps.length) * 100}%` }}
               animate={{ x: ["-100%", "200%"] }}
               transition={{ duration: 2.5, repeat: Infinity, ease: "linear", repeatDelay: 1 }}
             />
           )}
         </div>
         <div className="flex items-center justify-between text-xs text-muted-foreground mt-2">
-          <span>{completedSteps.length} of {steps.length} complete</span>
+          <span>
+            {completedSteps.length} of {steps.length} complete
+          </span>
           <motion.span
             className="font-mono font-semibold"
             key={completedSteps.length}
@@ -512,7 +530,7 @@ function HeaderProgress({
         }
       }
     },
-    { axis: "x", filterTaps: true, threshold: 10 }
+    { axis: "x", filterTaps: true, threshold: 10 },
   );
 
   return (
@@ -521,191 +539,192 @@ function HeaderProgress({
         className={cn(
           "relative flex flex-col gap-3 px-4 py-4 bg-card/95 backdrop-blur-md border-b border-border/50",
           "shadow-lg shadow-black/5",
-          className
+          className,
         )}
         aria-label="Tutorial progress"
         animate={{ x: swipeOffset }}
         transition={{ type: "spring", stiffness: 400, damping: 30 }}
       >
-      {/* Premium gradient background */}
-      <div className="absolute inset-0 bg-gradient-to-b from-primary/5 via-transparent to-accent/5 pointer-events-none" />
+        {/* Premium gradient background */}
+        <div className="absolute inset-0 bg-gradient-to-b from-primary/5 via-transparent to-accent/5 pointer-events-none" />
 
-      {/* Top highlight line */}
-      <motion.div
-        className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent"
-        initial={{ scaleX: 0 }}
-        animate={{ scaleX: 1 }}
-        transition={{ delay: 0.2, duration: 0.6 }}
-      />
-
-      {/* Progress bar with shimmer effect */}
-      <div className="relative h-2 w-full overflow-hidden rounded-full bg-muted shadow-inner">
+        {/* Top highlight line */}
         <motion.div
-          className="h-full bg-gradient-to-r from-primary via-accent to-primary bg-[length:200%_100%] rounded-full"
-          initial={false}
-          animate={{
-            width: `${progress}%`,
-            backgroundPosition: ["0% 0%", "100% 0%"],
-          }}
-          transition={{
-            width: { type: "spring", stiffness: 300, damping: 30 },
-            backgroundPosition: { duration: 3, repeat: Infinity, ease: "linear" },
-          }}
-        />
-        {/* Shimmer overlay */}
-        <motion.div
-          className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
-          animate={{ x: ["-100%", "100%"] }}
-          transition={{ duration: 2, repeat: Infinity, ease: "linear", repeatDelay: 1 }}
-        />
-      </div>
-
-      {/* Touch-friendly step dots with connecting line */}
-      <div className="relative flex items-center justify-center">
-        {/* Connecting line behind dots */}
-        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 h-0.5 bg-muted rounded-full"
-          style={{ width: `${Math.max(0, (steps.length - 1) * 44 - 10)}px` }}
-        />
-        {/* Progress line overlay */}
-        <motion.div
-          className="absolute left-1/2 top-1/2 -translate-y-1/2 h-0.5 bg-gradient-to-r from-primary to-accent rounded-full origin-left"
-          style={{
-            width: `${Math.max(0, (steps.length - 1) * 44 - 10)}px`,
-            marginLeft: `-${Math.max(0, (steps.length - 1) * 44 - 10) / 2}px`,
-          }}
-          initial={false}
-          animate={{ scaleX: currentStep / Math.max(1, steps.length - 1) }}
-          transition={{ type: "spring", stiffness: 300, damping: 30 }}
+          className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent"
+          initial={{ scaleX: 0 }}
+          animate={{ scaleX: 1 }}
+          transition={{ delay: 0.2, duration: 0.6 }}
         />
 
-        {steps.map((step, index) => {
-          const isCompleted = completedSet.has(index);
-          const isCurrent = index === currentStep;
-          const canClick =
-            onStepClick &&
-            (isCompleted || isCurrent || index <= highestCompleted + 1 || allowJumpAhead);
-
-          return (
-            <motion.button
-              key={step.id}
-              type="button"
-              onClick={canClick ? () => onStepClick?.(index) : undefined}
-              disabled={!canClick}
-              className={cn(
-                "relative z-10 flex items-center justify-center touch-manipulation",
-                canClick ? "cursor-pointer" : "cursor-not-allowed"
-              )}
-              style={{ minWidth: 44, minHeight: 44 }}
-              aria-label={`Go to step ${index + 1}: ${step.title}`}
-              aria-current={isCurrent ? "step" : undefined}
-              whileTap={canClick ? { scale: 0.85 } : undefined}
-              initial={{ opacity: 0, scale: 0 }}
-              animate={{ opacity: canClick ? 1 : 0.4, scale: 1 }}
-              transition={{ delay: index * 0.05, type: "spring", stiffness: 400, damping: 25 }}
-            >
-              {/* The visible dot with shadow */}
-              <motion.div
-                className={cn(
-                  "rounded-full transition-colors shadow-sm",
-                  isCompleted && "bg-[oklch(0.72_0.19_145)] shadow-[oklch(0.72_0.19_145/0.4)]",
-                  isCurrent && !isCompleted && "bg-primary shadow-primary/40",
-                  !isCompleted && !isCurrent && "bg-muted-foreground/30"
-                )}
-                initial={false}
-                animate={{
-                  width: isCurrent ? 16 : isCompleted ? 12 : 10,
-                  height: isCurrent ? 16 : isCompleted ? 12 : 10,
-                  boxShadow: isCurrent ? "0 0 12px oklch(0.58 0.19 195 / 0.5)" : "none",
-                }}
-                transition={{ type: "spring", stiffness: 400, damping: 25 }}
-              />
-
-              {/* Active step pulse ring */}
-              {isCurrent && (
-                <motion.div
-                  className="absolute rounded-full border-2 border-primary/50"
-                  initial={{ width: 16, height: 16, opacity: 0.8 }}
-                  animate={{
-                    width: [16, 32, 16],
-                    height: [16, 32, 16],
-                    opacity: [0.8, 0, 0.8],
-                  }}
-                  transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-                />
-              )}
-
-              {/* Tap ripple effect */}
-              <motion.div
-                className="absolute rounded-full bg-primary/20"
-                initial={{ width: 0, height: 0, opacity: 0 }}
-                whileTap={{ width: 40, height: 40, opacity: [0, 0.3, 0] }}
-                transition={{ duration: 0.3 }}
-              />
-
-              {/* Completed checkmark overlay */}
-              {isCompleted && (
-                <motion.div
-                  className="absolute flex items-center justify-center"
-                  initial={{ scale: 0, rotate: -180 }}
-                  animate={{ scale: 1, rotate: 0 }}
-                  transition={{ type: "spring", stiffness: 500, damping: 20 }}
-                >
-                  <Check className="size-2.5 text-[oklch(0.15_0.02_145)]" strokeWidth={3} />
-                </motion.div>
-              )}
-            </motion.button>
-          );
-        })}
-      </div>
-
-      {/* Current step label with slide animation */}
-      <div className="text-center relative z-10">
-        <AnimatePresence mode="wait">
-          <motion.span
-            key={currentStep}
-            className="block text-sm font-semibold text-foreground"
-            initial={{ opacity: 0, y: 8, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -8, scale: 0.95 }}
-            transition={{ type: "spring", stiffness: 300, damping: 25 }}
-          >
-            {steps[currentStep]?.title}
-          </motion.span>
-        </AnimatePresence>
-        <div className="flex items-center justify-center gap-2 mt-1.5 text-xs text-muted-foreground">
-          <motion.span
-            className="font-mono font-medium px-2 py-0.5 rounded-full bg-muted/50"
-            key={currentStep}
-            initial={{ scale: 1.1 }}
-            animate={{ scale: 1 }}
-          >
-            {currentStep + 1}/{steps.length}
-          </motion.span>
-          {/* Animated gesture hint that fades out after first use */}
-          <AnimatePresence>
-            {showGestureHint && (
-              <motion.span
-                className="flex items-center gap-1"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 0.6 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.3 }}
-              >
-                <span className="size-1 rounded-full bg-muted-foreground/30" />
-                <motion.span
-                  className="flex items-center gap-0.5"
-                  animate={{ x: [-2, 2, -2] }}
-                  transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
-                >
-                  <ChevronUp className="size-3 rotate-[-90deg]" />
-                  <span>Swipe</span>
-                  <ChevronDown className="size-3 rotate-[-90deg]" />
-                </motion.span>
-              </motion.span>
-            )}
-          </AnimatePresence>
+        {/* Progress bar with shimmer effect */}
+        <div className="relative h-2 w-full overflow-hidden rounded-full bg-muted shadow-inner">
+          <motion.div
+            className="h-full bg-gradient-to-r from-primary via-accent to-primary bg-[length:200%_100%] rounded-full"
+            initial={false}
+            animate={{
+              width: `${progress}%`,
+              backgroundPosition: ["0% 0%", "100% 0%"],
+            }}
+            transition={{
+              width: { type: "spring", stiffness: 300, damping: 30 },
+              backgroundPosition: { duration: 3, repeat: Infinity, ease: "linear" },
+            }}
+          />
+          {/* Shimmer overlay */}
+          <motion.div
+            className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
+            animate={{ x: ["-100%", "100%"] }}
+            transition={{ duration: 2, repeat: Infinity, ease: "linear", repeatDelay: 1 }}
+          />
         </div>
-      </div>
+
+        {/* Touch-friendly step dots with connecting line */}
+        <div className="relative flex items-center justify-center">
+          {/* Connecting line behind dots */}
+          <div
+            className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 h-0.5 bg-muted rounded-full"
+            style={{ width: `${Math.max(0, (steps.length - 1) * 44 - 10)}px` }}
+          />
+          {/* Progress line overlay */}
+          <motion.div
+            className="absolute left-1/2 top-1/2 -translate-y-1/2 h-0.5 bg-gradient-to-r from-primary to-accent rounded-full origin-left"
+            style={{
+              width: `${Math.max(0, (steps.length - 1) * 44 - 10)}px`,
+              marginLeft: `-${Math.max(0, (steps.length - 1) * 44 - 10) / 2}px`,
+            }}
+            initial={false}
+            animate={{ scaleX: currentStep / Math.max(1, steps.length - 1) }}
+            transition={{ type: "spring", stiffness: 300, damping: 30 }}
+          />
+
+          {steps.map((step, index) => {
+            const isCompleted = completedSet.has(index);
+            const isCurrent = index === currentStep;
+            const canClick =
+              onStepClick &&
+              (isCompleted || isCurrent || index <= highestCompleted + 1 || allowJumpAhead);
+
+            return (
+              <motion.button
+                key={step.id}
+                type="button"
+                onClick={canClick ? () => onStepClick?.(index) : undefined}
+                disabled={!canClick}
+                className={cn(
+                  "relative z-10 flex items-center justify-center touch-manipulation",
+                  canClick ? "cursor-pointer" : "cursor-not-allowed",
+                )}
+                style={{ minWidth: 44, minHeight: 44 }}
+                aria-label={`Go to step ${index + 1}: ${step.title}`}
+                aria-current={isCurrent ? "step" : undefined}
+                whileTap={canClick ? { scale: 0.85 } : undefined}
+                initial={{ opacity: 0, scale: 0 }}
+                animate={{ opacity: canClick ? 1 : 0.4, scale: 1 }}
+                transition={{ delay: index * 0.05, type: "spring", stiffness: 400, damping: 25 }}
+              >
+                {/* The visible dot with shadow */}
+                <motion.div
+                  className={cn(
+                    "rounded-full transition-colors shadow-sm",
+                    isCompleted && "bg-[oklch(0.72_0.19_145)] shadow-[oklch(0.72_0.19_145/0.4)]",
+                    isCurrent && !isCompleted && "bg-primary shadow-primary/40",
+                    !isCompleted && !isCurrent && "bg-muted-foreground/30",
+                  )}
+                  initial={false}
+                  animate={{
+                    width: isCurrent ? 16 : isCompleted ? 12 : 10,
+                    height: isCurrent ? 16 : isCompleted ? 12 : 10,
+                    boxShadow: isCurrent ? "0 0 12px oklch(0.58 0.19 195 / 0.5)" : "none",
+                  }}
+                  transition={{ type: "spring", stiffness: 400, damping: 25 }}
+                />
+
+                {/* Active step pulse ring */}
+                {isCurrent && (
+                  <motion.div
+                    className="absolute rounded-full border-2 border-primary/50"
+                    initial={{ width: 16, height: 16, opacity: 0.8 }}
+                    animate={{
+                      width: [16, 32, 16],
+                      height: [16, 32, 16],
+                      opacity: [0.8, 0, 0.8],
+                    }}
+                    transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                  />
+                )}
+
+                {/* Tap ripple effect */}
+                <motion.div
+                  className="absolute rounded-full bg-primary/20"
+                  initial={{ width: 0, height: 0, opacity: 0 }}
+                  whileTap={{ width: 40, height: 40, opacity: [0, 0.3, 0] }}
+                  transition={{ duration: 0.3 }}
+                />
+
+                {/* Completed checkmark overlay */}
+                {isCompleted && (
+                  <motion.div
+                    className="absolute flex items-center justify-center"
+                    initial={{ scale: 0, rotate: -180 }}
+                    animate={{ scale: 1, rotate: 0 }}
+                    transition={{ type: "spring", stiffness: 500, damping: 20 }}
+                  >
+                    <Check className="size-2.5 text-[oklch(0.15_0.02_145)]" strokeWidth={3} />
+                  </motion.div>
+                )}
+              </motion.button>
+            );
+          })}
+        </div>
+
+        {/* Current step label with slide animation */}
+        <div className="text-center relative z-10">
+          <AnimatePresence mode="wait">
+            <motion.span
+              key={currentStep}
+              className="block text-sm font-semibold text-foreground"
+              initial={{ opacity: 0, y: 8, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -8, scale: 0.95 }}
+              transition={{ type: "spring", stiffness: 300, damping: 25 }}
+            >
+              {steps[currentStep]?.title}
+            </motion.span>
+          </AnimatePresence>
+          <div className="flex items-center justify-center gap-2 mt-1.5 text-xs text-muted-foreground">
+            <motion.span
+              className="font-mono font-medium px-2 py-0.5 rounded-full bg-muted/50"
+              key={currentStep}
+              initial={{ scale: 1.1 }}
+              animate={{ scale: 1 }}
+            >
+              {currentStep + 1}/{steps.length}
+            </motion.span>
+            {/* Animated gesture hint that fades out after first use */}
+            <AnimatePresence>
+              {showGestureHint && (
+                <motion.span
+                  className="flex items-center gap-1"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 0.6 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <span className="size-1 rounded-full bg-muted-foreground/30" />
+                  <motion.span
+                    className="flex items-center gap-0.5"
+                    animate={{ x: [-2, 2, -2] }}
+                    transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+                  >
+                    <ChevronUp className="size-3 rotate-[-90deg]" />
+                    <span>Swipe</span>
+                    <ChevronDown className="size-3 rotate-[-90deg]" />
+                  </motion.span>
+                </motion.span>
+              )}
+            </AnimatePresence>
+          </div>
+        </div>
       </motion.nav>
     </div>
   );
@@ -715,10 +734,7 @@ function HeaderProgress({
 // Main Component
 // ============================================================================
 
-export function TutorialProgress({
-  variant,
-  ...props
-}: TutorialProgressProps) {
+export function TutorialProgress({ variant, ...props }: TutorialProgressProps) {
   // If variant is specified, use it; otherwise this is controlled by parent
   if (variant === "header") {
     return <HeaderProgress {...props} />;
@@ -747,4 +763,4 @@ export function TutorialProgress({
 // Exports
 // ============================================================================
 
-export { SidebarProgress, HeaderProgress };
+export { HeaderProgress, SidebarProgress };

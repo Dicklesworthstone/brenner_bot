@@ -8,12 +8,11 @@
  * @see brenner_bot-nm89 (Tutorial Path: Multi-Agent Cockpit)
  */
 
-import * as React from "react";
 import { useRouter } from "next/navigation";
-import { TutorialStep } from "@/components/tutorial";
-import { TutorialCodeBlock, ProTip, Warning } from "@/components/tutorial";
+import * as React from "react";
+import { ProTip, TutorialCodeBlock, TutorialStep, Warning } from "@/components/tutorial";
 import { useTutorial } from "@/lib/tutorial-context";
-import type { TutorialStep as TutorialStepType, TroubleshootingItem } from "@/lib/tutorial-types";
+import type { TroubleshootingItem, TutorialStep as TutorialStepType } from "@/lib/tutorial-types";
 
 // ============================================================================
 // Step Data
@@ -23,12 +22,16 @@ const troubleshooting: TroubleshootingItem[] = [
   {
     problem: "Agent is stuck or not responding",
     symptoms: ["No new messages for 5+ minutes", "Agent seems to be in a loop"],
-    solution: "Check the agent's terminal for errors. You may need to restart the agent or send a nudge message.",
-    commands: ["brenner send --to BlueLake --subject 'Nudge' --body 'Please continue with your analysis.'"],
+    solution:
+      "Check the agent's terminal for errors. You may need to restart the agent or send a nudge message.",
+    commands: [
+      "brenner send --to BlueLake --subject 'Nudge' --body 'Please continue with your analysis.'",
+    ],
   },
   {
     problem: "Agents are all agreeing too much",
-    solution: "Send an intervention asking the adversarial critic to challenge the consensus more aggressively.",
+    solution:
+      "Send an intervention asking the adversarial critic to challenge the consensus more aggressively.",
   },
 ];
 
@@ -43,11 +46,7 @@ const stepData: TutorialStepType = {
     "When and how to intervene as operator",
     "Recognizing productive vs unproductive patterns",
   ],
-  whatYouDo: [
-    "Start agents in ntm panes",
-    "Watch the conversation unfold",
-    "Intervene if needed",
-  ],
+  whatYouDo: ["Start agents in ntm panes", "Watch the conversation unfold", "Intervene if needed"],
   troubleshooting,
 };
 
@@ -81,9 +80,9 @@ export default function MultiAgentStep6() {
         {/* Introduction */}
         <div className="space-y-4">
           <p className="text-muted-foreground leading-relaxed">
-            This is where the magic happens. You&apos;ll start each agent in its ntm pane,
-            and they&apos;ll check Agent Mail, see their kickoff messages, and begin producing
-            research artifacts.
+            This is where the magic happens. You&apos;ll start each agent in its ntm pane, and
+            they&apos;ll check Agent Mail, see their kickoff messages, and begin producing research
+            artifacts.
           </p>
         </div>
 
@@ -203,16 +202,28 @@ brenner session contributors --thread-id "$SESSION_ID"`}
 
           <div className="grid gap-3">
             <div className="p-4 rounded-xl border border-amber-500/30 bg-amber-500/5">
-              <p className="text-sm font-medium text-amber-600 dark:text-amber-400 mb-2">🔄 Agents are looping</p>
-              <p className="text-xs text-muted-foreground">Send a message asking them to move forward with current hypotheses.</p>
+              <p className="text-sm font-medium text-amber-600 dark:text-amber-400 mb-2">
+                🔄 Agents are looping
+              </p>
+              <p className="text-xs text-muted-foreground">
+                Send a message asking them to move forward with current hypotheses.
+              </p>
             </div>
             <div className="p-4 rounded-xl border border-amber-500/30 bg-amber-500/5">
-              <p className="text-sm font-medium text-amber-600 dark:text-amber-400 mb-2">🤝 Too much agreement</p>
-              <p className="text-xs text-muted-foreground">Ask the adversarial critic to challenge the consensus more aggressively.</p>
+              <p className="text-sm font-medium text-amber-600 dark:text-amber-400 mb-2">
+                🤝 Too much agreement
+              </p>
+              <p className="text-xs text-muted-foreground">
+                Ask the adversarial critic to challenge the consensus more aggressively.
+              </p>
             </div>
             <div className="p-4 rounded-xl border border-amber-500/30 bg-amber-500/5">
-              <p className="text-sm font-medium text-amber-600 dark:text-amber-400 mb-2">❓ Missing third alternative</p>
-              <p className="text-xs text-muted-foreground">Prompt: &quot;What if both leading hypotheses are wrong?&quot;</p>
+              <p className="text-sm font-medium text-amber-600 dark:text-amber-400 mb-2">
+                ❓ Missing third alternative
+              </p>
+              <p className="text-xs text-muted-foreground">
+                Prompt: &quot;What if both leading hypotheses are wrong?&quot;
+              </p>
             </div>
           </div>
 
@@ -236,9 +247,8 @@ brenner send \\
         </Warning>
 
         <ProTip>
-          Take notes on the conversation patterns. Which agent tends to generate the most
-          creative ideas? Which asks the best critical questions? This informs future
-          role assignments.
+          Take notes on the conversation patterns. Which agent tends to generate the most creative
+          ideas? Which asks the best critical questions? This informs future role assignments.
         </ProTip>
 
         {/* Ready Checkpoint */}

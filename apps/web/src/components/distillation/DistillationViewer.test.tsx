@@ -7,10 +7,14 @@
  * Run with: cd apps/web && bun run test -- src/components/distillation/DistillationViewer.test.tsx
  */
 
-import { describe, it, expect, beforeEach, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
-import type { ParsedDistillation, DistillationPart, DistillationSection } from "@/lib/distillation-parser";
-import { DistillationViewer, DistillationHero } from "./DistillationViewer";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import type {
+  DistillationPart,
+  DistillationSection,
+  ParsedDistillation,
+} from "@/lib/distillation-parser";
+import { DistillationHero, DistillationViewer } from "./DistillationViewer";
 
 // ============================================================================
 // Test Fixtures - Realistic ParsedDistillation data
@@ -19,7 +23,7 @@ import { DistillationViewer, DistillationHero } from "./DistillationViewer";
 function createTestSection(
   level: 1 | 2 | 3 | 4,
   title: string,
-  content: DistillationSection["content"] = []
+  content: DistillationSection["content"] = [],
 ): DistillationSection {
   return { level, title, content };
 }
@@ -27,7 +31,7 @@ function createTestSection(
 function createTestPart(
   number: number,
   title: string,
-  sections: DistillationSection[] = []
+  sections: DistillationSection[] = [],
 ): DistillationPart {
   return { number, title, sections };
 }
@@ -43,7 +47,10 @@ const minimalDistillation: ParsedDistillation = {
   parts: [
     createTestPart(1, "Introduction", [
       createTestSection(1, "The Two Axioms", [
-        { type: "paragraph", text: "Reality has a generative grammar. The world is produced by causal machinery." },
+        {
+          type: "paragraph",
+          text: "Reality has a generative grammar. The world is produced by causal machinery.",
+        },
         { type: "quote", text: "You've forgotten there's a third alternative.", reference: "§103" },
       ]),
     ]),
@@ -63,7 +70,11 @@ const comprehensiveDistillation: ParsedDistillation = {
     createTestPart(1, "Foundations", [
       createTestSection(1, "Two Axioms of the Method", [
         { type: "paragraph", text: "Brenner's approach rests on two fundamental assumptions." },
-        { type: "list", items: ["Axiom 1: Reality has structure", "Axiom 2: Structure is discoverable"], ordered: true },
+        {
+          type: "list",
+          items: ["Axiom 1: Reality has structure", "Axiom 2: Structure is discoverable"],
+          ordered: true,
+        },
       ]),
       createTestSection(2, "Operator Algebra", [
         { type: "paragraph", text: "The method employs a set of mental operators." },
@@ -73,7 +84,11 @@ const comprehensiveDistillation: ParsedDistillation = {
     createTestPart(2, "Practice", [
       createTestSection(1, "The Brenner Loop", [
         { type: "paragraph", text: "The loop consists of hunt, formulate, test, and kill phases." },
-        { type: "quote", text: "Exclusion is always a tremendously good thing in science.", reference: "§105" },
+        {
+          type: "quote",
+          text: "Exclusion is always a tremendously good thing in science.",
+          reference: "§105",
+        },
       ]),
       createTestSection(2, "Discriminative Tests", [
         { type: "paragraph", text: "Design tests that can exclude, not just confirm." },
@@ -115,82 +130,46 @@ describe("DistillationHero", () => {
         title="Brenner Method Distillation"
         wordCount={5000}
         docId="distillation-opus-45"
-      />
+      />,
     );
 
     expect(screen.getByText("Brenner Method Distillation")).toBeInTheDocument();
   });
 
   it("calculates and displays read time", () => {
-    render(
-      <DistillationHero
-        title="Test"
-        wordCount={5000}
-        docId="distillation-opus-45"
-      />
-    );
+    render(<DistillationHero title="Test" wordCount={5000} docId="distillation-opus-45" />);
 
     // 5000 words / 200 wpm = 25 min read
     expect(screen.getByText("25 min")).toBeInTheDocument();
   });
 
   it("displays word count formatted", () => {
-    render(
-      <DistillationHero
-        title="Test"
-        wordCount={12500}
-        docId="distillation-opus-45"
-      />
-    );
+    render(<DistillationHero title="Test" wordCount={12500} docId="distillation-opus-45" />);
 
     // Should show formatted word count
     expect(screen.getByText(/12/)).toBeInTheDocument();
   });
 
   it("shows model name for opus-45", () => {
-    render(
-      <DistillationHero
-        title="Test"
-        wordCount={1000}
-        docId="distillation-opus-45"
-      />
-    );
+    render(<DistillationHero title="Test" wordCount={1000} docId="distillation-opus-45" />);
 
     expect(screen.getByText("Claude Opus 4.5")).toBeInTheDocument();
   });
 
   it("shows model name for gpt-52", () => {
-    render(
-      <DistillationHero
-        title="Test"
-        wordCount={1000}
-        docId="distillation-gpt-52"
-      />
-    );
+    render(<DistillationHero title="Test" wordCount={1000} docId="distillation-gpt-52" />);
 
     expect(screen.getByText("GPT-5.2")).toBeInTheDocument();
   });
 
   it("shows model name for gemini-3", () => {
-    render(
-      <DistillationHero
-        title="Test"
-        wordCount={1000}
-        docId="distillation-gemini-3"
-      />
-    );
+    render(<DistillationHero title="Test" wordCount={1000} docId="distillation-gemini-3" />);
 
     expect(screen.getByText("Gemini 3")).toBeInTheDocument();
   });
 
   it("displays key strengths", () => {
-    render(
-      <DistillationHero
-        title="Test"
-        wordCount={1000}
-        docId="distillation-opus-45"
-      />
-    );
+    render(<DistillationHero title="Test" wordCount={1000} docId="distillation-opus-45" />);
 
     // Opus 4.5 has specific strengths defined
     expect(screen.getByText(/third alternative/i)).toBeInTheDocument();
@@ -224,25 +203,21 @@ describe("DistillationViewer", () => {
 
   describe("basic rendering", () => {
     it("renders minimal distillation", () => {
-      render(
-        <DistillationViewer data={minimalDistillation} docId="distillation-opus-45" />
-      );
+      render(<DistillationViewer data={minimalDistillation} docId="distillation-opus-45" />);
 
       // Check title is rendered
       expect(screen.getByText("Brenner Method Distillation")).toBeInTheDocument();
     });
 
     it("renders section titles", () => {
-      render(
-        <DistillationViewer data={minimalDistillation} docId="distillation-opus-45" />
-      );
+      render(<DistillationViewer data={minimalDistillation} docId="distillation-opus-45" />);
 
       expect(screen.getByText("The Two Axioms")).toBeInTheDocument();
     });
 
     it("renders paragraph content", () => {
       const { container } = render(
-        <DistillationViewer data={minimalDistillation} docId="distillation-opus-45" />
+        <DistillationViewer data={minimalDistillation} docId="distillation-opus-45" />,
       );
 
       // Content may be split by JargonText spans, so check container HTML
@@ -251,7 +226,7 @@ describe("DistillationViewer", () => {
 
     it("renders quote content with reference", () => {
       const { container } = render(
-        <DistillationViewer data={minimalDistillation} docId="distillation-opus-45" />
+        <DistillationViewer data={minimalDistillation} docId="distillation-opus-45" />,
       );
 
       // Content may be split by JargonText spans
@@ -262,7 +237,7 @@ describe("DistillationViewer", () => {
   describe("comprehensive content", () => {
     it("renders multiple parts", () => {
       const { container } = render(
-        <DistillationViewer data={comprehensiveDistillation} docId="distillation-opus-45" />
+        <DistillationViewer data={comprehensiveDistillation} docId="distillation-opus-45" />,
       );
 
       // Parts appear in TOC and as headings, so check container text content
@@ -278,7 +253,7 @@ describe("DistillationViewer", () => {
 
     it("renders ordered lists", () => {
       const { container } = render(
-        <DistillationViewer data={comprehensiveDistillation} docId="distillation-opus-45" />
+        <DistillationViewer data={comprehensiveDistillation} docId="distillation-opus-45" />,
       );
 
       // List items may be wrapped by JargonText spans, check full container
@@ -292,7 +267,7 @@ describe("DistillationViewer", () => {
 
     it("renders unordered lists", () => {
       const { container } = render(
-        <DistillationViewer data={comprehensiveDistillation} docId="distillation-opus-45" />
+        <DistillationViewer data={comprehensiveDistillation} docId="distillation-opus-45" />,
       );
 
       // List items may be wrapped by JargonText spans
@@ -306,7 +281,7 @@ describe("DistillationViewer", () => {
 
     it("renders code blocks", () => {
       const { container } = render(
-        <DistillationViewer data={comprehensiveDistillation} docId="distillation-opus-45" />
+        <DistillationViewer data={comprehensiveDistillation} docId="distillation-opus-45" />,
       );
 
       expect(container.textContent).toContain("959 somatic cells");
@@ -314,7 +289,7 @@ describe("DistillationViewer", () => {
 
     it("renders all paragraph content including key phrases", () => {
       const { container } = render(
-        <DistillationViewer data={comprehensiveDistillation} docId="distillation-opus-45" />
+        <DistillationViewer data={comprehensiveDistillation} docId="distillation-opus-45" />,
       );
 
       // Key Brenner phrase should be present
@@ -325,7 +300,7 @@ describe("DistillationViewer", () => {
   describe("table of contents", () => {
     it("shows TOC for documents with many sections", () => {
       const { container } = render(
-        <DistillationViewer data={comprehensiveDistillation} docId="distillation-opus-45" />
+        <DistillationViewer data={comprehensiveDistillation} docId="distillation-opus-45" />,
       );
 
       // TOC should be visible for documents with > 3 sections
@@ -336,7 +311,7 @@ describe("DistillationViewer", () => {
 
     it("hides TOC for documents with few sections", () => {
       const { container } = render(
-        <DistillationViewer data={minimalDistillation} docId="distillation-opus-45" />
+        <DistillationViewer data={minimalDistillation} docId="distillation-opus-45" />,
       );
 
       // Minimal distillation has only 1 section, TOC should be hidden
@@ -348,9 +323,7 @@ describe("DistillationViewer", () => {
 
   describe("raw content fallback", () => {
     it("renders raw content when no parts available", () => {
-      render(
-        <DistillationViewer data={rawContentDistillation} docId="distillation-opus-45" />
-      );
+      render(<DistillationViewer data={rawContentDistillation} docId="distillation-opus-45" />);
 
       expect(screen.getByText(/raw unparsed content/)).toBeInTheDocument();
     });
@@ -359,7 +332,7 @@ describe("DistillationViewer", () => {
   describe("progress indicator", () => {
     it("renders progress bar", () => {
       const { container } = render(
-        <DistillationViewer data={comprehensiveDistillation} docId="distillation-opus-45" />
+        <DistillationViewer data={comprehensiveDistillation} docId="distillation-opus-45" />,
       );
 
       // Progress bar should exist
@@ -371,7 +344,7 @@ describe("DistillationViewer", () => {
   describe("model theming", () => {
     it("applies opus theme colors", () => {
       const { container } = render(
-        <DistillationViewer data={minimalDistillation} docId="distillation-opus-45" />
+        <DistillationViewer data={minimalDistillation} docId="distillation-opus-45" />,
       );
 
       // Check for violet theme class (opus theme)
@@ -380,7 +353,7 @@ describe("DistillationViewer", () => {
 
     it("applies gpt theme colors", () => {
       const { container } = render(
-        <DistillationViewer data={minimalDistillation} docId="distillation-gpt-52" />
+        <DistillationViewer data={minimalDistillation} docId="distillation-gpt-52" />,
       );
 
       // Check for emerald theme class (gpt theme)
@@ -389,7 +362,7 @@ describe("DistillationViewer", () => {
 
     it("applies gemini theme colors", () => {
       const { container } = render(
-        <DistillationViewer data={minimalDistillation} docId="distillation-gemini-3" />
+        <DistillationViewer data={minimalDistillation} docId="distillation-gemini-3" />,
       );
 
       // Check for blue theme class (gemini theme)
@@ -404,9 +377,7 @@ describe("DistillationViewer", () => {
 
 describe("DistillationViewer Accessibility", () => {
   it("has proper heading hierarchy", () => {
-    render(
-      <DistillationViewer data={comprehensiveDistillation} docId="distillation-opus-45" />
-    );
+    render(<DistillationViewer data={comprehensiveDistillation} docId="distillation-opus-45" />);
 
     // Should have h1 for title
     const h1 = screen.getByRole("heading", { level: 1 });
@@ -415,7 +386,7 @@ describe("DistillationViewer Accessibility", () => {
 
   it("uses semantic list elements", () => {
     const { container } = render(
-      <DistillationViewer data={comprehensiveDistillation} docId="distillation-opus-45" />
+      <DistillationViewer data={comprehensiveDistillation} docId="distillation-opus-45" />,
     );
 
     // Should have ordered and unordered lists
@@ -428,7 +399,7 @@ describe("DistillationViewer Accessibility", () => {
 
   it("blockquotes have proper semantics", () => {
     const { container } = render(
-      <DistillationViewer data={minimalDistillation} docId="distillation-opus-45" />
+      <DistillationViewer data={minimalDistillation} docId="distillation-opus-45" />,
     );
 
     const blockquotes = container.querySelectorAll("blockquote");

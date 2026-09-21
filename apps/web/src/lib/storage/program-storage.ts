@@ -1,8 +1,8 @@
 import { promises as fs } from "fs";
 import { join } from "path";
 import {
-  type ResearchProgram,
   type ProgramStatus,
+  type ResearchProgram,
   ResearchProgramSchema,
 } from "../schemas/research-program";
 import { withFileLock } from "./file-lock";
@@ -152,7 +152,9 @@ export class ProgramStorage {
       }
 
       if (!Array.isArray(data.programs)) {
-        console.warn(`[ProgramStorage] Malformed programs file ${filePath}; returning empty programs.`);
+        console.warn(
+          `[ProgramStorage] Malformed programs file ${filePath}; returning empty programs.`,
+        );
         return [];
       }
 

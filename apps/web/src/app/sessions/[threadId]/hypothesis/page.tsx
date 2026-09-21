@@ -9,99 +9,174 @@
  * @see brenner_bot-pts6 (routes bead)
  */
 
-import * as React from "react";
+import { motion } from "framer-motion";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { motion } from "framer-motion";
-import { cn } from "@/lib/utils";
-import { DemoFeaturePreview } from "@/components/sessions/DemoFeaturePreview";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Textarea } from "@/components/ui/textarea";
-import type { Quote } from "@/lib/quotebank-parser";
+import * as React from "react";
 import { BrennerQuoteSidebar } from "@/components/brenner-loop/operators/BrennerQuoteSidebar";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import {
-  Collapsible,
-  CollapsibleTrigger,
-  CollapsibleContent,
-} from "@/components/ui/collapsible";
-import { loadEmbeddings, type EmbeddingEntry } from "@/lib/brenner-loop/search/embeddings";
+import { DemoFeaturePreview } from "@/components/sessions/DemoFeaturePreview";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Textarea } from "@/components/ui/textarea";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { recordSessionResumeEntry } from "@/lib/brenner-loop";
+import { type EmbeddingEntry, loadEmbeddings } from "@/lib/brenner-loop/search/embeddings";
 import {
   buildQuoteQueryText,
   filterQuoteEntriesByTags,
   findSimilarQuotes,
 } from "@/lib/brenner-loop/search/quote-matcher";
-import { recordSessionResumeEntry } from "@/lib/brenner-loop";
 import { isDemoThreadId, normalizeThreadId } from "@/lib/demo-mode";
+import type { Quote } from "@/lib/quotebank-parser";
+import { cn } from "@/lib/utils";
 
 // ============================================================================
 // Icons
 // ============================================================================
 
 const ChevronLeftIcon = ({ className }: { className?: string }) => (
-  <svg className={cn("size-4", className)} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+  <svg
+    className={cn("size-4", className)}
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+    strokeWidth={2}
+  >
     <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
   </svg>
 );
 
 const ChevronDownIcon = ({ className }: { className?: string }) => (
-  <svg className={cn("size-4", className)} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+  <svg
+    className={cn("size-4", className)}
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+    strokeWidth={2}
+  >
     <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
   </svg>
 );
 
 const LightBulbIcon = ({ className }: { className?: string }) => (
-  <svg className={cn("size-5", className)} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M12 18v-5.25m0 0a6.01 6.01 0 001.5-.189m-1.5.189a6.01 6.01 0 01-1.5-.189m3.75 7.478a12.06 12.06 0 01-4.5 0m3.75 2.383a14.406 14.406 0 01-3 0M14.25 18v-.192c0-.983.658-1.823 1.508-2.316a7.5 7.5 0 10-7.517 0c.85.493 1.509 1.333 1.509 2.316V18" />
+  <svg
+    className={cn("size-5", className)}
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+    strokeWidth={1.5}
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M12 18v-5.25m0 0a6.01 6.01 0 001.5-.189m-1.5.189a6.01 6.01 0 01-1.5-.189m3.75 7.478a12.06 12.06 0 01-4.5 0m3.75 2.383a14.406 14.406 0 01-3 0M14.25 18v-.192c0-.983.658-1.823 1.508-2.316a7.5 7.5 0 10-7.517 0c.85.493 1.509 1.333 1.509 2.316V18"
+    />
   </svg>
 );
 
 const PencilIcon = ({ className }: { className?: string }) => (
-  <svg className={cn("size-4", className)} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125" />
+  <svg
+    className={cn("size-4", className)}
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+    strokeWidth={2}
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125"
+    />
   </svg>
 );
 
 const LockClosedIcon = ({ className }: { className?: string }) => (
-  <svg className={cn("size-4", className)} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
+  <svg
+    className={cn("size-4", className)}
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+    strokeWidth={2}
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z"
+    />
   </svg>
 );
 
 const ClockIcon = ({ className }: { className?: string }) => (
-  <svg className={cn("size-4", className)} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+  <svg
+    className={cn("size-4", className)}
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+    strokeWidth={2}
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"
+    />
   </svg>
 );
 
 const ArrowPathIcon = ({ className }: { className?: string }) => (
-  <svg className={cn("size-4", className)} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" />
+  <svg
+    className={cn("size-4", className)}
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+    strokeWidth={2}
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99"
+    />
   </svg>
 );
 
 const CheckIcon = ({ className }: { className?: string }) => (
-  <svg className={cn("size-4", className)} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+  <svg
+    className={cn("size-4", className)}
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+    strokeWidth={2}
+  >
     <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
   </svg>
 );
 
 const XMarkIcon = ({ className }: { className?: string }) => (
-  <svg className={cn("size-4", className)} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+  <svg
+    className={cn("size-4", className)}
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+    strokeWidth={2}
+  >
     <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
   </svg>
 );
 
 const SparklesIcon = ({ className }: { className?: string }) => (
-  <svg className={cn("size-4", className)} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" />
+  <svg
+    className={cn("size-4", className)}
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+    strokeWidth={1.5}
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z"
+    />
   </svg>
 );
 
@@ -150,7 +225,9 @@ function ConfidenceBar({ value, className }: ConfidenceBarProps) {
     <div className={cn("space-y-2", className)}>
       <div className="flex items-center justify-between text-sm">
         <span className="text-muted-foreground">Confidence</span>
-        <span className="font-semibold">{value}% - {getLabel(value)}</span>
+        <span className="font-semibold">
+          {value}% - {getLabel(value)}
+        </span>
       </div>
       <div className="h-2 bg-muted rounded-full overflow-hidden">
         <motion.div
@@ -179,7 +256,12 @@ function PredictionItem({ prediction, type, locked, onLock }: PredictionItemProp
   const typeConfig = {
     if_true: { icon: CheckIcon, color: "text-green-500", bg: "bg-green-500/10", label: "If True" },
     if_false: { icon: XMarkIcon, color: "text-red-500", bg: "bg-red-500/10", label: "If False" },
-    impossible: { icon: XMarkIcon, color: "text-purple-500", bg: "bg-purple-500/10", label: "Falsifier" },
+    impossible: {
+      icon: XMarkIcon,
+      color: "text-purple-500",
+      bg: "bg-purple-500/10",
+      label: "Falsifier",
+    },
   };
 
   const config = typeConfig[type];
@@ -191,7 +273,9 @@ function PredictionItem({ prediction, type, locked, onLock }: PredictionItemProp
       animate={{ opacity: 1, x: 0 }}
       className={cn(
         "group flex items-start gap-3 p-3 rounded-lg border transition-all",
-        locked ? "bg-muted/50 border-border" : "bg-background border-border hover:border-primary/30"
+        locked
+          ? "bg-muted/50 border-border"
+          : "bg-background border-border hover:border-primary/30",
       )}
     >
       <div className={cn("flex items-center justify-center size-8 rounded-lg shrink-0", config.bg)}>
@@ -245,11 +329,16 @@ interface EvolutionEvent {
 function EvolutionTimeline({ events }: { events: EvolutionEvent[] }) {
   const getEventConfig = (type: EvolutionEvent["type"]) => {
     switch (type) {
-      case "created": return { icon: SparklesIcon, color: "text-primary", bg: "bg-primary/10" };
-      case "edited": return { icon: PencilIcon, color: "text-blue-500", bg: "bg-blue-500/10" };
-      case "evolved": return { icon: ArrowPathIcon, color: "text-purple-500", bg: "bg-purple-500/10" };
-      case "locked": return { icon: LockClosedIcon, color: "text-amber-500", bg: "bg-amber-500/10" };
-      case "evidence": return { icon: CheckIcon, color: "text-green-500", bg: "bg-green-500/10" };
+      case "created":
+        return { icon: SparklesIcon, color: "text-primary", bg: "bg-primary/10" };
+      case "edited":
+        return { icon: PencilIcon, color: "text-blue-500", bg: "bg-blue-500/10" };
+      case "evolved":
+        return { icon: ArrowPathIcon, color: "text-purple-500", bg: "bg-purple-500/10" };
+      case "locked":
+        return { icon: LockClosedIcon, color: "text-amber-500", bg: "bg-amber-500/10" };
+      case "evidence":
+        return { icon: CheckIcon, color: "text-green-500", bg: "bg-green-500/10" };
     }
   };
 
@@ -271,10 +360,12 @@ function EvolutionTimeline({ events }: { events: EvolutionEvent[] }) {
             className="relative flex items-start gap-4 pl-10"
           >
             {/* Timeline dot */}
-            <div className={cn(
-              "absolute left-0 flex items-center justify-center size-8 rounded-full border-2 border-background",
-              config.bg
-            )}>
+            <div
+              className={cn(
+                "absolute left-0 flex items-center justify-center size-8 rounded-full border-2 border-background",
+                config.bg,
+              )}
+            >
               <Icon className={cn("size-4", config.color)} />
             </div>
 
@@ -336,8 +427,10 @@ function HypothesisPageContent({ threadId }: { threadId: string }) {
   // Mock data - in real implementation, this would come from the session context
   const hypothesis = {
     id: "hyp-001",
-    statement: "Social media usage causes increased anxiety in teenagers through dopamine-driven feedback loops.",
-    mechanism: "Intermittent variable reward schedules in social media notifications trigger dopamine spikes, leading to compulsive checking behavior and anxiety when separated from devices.",
+    statement:
+      "Social media usage causes increased anxiety in teenagers through dopamine-driven feedback loops.",
+    mechanism:
+      "Intermittent variable reward schedules in social media notifications trigger dopamine spikes, leading to compulsive checking behavior and anxiety when separated from devices.",
     confidence: 65,
     domain: ["Psychology", "Neuroscience", "Technology"],
     predictionsIfTrue: [
@@ -389,7 +482,14 @@ function HypothesisPageContent({ threadId }: { threadId: string }) {
       hypothesis.impossibleIfTrue.join("\n"),
       ...HYPOTHESIS_PHASE_QUOTE_TAGS,
     ]);
-  }, [hypothesis.domain, hypothesis.impossibleIfTrue, hypothesis.mechanism, hypothesis.predictionsIfFalse, hypothesis.predictionsIfTrue, hypothesis.statement]);
+  }, [
+    hypothesis.domain,
+    hypothesis.impossibleIfTrue,
+    hypothesis.mechanism,
+    hypothesis.predictionsIfFalse,
+    hypothesis.predictionsIfTrue,
+    hypothesis.statement,
+  ]);
 
   React.useEffect(() => {
     if (!quoteEntries || quoteEntries.length === 0) return;
@@ -412,10 +512,34 @@ function HypothesisPageContent({ threadId }: { threadId: string }) {
   }, [quoteEntries, quoteQuery]);
 
   const evolutionEvents: EvolutionEvent[] = [
-    { id: "ev-1", type: "created", description: "Hypothesis created", timestamp: new Date("2024-01-15T10:00:00"), confidence: 50 },
-    { id: "ev-2", type: "edited", description: "Added mechanism detail", timestamp: new Date("2024-01-16T14:30:00"), confidence: 55 },
-    { id: "ev-3", type: "locked", description: "Predictions locked for testing", timestamp: new Date("2024-01-18T09:00:00"), confidence: 55 },
-    { id: "ev-4", type: "evidence", description: "Cortisol study results added", timestamp: new Date("2024-01-20T16:00:00"), confidence: 65 },
+    {
+      id: "ev-1",
+      type: "created",
+      description: "Hypothesis created",
+      timestamp: new Date("2024-01-15T10:00:00"),
+      confidence: 50,
+    },
+    {
+      id: "ev-2",
+      type: "edited",
+      description: "Added mechanism detail",
+      timestamp: new Date("2024-01-16T14:30:00"),
+      confidence: 55,
+    },
+    {
+      id: "ev-3",
+      type: "locked",
+      description: "Predictions locked for testing",
+      timestamp: new Date("2024-01-18T09:00:00"),
+      confidence: 55,
+    },
+    {
+      id: "ev-4",
+      type: "evidence",
+      description: "Cortisol study results added",
+      timestamp: new Date("2024-01-20T16:00:00"),
+      confidence: 65,
+    },
   ];
 
   return (
@@ -427,7 +551,10 @@ function HypothesisPageContent({ threadId }: { threadId: string }) {
             Sessions
           </Link>
           <span>/</span>
-          <Link href={`/sessions/${threadId}`} className="hover:text-foreground transition-colors font-mono">
+          <Link
+            href={`/sessions/${threadId}`}
+            className="hover:text-foreground transition-colors font-mono"
+          >
             {threadId.slice(0, 12)}...
           </Link>
           <span>/</span>
@@ -458,9 +585,7 @@ function HypothesisPageContent({ threadId }: { threadId: string }) {
                 <h1 className="text-2xl font-bold tracking-tight">Hypothesis</h1>
                 <Badge variant="secondary">v{hypothesis.version}</Badge>
               </div>
-              <p className="text-muted-foreground">
-                Manage and refine your research hypothesis
-              </p>
+              <p className="text-muted-foreground">Manage and refine your research hypothesis</p>
             </div>
           </div>
 
@@ -551,13 +676,18 @@ function HypothesisPageContent({ threadId }: { threadId: string }) {
             >
               <Collapsible open={structureOpen} onOpenChange={setStructureOpen}>
                 <Card>
-                  <CollapsibleTrigger className="p-6 hover:bg-muted/50 transition-colors" showChevron={false}>
+                  <CollapsibleTrigger
+                    className="p-6 hover:bg-muted/50 transition-colors"
+                    showChevron={false}
+                  >
                     <div className="flex items-center justify-between w-full">
                       <span className="text-lg font-semibold">Discriminative Structure</span>
-                      <ChevronDownIcon className={cn(
-                        "size-5 text-muted-foreground transition-transform",
-                        structureOpen && "rotate-180"
-                      )} />
+                      <ChevronDownIcon
+                        className={cn(
+                          "size-5 text-muted-foreground transition-transform",
+                          structureOpen && "rotate-180",
+                        )}
+                      />
                     </div>
                   </CollapsibleTrigger>
                   <CollapsibleContent>
@@ -614,16 +744,21 @@ function HypothesisPageContent({ threadId }: { threadId: string }) {
             >
               <Collapsible open={historyOpen} onOpenChange={setHistoryOpen}>
                 <Card>
-                  <CollapsibleTrigger className="p-6 hover:bg-muted/50 transition-colors" showChevron={false}>
+                  <CollapsibleTrigger
+                    className="p-6 hover:bg-muted/50 transition-colors"
+                    showChevron={false}
+                  >
                     <div className="flex items-center justify-between w-full">
                       <span className="text-lg font-semibold flex items-center gap-2">
                         <ClockIcon className="size-5 text-muted-foreground" />
                         Evolution History
                       </span>
-                      <ChevronDownIcon className={cn(
-                        "size-5 text-muted-foreground transition-transform",
-                        historyOpen && "rotate-180"
-                      )} />
+                      <ChevronDownIcon
+                        className={cn(
+                          "size-5 text-muted-foreground transition-transform",
+                          historyOpen && "rotate-180",
+                        )}
+                      />
                     </div>
                   </CollapsibleTrigger>
                   <CollapsibleContent>
@@ -682,7 +817,8 @@ function HypothesisPageContent({ threadId }: { threadId: string }) {
                 <CardContent>
                   <ConfidenceBar value={hypothesis.confidence} />
                   <p className="text-xs text-muted-foreground mt-3">
-                    Based on {evolutionEvents.filter(e => e.type === "evidence").length} evidence entries
+                    Based on {evolutionEvents.filter((e) => e.type === "evidence").length} evidence
+                    entries
                   </p>
                 </CardContent>
               </Card>
@@ -701,7 +837,9 @@ function HypothesisPageContent({ threadId }: { threadId: string }) {
                 <CardContent>
                   <div className="flex flex-wrap gap-2">
                     {hypothesis.domain.map((d) => (
-                      <Badge key={d} variant="secondary">{d}</Badge>
+                      <Badge key={d} variant="secondary">
+                        {d}
+                      </Badge>
                     ))}
                   </div>
                 </CardContent>
@@ -753,7 +891,9 @@ function HypothesisPageContent({ threadId }: { threadId: string }) {
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-muted-foreground">Version</span>
-                    <Badge variant="secondary" className="text-xs">v{hypothesis.version}</Badge>
+                    <Badge variant="secondary" className="text-xs">
+                      v{hypothesis.version}
+                    </Badge>
                   </div>
                 </CardContent>
               </Card>

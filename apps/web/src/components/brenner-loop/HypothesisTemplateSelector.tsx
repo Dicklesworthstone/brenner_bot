@@ -9,27 +9,26 @@
  * @see brenner_bot-838e - FEATURE: Hypothesis Template Library
  */
 
-import * as React from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import {
-  Brain,
-  HeartPulse,
-  TrendingUp,
-  Code,
-  Zap,
-  Settings,
-  ChevronRight,
-  Check,
-  Search,
-  Sparkles,
-  BookOpen,
   ArrowRight,
+  BookOpen,
+  Brain,
+  Check,
+  ChevronRight,
+  Code,
+  HeartPulse,
+  Search,
+  Settings,
+  Sparkles,
+  TrendingUp,
   X,
+  Zap,
 } from "lucide-react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import * as React from "react";
 import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -38,12 +37,13 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 import {
-  TEMPLATE_CATEGORIES,
-  getTemplate,
   getFeaturedTemplates,
-  searchTemplates,
+  getTemplate,
   type HypothesisTemplate,
+  searchTemplates,
+  TEMPLATE_CATEGORIES,
   type TemplateCategory,
 } from "@/lib/brenner-loop/hypothesis-templates";
 
@@ -111,9 +111,10 @@ function CategoryCard({ category, selected, onSelect, templateCount }: CategoryC
       onClick={onSelect}
       className={`
         w-full text-left p-4 rounded-lg border transition-all duration-200
-        ${selected
-          ? "ring-2 ring-primary border-primary bg-primary/5"
-          : "hover:border-muted-foreground/50 bg-card"
+        ${
+          selected
+            ? "ring-2 ring-primary border-primary bg-primary/5"
+            : "hover:border-muted-foreground/50 bg-card"
         }
       `}
     >
@@ -127,7 +128,9 @@ function CategoryCard({ category, selected, onSelect, templateCount }: CategoryC
             {templateCount} template{templateCount !== 1 ? "s" : ""}
           </p>
         </div>
-        <ChevronRight className={`h-4 w-4 text-muted-foreground transition-transform ${selected ? "rotate-90" : ""}`} />
+        <ChevronRight
+          className={`h-4 w-4 text-muted-foreground transition-transform ${selected ? "rotate-90" : ""}`}
+        />
       </div>
     </motion.button>
   );
@@ -185,19 +188,10 @@ function TemplateCard({ template, onSelect, onPreview }: TemplateCardProps) {
         </div>
 
         <div className="flex gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            className="flex-1"
-            onClick={onPreview}
-          >
+          <Button variant="outline" size="sm" className="flex-1" onClick={onPreview}>
             Preview
           </Button>
-          <Button
-            size="sm"
-            className="flex-1"
-            onClick={onSelect}
-          >
+          <Button size="sm" className="flex-1" onClick={onSelect}>
             Use Template
             <ArrowRight className="h-3 w-3 ml-1" />
           </Button>
@@ -246,19 +240,13 @@ function TemplatePreview({ template, open, onOpenChange, onSelect }: TemplatePre
               <h4 className="font-medium text-sm text-muted-foreground mb-2">
                 Hypothesis Statement
               </h4>
-              <p className="text-foreground bg-muted/50 p-3 rounded-lg">
-                {content.statement}
-              </p>
+              <p className="text-foreground bg-muted/50 p-3 rounded-lg">{content.statement}</p>
             </div>
 
             {/* Mechanism */}
             <div>
-              <h4 className="font-medium text-sm text-muted-foreground mb-2">
-                Proposed Mechanism
-              </h4>
-              <p className="text-foreground bg-muted/50 p-3 rounded-lg">
-                {content.mechanism}
-              </p>
+              <h4 className="font-medium text-sm text-muted-foreground mb-2">Proposed Mechanism</h4>
+              <p className="text-foreground bg-muted/50 p-3 rounded-lg">{content.mechanism}</p>
             </div>
 
             {/* Predictions If True */}
@@ -324,9 +312,7 @@ function TemplatePreview({ template, open, onOpenChange, onSelect }: TemplatePre
                         )}
                       </div>
                       {confound.description && (
-                        <p className="text-sm text-muted-foreground mt-1">
-                          {confound.description}
-                        </p>
+                        <p className="text-sm text-muted-foreground mt-1">{confound.description}</p>
                       )}
                     </div>
                   ))}
@@ -418,17 +404,19 @@ export function HypothesisTemplateSelector({
           <span className="text-sm text-muted-foreground">Start from template:</span>
         </div>
         <div className="flex flex-wrap gap-2">
-          {getFeaturedTemplates().slice(0, 4).map((template) => (
-            <Button
-              key={template.id}
-              variant="outline"
-              size="sm"
-              onClick={() => handleSelect(template)}
-              disabled={disabled}
-            >
-              {template.name}
-            </Button>
-          ))}
+          {getFeaturedTemplates()
+            .slice(0, 4)
+            .map((template) => (
+              <Button
+                key={template.id}
+                variant="outline"
+                size="sm"
+                onClick={() => handleSelect(template)}
+                disabled={disabled}
+              >
+                {template.name}
+              </Button>
+            ))}
           <Dialog>
             <DialogTrigger asChild>
               <Button variant="ghost" size="sm" disabled={disabled}>
@@ -443,10 +431,7 @@ export function HypothesisTemplateSelector({
                   discriminative structure you can customize.
                 </DialogDescription>
               </DialogHeader>
-              <HypothesisTemplateSelector
-                onSelect={onSelect}
-                disabled={disabled}
-              />
+              <HypothesisTemplateSelector onSelect={onSelect} disabled={disabled} />
             </DialogContent>
           </Dialog>
         </div>
@@ -502,11 +487,7 @@ export function HypothesisTemplateSelector({
                   : "Featured Templates"}
             </h3>
             {selectedCategory && !searchQuery && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setSelectedCategory(null)}
-              >
+              <Button variant="ghost" size="sm" onClick={() => setSelectedCategory(null)}>
                 Show featured
               </Button>
             )}
@@ -597,9 +578,7 @@ export function CompactTemplatePicker({
       })}
 
       {selectedTemplate && (
-        <span className="text-xs text-muted-foreground ml-2">
-          ({selectedTemplate.difficulty})
-        </span>
+        <span className="text-xs text-muted-foreground ml-2">({selectedTemplate.difficulty})</span>
       )}
     </div>
   );

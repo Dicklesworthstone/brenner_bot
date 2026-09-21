@@ -5,12 +5,12 @@
  * Philosophy: NO mocks - test real computation with realistic fixtures.
  */
 
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
 import {
   computeFailureAnalytics,
-  summarizeFailureAnalytics,
-  STRUCTURAL_PATTERNS,
   type FailureAnalytics,
+  STRUCTURAL_PATTERNS,
+  summarizeFailureAnalytics,
 } from "./failure-analytics";
 import type { HypothesisCard, Session } from "./types";
 
@@ -184,7 +184,9 @@ describe("computeFailureAnalytics", () => {
       },
       operatorApplications: {
         levelSplit: [],
-        exclusionTest: [{ appliedAt: "2026-01-01", appliedBy: "user", designedTests: [], rejectedTests: [] }],
+        exclusionTest: [
+          { appliedAt: "2026-01-01", appliedBy: "user", designedTests: [], rejectedTests: [] },
+        ],
         objectTranspose: [],
         scaleCheck: [],
       },
@@ -203,9 +205,7 @@ describe("computeFailureAnalytics", () => {
       sessions: [sessionWithOperator, sessionWithoutOperator],
     });
 
-    const exclusionPattern = result.byOperator.find(
-      (p) => p.operator === "exclusion_test"
-    );
+    const exclusionPattern = result.byOperator.find((p) => p.operator === "exclusion_test");
     expect(exclusionPattern).toBeDefined();
     expect(exclusionPattern?.totalApplications).toBe(1);
     // Negative correlation = operator helps
@@ -258,7 +258,7 @@ describe("computeFailureAnalytics", () => {
 
     // Should have a critical insight about astrology
     const astrologyInsight = result.insights.find((i) =>
-      i.message.toLowerCase().includes("astrology")
+      i.message.toLowerCase().includes("astrology"),
     );
     expect(astrologyInsight).toBeDefined();
     expect(astrologyInsight?.severity).toBe("critical");
@@ -283,9 +283,7 @@ describe("computeFailureAnalytics", () => {
 
 describe("STRUCTURAL_PATTERNS", () => {
   it("detects missing falsification criteria", () => {
-    const pattern = STRUCTURAL_PATTERNS.find(
-      (p) => p.name === "Missing Falsification Criteria"
-    );
+    const pattern = STRUCTURAL_PATTERNS.find((p) => p.name === "Missing Falsification Criteria");
     expect(pattern).toBeDefined();
 
     const noFalsification = makeHypothesis({ impossibleIfTrue: [] });
@@ -320,9 +318,7 @@ describe("STRUCTURAL_PATTERNS", () => {
   });
 
   it("detects high initial confidence without evidence", () => {
-    const pattern = STRUCTURAL_PATTERNS.find(
-      (p) => p.name === "High Initial Confidence"
-    );
+    const pattern = STRUCTURAL_PATTERNS.find((p) => p.name === "High Initial Confidence");
     expect(pattern).toBeDefined();
 
     const highConfidenceV1 = makeHypothesis({ confidence: 90, version: 1 });

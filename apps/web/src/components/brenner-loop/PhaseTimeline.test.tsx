@@ -1,12 +1,14 @@
-import * as React from "react";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import type * as React from "react";
 import { describe, expect, it, vi } from "vitest";
 import type { SessionPhase } from "@/lib/brenner-loop";
 
 vi.mock("framer-motion", () => ({
   motion: {
-    div: ({ children, ...props }: React.HTMLAttributes<HTMLDivElement>) => <div {...props}>{children}</div>,
+    div: ({ children, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
+      <div {...props}>{children}</div>
+    ),
   },
 }));
 
@@ -43,7 +45,7 @@ describe("PhaseTimeline", () => {
         availablePhases={["exclusion_test"]}
         skippedPhases={[]}
         onPhaseClick={onPhaseClick}
-      />
+      />,
     );
 
     const current = screen.getByRole("button", { name: /level split/i });
@@ -68,7 +70,7 @@ describe("PhaseTimeline", () => {
         availablePhases={["exclusion_test"]}
         skippedPhases={[]}
         onPhaseClick={onPhaseClick}
-      />
+      />,
     );
 
     const current = screen.getByRole("button", { name: /level split/i });

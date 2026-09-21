@@ -1,13 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { cn } from "@/lib/utils";
-import { useDebounce } from "@/hooks/useDebounce";
-import { searchAction } from "@/lib/globalSearchAction";
-import type { GlobalSearchHit, GlobalSearchResult, SearchCategory } from "@/lib/globalSearchTypes";
-import type { AttachedQuote } from "@/lib/brenner-loop/types";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
   Dialog,
   DialogBody,
@@ -16,6 +10,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { useDebounce } from "@/hooks/useDebounce";
+import type { AttachedQuote } from "@/lib/brenner-loop/types";
+import { searchAction } from "@/lib/globalSearchAction";
+import type { GlobalSearchHit, GlobalSearchResult, SearchCategory } from "@/lib/globalSearchTypes";
+import { cn } from "@/lib/utils";
 
 // ============================================================================
 // Icons
@@ -23,16 +23,36 @@ import {
 
 function SearchIcon({ className }: { className?: string }) {
   return (
-    <svg className={cn("size-4", className)} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-4.35-4.35m0 0A7.5 7.5 0 1 0 6 6a7.5 7.5 0 0 0 10.65 10.65Z" />
+    <svg
+      className={cn("size-4", className)}
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+      strokeWidth={2}
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="m21 21-4.35-4.35m0 0A7.5 7.5 0 1 0 6 6a7.5 7.5 0 0 0 10.65 10.65Z"
+      />
     </svg>
   );
 }
 
 function ExternalLinkIcon({ className }: { className?: string }) {
   return (
-    <svg className={cn("size-4", className)} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M18 13v6a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+    <svg
+      className={cn("size-4", className)}
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+      strokeWidth={2}
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M18 13v6a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"
+      />
       <path strokeLinecap="round" strokeLinejoin="round" d="M15 3h6v6" />
       <path strokeLinecap="round" strokeLinejoin="round" d="M10 14 21 3" />
     </svg>
@@ -41,7 +61,13 @@ function ExternalLinkIcon({ className }: { className?: string }) {
 
 function PlusIcon({ className }: { className?: string }) {
   return (
-    <svg className={cn("size-4", className)} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+    <svg
+      className={cn("size-4", className)}
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+      strokeWidth={2}
+    >
       <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
     </svg>
   );
@@ -150,22 +176,25 @@ export function CorpusSearchDialog({
     }
   }, []);
 
-  const handleAttachHit = React.useCallback((hit: GlobalSearchHit) => {
-    if (!canAttach || !hypothesisId || !onAttachQuote) return;
+  const handleAttachHit = React.useCallback(
+    (hit: GlobalSearchHit) => {
+      if (!canAttach || !hypothesisId || !onAttachQuote) return;
 
-    onAttachQuote({
-      hypothesisId,
-      field: "general",
-      docId: hit.docId,
-      docTitle: hit.docTitle,
-      category: hit.category,
-      model: hit.model,
-      title: hit.title,
-      snippet: hit.snippet,
-      anchor: hit.anchor,
-      url: hit.url,
-    });
-  }, [canAttach, hypothesisId, onAttachQuote]);
+      onAttachQuote({
+        hypothesisId,
+        field: "general",
+        docId: hit.docId,
+        docTitle: hit.docTitle,
+        category: hit.category,
+        model: hit.model,
+        title: hit.title,
+        snippet: hit.snippet,
+        anchor: hit.anchor,
+        url: hit.url,
+      });
+    },
+    [canAttach, hypothesisId, onAttachQuote],
+  );
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -173,7 +202,8 @@ export function CorpusSearchDialog({
         <DialogHeader separated>
           <DialogTitle>Search Brenner Corpus</DialogTitle>
           <p className="text-sm text-muted-foreground">
-            Search transcript, quote bank, and the three distillations. Attach excerpts to your current hypothesis for provenance.
+            Search transcript, quote bank, and the three distillations. Attach excerpts to your
+            current hypothesis for provenance.
           </p>
         </DialogHeader>
 
@@ -203,7 +233,7 @@ export function CorpusSearchDialog({
                       "px-3 py-2 rounded-lg border text-sm transition-colors",
                       activeCategory === category
                         ? "border-primary/30 bg-primary/10 text-foreground"
-                        : "border-border bg-muted/40 text-muted-foreground hover:text-foreground hover:bg-muted"
+                        : "border-border bg-muted/40 text-muted-foreground hover:text-foreground hover:bg-muted",
                     )}
                   >
                     {category === "all"
@@ -227,29 +257,23 @@ export function CorpusSearchDialog({
             {results && results.hits.length > 0 && (
               <div className="space-y-2">
                 <div className="text-xs text-muted-foreground">
-                  {results.totalMatches} match{results.totalMatches === 1 ? "" : "es"} · {results.searchTimeMs}ms
+                  {results.totalMatches} match{results.totalMatches === 1 ? "" : "es"} ·{" "}
+                  {results.searchTimeMs}ms
                 </div>
                 <div className="space-y-2">
                   {results.hits.map((hit) => (
-                    <div
-                      key={hit.id}
-                      className="rounded-xl border border-border bg-card p-4"
-                    >
+                    <div key={hit.id} className="rounded-xl border border-border bg-card p-4">
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0">
                           <div className="flex items-center gap-2">
-                            <div className="truncate font-medium text-foreground">
-                              {hit.title}
-                            </div>
+                            <div className="truncate font-medium text-foreground">{hit.title}</div>
                             {hit.anchor && (
                               <span className="flex-shrink-0 rounded bg-primary/10 px-1.5 py-0.5 font-mono text-xs text-primary">
                                 {hit.anchor}
                               </span>
                             )}
                           </div>
-                          <div className="mt-0.5 text-xs text-muted-foreground">
-                            {hit.docTitle}
-                          </div>
+                          <div className="mt-0.5 text-xs text-muted-foreground">{hit.docTitle}</div>
                         </div>
 
                         <div className="flex flex-shrink-0 items-center gap-2">
@@ -307,4 +331,3 @@ export function CorpusSearchDialog({
     </Dialog>
   );
 }
-

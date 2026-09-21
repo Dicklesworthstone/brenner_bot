@@ -18,13 +18,8 @@
  * @module brenner-loop/storage
  */
 
-import {
-  CURRENT_SESSION_VERSION,
-  createSession,
-  isSession,
-  isSessionPhase,
-} from "./types";
 import type { Session, SessionPhase } from "./types";
+import { CURRENT_SESSION_VERSION, createSession, isSession, isSessionPhase } from "./types";
 
 // ============================================================================
 // Constants
@@ -166,7 +161,7 @@ function removeResumeEntries(sessionIds: string[]): void {
 export function recordSessionResumeEntry(
   sessionId: string,
   location: SessionResumeLocation,
-  options: { ifMissing?: boolean } = {}
+  options: { ifMissing?: boolean } = {},
 ): void {
   if (typeof window === "undefined") return;
   if (!sessionId.startsWith(LOCAL_SESSION_ID_PREFIX)) return;
@@ -282,10 +277,12 @@ function migrateV0ToV1(data: unknown): Session {
           ? (data.operatorApplications.levelSplit as Session["operatorApplications"]["levelSplit"])
           : base.operatorApplications.levelSplit,
         exclusionTest: Array.isArray(data.operatorApplications.exclusionTest)
-          ? (data.operatorApplications.exclusionTest as Session["operatorApplications"]["exclusionTest"])
+          ? (data.operatorApplications
+              .exclusionTest as Session["operatorApplications"]["exclusionTest"])
           : base.operatorApplications.exclusionTest,
         objectTranspose: Array.isArray(data.operatorApplications.objectTranspose)
-          ? (data.operatorApplications.objectTranspose as Session["operatorApplications"]["objectTranspose"])
+          ? (data.operatorApplications
+              .objectTranspose as Session["operatorApplications"]["objectTranspose"])
           : base.operatorApplications.objectTranspose,
         scaleCheck: Array.isArray(data.operatorApplications.scaleCheck)
           ? (data.operatorApplications.scaleCheck as Session["operatorApplications"]["scaleCheck"])
@@ -327,7 +324,9 @@ function migrateV0ToV1(data: unknown): Session {
     evidenceLedger: Array.isArray(data.evidenceLedger)
       ? (data.evidenceLedger as Session["evidenceLedger"])
       : base.evidenceLedger,
-    artifacts: Array.isArray(data.artifacts) ? (data.artifacts as Session["artifacts"]) : base.artifacts,
+    artifacts: Array.isArray(data.artifacts)
+      ? (data.artifacts as Session["artifacts"])
+      : base.artifacts,
 
     commits: Array.isArray(data.commits) ? (data.commits as Session["commits"]) : base.commits,
     headCommitId: coerceString(data.headCommitId) ?? base.headCommitId,
@@ -335,7 +334,9 @@ function migrateV0ToV1(data: unknown): Session {
     researchQuestion: coerceString(data.researchQuestion) ?? base.researchQuestion,
     theme: coerceString(data.theme) ?? base.theme,
     domain: coerceString(data.domain) ?? base.domain,
-    tags: Array.isArray(data.tags) ? (data.tags.filter((t) => typeof t === "string") as string[]) : base.tags,
+    tags: Array.isArray(data.tags)
+      ? (data.tags.filter((t) => typeof t === "string") as string[])
+      : base.tags,
     notes: coerceString(data.notes) ?? base.notes,
     createdBy: coerceString(data.createdBy) ?? base.createdBy,
   };
@@ -359,7 +360,7 @@ function runSessionMigrations(data: unknown, fromVersion: number): Session {
     if (!migration) {
       throw new StorageError(
         `Missing migration for session schema v${nextVersion}`,
-        "CORRUPTED_DATA"
+        "CORRUPTED_DATA",
       );
     }
     current = migration(current);
@@ -485,7 +486,7 @@ export class StorageError extends Error {
   constructor(
     message: string,
     public readonly code: StorageErrorCode,
-    public readonly cause?: unknown
+    public readonly cause?: unknown,
   ) {
     super(message);
     this.name = "StorageError";
@@ -521,32 +522,19 @@ export function loadAssumptionLedger(sessionId: string): AssumptionLedgerEntry[]
 /**
  * Save assumption ledger entries for a session.
  */
-export function saveAssumptionLedger(
-  sessionId: string,
-  entries: AssumptionLedgerEntry[]
-): void {
+export function saveAssumptionLedger(sessionId: string, entries: AssumptionLedgerEntry[]): void {
   if (typeof window === "undefined") return;
   try {
-    window.localStorage.setItem(
-      assumptionLedgerKey(sessionId),
-      JSON.stringify(entries)
-    );
+    window.localStorage.setItem(assumptionLedgerKey(sessionId), JSON.stringify(entries));
   } catch (error) {
-    throw new StorageError(
-      "Failed to save assumption ledger",
-      "QUOTA_EXCEEDED",
-      error
-    );
+    throw new StorageError("Failed to save assumption ledger", "QUOTA_EXCEEDED", error);
   }
 }
 
 /**
  * Merge new entries into the assumption ledger, preserving createdAt.
  */
-export function upsertAssumptionLedger(
-  sessionId: string,
-  entries: AssumptionLedgerEntry[]
-): void {
+export function upsertAssumptionLedger(sessionId: string, entries: AssumptionLedgerEntry[]): void {
   const existing = loadAssumptionLedger(sessionId);
   const byId = new Map(existing.map((entry) => [entry.id, entry]));
 
@@ -593,7 +581,7 @@ function loadIndex(): StorageIndex {
     // Handle version migration if needed
     if (parsed.version !== STORAGE_VERSION) {
       console.warn(
-        `Storage index version mismatch: expected ${STORAGE_VERSION}, got ${parsed.version}`
+        `Storage index version mismatch: expected ${STORAGE_VERSION}, got ${parsed.version}`,
       );
       // For now, just accept it. Future: add migration logic.
     }
@@ -616,11 +604,7 @@ function saveIndex(index: StorageIndex): void {
   } catch (error) {
     // If we can't save the index, we're in trouble
     console.error("Failed to save session index:", error);
-    throw new StorageError(
-      "Failed to save session index",
-      "QUOTA_EXCEEDED",
-      error
-    );
+    throw new StorageError("Failed to save session index", "QUOTA_EXCEEDED", error);
   }
 }
 
@@ -631,19 +615,15 @@ function createSummary(session: Session): SessionSummary {
   // Get hypothesis preview (first 100 chars)
   // Use optional chaining for hypothesisCards to handle malformed/recovered sessions
   const hypothesisPreview =
-    session.hypothesisCards?.[session.primaryHypothesisId]?.statement ||
-    "(No hypothesis)";
+    session.hypothesisCards?.[session.primaryHypothesisId]?.statement || "(No hypothesis)";
 
   // Get confidence from primary hypothesis
-  const confidence =
-    session.hypothesisCards?.[session.primaryHypothesisId]?.confidence ?? 50;
+  const confidence = session.hypothesisCards?.[session.primaryHypothesisId]?.confidence ?? 50;
 
   return {
     id: session.id,
     hypothesis:
-      hypothesisPreview.length > 100
-        ? hypothesisPreview.slice(0, 97) + "..."
-        : hypothesisPreview,
+      hypothesisPreview.length > 100 ? hypothesisPreview.slice(0, 97) + "..." : hypothesisPreview,
     phase: session.phase,
     confidence,
     researchQuestion: session.researchQuestion,
@@ -686,10 +666,7 @@ export class LocalStorageSessionStorage implements SessionStorage {
 
   async save(session: Session): Promise<void> {
     if (!this.isAvailable()) {
-      throw new StorageError(
-        "LocalStorage not available",
-        "UNKNOWN_ERROR"
-      );
+      throw new StorageError("LocalStorage not available", "UNKNOWN_ERROR");
     }
 
     // Update session timestamp
@@ -704,51 +681,35 @@ export class LocalStorageSessionStorage implements SessionStorage {
     try {
       serialized = JSON.stringify(updatedSession);
     } catch (error) {
-      throw new StorageError(
-        "Failed to serialize session",
-        "SERIALIZATION_ERROR",
-        error
-      );
+      throw new StorageError("Failed to serialize session", "SERIALIZATION_ERROR", error);
     }
 
     // Check size limit
     if (serialized.length > MAX_SESSION_SIZE) {
-      console.warn(
-        `Session ${session.id} exceeds recommended size (${serialized.length} bytes)`
-      );
+      console.warn(`Session ${session.id} exceeds recommended size (${serialized.length} bytes)`);
     }
 
     // Try to save the session
     try {
-      window.localStorage.setItem(
-        this.getSessionKey(session.id),
-        serialized
-      );
+      window.localStorage.setItem(this.getSessionKey(session.id), serialized);
     } catch (error) {
       // Check if it's a quota error
       if (
         error instanceof DOMException &&
-        (error.name === "QuotaExceededError" ||
-          error.name === "NS_ERROR_DOM_QUOTA_REACHED")
+        (error.name === "QuotaExceededError" || error.name === "NS_ERROR_DOM_QUOTA_REACHED")
       ) {
         throw new StorageError(
           "Storage quota exceeded. Try deleting old sessions.",
           "QUOTA_EXCEEDED",
-          error
+          error,
         );
       }
-      throw new StorageError(
-        "Failed to save session",
-        "UNKNOWN_ERROR",
-        error
-      );
+      throw new StorageError("Failed to save session", "UNKNOWN_ERROR", error);
     }
 
     // Update the index
     const index = loadIndex();
-    const existingIdx = index.summaries.findIndex(
-      (s) => s.id === session.id
-    );
+    const existingIdx = index.summaries.findIndex((s) => s.id === session.id);
     const summary = createSummary(updatedSession);
 
     if (existingIdx >= 0) {
@@ -772,16 +733,13 @@ export class LocalStorageSessionStorage implements SessionStorage {
           }
         }
         removeResumeEntries(toRemove.map((old) => old.id));
-        console.warn(
-          `Removed ${toRemove.length} old sessions to stay under limit`
-        );
+        console.warn(`Removed ${toRemove.length} old sessions to stay under limit`);
       }
     }
 
     // Sort by updatedAt (most recent first)
     index.summaries.sort(
-      (a, b) =>
-        new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+      (a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
     );
 
     saveIndex(index);
@@ -793,9 +751,7 @@ export class LocalStorageSessionStorage implements SessionStorage {
     }
 
     try {
-      const raw = window.localStorage.getItem(
-        this.getSessionKey(sessionId)
-      );
+      const raw = window.localStorage.getItem(this.getSessionKey(sessionId));
       if (!raw) {
         return null;
       }
@@ -806,7 +762,7 @@ export class LocalStorageSessionStorage implements SessionStorage {
       if (version > CURRENT_SESSION_VERSION) {
         throw new StorageError(
           `Session schema v${version} is newer than supported (v${CURRENT_SESSION_VERSION})`,
-          "CORRUPTED_DATA"
+          "CORRUPTED_DATA",
         );
       }
 
@@ -824,7 +780,7 @@ export class LocalStorageSessionStorage implements SessionStorage {
         throw new StorageError(
           "Failed to create session backup before migration",
           "QUOTA_EXCEEDED",
-          error
+          error,
         );
       }
 
@@ -834,11 +790,7 @@ export class LocalStorageSessionStorage implements SessionStorage {
       try {
         window.localStorage.setItem(this.getSessionKey(sessionId), JSON.stringify(migrated));
       } catch (error) {
-        throw new StorageError(
-          "Failed to save migrated session",
-          "QUOTA_EXCEEDED",
-          error
-        );
+        throw new StorageError("Failed to save migrated session", "QUOTA_EXCEEDED", error);
       }
 
       // Keep the index consistent.
@@ -851,7 +803,7 @@ export class LocalStorageSessionStorage implements SessionStorage {
         index.summaries.unshift(summary);
       }
       index.summaries.sort(
-        (a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+        (a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
       );
       saveIndex(index);
 
@@ -860,11 +812,7 @@ export class LocalStorageSessionStorage implements SessionStorage {
       if (error instanceof StorageError) throw error;
 
       console.error(`Failed to load session ${sessionId}:`, error);
-      throw new StorageError(
-        "Failed to parse session data",
-        "CORRUPTED_DATA",
-        error
-      );
+      throw new StorageError("Failed to parse session data", "CORRUPTED_DATA", error);
     }
   }
 
@@ -878,9 +826,7 @@ export class LocalStorageSessionStorage implements SessionStorage {
     // Verify summaries against actual storage (cleanup orphans)
     const orphanedIds: string[] = [];
     const validSummaries = index.summaries.filter((summary) => {
-      const exists =
-        window.localStorage.getItem(this.getSessionKey(summary.id)) !==
-        null;
+      const exists = window.localStorage.getItem(this.getSessionKey(summary.id)) !== null;
       if (!exists) {
         console.warn(`Orphaned index entry for ${summary.id}, removing`);
         orphanedIds.push(summary.id);
@@ -958,9 +904,7 @@ export class LocalStorageSessionStorage implements SessionStorage {
 
     // Calculate total size of sessions
     for (const summary of index.summaries) {
-      const raw = window.localStorage.getItem(
-        this.getSessionKey(summary.id)
-      );
+      const raw = window.localStorage.getItem(this.getSessionKey(summary.id));
       if (raw) {
         totalSize += raw.length * 2; // UTF-16 = 2 bytes per char
       }
@@ -982,8 +926,7 @@ export class LocalStorageSessionStorage implements SessionStorage {
 
     if (index.summaries.length > 0) {
       const sorted = [...index.summaries].sort(
-        (a, b) =>
-          new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+        (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
       );
       oldestSession = sorted[0].createdAt;
       newestSession = sorted[sorted.length - 1].createdAt;
@@ -1027,11 +970,7 @@ export function rollbackSessionMigration(sessionId: string, toVersion: number): 
   try {
     window.localStorage.setItem(`${SESSION_KEY_PREFIX}${sessionId}`, backup);
   } catch (error) {
-    throw new StorageError(
-      "Failed to restore session backup",
-      "QUOTA_EXCEEDED",
-      error
-    );
+    throw new StorageError("Failed to restore session backup", "QUOTA_EXCEEDED", error);
   }
 
   return true;
@@ -1073,8 +1012,7 @@ export async function recoverSessions(): Promise<number> {
     const index: StorageIndex = {
       version: STORAGE_VERSION,
       summaries: recovered.sort(
-        (a, b) =>
-          new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+        (a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
       ),
     };
     saveIndex(index);
@@ -1139,7 +1077,7 @@ export async function cleanupOldSessions(daysOld: number = 30): Promise<number> 
  */
 export type StorageChangeCallback = (
   event: "save" | "delete" | "clear",
-  sessionId?: string
+  sessionId?: string,
 ) => void;
 
 const changeListeners = new Set<StorageChangeCallback>();

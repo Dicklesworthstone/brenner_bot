@@ -19,32 +19,26 @@
 
 import React, {
   createContext,
-  useContext,
-  useReducer,
-  useEffect,
-  useCallback,
-  useMemo,
-  useRef,
   type ReactNode,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useReducer,
+  useRef,
 } from "react";
-
+import { onStorageChange, StorageError, sessionStorage } from "./storage";
 import type {
-  Session,
-  SessionPhase,
-  HypothesisCard,
   AttachedQuote,
-  LevelSplitResult,
   ExclusionTestResult,
+  HypothesisCard,
+  LevelSplitResult,
   ObjectTransposeResult,
   ScaleCheckResult,
+  Session,
+  SessionPhase,
 } from "./types";
-import {
-  createSession,
-  createHypothesisCard,
-  generateSessionId,
-  isValidTransition,
-} from "./types";
-import { sessionStorage, onStorageChange, StorageError } from "./storage";
+import { createHypothesisCard, createSession, generateSessionId, isValidTransition } from "./types";
 
 // ============================================================================
 // Types
@@ -110,7 +104,7 @@ export interface SessionContextValue {
   /** Append an operator result to this session */
   appendOperatorApplication(
     operator: keyof Session["operatorApplications"],
-    result: LevelSplitResult | ExclusionTestResult | ObjectTransposeResult | ScaleCheckResult
+    result: LevelSplitResult | ExclusionTestResult | ObjectTransposeResult | ScaleCheckResult,
   ): void;
 
   // === Phase Actions ===
@@ -415,12 +409,7 @@ export function SessionProvider({
       if (!isMountedRef.current) return;
 
       // If our current session was updated elsewhere, reload it
-      if (
-        event === "save" &&
-        sessionId &&
-        state.session?.id === sessionId &&
-        !state.isDirty
-      ) {
+      if (event === "save" && sessionId && state.session?.id === sessionId && !state.isDirty) {
         try {
           const updated = await sessionStorage.load(sessionId);
           if (updated && isMountedRef.current) {
@@ -481,54 +470,51 @@ export function SessionProvider({
   // Actions
   // -------------------------------------------------------------------------
 
-  const createNewSession = useCallback(
-    async (initialHypothesis: string): Promise<Session> => {
-      dispatch({ type: "LOADING" });
+  const createNewSession = useCallback(async (initialHypothesis: string): Promise<Session> => {
+    dispatch({ type: "LOADING" });
 
-      try {
-        // Get existing session IDs to generate a unique one
-        const existing = await sessionStorage.list();
-        const existingIds = existing.map((s) => s.id);
-        const sessionId = generateSessionId(existingIds);
+    try {
+      // Get existing session IDs to generate a unique one
+      const existing = await sessionStorage.list();
+      const existingIds = existing.map((s) => s.id);
+      const sessionId = generateSessionId(existingIds);
 
-        // Create hypothesis card
-        const hypothesisId = `HC-${sessionId}-001-v1`;
-        const hypothesis = createHypothesisCard({
-          id: hypothesisId,
-          statement: initialHypothesis,
-          mechanism: "Mechanism to be defined",
-          predictionsIfTrue: ["Prediction to be defined"],
-          impossibleIfTrue: ["Falsification condition to be defined"],
-          sessionId,
-        });
+      // Create hypothesis card
+      const hypothesisId = `HC-${sessionId}-001-v1`;
+      const hypothesis = createHypothesisCard({
+        id: hypothesisId,
+        statement: initialHypothesis,
+        mechanism: "Mechanism to be defined",
+        predictionsIfTrue: ["Prediction to be defined"],
+        impossibleIfTrue: ["Falsification condition to be defined"],
+        sessionId,
+      });
 
-        // Create session
-        const session = createSession({ id: sessionId });
-        session.primaryHypothesisId = hypothesisId;
-        session.hypothesisCards[hypothesisId] = hypothesis;
+      // Create session
+      const session = createSession({ id: sessionId });
+      session.primaryHypothesisId = hypothesisId;
+      session.hypothesisCards[hypothesisId] = hypothesis;
 
-        // Save immediately
-        if (isMountedRef.current) {
-          dispatch({ type: "SAVING" });
-        }
-        await sessionStorage.save(session);
-
-        if (isMountedRef.current) {
-          dispatch({ type: "CREATED", session });
-        }
-
-        return session;
-      } catch (error) {
-        const err = error instanceof Error ? error : new Error("Failed to create session");
-        if (isMountedRef.current) {
-          dispatch({ type: "SAVE_ERROR", error: err });
-          dispatch({ type: "ERROR", error: err });
-        }
-        throw err;
+      // Save immediately
+      if (isMountedRef.current) {
+        dispatch({ type: "SAVING" });
       }
-    },
-    []
-  );
+      await sessionStorage.save(session);
+
+      if (isMountedRef.current) {
+        dispatch({ type: "CREATED", session });
+      }
+
+      return session;
+    } catch (error) {
+      const err = error instanceof Error ? error : new Error("Failed to create session");
+      if (isMountedRef.current) {
+        dispatch({ type: "SAVE_ERROR", error: err });
+        dispatch({ type: "ERROR", error: err });
+      }
+      throw err;
+    }
+  }, []);
 
   const loadSession = useCallback(async (id: string): Promise<void> => {
     dispatch({ type: "LOADING" });
@@ -581,187 +567,175 @@ export function SessionProvider({
     dispatch({ type: "CLOSED" });
   }, []);
 
-  const deleteSession = useCallback(async (id: string): Promise<void> => {
-    try {
-      await sessionStorage.delete(id);
+  const deleteSession = useCallback(
+    async (id: string): Promise<void> => {
+      try {
+        await sessionStorage.delete(id);
 
-      // If we deleted the current session, close it
-      if (state.session?.id === id && isMountedRef.current) {
-        dispatch({ type: "CLOSED" });
+        // If we deleted the current session, close it
+        if (state.session?.id === id && isMountedRef.current) {
+          dispatch({ type: "CLOSED" });
+        }
+      } catch (error) {
+        if (isMountedRef.current) {
+          dispatch({
+            type: "ERROR",
+            error: error instanceof Error ? error : new Error("Failed to delete session"),
+          });
+        }
+        throw error;
       }
-    } catch (error) {
-      if (isMountedRef.current) {
-        dispatch({
-          type: "ERROR",
-          error: error instanceof Error ? error : new Error("Failed to delete session"),
-        });
-      }
-      throw error;
-    }
-  }, [state.session?.id]);
+    },
+    [state.session?.id],
+  );
 
   // -------------------------------------------------------------------------
   // Hypothesis Actions
   // -------------------------------------------------------------------------
 
-  const updateHypothesis = useCallback(
-    (updates: Partial<HypothesisCard>): void => {
-      dispatch({
-        type: "APPLY_SESSION_UPDATE",
-        update: (session) => {
-          const primaryId = session.primaryHypothesisId;
-          const currentHypothesis = session.hypothesisCards[primaryId];
-          if (!currentHypothesis) return session;
+  const updateHypothesis = useCallback((updates: Partial<HypothesisCard>): void => {
+    dispatch({
+      type: "APPLY_SESSION_UPDATE",
+      update: (session) => {
+        const primaryId = session.primaryHypothesisId;
+        const currentHypothesis = session.hypothesisCards[primaryId];
+        if (!currentHypothesis) return session;
 
-          const now = new Date();
-          const updatedHypothesis: HypothesisCard = {
-            ...currentHypothesis,
-            ...updates,
-            updatedAt: now,
-          };
+        const now = new Date();
+        const updatedHypothesis: HypothesisCard = {
+          ...currentHypothesis,
+          ...updates,
+          updatedAt: now,
+        };
 
-          return {
-            ...session,
-            hypothesisCards: {
-              ...session.hypothesisCards,
-              [primaryId]: updatedHypothesis,
-            },
-            updatedAt: now.toISOString(),
-          };
-        },
-      });
-    },
-    []
-  );
-
-  const addAlternativeHypothesis = useCallback(
-    (hypothesis: HypothesisCard): void => {
-      dispatch({
-        type: "APPLY_SESSION_UPDATE",
-        update: (session) => ({
+        return {
           ...session,
-          alternativeHypothesisIds: [...session.alternativeHypothesisIds, hypothesis.id],
           hypothesisCards: {
             ...session.hypothesisCards,
-            [hypothesis.id]: hypothesis,
+            [primaryId]: updatedHypothesis,
           },
+          updatedAt: now.toISOString(),
+        };
+      },
+    });
+  }, []);
+
+  const addAlternativeHypothesis = useCallback((hypothesis: HypothesisCard): void => {
+    dispatch({
+      type: "APPLY_SESSION_UPDATE",
+      update: (session) => ({
+        ...session,
+        alternativeHypothesisIds: [...session.alternativeHypothesisIds, hypothesis.id],
+        hypothesisCards: {
+          ...session.hypothesisCards,
+          [hypothesis.id]: hypothesis,
+        },
+        updatedAt: new Date().toISOString(),
+      }),
+    });
+  }, []);
+
+  const removeAlternativeHypothesis = useCallback((id: string): void => {
+    dispatch({
+      type: "APPLY_SESSION_UPDATE",
+      update: (session) => {
+        // Don't allow removing the primary hypothesis
+        if (id === session.primaryHypothesisId) return session;
+
+        // Validate: ID must exist in hypothesisCards
+        if (!session.hypothesisCards[id]) return session;
+
+        // Validate: ID must be in alternativeHypothesisIds (not already archived)
+        if (!session.alternativeHypothesisIds.includes(id)) return session;
+
+        // Don't remove the card - keep it for audit trails
+        // Only move from alternativeHypothesisIds to archivedHypothesisIds
+        return {
+          ...session,
+          alternativeHypothesisIds: session.alternativeHypothesisIds.filter((hid) => hid !== id),
+          archivedHypothesisIds: [...session.archivedHypothesisIds, id],
           updatedAt: new Date().toISOString(),
-        }),
-      });
-    },
-    []
-  );
+        };
+      },
+    });
+  }, []);
 
-  const removeAlternativeHypothesis = useCallback(
-    (id: string): void => {
-      dispatch({
-        type: "APPLY_SESSION_UPDATE",
-        update: (session) => {
-          // Don't allow removing the primary hypothesis
-          if (id === session.primaryHypothesisId) return session;
+  const setPrimaryHypothesis = useCallback((id: string): void => {
+    dispatch({
+      type: "APPLY_SESSION_UPDATE",
+      update: (session) => {
+        // Check if the hypothesis exists
+        if (!session.hypothesisCards[id]) return session;
 
-          // Validate: ID must exist in hypothesisCards
-          if (!session.hypothesisCards[id]) return session;
+        const currentPrimaryId = session.primaryHypothesisId;
 
-          // Validate: ID must be in alternativeHypothesisIds (not already archived)
-          if (!session.alternativeHypothesisIds.includes(id)) return session;
+        // Move current primary to alternatives (if it exists)
+        let newAlternatives = session.alternativeHypothesisIds.filter((hid) => hid !== id);
+        if (currentPrimaryId && currentPrimaryId !== id) {
+          newAlternatives = [...newAlternatives, currentPrimaryId];
+        }
 
-          // Don't remove the card - keep it for audit trails
-          // Only move from alternativeHypothesisIds to archivedHypothesisIds
-          return {
-            ...session,
-            alternativeHypothesisIds: session.alternativeHypothesisIds.filter((hid) => hid !== id),
-            archivedHypothesisIds: [...session.archivedHypothesisIds, id],
-            updatedAt: new Date().toISOString(),
-          };
-        },
-      });
-    },
-    []
-  );
-
-  const setPrimaryHypothesis = useCallback(
-    (id: string): void => {
-      dispatch({
-        type: "APPLY_SESSION_UPDATE",
-        update: (session) => {
-          // Check if the hypothesis exists
-          if (!session.hypothesisCards[id]) return session;
-
-          const currentPrimaryId = session.primaryHypothesisId;
-
-          // Move current primary to alternatives (if it exists)
-          let newAlternatives = session.alternativeHypothesisIds.filter((hid) => hid !== id);
-          if (currentPrimaryId && currentPrimaryId !== id) {
-            newAlternatives = [...newAlternatives, currentPrimaryId];
-          }
-
-          return {
-            ...session,
-            primaryHypothesisId: id,
-            alternativeHypothesisIds: newAlternatives,
-            updatedAt: new Date().toISOString(),
-          };
-        },
-      });
-    },
-    []
-  );
+        return {
+          ...session,
+          primaryHypothesisId: id,
+          alternativeHypothesisIds: newAlternatives,
+          updatedAt: new Date().toISOString(),
+        };
+      },
+    });
+  }, []);
 
   // -------------------------------------------------------------------------
   // Corpus Attachment Actions
   // -------------------------------------------------------------------------
 
-  const attachQuote = useCallback(
-    (quote: Omit<AttachedQuote, "id" | "attachedAt">): void => {
-      dispatch({
-        type: "APPLY_SESSION_UPDATE",
-        update: (session) => {
-          if (!quote.hypothesisId) return session;
-          if (!session.hypothesisCards[quote.hypothesisId]) return session;
+  const attachQuote = useCallback((quote: Omit<AttachedQuote, "id" | "attachedAt">): void => {
+    dispatch({
+      type: "APPLY_SESSION_UPDATE",
+      update: (session) => {
+        if (!quote.hypothesisId) return session;
+        if (!session.hypothesisCards[quote.hypothesisId]) return session;
 
-          const existing = session.attachedQuotes ?? [];
-          const isDuplicate = existing.some(
-            (entry) =>
-              entry.hypothesisId === quote.hypothesisId &&
-              entry.field === quote.field &&
-              entry.docId === quote.docId &&
-              entry.anchor === quote.anchor &&
-              entry.url === quote.url
-          );
-          if (isDuplicate) return session;
+        const existing = session.attachedQuotes ?? [];
+        const isDuplicate = existing.some(
+          (entry) =>
+            entry.hypothesisId === quote.hypothesisId &&
+            entry.field === quote.field &&
+            entry.docId === quote.docId &&
+            entry.anchor === quote.anchor &&
+            entry.url === quote.url,
+        );
+        if (isDuplicate) return session;
 
-          const now = new Date();
-          let id = "";
+        const now = new Date();
+        let id = "";
 
-          const crypto = globalThis.crypto;
-          if (crypto && typeof crypto.randomUUID === "function") {
-            id = `AQ-${crypto.randomUUID()}`;
-          } else if (crypto && typeof crypto.getRandomValues === "function") {
-            const rnd = new Uint32Array(1);
-            crypto.getRandomValues(rnd);
-            id = `AQ-${now.getTime()}-${rnd[0].toString(16)}`;
-          } else {
-            // Should not happen in modern environments
-            throw new Error("Crypto API not available");
-          }
+        const crypto = globalThis.crypto;
+        if (crypto && typeof crypto.randomUUID === "function") {
+          id = `AQ-${crypto.randomUUID()}`;
+        } else if (crypto && typeof crypto.getRandomValues === "function") {
+          const rnd = new Uint32Array(1);
+          crypto.getRandomValues(rnd);
+          id = `AQ-${now.getTime()}-${rnd[0].toString(16)}`;
+        } else {
+          // Should not happen in modern environments
+          throw new Error("Crypto API not available");
+        }
 
-          const next: AttachedQuote = {
-            id,
-            attachedAt: now.toISOString(),
-            ...quote,
-          };
+        const next: AttachedQuote = {
+          id,
+          attachedAt: now.toISOString(),
+          ...quote,
+        };
 
-          return {
-            ...session,
-            attachedQuotes: [...existing, next],
-            updatedAt: now.toISOString(),
-          };
-        },
-      });
-    },
-    []
-  );
+        return {
+          ...session,
+          attachedQuotes: [...existing, next],
+          updatedAt: now.toISOString(),
+        };
+      },
+    });
+  }, []);
 
   // -------------------------------------------------------------------------
   // Operator Actions
@@ -770,7 +744,7 @@ export function SessionProvider({
   const appendOperatorApplication = useCallback(
     (
       operator: keyof Session["operatorApplications"],
-      result: LevelSplitResult | ExclusionTestResult | ObjectTransposeResult | ScaleCheckResult
+      result: LevelSplitResult | ExclusionTestResult | ObjectTransposeResult | ScaleCheckResult,
     ): void => {
       const operatorKey = operator;
       if (
@@ -797,7 +771,7 @@ export function SessionProvider({
         },
       });
     },
-    []
+    [],
   );
 
   // -------------------------------------------------------------------------
@@ -823,24 +797,21 @@ export function SessionProvider({
     });
   }, []);
 
-  const goToPhase = useCallback(
-    (phase: SessionPhase): void => {
-      dispatch({
-        type: "APPLY_SESSION_UPDATE",
-        update: (session) => {
-          // Verify it's a valid transition
-          if (!isValidTransition(session.phase, phase)) return session;
+  const goToPhase = useCallback((phase: SessionPhase): void => {
+    dispatch({
+      type: "APPLY_SESSION_UPDATE",
+      update: (session) => {
+        // Verify it's a valid transition
+        if (!isValidTransition(session.phase, phase)) return session;
 
-          return {
-            ...session,
-            phase,
-            updatedAt: new Date().toISOString(),
-          };
-        },
-      });
-    },
-    []
-  );
+        return {
+          ...session,
+          phase,
+          updatedAt: new Date().toISOString(),
+        };
+      },
+    });
+  }, []);
 
   // -------------------------------------------------------------------------
   // Computed Values
@@ -912,12 +883,10 @@ export function SessionProvider({
       canAdvance,
       availablePhases,
       primaryHypothesis,
-    ]
+    ],
   );
 
-  return (
-    <SessionContext.Provider value={value}>{children}</SessionContext.Provider>
-  );
+  return <SessionContext.Provider value={value}>{children}</SessionContext.Provider>;
 }
 
 // ============================================================================
@@ -980,8 +949,7 @@ export function usePhaseNavigation(): {
   /** Go to a specific phase */
   goTo: (phase: SessionPhase) => void;
 } {
-  const { session, advancePhase, goToPhase, canAdvance, availablePhases } =
-    useSession();
+  const { session, advancePhase, goToPhase, canAdvance, availablePhases } = useSession();
 
   const currentIndex = session ? PHASE_ORDER.indexOf(session.phase) : 0;
   const prevPhase = currentIndex > 0 ? PHASE_ORDER[currentIndex - 1] : null;
@@ -1011,4 +979,4 @@ export function usePhaseNavigation(): {
 // Exports
 // ============================================================================
 
-export { SessionContext, PHASE_ORDER };
+export { PHASE_ORDER, SessionContext };

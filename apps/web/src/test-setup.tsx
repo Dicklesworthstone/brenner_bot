@@ -89,9 +89,7 @@ function stripAnimationProps<T extends Record<string, unknown>>(props: T): Parti
     }
   }
 
-  return Object.fromEntries(
-    sanitizedEntries
-  ) as Partial<T>;
+  return Object.fromEntries(sanitizedEntries) as Partial<T>;
 }
 
 // Mock framer-motion to render without animations in tests
@@ -106,7 +104,9 @@ vi.mock("framer-motion", async () => {
         <div {...(stripAnimationProps(props) as React.ComponentProps<"div">)}>{children}</div>
       ),
       section: ({ children, ...props }: React.ComponentProps<"section">) => (
-        <section {...(stripAnimationProps(props) as React.ComponentProps<"section">)}>{children}</section>
+        <section {...(stripAnimationProps(props) as React.ComponentProps<"section">)}>
+          {children}
+        </section>
       ),
       span: ({ children, ...props }: React.ComponentProps<"span">) => (
         <span {...(stripAnimationProps(props) as React.ComponentProps<"span">)}>{children}</span>
@@ -115,7 +115,9 @@ vi.mock("framer-motion", async () => {
         <p {...(stripAnimationProps(props) as React.ComponentProps<"p">)}>{children}</p>
       ),
       button: ({ children, ...props }: React.ComponentProps<"button">) => (
-        <button {...(stripAnimationProps(props) as React.ComponentProps<"button">)}>{children}</button>
+        <button {...(stripAnimationProps(props) as React.ComponentProps<"button">)}>
+          {children}
+        </button>
       ),
       a: ({ children, ...props }: React.ComponentProps<"a">) => (
         <a {...(stripAnimationProps(props) as React.ComponentProps<"a">)}>{children}</a>

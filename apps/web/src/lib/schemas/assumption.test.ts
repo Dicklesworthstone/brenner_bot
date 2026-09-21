@@ -1,22 +1,22 @@
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
 import {
-  AssumptionSchema,
-  AssumptionTypeSchema,
-  AssumptionStatusSchema,
+  type Assumption,
   AssumptionCriticalitySchema,
   AssumptionLoadSchema,
-  ScaleCalculationSchema,
-  warnMissingCalculation,
-  evaluateScaleRigor,
-  validateScaleAssumptionPresence,
-  getAffectedByFalsification,
-  generateAssumptionId,
-  isValidAssumptionId,
-  isValidAnchor,
+  AssumptionSchema,
+  AssumptionStatusSchema,
+  AssumptionTypeSchema,
   createAssumption,
   createScaleAssumption,
-  type Assumption,
+  evaluateScaleRigor,
+  generateAssumptionId,
+  getAffectedByFalsification,
+  isValidAnchor,
+  isValidAssumptionId,
   type ScaleCalculation,
+  ScaleCalculationSchema,
+  validateScaleAssumptionPresence,
+  warnMissingCalculation,
 } from "./assumption";
 
 describe("AssumptionSchema", () => {
@@ -495,9 +495,7 @@ describe("generateAssumptionId", () => {
 
   it("throws error on sequence overflow (>999)", () => {
     const existing = ["A-TEST-999"];
-    expect(() => generateAssumptionId("TEST", existing)).toThrow(
-      /sequence overflow/i
-    );
+    expect(() => generateAssumptionId("TEST", existing)).toThrow(/sequence overflow/i);
   });
 
   it("handles sequence 999 as valid (boundary case)", () => {

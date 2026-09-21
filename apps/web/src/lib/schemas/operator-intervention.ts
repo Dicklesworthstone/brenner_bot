@@ -58,12 +58,7 @@ export type InterventionType = z.infer<typeof InterventionTypeSchema>;
  * - major: Killing hypotheses, adding tests, role changes
  * - critical: Session termination, protocol bypass
  */
-export const InterventionSeveritySchema = z.enum([
-  "minor",
-  "moderate",
-  "major",
-  "critical",
-]);
+export const InterventionSeveritySchema = z.enum(["minor", "moderate", "major", "critical"]);
 
 export type InterventionSeverity = z.infer<typeof InterventionSeveritySchema>;
 
@@ -100,15 +95,17 @@ export const InterventionTargetSchema = z.object({
   item_id: z.string().optional(),
 
   /** Item type (hypothesis, test, assumption, anomaly, critique) */
-  item_type: z.enum([
-    "hypothesis",
-    "test",
-    "prediction",
-    "assumption",
-    "anomaly",
-    "critique",
-    "research_thread",
-  ]).optional(),
+  item_type: z
+    .enum([
+      "hypothesis",
+      "test",
+      "prediction",
+      "assumption",
+      "anomaly",
+      "critique",
+      "research_thread",
+    ])
+    .optional(),
 
   /** Agent name for role reassignment */
   agent_name: z.string().optional(),
@@ -266,7 +263,7 @@ export function createInterventionId(sessionId: string, sequence: number): strin
  */
 export function determineInterventionSeverity(
   type: InterventionType,
-  target: InterventionTarget
+  target: InterventionTarget,
 ): InterventionSeverity {
   // Critical: session control actions
   if (type === "session_control") {
@@ -284,10 +281,7 @@ export function determineInterventionSeverity(
   }
 
   // Moderate: delta exclusion, test/assumption edits
-  if (
-    type === "delta_exclusion" ||
-    (type === "artifact_edit" && target.item_type)
-  ) {
+  if (type === "delta_exclusion" || (type === "artifact_edit" && target.item_type)) {
     return "moderate";
   }
 
@@ -323,9 +317,7 @@ export function createEmptyInterventionSummary(): InterventionSummary {
 /**
  * Aggregates interventions into a summary.
  */
-export function aggregateInterventions(
-  interventions: OperatorIntervention[]
-): InterventionSummary {
+export function aggregateInterventions(interventions: OperatorIntervention[]): InterventionSummary {
   const summary = createEmptyInterventionSummary();
 
   if (interventions.length === 0) {
@@ -371,7 +363,7 @@ export function aggregateInterventions(
  * Validates an intervention record.
  */
 export function validateIntervention(
-  intervention: unknown
+  intervention: unknown,
 ): { valid: true; data: OperatorIntervention } | { valid: false; errors: string[] } {
   const result = OperatorInterventionSchema.safeParse(intervention);
   if (result.success) {

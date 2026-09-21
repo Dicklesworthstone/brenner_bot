@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 
 /**
  * Mobile Visual Audit
@@ -45,10 +45,7 @@ test.describe("Mobile Audit Screenshots", () => {
   for (const page of PAGES) {
     for (const { width, name: widthName } of WIDTHS) {
       for (const theme of THEMES) {
-        test(`${page.name} @ ${widthName}px ${theme}`, async ({
-          page: p,
-          context,
-        }) => {
+        test(`${page.name} @ ${widthName}px ${theme}`, async ({ page: p, context }) => {
           // Set viewport
           await p.setViewportSize({ width, height: 800 });
 
@@ -86,10 +83,7 @@ test.describe("Mobile Audit Screenshots", () => {
   for (const page of LARGE_PAGES) {
     for (const { width, name: widthName } of WIDTHS) {
       for (const theme of THEMES) {
-        test(`${page.name} @ ${widthName}px ${theme} (viewport)`, async ({
-          page: p,
-          context,
-        }) => {
+        test(`${page.name} @ ${widthName}px ${theme} (viewport)`, async ({ page: p, context }) => {
           // Set viewport
           await p.setViewportSize({ width, height: 800 });
 

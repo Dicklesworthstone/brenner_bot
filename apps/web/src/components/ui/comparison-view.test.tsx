@@ -9,12 +9,12 @@
  */
 
 import { render, screen } from "@testing-library/react";
-import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   ComparisonView,
   ModelBadge,
-  TwoColumnComparison,
   ThreeModelComparison,
+  TwoColumnComparison,
 } from "./comparison-view";
 
 // ============================================================================
@@ -47,7 +47,7 @@ describe("ComparisonView", () => {
             { id: "1", title: "First Pane", content: <p>Content 1</p> },
             { id: "2", title: "Second Pane", content: <p>Content 2</p> },
           ]}
-        />
+        />,
       );
 
       expect(screen.getByText("First Pane")).toBeInTheDocument();
@@ -56,11 +56,7 @@ describe("ComparisonView", () => {
 
     it("renders pane content", () => {
       render(
-        <ComparisonView
-          panes={[
-            { id: "1", title: "Pane 1", content: <p>Hello World</p> },
-          ]}
-        />
+        <ComparisonView panes={[{ id: "1", title: "Pane 1", content: <p>Hello World</p> }]} />,
       );
 
       expect(screen.getByText("Hello World")).toBeInTheDocument();
@@ -71,7 +67,7 @@ describe("ComparisonView", () => {
         <ComparisonView
           panes={[{ id: "1", title: "Pane", content: <p>Content</p> }]}
           className="custom-comparison"
-        />
+        />,
       );
 
       const wrapper = container.querySelector(".comparison-container");
@@ -81,10 +77,8 @@ describe("ComparisonView", () => {
     it("renders color indicator when pane has color", () => {
       const { container } = render(
         <ComparisonView
-          panes={[
-            { id: "1", title: "Colored Pane", content: <p>Content</p>, color: "#ff0000" },
-          ]}
-        />
+          panes={[{ id: "1", title: "Colored Pane", content: <p>Content</p>, color: "#ff0000" }]}
+        />,
       );
 
       // Should have a color indicator dot
@@ -104,7 +98,7 @@ describe("ComparisonView", () => {
               icon: <span data-testid="test-icon">★</span>,
             },
           ]}
-        />
+        />,
       );
 
       expect(screen.getByTestId("test-icon")).toBeInTheDocument();
@@ -120,7 +114,7 @@ describe("ComparisonView", () => {
             { id: "2", title: "Pane 2", content: <p>Content 2</p> },
           ]}
           syncScroll={true}
-        />
+        />,
       );
 
       const syncIndicator = container.querySelector(".comparison-sync-indicator");
@@ -136,7 +130,7 @@ describe("ComparisonView", () => {
             { id: "2", title: "Pane 2", content: <p>Content 2</p> },
           ]}
           syncScroll={false}
-        />
+        />,
       );
 
       const syncIndicator = container.querySelector(".comparison-sync-indicator");
@@ -153,7 +147,7 @@ describe("ComparisonView", () => {
             { id: "2", title: "Pane 2", content: <p>Content 2</p> },
             { id: "3", title: "Pane 3", content: <p>Content 3</p> },
           ]}
-        />
+        />,
       );
 
       const panes = container.querySelectorAll(".comparison-pane");
@@ -168,7 +162,7 @@ describe("ComparisonView", () => {
             { id: "b", title: "Beta", content: <p>B</p> },
             { id: "c", title: "Gamma", content: <p>C</p> },
           ]}
-        />
+        />,
       );
 
       const titles = screen.getAllByRole("heading", { level: 3 });
@@ -229,7 +223,13 @@ describe("ModelBadge", () => {
     it("has base badge styling classes", () => {
       const { container } = render(<ModelBadge model="opus" />);
       const badge = container.firstChild as HTMLElement;
-      expect(badge).toHaveClass("inline-flex", "items-center", "rounded-full", "text-xs", "font-medium");
+      expect(badge).toHaveClass(
+        "inline-flex",
+        "items-center",
+        "rounded-full",
+        "text-xs",
+        "font-medium",
+      );
     });
   });
 });
@@ -245,7 +245,7 @@ describe("TwoColumnComparison", () => {
         <TwoColumnComparison
           left={{ title: "Left Side", content: <p>Left content</p> }}
           right={{ title: "Right Side", content: <p>Right content</p> }}
-        />
+        />,
       );
 
       expect(screen.getByText("Left Side")).toBeInTheDocument();
@@ -260,7 +260,7 @@ describe("TwoColumnComparison", () => {
           left={{ title: "Left", content: <p>L</p> }}
           right={{ title: "Right", content: <p>R</p> }}
           className="two-col-custom"
-        />
+        />,
       );
 
       const wrapper = container.querySelector(".comparison-container");
@@ -272,7 +272,7 @@ describe("TwoColumnComparison", () => {
         <TwoColumnComparison
           left={{ title: "Left", content: <p>L</p>, color: "#ff0000" }}
           right={{ title: "Right", content: <p>R</p>, color: "#00ff00" }}
-        />
+        />,
       );
 
       const colorDots = container.querySelectorAll(".rounded-full");
@@ -293,7 +293,7 @@ describe("ThreeModelComparison", () => {
           opus={<p>Opus content</p>}
           gpt={<p>GPT content</p>}
           gemini={<p>Gemini content</p>}
-        />
+        />,
       );
 
       expect(screen.getByText("Opus 4.5")).toBeInTheDocument();
@@ -307,7 +307,7 @@ describe("ThreeModelComparison", () => {
           opus={<p>Opus analysis</p>}
           gpt={<p>GPT analysis</p>}
           gemini={<p>Gemini analysis</p>}
-        />
+        />,
       );
 
       expect(screen.getByText("Opus analysis")).toBeInTheDocument();
@@ -322,7 +322,7 @@ describe("ThreeModelComparison", () => {
           gpt={<p>G</p>}
           gemini={<p>Gem</p>}
           className="three-model-custom"
-        />
+        />,
       );
 
       // The className is applied to the outer wrapper div
@@ -331,11 +331,7 @@ describe("ThreeModelComparison", () => {
 
     it("renders color indicators for all models", () => {
       const { container } = render(
-        <ThreeModelComparison
-          opus={<p>O</p>}
-          gpt={<p>G</p>}
-          gemini={<p>Gem</p>}
-        />
+        <ThreeModelComparison opus={<p>O</p>} gpt={<p>G</p>} gemini={<p>Gem</p>} />,
       );
 
       // Should have 3 color dots (one for each model)
@@ -345,11 +341,7 @@ describe("ThreeModelComparison", () => {
 
     it("renders sparkle icons for all models", () => {
       const { container } = render(
-        <ThreeModelComparison
-          opus={<p>O</p>}
-          gpt={<p>G</p>}
-          gemini={<p>Gem</p>}
-        />
+        <ThreeModelComparison opus={<p>O</p>} gpt={<p>G</p>} gemini={<p>Gem</p>} />,
       );
 
       // Should have SVG icons for each model

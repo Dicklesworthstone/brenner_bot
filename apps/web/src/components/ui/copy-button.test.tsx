@@ -9,7 +9,7 @@
 
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { CopyButton, ReferenceCopyButton } from "./copy-button";
 
 // Mock clipboard API since it doesn't exist in test environment
@@ -187,11 +187,7 @@ describe("ReferenceCopyButton", () => {
 
     it("applies custom className", () => {
       render(
-        <ReferenceCopyButton
-          reference="§42"
-          quoteText="Test quote"
-          className="custom-class"
-        />
+        <ReferenceCopyButton reference="§42" quoteText="Test quote" className="custom-class" />,
       );
       expect(screen.getByRole("button")).toHaveClass("custom-class");
     });
@@ -211,26 +207,16 @@ describe("ReferenceCopyButton", () => {
 
       await user.click(screen.getByRole("button"));
 
-      expect(mockWriteText).toHaveBeenCalledWith(
-        '"Test quote"\n\n— Sydney Brenner, §42'
-      );
+      expect(mockWriteText).toHaveBeenCalledWith('"Test quote"\n\n— Sydney Brenner, §42');
     });
 
     it.skip("copies formatted quote with custom source", async () => {
       const user = userEvent.setup();
-      render(
-        <ReferenceCopyButton
-          reference="§42"
-          quoteText="Test quote"
-          source="Custom Source"
-        />
-      );
+      render(<ReferenceCopyButton reference="§42" quoteText="Test quote" source="Custom Source" />);
 
       await user.click(screen.getByRole("button"));
 
-      expect(mockWriteText).toHaveBeenCalledWith(
-        '"Test quote"\n\n— Custom Source, §42'
-      );
+      expect(mockWriteText).toHaveBeenCalledWith('"Test quote"\n\n— Custom Source, §42');
     });
 
     it.skip("shows checkmark after successful copy", async () => {

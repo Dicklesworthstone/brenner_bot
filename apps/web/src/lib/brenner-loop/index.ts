@@ -14,35 +14,30 @@
 // ============================================================================
 
 export {
-  // Core interfaces
-  type HypothesisCard,
-  type IdentifiedConfound,
-
-  // Validation types
-  type ValidationResult,
-  type ValidationError,
-  type ValidationWarning,
-  type ValidationErrorCode,
-  type ValidationWarningCode,
-
-  // Validation functions
-  validateHypothesisCard,
-  validateConfound,
-
-  // Type guards
-  isHypothesisCard,
-  isIdentifiedConfound,
-
-  // Factory functions
-  generateHypothesisCardId,
-  generateConfoundId,
-  createHypothesisCard,
-  evolveHypothesisCard,
-
   // Utility functions
   calculateFalsifiabilityScore,
   calculateSpecificityScore,
+  createHypothesisCard,
+  evolveHypothesisCard,
+  generateConfoundId,
+  // Factory functions
+  generateHypothesisCardId,
+  // Core interfaces
+  type HypothesisCard,
+  type IdentifiedConfound,
   interpretConfidence,
+  // Type guards
+  isHypothesisCard,
+  isIdentifiedConfound,
+  type ValidationError,
+  type ValidationErrorCode,
+  // Validation types
+  type ValidationResult,
+  type ValidationWarning,
+  type ValidationWarningCode,
+  validateConfound,
+  // Validation functions
+  validateHypothesisCard,
 } from "./hypothesis";
 
 // ============================================================================
@@ -50,27 +45,25 @@ export {
 // ============================================================================
 
 export {
-  // Types
-  type ResearchDomain,
-  type ConfoundTemplate,
-  type ConfoundDetectionResult,
-
-  // Domain confound libraries
-  PSYCHOLOGY_CONFOUNDS,
-  EPIDEMIOLOGY_CONFOUNDS,
-  ECONOMICS_CONFOUNDS,
   BIOLOGY_CONFOUNDS,
-  SOCIOLOGY_CONFOUNDS,
   COMPUTER_SCIENCE_CONFOUNDS,
-  NEUROSCIENCE_CONFOUNDS,
-  GENERAL_CONFOUNDS,
-
+  type ConfoundDetectionResult,
+  type ConfoundTemplate,
   // Detection functions
   classifyDomain,
   detectConfounds,
+  ECONOMICS_CONFOUNDS,
+  EPIDEMIOLOGY_CONFOUNDS,
+  GENERAL_CONFOUNDS,
   getConfoundQuestions,
   getConfoundTemplates,
   getSupportedDomains,
+  NEUROSCIENCE_CONFOUNDS,
+  // Domain confound libraries
+  PSYCHOLOGY_CONFOUNDS,
+  // Types
+  type ResearchDomain,
+  SOCIOLOGY_CONFOUNDS,
 } from "./confound-detection";
 
 // ============================================================================
@@ -78,66 +71,56 @@ export {
 // ============================================================================
 
 export type {
-  // Session phases
-  SessionPhase,
-  SimplifiedPhase,
-
-  // Operator result types
-  LevelSplitResult,
-  LevelIdentification,
-  ExclusionTestResult,
-  DesignedTest,
-  RejectedTest,
-  ObjectTransposeResult,
-  AlternativeSystem,
-  ScaleCheckResult,
-  ScaleCalculation,
-
+  AgentContribution,
+  AgentDelta,
+  AgentResponse,
   // Agent types
   AgentRole,
-  AgentResponse,
-  AgentDelta,
-  PendingAgentRequest,
-  SynthesisResult,
-  Disagreement,
-  AgentContribution,
-
-  // Evidence types
-  EvidenceEntry,
-
+  AlternativeSystem,
   // Artifact types
   ArtifactType,
-  ResearchArtifact,
-
   // Session versioning types
   CommitTrigger,
-  SessionCommit,
-  SessionSnapshot,
-
+  ConfidenceUpdate,
+  DesignedTest,
+  Disagreement,
+  // Evidence types
+  EvidenceEntry,
+  ExclusionTestResult,
   // Evolution types
   HypothesisEvolution,
-  ConfidenceUpdate,
-
+  LevelIdentification,
+  // Operator result types
+  LevelSplitResult,
+  ObjectTransposeResult,
+  PendingAgentRequest,
+  RejectedTest,
+  ResearchArtifact,
+  ScaleCalculation,
+  ScaleCheckResult,
   // Main session type
   Session,
+  SessionCommit,
+  // Session phases
+  SessionPhase,
+  SessionSnapshot,
+  SimplifiedPhase,
+  SynthesisResult,
 } from "./types";
 
 export {
-  // Phase utilities
-  toSimplifiedPhase,
-  isValidTransition,
-
-  // Type guards
-  isSessionPhase,
-  isAgentRole,
-  isSession,
-
+  // Constants
+  CURRENT_SESSION_VERSION,
   // Factory functions
   createSession,
   generateSessionId,
-
-  // Constants
-  CURRENT_SESSION_VERSION,
+  isAgentRole,
+  isSession,
+  // Type guards
+  isSessionPhase,
+  isValidTransition,
+  // Phase utilities
+  toSimplifiedPhase,
 } from "./types";
 
 // ============================================================================
@@ -145,37 +128,34 @@ export {
 // ============================================================================
 
 export type {
+  SessionResumeEntry,
+  SessionResumeLocation,
   // Storage interface
   SessionStorage,
   SessionSummary,
-  SessionResumeLocation,
-  SessionResumeEntry,
-  StorageStats,
-  StorageErrorCode,
   StorageChangeCallback,
+  StorageErrorCode,
+  StorageStats,
 } from "./storage";
 
 export {
+  buildSessionPath,
+  cleanupOldSessions,
+  estimateRemainingStorage,
+  getSessionResumeEntry,
   // Storage implementation
   LocalStorageSessionStorage,
-  sessionStorage,
-  StorageError,
-
-  // Resume metadata
-  SESSION_RESUME_LOCATION_LABELS,
-  recordSessionResumeEntry,
-  getSessionResumeEntry,
   listSessionResumeEntries,
-  removeSessionResumeEntry,
-  buildSessionPath,
-
-  // Recovery utilities
-  recoverSessions,
-  estimateRemainingStorage,
-  cleanupOldSessions,
-
   // Cross-tab sync
   onStorageChange,
+  recordSessionResumeEntry,
+  // Recovery utilities
+  recoverSessions,
+  removeSessionResumeEntry,
+  // Resume metadata
+  SESSION_RESUME_LOCATION_LABELS,
+  StorageError,
+  sessionStorage,
 } from "./storage";
 
 // ============================================================================
@@ -183,20 +163,20 @@ export {
 // ============================================================================
 
 export type {
-  RecoverySeverity,
   RecoveryAction,
   RecoveryNotice,
+  RecoveryResult,
+  RecoverySeverity,
   RetryOptions,
   TimeoutOptions,
-  RecoveryResult,
 } from "./errorRecovery";
 
 export {
+  createRecoveryNotice,
+  loadSessionWithRecovery,
   TimeoutError,
   withRetry,
   withTimeout,
-  loadSessionWithRecovery,
-  createRecoveryNotice,
 } from "./errorRecovery";
 
 // ============================================================================
@@ -211,12 +191,18 @@ export { exportSession, importSession } from "./export";
 // Personal Analytics (bead 1v26.5)
 // ============================================================================
 
-export type { PersonalAnalytics, TrendData, TrendPoint, Achievement, ObjectionStats } from "./analytics";
+export type {
+  Achievement,
+  ObjectionStats,
+  PersonalAnalytics,
+  TrendData,
+  TrendPoint,
+} from "./analytics";
 
 export {
   computePersonalAnalytics,
-  loadObjectionStatsFromStorage,
   findThreadIdsForSession,
+  loadObjectionStatsFromStorage,
 } from "./analytics";
 
 // ============================================================================
@@ -226,18 +212,16 @@ export {
 export type { SessionContextValue } from "./session-context";
 
 export {
-  // Provider
-  SessionProvider,
-  SessionContext,
-
-  // Hooks
-  useSession,
-  useHypothesis,
-  useCurrentPhase,
-  usePhaseNavigation,
-
   // Constants
   PHASE_ORDER,
+  SessionContext,
+  // Provider
+  SessionProvider,
+  useCurrentPhase,
+  useHypothesis,
+  usePhaseNavigation,
+  // Hooks
+  useSession,
 } from "./session-context";
 
 // ============================================================================
@@ -248,52 +232,47 @@ export type {
   // Event types
   SessionEvent,
   SessionEventType,
-
-  // Configuration types
-  TransitionGuard,
+  SessionMachineConfig,
+  StateConfig,
   TransitionAction,
   TransitionDef,
-  StateConfig,
-  SessionMachineConfig,
-
+  // Configuration types
+  TransitionGuard,
   // Result types
   TransitionResult,
 } from "./session-machine";
 
 export {
-  // Machine config
-  sessionMachineConfig,
-
-  // Core functions
-  transition,
-  getAvailableEvents,
-  getReachablePhases,
-  canSend,
   canGoBack,
-  isComplete,
+  canSend,
+  canTransitionTo,
+  getAvailableEvents,
   getDefaultNextPhase,
-
+  getPhaseDescription,
   // Display helpers
   getPhaseName,
-  getPhaseDescription,
   getPhaseSymbol,
-
-  // Guards (for custom use)
-  hasPrimaryHypothesis,
-  hasPredictions,
-  canTransitionTo,
-  hasPendingAgentRequests,
+  getReachablePhases,
   hasAgentResponses,
   hasEvidence,
+  hasPendingAgentRequests,
+  hasPredictions,
+  // Guards (for custom use)
+  hasPrimaryHypothesis,
+  isComplete,
+  // Machine config
+  sessionMachineConfig,
+  // Core functions
+  transition,
 } from "./session-machine";
 
 // Hook and helpers
 export type { SessionMachineState, UseSessionMachineOptions } from "./use-session-machine";
 
 export {
-  useSessionMachine,
   getPhaseStatusClass,
   getSessionProgress,
+  useSessionMachine,
 } from "./use-session-machine";
 
 // ============================================================================
@@ -301,34 +280,34 @@ export {
 // ============================================================================
 
 export type {
+  EvolutionGraph,
+  EvolutionGraphEdge,
+  EvolutionGraphNode,
+  EvolutionStatus,
   EvolutionTrigger,
-  HypothesisVersion,
-  HypothesisHistoryStore,
   HypothesisChange,
   HypothesisDiff,
-  EvolutionStatus,
-  EvolutionGraphNode,
-  EvolutionGraphEdge,
-  EvolutionGraph,
+  HypothesisHistoryStore,
+  HypothesisVersion,
 } from "./hypothesis-history";
 
 export {
-  EVOLUTION_TRIGGER_LABELS,
-  createHistoryStore,
-  addRootHypothesis,
-  evolveHypothesis,
   abandonHypothesis,
-  getAncestors,
-  getDescendants,
-  getRoot,
-  getLeaves,
-  findCommonAncestor,
+  addRootHypothesis,
+  createHistoryStore,
   diffHypotheses,
+  EVOLUTION_TRIGGER_LABELS,
+  evolveHypothesis,
+  findByTimeRange,
+  findByTrigger,
+  findCommonAncestor,
   generateEvolutionGraph,
   generateLineageGraph,
+  getAncestors,
+  getDescendants,
   getEvolutionStats,
-  findByTrigger,
-  findByTimeRange,
+  getLeaves,
+  getRoot,
   isAncestor,
 } from "./hypothesis-history";
 
@@ -337,60 +316,54 @@ export {
 // ============================================================================
 
 export type {
+  ArenaHypothesis,
+  ArenaHypothesisStatus,
+  ArenaTest,
+  ComparisonMatrix,
+  ComparisonMatrixRow,
+  HypothesisArena,
+  HypothesisSource,
+  HypothesisTestResult,
+  PredictionBoldness,
+  ScoredPrediction,
   // Core types
   TestResultType,
-  PredictionBoldness,
-  ArenaHypothesisStatus,
-  HypothesisSource,
-  ArenaHypothesis,
-  ScoredPrediction,
-  HypothesisTestResult,
-  ArenaTest,
-  HypothesisArena,
-  ComparisonMatrixRow,
-  ComparisonMatrix,
 } from "./hypothesis-arena";
 
 export {
-  // Constants
-  BOLDNESS_MULTIPLIERS,
-  BASE_SCORE_DELTAS,
-  SOURCE_LABELS,
-  STATUS_CONFIG,
-
-  // Factory functions
-  generateArenaId,
-  generateTestResultId,
-  generateArenaTestId,
-  createArena,
-  createArenaHypothesis,
-
   // Arena operations
   addCompetitor,
+  // Boldness assessment
+  assessPredictionBoldness,
+  BASE_SCORE_DELTAS,
+  // Constants
+  BOLDNESS_MULTIPLIERS,
+  // Comparison matrix
+  buildComparisonMatrix,
+  calculateDiscriminativePower,
   calculateScoreDelta,
-  recordTestResult,
+  createArena,
+  createArenaHypothesis,
   createArenaTest,
   eliminateHypothesis,
-  resolveArena,
-
+  // Factory functions
+  generateArenaId,
+  generateArenaTestId,
+  generateTestResultId,
   // Query functions
   getActiveHypotheses,
+  getAverageBoldness,
   getEliminatedHypotheses,
   getLeader,
   getRankedHypotheses,
-  calculateDiscriminativePower,
-
-  // Comparison matrix
-  buildComparisonMatrix,
-
+  isArenaHypothesis,
   // Type guards
   isHypothesisArena,
-  isArenaHypothesis,
-
-  // Boldness assessment
-  assessPredictionBoldness,
+  recordTestResult,
+  resolveArena,
+  SOURCE_LABELS,
+  STATUS_CONFIG,
   scorePredictions,
-  getAverageBoldness,
 } from "./hypothesis-arena";
 
 // ============================================================================
@@ -398,16 +371,16 @@ export {
 // ============================================================================
 
 export type {
+  ComparisonEvidenceSummary,
   ComparisonField,
   ComparisonResult,
   PredictionConflictRow,
-  ComparisonEvidenceSummary,
 } from "./comparison";
 
 export {
   buildComparisonResults,
-  buildPredictionConflictMatrix,
   buildEvidenceSummary,
+  buildPredictionConflictMatrix,
 } from "./comparison";
 
 // ============================================================================
@@ -415,53 +388,45 @@ export {
 // ============================================================================
 
 export type {
+  HypothesisLifecycleEvent,
   // Core types
   HypothesisState,
-  HypothesisLifecycleEvent,
-  HypothesisWithLifecycle,
-  LifecycleTransitionResult,
-  LifecycleSideEffect,
-
   // Configuration types
   HypothesisStateConfig,
-
+  HypothesisWithLifecycle,
+  LifecycleSideEffect,
   // Statistics
   LifecycleStats,
+  LifecycleTransitionResult,
 } from "./hypothesis-lifecycle";
 
 export {
-  // State configuration
-  HYPOTHESIS_STATE_CONFIG,
-
-  // Core transition functions
-  transitionHypothesis,
-  getAvailableTransitions,
+  // Statistics
+  calculateLifecycleStats,
   canTransition,
   canTransitionWithEvent,
-
-  // State queries
-  isTerminalState,
-  isResolvable,
-  shouldBeDormant,
-
   // Factory functions
   createHypothesisWithLifecycle,
-  upgradeToLifecycle,
-
+  getAvailableTransitions,
+  getStateColors,
+  getStateDescription,
+  getStateIcon,
+  // Display helpers
+  getStateLabel,
+  // State configuration
+  HYPOTHESIS_STATE_CONFIG,
   // Type guards
   isHypothesisState,
   isHypothesisWithLifecycle,
-
-  // Display helpers
-  getStateLabel,
-  getStateDescription,
-  getStateIcon,
-  getStateColors,
-  isStateEditable,
+  isResolvable,
   isStateDeletable,
-
-  // Statistics
-  calculateLifecycleStats,
+  isStateEditable,
+  // State queries
+  isTerminalState,
+  shouldBeDormant,
+  // Core transition functions
+  transitionHypothesis,
+  upgradeToLifecycle,
 } from "./hypothesis-lifecycle";
 
 // ============================================================================
@@ -469,49 +434,42 @@ export {
 // ============================================================================
 
 export type {
-  // Core types
-  PredictionLockState,
-  PredictionType,
   LockedPrediction,
-  PredictionAmendment,
-
   // Result types
   LockResult,
-  RevealResult,
-  VerificationResult,
-  PredictionLockStats,
-
   // Display types
   LockStateDisplay,
+  PredictionAmendment,
+  // Core types
+  PredictionLockState,
+  PredictionLockStats,
+  PredictionType,
+  RevealResult,
+  VerificationResult,
 } from "./prediction-lock";
 
 export {
-  // Cryptographic functions
-  generateHash,
-
-  // ID generation
-  generatePredictionLockId,
-
-  // Core lock operations
-  lockPrediction,
-  verifyPrediction,
-  revealPrediction,
   amendPrediction,
-
   // Statistics & scoring
   calculatePredictionLockStats,
   calculateRobustnessMultiplier,
-
+  formatLockTimestamp,
+  // Cryptographic functions
+  generateHash,
+  // ID generation
+  generatePredictionLockId,
+  getLockStateDisplay,
+  getShortHash,
+  isLockedPrediction,
   // Type guards
   isPredictionLockState,
   isPredictionType,
-  isLockedPrediction,
-
   // Display helpers
   LOCK_STATE_DISPLAY,
-  getLockStateDisplay,
-  formatLockTimestamp,
-  getShortHash,
+  // Core lock operations
+  lockPrediction,
+  revealPrediction,
+  verifyPrediction,
 } from "./prediction-lock";
 
 // ============================================================================
@@ -537,48 +495,42 @@ export {
 // ============================================================================
 
 export type {
-  // Core types
-  TestType,
-  EvidenceResult,
   DiscriminativePower,
-  TestDescription,
-
   // Comprehensive evidence interface (see note above)
   // Aliased to distinguish from simplified EvidenceEntry in types.ts
   EvidenceEntry as FullEvidenceEntry,
-
+  EvidenceResult,
+  EvidenceValidationError,
+  EvidenceValidationErrorCode,
   // Validation types
   EvidenceValidationResult,
-  EvidenceValidationError,
   EvidenceValidationWarning,
-  EvidenceValidationErrorCode,
   EvidenceValidationWarningCode,
+  TestDescription,
+  // Core types
+  TestType,
 } from "./evidence";
 
 export {
-  // Constants
-  TEST_TYPE_LABELS,
-  DISCRIMINATIVE_POWER_LABELS,
-  EVIDENCE_ID_PATTERN,
-
-  // Type guards
-  isTestType,
-  isEvidenceResult,
-  isDiscriminativePower,
-  isTestDescription,
-  isEvidenceEntry,
-
-  // Validation
-  validateEvidenceEntry,
-
-  // Factory functions
-  generateEvidenceId,
-  createEvidenceEntry,
-
   // Utility functions
   calculateConfidenceDelta,
-  summarizeEvidenceResult,
+  createEvidenceEntry,
+  DISCRIMINATIVE_POWER_LABELS,
+  EVIDENCE_ID_PATTERN,
+  // Factory functions
+  generateEvidenceId,
   getResultColor,
+  isDiscriminativePower,
+  isEvidenceEntry,
+  isEvidenceResult,
+  isTestDescription,
+  // Type guards
+  isTestType,
+  summarizeEvidenceResult,
+  // Constants
+  TEST_TYPE_LABELS,
+  // Validation
+  validateEvidenceEntry,
 } from "./evidence";
 
 // ============================================================================
@@ -586,50 +538,44 @@ export {
 // ============================================================================
 
 export type {
-  PredictionRecord,
   CalibrationBin,
   CalibrationMetrics,
-  ResolutionFeedback,
   CalibrationProgress,
+  PredictionRecord,
+  ResolutionFeedback,
 } from "./calibration";
 
 export {
-  // Constants
-  DEFAULT_BIN_BOUNDARIES,
-  CALIBRATION_ERROR_THRESHOLD,
-  MIN_PREDICTIONS_FOR_METRICS,
-  MIN_PREDICTIONS_PER_BIN,
-
-  // Record creation
-  generatePredictionId,
-  createPredictionRecord,
-  resolvePrediction,
-
   // Calibration calculation
   binPredictions,
+  CALIBRATION_ERROR_THRESHOLD,
+  calculateBias,
   calculateBrierScore,
   calculateCalibrationError,
-  calculateBias,
-  calculateSharpness,
-  calculateDomainAccuracy,
   calculateCalibrationMetrics,
-
-  // Feedback generation
-  getCalibrationAtConfidence,
-  generateResolutionFeedback,
-
-  // Progress tracking
-  trackCalibrationProgress,
-
+  calculateDomainAccuracy,
+  calculateSharpness,
+  createPredictionRecord,
+  // Constants
+  DEFAULT_BIN_BOUNDARIES,
   // Utility functions
   formatBrierScore,
   formatCalibrationError,
+  // Record creation
+  generatePredictionId,
+  generateResolutionFeedback,
+  // Feedback generation
+  getCalibrationAtConfidence,
   getCalibrationQualityAssessment,
   identifyCalibrationStrengths,
-
   // Type guards
   isPredictionOutcome,
   isPredictionRecord,
+  MIN_PREDICTIONS_FOR_METRICS,
+  MIN_PREDICTIONS_PER_BIN,
+  resolvePrediction,
+  // Progress tracking
+  trackCalibrationProgress,
 } from "./calibration";
 
 // ============================================================================
@@ -637,22 +583,22 @@ export {
 // ============================================================================
 
 export type {
-  ResearchBriefStatus,
-  ResearchBriefMetadata,
-  HypothesisStatement,
+  AgentAnalysis,
   // Note: HypothesisEvolution omitted - already exported from types.ts
   // The artifacts version uses a different shape for template rendering
   DiscriminativeStructure,
-  OperatorAppliedSummary,
-  AgentAnalysis,
   EvidenceSummary as ResearchBriefEvidenceSummary,
+  HypothesisStatement,
+  OperatorAppliedSummary,
+  ResearchBriefMetadata,
+  ResearchBriefStatus,
   ResearchBriefTemplateInput,
 } from "./artifacts/research-brief-template";
 
 export {
+  createResearchBriefTemplate,
   RESEARCH_BRIEF_TEMPLATE_VERSION,
   renderResearchBriefTemplate,
-  createResearchBriefTemplate,
 } from "./artifacts/research-brief-template";
 
 // ============================================================================
@@ -661,20 +607,20 @@ export {
 
 export type {
   BrennerCitation,
-  ExternalCitation,
-  ExternalCitationType,
   CitationIndex,
   CitationIndexRenderOptions,
+  ExternalCitation,
+  ExternalCitationType,
 } from "./artifacts/citations";
 
 export {
-  formatBrennerAnchor,
-  buildTranscriptSectionHref,
-  parseBrennerSectionIds,
-  extractBrennerSectionIdsFromText,
   buildBrennerCitations,
-  formatExternalCitation,
   buildCitationIndex,
+  buildTranscriptSectionHref,
+  extractBrennerSectionIdsFromText,
+  formatBrennerAnchor,
+  formatExternalCitation,
+  parseBrennerSectionIds,
   renderCitationIndexSection,
 } from "./artifacts/citations";
 
@@ -690,12 +636,12 @@ export type {
 } from "./artifacts/research-brief-export";
 
 export {
-  exportToMarkdown,
-  exportToJSON,
-  exportToPDF,
   downloadResearchBrief,
-  printResearchBrief,
+  exportToJSON,
+  exportToMarkdown,
+  exportToPDF,
   importResearchBrief,
+  printResearchBrief,
 } from "./artifacts/research-brief-export";
 
 // ============================================================================
@@ -703,47 +649,48 @@ export {
 // ============================================================================
 
 export type {
-  RobustnessInterpretation,
   RobustnessComponents,
-  RobustnessScore,
   RobustnessConfig,
+  RobustnessInterpretation,
+  RobustnessScore,
 } from "./robustness";
 
 export {
-  // Constants
-  DEFAULT_ROBUSTNESS_CONFIG,
-  ROBUSTNESS_LABELS,
-
-  // Core calculation
-  computeSpecificityScore,
+  aggregateRobustness,
+  // Comparison & aggregation
+  compareRobustness,
   computeFalsifiabilityScore,
   computeRobustness,
-
+  // Core calculation
+  computeSpecificityScore,
+  // Constants
+  DEFAULT_ROBUSTNESS_CONFIG,
+  formatRobustnessScore,
+  // Display helpers
+  getRobustnessDisplay,
   // Type guards
   isRobustnessInterpretation,
   isRobustnessScore,
-
-  // Display helpers
-  getRobustnessDisplay,
-  formatRobustnessScore,
+  ROBUSTNESS_LABELS,
   summarizeRobustness,
-
-  // Comparison & aggregation
-  compareRobustness,
-  aggregateRobustness,
 } from "./robustness";
 
 // ============================================================================
 // Embeddings (bead ukd1.1)
 // ============================================================================
 
-export type { EmbeddingSource, EmbeddingEntry, EmbeddingIndex, EmbeddingMatch } from "./search/embeddings";
+export type {
+  EmbeddingEntry,
+  EmbeddingIndex,
+  EmbeddingMatch,
+  EmbeddingSource,
+} from "./search/embeddings";
 
 export {
+  cosineSimilarity,
   EMBEDDING_DIMENSION,
   EMBEDDING_INDEX_VERSION,
   embedText,
-  cosineSimilarity,
   findSimilar,
   loadEmbeddings,
 } from "./search/embeddings";
@@ -753,82 +700,73 @@ export {
 // ============================================================================
 
 export type {
-  // Agent types
-  TribunalAgentRole,
-  TribunalAgentConfig,
-
+  AgentBehavior,
+  AgentPersona,
+  InteractionPattern,
+  InvocationTrigger,
+  ModelConfig as AgentModelConfig,
   // Agent persona types (beads njiu, oytk)
   PersonaPhaseGroup,
   SessionPhase as AgentSessionPhase, // Deprecated alias
-  InvocationTrigger,
-  AgentBehavior,
-  InteractionPattern,
   ToneCalibration,
-  ModelConfig as AgentModelConfig,
-  AgentPersona,
+  TribunalAgentConfig,
+  // Agent types
+  TribunalAgentRole,
 } from "./agents";
 
 export {
+  AGENT_PERSONAS,
+  type AgentDispatch,
+  type AgentTask,
+  // Agent dispatch types (bead xlk2.2)
+  type AgentTaskStatus,
+  BRENNER_CHANNELER_PERSONA,
+  buildAgentPrompt,
+  buildSystemPromptContext,
+  type CreateDispatchOptions,
+  checkAgentAvailability,
+  clearPromptCache,
+  // Agent dispatch functions
+  createDispatch,
+  // Agent dispatch constants
+  DEFAULT_DISPATCH_ROLES,
+  // Agent personas (beads njiu, oytk)
+  DEVILS_ADVOCATE_PERSONA,
+  DISPATCH_SUBJECT_PREFIX,
+  dispatchAgentTask,
+  dispatchAllTasks,
+  EXPERIMENT_DESIGNER_PERSONA,
+  FALLBACK_BRENNER_QUOTES,
+  formatHypothesisForPrompt,
+  formatOperatorResultsForPrompt,
+  generateThreadId,
+  getActivePersonasForPhase,
+  getAgentConfig,
+  getBehaviorsByPriority,
+  getDispatchStatus,
+  getFallbackContent,
+  getInteractionExamples,
+  getModelConfig,
+  // Persona utility functions
+  getPersona,
+  getPersonasForTrigger,
+  // Agent helpers
+  getTribunalAgentsInOrder,
+  // Type guards
+  isTribunalAgentRole,
+  loadPrompt,
+  // Phase mapping (converts detailed SessionPhase to PersonaPhaseGroup)
+  mapSessionPhaseToPersonaGroup,
+  type OperatorResults,
+  type PollOptions,
+  pollForResponses,
+  STATISTICIAN_PERSONA,
+  SYNTHESIS_PERSONA,
+  shouldInvokePersona,
   // Agent configurations
   TRIBUNAL_AGENTS,
   TRIBUNAL_ORDER,
-
-  // Agent helpers
-  getTribunalAgentsInOrder,
-  getAgentConfig,
-  loadPrompt,
-  clearPromptCache,
-
-  // Type guards
-  isTribunalAgentRole,
-
-  // Phase mapping (converts detailed SessionPhase to PersonaPhaseGroup)
-  mapSessionPhaseToPersonaGroup,
-
-  // Agent personas (beads njiu, oytk)
-  DEVILS_ADVOCATE_PERSONA,
-  EXPERIMENT_DESIGNER_PERSONA,
-  STATISTICIAN_PERSONA,
-  BRENNER_CHANNELER_PERSONA,
-  SYNTHESIS_PERSONA,
-  AGENT_PERSONAS,
-
-  // Persona utility functions
-  getPersona,
-  getActivePersonasForPhase,
-  getPersonasForTrigger,
-  shouldInvokePersona,
-  getBehaviorsByPriority,
-  buildSystemPromptContext,
-  getInteractionExamples,
-  getModelConfig,
-
-  // Agent dispatch types (bead xlk2.2)
-  type AgentTaskStatus,
-  type AgentTask,
   type TribunalAgentResponse,
-  type OperatorResults,
-  type AgentDispatch,
-  type CreateDispatchOptions,
-  type PollOptions,
-
-  // Agent dispatch constants
-  DEFAULT_DISPATCH_ROLES,
-  DISPATCH_SUBJECT_PREFIX,
-  FALLBACK_BRENNER_QUOTES,
-
-  // Agent dispatch functions
-  createDispatch,
-  generateThreadId,
-  formatHypothesisForPrompt,
-  formatOperatorResultsForPrompt,
-  buildAgentPrompt,
-  dispatchAgentTask,
-  dispatchAllTasks,
-  pollForResponses,
-  checkAgentAvailability,
-  getFallbackContent,
-  getDispatchStatus,
 } from "./agents";
 
 // ============================================================================
@@ -838,55 +776,47 @@ export {
 export type {
   // Core types
   DeathType,
+  FailurePattern,
   FalsificationLearning,
   FalsifiedHypothesis,
-
-  // Validation types
-  GraveyardValidationResult,
-  GraveyardValidationError,
-  GraveyardValidationWarning,
-  GraveyardValidationErrorCode,
-  GraveyardValidationWarningCode,
-
   // Statistics types
   GraveyardStats,
-  FailurePattern,
+  GraveyardValidationError,
+  GraveyardValidationErrorCode,
+  // Validation types
+  GraveyardValidationResult,
+  GraveyardValidationWarning,
+  GraveyardValidationWarningCode,
 } from "./graveyard";
 
 export {
-  // Constants
-  DEATH_TYPE_LABELS,
+  addContributedTo,
+  // Operations
+  addSuccessor,
+  analyzeFailurePatterns,
+  BRENNER_FALSIFICATION_QUOTES,
+  // Statistics & Analysis
+  calculateGraveyardStats,
+  createFalsifiedHypothesis,
   DEATH_TYPE_DESCRIPTIONS,
   DEATH_TYPE_ICONS,
-  BRENNER_FALSIFICATION_QUOTES,
+  // Constants
+  DEATH_TYPE_LABELS,
+  formatFalsificationDate,
   GRAVEYARD_ID_PATTERN,
-
+  // Factory functions
+  generateGraveyardId,
+  getDeathTypeDisplay,
+  // Display helpers
+  getRandomBrennerQuote,
   // Type guards
   isDeathType,
   isFalsifiedHypothesis,
-
-  // Validation
-  validateFalsifiedHypothesis,
-
-  // Factory functions
-  generateGraveyardId,
-  createFalsifiedHypothesis,
-
-  // Operations
-  addSuccessor,
-  addContributedTo,
+  summarizeFalsification,
   updateEpitaph,
   updateLearning,
-
-  // Statistics & Analysis
-  calculateGraveyardStats,
-  analyzeFailurePatterns,
-
-  // Display helpers
-  getRandomBrennerQuote,
-  getDeathTypeDisplay,
-  formatFalsificationDate,
-  summarizeFalsification,
+  // Validation
+  validateFalsifiedHypothesis,
 } from "./graveyard";
 
 // ============================================================================
@@ -894,25 +824,25 @@ export {
 // ============================================================================
 
 export type {
-  TestQueueStatus,
+  TestQueueItem,
   TestQueuePriority,
   TestQueueSource,
-  TestQueueItem,
   TestQueueStats,
+  TestQueueStatus,
 } from "./test-queue";
 
 export {
-  loadTestQueue,
-  saveTestQueue,
-  clearTestQueue,
-  priorityFromPower,
-  isPredictionsLocked,
-  getTestQueueStats,
-  generateQueueItemId,
   addExclusionTestsToQueue,
   addManualQueueItem,
-  updateQueueItem,
+  clearTestQueue,
+  generateQueueItemId,
+  getTestQueueStats,
+  isPredictionsLocked,
+  loadTestQueue,
   lockQueueItemPredictions,
+  priorityFromPower,
+  saveTestQueue,
+  updateQueueItem,
 } from "./test-queue";
 
 // ============================================================================
@@ -921,43 +851,37 @@ export {
 
 export type {
   AssumedTestResult,
-  WhatIfScenario,
+  ScenarioAnalysis,
   TestComparison,
   TestComparisonResult,
-  ScenarioAnalysis,
+  WhatIfScenario,
 } from "./what-if";
 
 export {
+  addTestToScenario,
+  // Scenario analysis
+  analyzeScenario,
   // Single test analysis
   analyzeTestQueueItem,
   calculateRecommendationRating,
-
-  // Scenario creation and manipulation
-  createScenario,
-  addTestToScenario,
-  removeTestFromScenario,
-  updateTestInScenario,
   calculateScenarioOutcome,
-
-  // Scenario analysis
-  analyzeScenario,
-
   // Test comparison
   compareTests,
-
   // Preset scenarios
   createBestCaseScenario,
-  createWorstCaseScenario,
   createMixedScenario,
-
+  // Scenario creation and manipulation
+  createScenario,
+  createWorstCaseScenario,
   // Utility functions
   formatInformationValue,
-  getRecommendationStars,
   getRecommendationColor,
-  summarizeScenario,
-
+  getRecommendationStars,
   // Constants
   RECOMMENDATION_LABELS,
+  removeTestFromScenario,
+  summarizeScenario,
+  updateTestInScenario,
 } from "./what-if";
 
 // ============================================================================
@@ -965,69 +889,57 @@ export {
 // ============================================================================
 
 export type {
-  // Source types
-  LiteratureSource,
-
-  // Search types
-  LiteratureSearchFilters,
-  LiteratureSearch,
-  PaperResult,
-
+  BibTeXEntry,
   // Import types
   DOIImportInput,
-  BibTeXEntry,
-
+  LiteratureSearch,
+  // Search types
+  LiteratureSearchFilters,
+  // Source types
+  LiteratureSource,
+  PaperResult,
   // Evidence recording types
   RecordPaperAsEvidenceInput,
   SuggestedSearches,
 } from "./literature";
 
 export {
-  // Constants
-  LITERATURE_SOURCE_LABELS,
-  LITERATURE_SEARCH_ID_PATTERN,
-  DOI_PATTERN,
-  MAX_SEARCH_RESULTS,
-  RELEVANCE_THRESHOLDS,
-
-  // ID generation
-  generateSearchId,
-  generatePaperId,
-
-  // Search query generation
-  generateSearchQueries,
-
+  bibTeXToPaperResult,
   // Relevance scoring
   calculateRelevance,
-  rankByRelevance,
-  getRelevanceLabel,
-  getRelevanceColor,
-
-  // Citation parsing
-  parseBibTeX,
-  bibTeXToPaperResult,
-
-  // DOI utilities
-  isValidDOI,
-  extractDOI,
-  doiToUrl,
-
-  // Evidence recording
-  formatCitation,
-  formatPaperSource,
-  preparePaperEvidenceData,
-
   // Factory functions
   createLiteratureSearch,
   createPaperResult,
-
-  // Utility functions
-  summarizePaper,
+  DOI_PATTERN,
+  doiToUrl,
+  extractDOI,
+  // Evidence recording
+  formatCitation,
+  formatPaperSource,
+  generatePaperId,
+  // ID generation
+  generateSearchId,
+  // Search query generation
+  generateSearchQueries,
   getPaperAgeCategory,
-
+  getRelevanceColor,
+  getRelevanceLabel,
+  isLiteratureSearch,
   // Type guards
   isPaperResult,
-  isLiteratureSearch,
+  // DOI utilities
+  isValidDOI,
+  LITERATURE_SEARCH_ID_PATTERN,
+  // Constants
+  LITERATURE_SOURCE_LABELS,
+  MAX_SEARCH_RESULTS,
+  // Citation parsing
+  parseBibTeX,
+  preparePaperEvidenceData,
+  RELEVANCE_THRESHOLDS,
+  rankByRelevance,
+  // Utility functions
+  summarizePaper,
 } from "./literature";
 
 // ============================================================================
@@ -1041,18 +953,17 @@ export type {
 } from "./hypothesis-templates";
 
 export {
-  // Template registry
-  HYPOTHESIS_TEMPLATES,
-  TEMPLATE_BY_ID,
-  TEMPLATE_CATEGORIES,
-
+  getFeaturedTemplates,
   // Helper functions
   getTemplate,
-  getTemplatesByDomain,
-  getFeaturedTemplates,
-  getTemplatesByTag,
   getTemplatesByDifficulty,
+  getTemplatesByDomain,
+  getTemplatesByTag,
+  // Template registry
+  HYPOTHESIS_TEMPLATES,
   searchTemplates,
+  TEMPLATE_BY_ID,
+  TEMPLATE_CATEGORIES,
   templateToPartialCard,
 } from "./hypothesis-templates";
 
@@ -1061,46 +972,41 @@ export {
 // ============================================================================
 
 export type {
+  AgentRole as SessionAgentRole,
+  SessionDepth,
   // Core types
   SessionTemplate,
   SessionTemplateSettings,
-  SessionDepth,
-  AgentRole as SessionAgentRole,
 } from "./session-templates";
 
 export {
-  // Template registry
-  SESSION_TEMPLATES,
-  TEMPLATE_BY_ID as SESSION_TEMPLATE_BY_ID,
-
-  // Query functions
-  getSessionTemplate,
-  getFeaturedSessionTemplates,
-  getSortedSessionTemplates,
-  getTemplatesByDepth,
-  getTemplateForTimeConstraint,
-
-  // Phase helpers
-  isPhaseRequired,
-  isPhaseOptional,
-  isPhaseSkipped,
-  isPhaseEnabled,
-  getActivePhases,
-  getPhaseOrderForTemplate,
-
+  // Agent role helpers
+  AGENT_ROLE_INFO,
   // Settings functions
   createTemplateSettings,
   customizeTemplateSettings,
-  getEffectivePhases,
+  getActivePhases,
+  getAgentRoleDescription,
+  getAgentRoleName,
   getEffectiveAgents,
-
+  getEffectivePhases,
+  getFeaturedSessionTemplates,
+  getPhaseOrderForTemplate,
+  // Query functions
+  getSessionTemplate,
+  getSortedSessionTemplates,
+  getTemplateForTimeConstraint,
+  getTemplatesByDepth,
+  isPhaseEnabled,
+  isPhaseOptional,
+  // Phase helpers
+  isPhaseRequired,
+  isPhaseSkipped,
+  // Template registry
+  SESSION_TEMPLATES,
+  TEMPLATE_BY_ID as SESSION_TEMPLATE_BY_ID,
   // Validation
   validateTemplate,
-
-  // Agent role helpers
-  AGENT_ROLE_INFO,
-  getAgentRoleName,
-  getAgentRoleDescription,
 } from "./session-templates";
 
 // ============================================================================
@@ -1108,32 +1014,29 @@ export {
 // ============================================================================
 
 export type {
+  // Context value
+  CoachContextValue,
   // Settings types
   CoachLevel,
   CoachSettings,
-  LearningProgress,
   ConceptCategory,
   ConceptId,
+  LearningProgress,
   PhaseCoachingContent,
-
-  // Context value
-  CoachContextValue,
 } from "./coach-context";
 
 export {
+  CoachContext,
   // Provider
   CoachProvider,
-  CoachContext,
-
+  LEVEL_THRESHOLDS,
+  // Constants
+  PHASE_COACHING,
   // Hooks
   useCoach,
   useCoachActive,
-  usePhaseCoaching,
   useCoachProgress,
-
-  // Constants
-  PHASE_COACHING,
-  LEVEL_THRESHOLDS,
+  usePhaseCoaching,
 } from "./coach-context";
 
 // ============================================================================
@@ -1141,21 +1044,20 @@ export {
 // ============================================================================
 
 export type {
+  DomainFailureDistribution,
+  FailureAnalytics,
+  FailureInsight,
   // Core types
   FailureMode,
-  DomainFailureDistribution,
   FailureModeOccurrence,
   OperatorFailurePattern,
   StructuralPatternFailure,
-  FailureAnalytics,
-  FailureInsight,
 } from "./failure-analytics";
 
 export {
-  // Pattern detectors
-  STRUCTURAL_PATTERNS,
-
   // Core analytics
   computeFailureAnalytics,
+  // Pattern detectors
+  STRUCTURAL_PATTERNS,
   summarizeFailureAnalytics,
 } from "./failure-analytics";

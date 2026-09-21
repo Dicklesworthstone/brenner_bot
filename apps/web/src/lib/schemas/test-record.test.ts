@@ -1,26 +1,26 @@
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
 import {
-  TestRecordSchema,
-  PotencyCheckSchema,
-  EvidencePerWeekScoreSchema,
-  TestFeasibilitySchema,
-  ExpectedOutcomeSchema,
-  TestStatusSchema,
   calculatePotencyScore,
   calculateTotalScore,
+  createBinaryTest,
+  createTestRecord,
   detectInflatedScores,
+  type EvidencePerWeekScore,
+  EvidencePerWeekScoreSchema,
+  type ExpectedOutcome,
+  ExpectedOutcomeSchema,
+  generateTestId,
+  isValidTestId,
+  type PotencyCheck,
+  PotencyCheckSchema,
+  type TestFeasibility,
+  TestFeasibilitySchema,
+  type TestRecord,
+  TestRecordSchema,
+  TestStatusSchema,
   validateDiscriminativePower,
   validatePotencyCheck,
   validateTest,
-  generateTestId,
-  isValidTestId,
-  createTestRecord,
-  createBinaryTest,
-  type TestRecord,
-  type PotencyCheck,
-  type EvidencePerWeekScore,
-  type TestFeasibility,
-  type ExpectedOutcome,
 } from "./test-record";
 
 describe("Test Record Schema", () => {
@@ -132,7 +132,7 @@ describe("Test Record Schema", () => {
           cost: 1,
           speed: 1,
           ambiguity: 1,
-        })
+        }),
       ).toThrow();
     });
   });
@@ -227,7 +227,7 @@ describe("Test Record Schema", () => {
           TestFeasibilitySchema.parse({
             requirements: "Standard equipment needed",
             difficulty: d,
-          })
+          }),
         ).not.toThrow();
       }
     });
@@ -261,14 +261,7 @@ describe("Test Record Schema", () => {
   // ============================================================================
   describe("TestStatusSchema", () => {
     it("accepts all valid statuses", () => {
-      const statuses = [
-        "designed",
-        "ready",
-        "in_progress",
-        "completed",
-        "blocked",
-        "abandoned",
-      ];
+      const statuses = ["designed", "ready", "in_progress", "completed", "blocked", "abandoned"];
       for (const s of statuses) {
         expect(() => TestStatusSchema.parse(s)).not.toThrow();
       }
@@ -282,8 +275,7 @@ describe("Test Record Schema", () => {
     const validTest: TestRecord = {
       id: "T-RS20251230-001",
       name: "Wnt activation migration assay",
-      procedure:
-        "Add Wnt3a to culture, measure cell migration distance over 24h",
+      procedure: "Add Wnt3a to culture, measure cell migration distance over 24h",
       discriminates: ["H-RS20251230-001", "H-RS20251230-002"],
       expectedOutcomes: [
         { hypothesisId: "H-RS20251230-001", outcome: "Migration increases 2-fold" },
@@ -323,9 +315,7 @@ describe("Test Record Schema", () => {
     it("requires at least 2 expected outcomes", () => {
       const invalid = {
         ...validTest,
-        expectedOutcomes: [
-          { hypothesisId: "H-RS20251230-001", outcome: "Some outcome" },
-        ],
+        expectedOutcomes: [{ hypothesisId: "H-RS20251230-001", outcome: "Some outcome" }],
       };
       expect(() => TestRecordSchema.parse(invalid)).toThrow();
     });
@@ -381,7 +371,7 @@ describe("Test Record Schema", () => {
       const result = validateDiscriminativePower(test);
       expect(result.valid).toBe(false);
       expect(result.issues).toContain(
-        "All expected outcomes are the same - test is not discriminative"
+        "All expected outcomes are the same - test is not discriminative",
       );
     });
 
@@ -392,9 +382,7 @@ describe("Test Record Schema", () => {
       };
       const result = validateDiscriminativePower(test);
       expect(result.valid).toBe(false);
-      expect(result.issues.some((i) => i.includes("Missing expected outcome"))).toBe(
-        true
-      );
+      expect(result.issues.some((i) => i.includes("Missing expected outcome"))).toBe(true);
     });
 
     it("gives high score to binary outcomes", () => {
@@ -457,9 +445,7 @@ describe("Test Record Schema", () => {
       };
       const result = validatePotencyCheck(test);
       expect(result.valid).toBe(false);
-      expect(result.issues.some((i) => i.includes("specific positive control"))).toBe(
-        true
-      );
+      expect(result.issues.some((i) => i.includes("specific positive control"))).toBe(true);
     });
 
     it("gives higher score for complete potency check", () => {
@@ -510,9 +496,7 @@ describe("Test Record Schema", () => {
       },
       objectTransposition: {
         considered: true,
-        alternatives: [
-          { system: "Zebrafish", pros: "Fast", cons: "Less relevant" },
-        ],
+        alternatives: [{ system: "Zebrafish", pros: "Fast", cons: "Less relevant" }],
         chosenRationale: "Mouse is most relevant model",
       },
       feasibility: { requirements: "Mouse facility", difficulty: "moderate" },
@@ -531,9 +515,7 @@ describe("Test Record Schema", () => {
     it("warns when object transposition not considered", () => {
       const test = { ...validTest, objectTransposition: undefined };
       const result = validateTest(test);
-      expect(result.warnings.some((w) => w.includes("object transposition"))).toBe(
-        true
-      );
+      expect(result.warnings.some((w) => w.includes("object transposition"))).toBe(true);
     });
 
     it("warns about inflated scores", () => {
@@ -616,10 +598,7 @@ describe("Test Record Schema", () => {
         designedInSession: "RS20251230",
       });
 
-      expect(test.discriminates).toEqual([
-        "H-RS20251230-001",
-        "H-RS20251230-002",
-      ]);
+      expect(test.discriminates).toEqual(["H-RS20251230-001", "H-RS20251230-002"]);
       expect(test.expectedOutcomes[0].resultType).toBe("positive");
       expect(test.expectedOutcomes[1].resultType).toBe("negative");
       expect(test.evidencePerWeekScore.likelihoodRatio).toBe(3);
@@ -637,7 +616,7 @@ describe("Test Record Schema", () => {
           potencyCheck: { positiveControl: "Include positive control" },
           feasibility: { requirements: "Lab", difficulty: "easy" },
           designedInSession: "RS20251230",
-        })
+        }),
       ).toThrow(/not discriminative.*both hypotheses predict positive/);
     });
 
@@ -652,7 +631,7 @@ describe("Test Record Schema", () => {
           potencyCheck: { positiveControl: "Include positive control" },
           feasibility: { requirements: "Lab", difficulty: "easy" },
           designedInSession: "RS20251230",
-        })
+        }),
       ).toThrow(/not discriminative.*both hypotheses predict negative/);
     });
 

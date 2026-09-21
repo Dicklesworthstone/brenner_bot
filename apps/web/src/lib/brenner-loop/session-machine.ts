@@ -16,14 +16,14 @@
  */
 
 import type {
-  SessionPhase,
-  Session,
+  EvidenceEntry,
+  ExclusionTestResult,
   HypothesisCard,
   LevelSplitResult,
-  ExclusionTestResult,
   ObjectTransposeResult,
   ScaleCheckResult,
-  EvidenceEntry,
+  Session,
+  SessionPhase,
 } from "./types";
 import { isValidTransition } from "./types";
 
@@ -159,7 +159,7 @@ const completeOperatorAction: TransitionAction = (session, event) => {
   if (event.type !== "COMPLETE_OPERATOR") return session;
   const { result } = event;
   const phase = session.phase;
-  
+
   // Deep clone operator applications to avoid mutation
   const apps = { ...session.operatorApplications };
 
@@ -192,10 +192,7 @@ const addEvidenceAction: TransitionAction = (session, event) => {
  * Guard: Has a primary hypothesis been set?
  */
 const hasPrimaryHypothesis: TransitionGuard = (session) => {
-  return (
-    !!session.primaryHypothesisId &&
-    !!session.hypothesisCards[session.primaryHypothesisId]
-  );
+  return !!session.primaryHypothesisId && !!session.hypothesisCards[session.primaryHypothesisId];
 };
 
 /**
@@ -587,7 +584,7 @@ export function transition(session: Session, event: SessionEvent): TransitionRes
     // Find matching transition for target phase
     const transitionDefs = Array.isArray(transitions) ? transitions : [transitions];
     const matchingTransition = transitionDefs.find(
-      (t) => t.target === targetPhase && (!t.guard || t.guard(session, event))
+      (t) => t.target === targetPhase && (!t.guard || t.guard(session, event)),
     );
 
     if (!matchingTransition) {
@@ -643,11 +640,7 @@ export function transition(session: Session, event: SessionEvent): TransitionRes
 /**
  * Apply a transition, running actions and updating state.
  */
-function applyTransition(
-  session: Session,
-  def: TransitionDef,
-  event: SessionEvent
-): Session {
+function applyTransition(session: Session, def: TransitionDef, event: SessionEvent): Session {
   const now = new Date().toISOString();
 
   let updatedSession: Session = {
@@ -723,7 +716,7 @@ export function canSend(session: Session, eventType: SessionEventType): boolean 
 
   const defArray = Array.isArray(defs) ? defs : [defs];
   return defArray.some(
-    (def) => !def.guard || def.guard(session, { type: eventType } as SessionEvent)
+    (def) => !def.guard || def.guard(session, { type: eventType } as SessionEvent),
   );
 }
 
@@ -766,7 +759,7 @@ export function getDefaultNextPhase(session: Session): SessionPhase | null {
 
     const defArray = Array.isArray(defs) ? defs : [defs];
     const matchingDef = defArray.find(
-      (def) => !def.guard || def.guard(session, { type: eventType } as SessionEvent)
+      (def) => !def.guard || def.guard(session, { type: eventType } as SessionEvent),
     );
 
     if (matchingDef) {
@@ -835,10 +828,10 @@ export function getPhaseSymbol(phase: SessionPhase): string | null {
 // ============================================================================
 
 export {
-  hasPrimaryHypothesis,
-  hasPredictions,
   canTransitionTo,
-  hasPendingAgentRequests,
   hasAgentResponses,
   hasEvidence,
+  hasPendingAgentRequests,
+  hasPredictions,
+  hasPrimaryHypothesis,
 };

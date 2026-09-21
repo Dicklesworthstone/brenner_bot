@@ -5,9 +5,9 @@
  * stays schema-consistent and stays linked to tagged quotes.
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { readFile, access } from "node:fs/promises";
+import { access, readFile } from "node:fs/promises";
 import { resolve } from "node:path";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
   __private,
@@ -16,8 +16,8 @@ import {
   parseOperatorLibrary,
   readOperatorLibraryMarkdown,
   readQuoteBankMarkdown,
-  resolveOperatorCard,
   resetOperatorPaletteCache,
+  resolveOperatorCard,
 } from "./operator-library";
 
 async function findRepoRoot(): Promise<string> {
@@ -107,7 +107,10 @@ describe("operator-library", () => {
     for (const operator of palette) {
       // Derived operators might not have explicit quote bank anchors yet
       if (operator.kind === "core") {
-        expect(operator.supportingQuotes.length, `Operator ${operator.canonicalTag} has no supporting quotes`).toBeGreaterThan(0);
+        expect(
+          operator.supportingQuotes.length,
+          `Operator ${operator.canonicalTag} has no supporting quotes`,
+        ).toBeGreaterThan(0);
       }
       for (const quote of operator.supportingQuotes) {
         expect(quote.tags).toContain(operator.canonicalTag);
@@ -143,7 +146,9 @@ describe("operator-library", () => {
   });
 
   it("parseOperatorLibrary throws when Core Operators section is missing", () => {
-    expect(() => parseOperatorLibrary("# Not an operator doc")).toThrow(/missing '## Core Operators'/);
+    expect(() => parseOperatorLibrary("# Not an operator doc")).toThrow(
+      /missing '## Core Operators'/,
+    );
   });
 
   it("parseOperatorLibrary throws when required operator blocks are missing", () => {
@@ -241,7 +246,9 @@ describe("operator-library", () => {
   });
 
   it("__private.normalizeBaseUrl strips path/query/hash and rejects bad protocols", () => {
-    expect(__private.normalizeBaseUrl("https://example.com/a?b=1#c", "X")).toBe("https://example.com");
+    expect(__private.normalizeBaseUrl("https://example.com/a?b=1#c", "X")).toBe(
+      "https://example.com",
+    );
     expect(() => __private.normalizeBaseUrl("ftp://example.com", "X")).toThrow(/absolute http/);
   });
 
@@ -303,10 +310,13 @@ describe("operator-library", () => {
     globalThis.fetch = async (input: unknown) => {
       const url = String(input);
       expect(url).toContain("/_corpus/specs/operator_library_v0.1.md");
-      return new Response("## Core Operators\n\n### ⊘ Level-Split\n\n**Definition**:\nX\n\n**When-to-Use Triggers**:\n- A\n\n**Failure Modes**:\n- B\n\n**Canonical tag**: `level-split`\n\n**Quote-bank anchors**: §1\n\n**Transcript Anchors**: §1\n", {
-        status: 200,
-        headers: { "content-type": "text/plain" },
-      });
+      return new Response(
+        "## Core Operators\n\n### ⊘ Level-Split\n\n**Definition**:\nX\n\n**When-to-Use Triggers**:\n- A\n\n**Failure Modes**:\n- B\n\n**Canonical tag**: `level-split`\n\n**Quote-bank anchors**: §1\n\n**Transcript Anchors**: §1\n",
+        {
+          status: 200,
+          headers: { "content-type": "text/plain" },
+        },
+      );
     };
 
     const saved = process.env.BRENNER_PUBLIC_BASE_URL;

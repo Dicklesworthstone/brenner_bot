@@ -11,17 +11,13 @@
  * @module components/brenner-loop/operators/BrennerQuoteSidebar
  */
 
-import * as React from "react";
+import { AnimatePresence, motion } from "framer-motion";
+import { ChevronDown, ChevronUp, Quote as QuoteIcon, Sparkles } from "lucide-react";
 import Link from "next/link";
-import { motion, AnimatePresence } from "framer-motion";
-import { Quote as QuoteIcon, ChevronDown, ChevronUp, Sparkles } from "lucide-react";
-import { cn } from "@/lib/utils";
+import * as React from "react";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import type { Quote } from "@/lib/quotebank-parser";
-import {
-  Collapsible,
-  CollapsibleTrigger,
-  CollapsibleContent,
-} from "@/components/ui/collapsible";
+import { cn } from "@/lib/utils";
 
 // ============================================================================
 // Types
@@ -69,7 +65,7 @@ function QuoteCard({ quote, isActive = true }: QuoteCardProps) {
       transition={{ type: "spring", stiffness: 300, damping: 25 }}
       className={cn(
         "p-4 rounded-xl border bg-card/50 backdrop-blur-sm",
-        isActive ? "border-primary/30 shadow-sm" : "border-border/50"
+        isActive ? "border-primary/30 shadow-sm" : "border-border/50",
       )}
     >
       {/* Quote icon */}
@@ -78,13 +74,9 @@ function QuoteCard({ quote, isActive = true }: QuoteCardProps) {
           <QuoteIcon className="size-4 text-primary" />
         </div>
         <div className="flex-1 min-w-0">
-          <span className="text-xs font-medium text-primary">
-            {quote.sectionId}
-          </span>
+          <span className="text-xs font-medium text-primary">{quote.sectionId}</span>
           <span className="mx-2 text-muted-foreground">—</span>
-          <span className="text-xs text-muted-foreground">
-            {quote.title}
-          </span>
+          <span className="text-xs text-muted-foreground">{quote.title}</span>
         </div>
       </div>
 
@@ -95,9 +87,7 @@ function QuoteCard({ quote, isActive = true }: QuoteCardProps) {
 
       {/* Context */}
       {quote.context && (
-        <p className="mt-3 text-xs text-muted-foreground leading-relaxed">
-          {quote.context}
-        </p>
+        <p className="mt-3 text-xs text-muted-foreground leading-relaxed">{quote.context}</p>
       )}
 
       {/* Tags */}
@@ -169,10 +159,7 @@ export function BrennerQuoteSidebar({
   if (quotes.length === 0) {
     return (
       <div
-        className={cn(
-          "p-4 rounded-xl border border-dashed border-border bg-muted/30",
-          className
-        )}
+        className={cn("p-4 rounded-xl border border-dashed border-border bg-muted/30", className)}
       >
         <div className="flex items-center gap-2 text-muted-foreground">
           <Sparkles className="size-4" />
@@ -202,10 +189,7 @@ export function BrennerQuoteSidebar({
                 </span>
               )}
             </div>
-            <motion.div
-              animate={{ rotate: isOpen ? 180 : 0 }}
-              transition={{ duration: 0.2 }}
-            >
+            <motion.div animate={{ rotate: isOpen ? 180 : 0 }} transition={{ duration: 0.2 }}>
               <ChevronDown className="size-4 text-muted-foreground" />
             </motion.div>
           </div>
@@ -218,9 +202,7 @@ export function BrennerQuoteSidebar({
             onMouseLeave={() => setIsPaused(false)}
           >
             <AnimatePresence mode="wait">
-              {currentQuote && (
-                <QuoteCard key={currentQuote.sectionId} quote={currentQuote} />
-              )}
+              {currentQuote && <QuoteCard key={currentQuote.sectionId} quote={currentQuote} />}
             </AnimatePresence>
 
             {/* Quote navigation */}
@@ -229,9 +211,7 @@ export function BrennerQuoteSidebar({
                 <button
                   type="button"
                   onClick={() =>
-                    setCurrentQuoteIndex((prev) =>
-                      prev === 0 ? quotes.length - 1 : prev - 1
-                    )
+                    setCurrentQuoteIndex((prev) => (prev === 0 ? quotes.length - 1 : prev - 1))
                   }
                   className="p-1.5 rounded-lg hover:bg-muted transition-colors"
                   aria-label="Previous quote"
@@ -249,7 +229,7 @@ export function BrennerQuoteSidebar({
                         "size-1.5 rounded-full transition-all",
                         index === currentQuoteIndex
                           ? "bg-primary w-4"
-                          : "bg-muted-foreground/30 hover:bg-muted-foreground/50"
+                          : "bg-muted-foreground/30 hover:bg-muted-foreground/50",
                       )}
                       aria-label={`Go to quote ${index + 1}`}
                       aria-current={index === currentQuoteIndex}
@@ -259,9 +239,7 @@ export function BrennerQuoteSidebar({
 
                 <button
                   type="button"
-                  onClick={() =>
-                    setCurrentQuoteIndex((prev) => (prev + 1) % quotes.length)
-                  }
+                  onClick={() => setCurrentQuoteIndex((prev) => (prev + 1) % quotes.length)}
                   className="p-1.5 rounded-lg hover:bg-muted transition-colors"
                   aria-label="Next quote"
                 >
@@ -280,7 +258,7 @@ export function BrennerQuoteSidebar({
     <div
       className={cn(
         "flex flex-col gap-4 p-4 rounded-2xl border border-border/50 bg-card/30 backdrop-blur-sm",
-        className
+        className,
       )}
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
@@ -302,9 +280,7 @@ export function BrennerQuoteSidebar({
 
       {/* Quote display */}
       <AnimatePresence mode="wait">
-        {currentQuote && (
-          <QuoteCard key={currentQuote.sectionId} quote={currentQuote} />
-        )}
+        {currentQuote && <QuoteCard key={currentQuote.sectionId} quote={currentQuote} />}
       </AnimatePresence>
 
       {/* Quote navigation */}
@@ -313,9 +289,7 @@ export function BrennerQuoteSidebar({
           <button
             type="button"
             onClick={() =>
-              setCurrentQuoteIndex((prev) =>
-                prev === 0 ? quotes.length - 1 : prev - 1
-              )
+              setCurrentQuoteIndex((prev) => (prev === 0 ? quotes.length - 1 : prev - 1))
             }
             className="p-2 rounded-lg hover:bg-muted transition-colors touch-manipulation"
             aria-label="Previous quote"
@@ -333,7 +307,7 @@ export function BrennerQuoteSidebar({
                   "size-2 rounded-full transition-all duration-200",
                   index === currentQuoteIndex
                     ? "bg-primary w-6"
-                    : "bg-muted-foreground/30 hover:bg-muted-foreground/50"
+                    : "bg-muted-foreground/30 hover:bg-muted-foreground/50",
                 )}
                 aria-label={`Go to quote ${index + 1}`}
                 aria-current={index === currentQuoteIndex}
@@ -343,9 +317,7 @@ export function BrennerQuoteSidebar({
 
           <button
             type="button"
-            onClick={() =>
-              setCurrentQuoteIndex((prev) => (prev + 1) % quotes.length)
-            }
+            onClick={() => setCurrentQuoteIndex((prev) => (prev + 1) % quotes.length)}
             className="p-2 rounded-lg hover:bg-muted transition-colors touch-manipulation"
             aria-label="Next quote"
           >

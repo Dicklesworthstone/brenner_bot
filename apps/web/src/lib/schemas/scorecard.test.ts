@@ -1,45 +1,45 @@
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
 import {
-  ScoreSchema,
-  OptionalScoreSchema,
-  RoleSchema,
-  StructuralCorrectnessSchema,
-  CitationComplianceSchema,
-  RationaleQualitySchema,
-  LevelSeparationSchema,
-  ThirdAlternativePresenceSchema,
-  ParadoxExploitationSchema,
-  DiscriminativePowerSchema,
-  PotencyCheckSufficiencySchema,
-  ObjectTranspositionSchema,
-  ScoreCalibrationHonestySchema,
-  ScaleCheckRigorSchema,
+  type AdversarialCriticCriteria,
   AnomalyQuarantineDisciplineSchema,
-  TheoryKillJustificationSchema,
-  RealThirdAlternativeSchema,
+  BRENNER_QUOTES,
+  CitationComplianceSchema,
+  type ContributionScore,
   ContributionScoreSchema,
-  SessionScoreSchema,
-  SCORE_WEIGHTS,
-  MAX_SCORES,
-  MAX_ROLE_SCORES,
-  calculateUniversalScore,
+  calculateAdversarialCriticScore,
   calculateHypothesisGeneratorScore,
   calculateTestDesignerScore,
-  calculateAdversarialCriticScore,
+  calculateUniversalScore,
   checkPassFailGates,
-  generateWarnings,
-  generateSessionWarnings,
-  SESSION_WARNING_THRESHOLDS,
-  createEmptyStructuralCorrectness,
   createEmptyCitationCompliance,
   createEmptyRationaleQuality,
-  BRENNER_QUOTES,
-  type UniversalCriteria,
+  createEmptyStructuralCorrectness,
+  DiscriminativePowerSchema,
+  generateSessionWarnings,
+  generateWarnings,
   type HypothesisGeneratorCriteria,
-  type TestDesignerCriteria,
-  type AdversarialCriticCriteria,
-  type ContributionScore,
+  LevelSeparationSchema,
+  MAX_ROLE_SCORES,
+  MAX_SCORES,
+  ObjectTranspositionSchema,
+  OptionalScoreSchema,
+  ParadoxExploitationSchema,
+  PotencyCheckSufficiencySchema,
+  RationaleQualitySchema,
+  RealThirdAlternativeSchema,
+  RoleSchema,
+  SCORE_WEIGHTS,
+  ScaleCheckRigorSchema,
+  ScoreCalibrationHonestySchema,
+  ScoreSchema,
+  SESSION_WARNING_THRESHOLDS,
   type SessionScore,
+  SessionScoreSchema,
+  StructuralCorrectnessSchema,
+  type TestDesignerCriteria,
+  TheoryKillJustificationSchema,
+  ThirdAlternativePresenceSchema,
+  type UniversalCriteria,
 } from "./scorecard";
 
 describe("Score Schemas", () => {
@@ -311,7 +311,11 @@ describe("Adversarial Critic Criteria Schemas", () => {
 });
 
 describe("Score Calculation Functions", () => {
-  const createUniversalCriteria = (scores: { structural: number; citation: number; rationale: number }): UniversalCriteria => ({
+  const createUniversalCriteria = (scores: {
+    structural: number;
+    citation: number;
+    rationale: number;
+  }): UniversalCriteria => ({
     structuralCorrectness: {
       score: scores.structural,
       validJson: true,
@@ -351,8 +355,18 @@ describe("Score Calculation Functions", () => {
       const universal = createUniversalCriteria({ structural: 3, citation: 3, rationale: 3 });
       const specific: HypothesisGeneratorCriteria = {
         levelSeparation: { score: 3, conflationDetected: false, mechanismTyped: true },
-        thirdAlternativePresence: { score: 3, hasThirdAlternative: true, isGenuinelyOrthogonal: true, isPlaceholder: false },
-        paradoxExploitation: { score: 2, applicable: true, paradoxIdentified: true, hypothesisDerivedFromParadox: true },
+        thirdAlternativePresence: {
+          score: 3,
+          hasThirdAlternative: true,
+          isGenuinelyOrthogonal: true,
+          isPlaceholder: false,
+        },
+        paradoxExploitation: {
+          score: 2,
+          applicable: true,
+          paradoxIdentified: true,
+          hypothesisDerivedFromParadox: true,
+        },
       };
 
       const result = calculateHypothesisGeneratorScore(universal, specific);
@@ -367,8 +381,18 @@ describe("Score Calculation Functions", () => {
       const universal = createUniversalCriteria({ structural: 3, citation: 3, rationale: 3 });
       const specific: HypothesisGeneratorCriteria = {
         levelSeparation: { score: 3, conflationDetected: false, mechanismTyped: true },
-        thirdAlternativePresence: { score: 3, hasThirdAlternative: true, isGenuinelyOrthogonal: true, isPlaceholder: false },
-        paradoxExploitation: { score: 0, applicable: false, paradoxIdentified: false, hypothesisDerivedFromParadox: false },
+        thirdAlternativePresence: {
+          score: 3,
+          hasThirdAlternative: true,
+          isGenuinelyOrthogonal: true,
+          isPlaceholder: false,
+        },
+        paradoxExploitation: {
+          score: 0,
+          applicable: false,
+          paradoxIdentified: false,
+          hypothesisDerivedFromParadox: false,
+        },
       };
 
       const result = calculateHypothesisGeneratorScore(universal, specific);
@@ -396,8 +420,18 @@ describe("Score Calculation Functions", () => {
           hasSensitivityVerification: true,
           hasTimingValidation: true,
         },
-        objectTransposition: { score: 2, applicable: true, alternativesConsidered: true, costBenefitProvided: true },
-        scoreCalibrationHonesty: { score: 2, hasEvidenceScore: true, isInflated: false, isConservative: true },
+        objectTransposition: {
+          score: 2,
+          applicable: true,
+          alternativesConsidered: true,
+          costBenefitProvided: true,
+        },
+        scoreCalibrationHonesty: {
+          score: 2,
+          hasEvidenceScore: true,
+          isInflated: false,
+          isConservative: true,
+        },
       };
 
       const result = calculateTestDesignerScore(universal, specific);
@@ -413,7 +447,13 @@ describe("Score Calculation Functions", () => {
     it("calculates correct weighted score with kill applicable", () => {
       const universal = createUniversalCriteria({ structural: 3, citation: 3, rationale: 3 });
       const specific: AdversarialCriticCriteria = {
-        scaleCheckRigor: { score: 3, hasScaleCheck: true, hasCalculation: true, hasUnits: true, hasConclusion: true },
+        scaleCheckRigor: {
+          score: 3,
+          hasScaleCheck: true,
+          hasCalculation: true,
+          hasUnits: true,
+          hasConclusion: true,
+        },
         anomalyQuarantineDiscipline: {
           score: 3,
           anomalyCount: 2,
@@ -429,7 +469,13 @@ describe("Score Calculation Functions", () => {
           rescueMovesConsidered: true,
           unjustifiedPatternDetected: false,
         },
-        realThirdAlternative: { score: 3, hasAlternative: true, isSpecific: true, hasMechanism: true, hasTestablePredictions: true },
+        realThirdAlternative: {
+          score: 3,
+          hasAlternative: true,
+          isSpecific: true,
+          hasMechanism: true,
+          hasTestablePredictions: true,
+        },
       };
 
       const result = calculateAdversarialCriticScore(universal, specific);
@@ -443,7 +489,13 @@ describe("Score Calculation Functions", () => {
     it("adjusts max score when kill not applicable", () => {
       const universal = createUniversalCriteria({ structural: 3, citation: 3, rationale: 3 });
       const specific: AdversarialCriticCriteria = {
-        scaleCheckRigor: { score: 3, hasScaleCheck: true, hasCalculation: true, hasUnits: true, hasConclusion: true },
+        scaleCheckRigor: {
+          score: 3,
+          hasScaleCheck: true,
+          hasCalculation: true,
+          hasUnits: true,
+          hasConclusion: true,
+        },
         anomalyQuarantineDiscipline: {
           score: 3,
           anomalyCount: 2,
@@ -459,7 +511,13 @@ describe("Score Calculation Functions", () => {
           rescueMovesConsidered: false,
           unjustifiedPatternDetected: false,
         },
-        realThirdAlternative: { score: 3, hasAlternative: true, isSpecific: true, hasMechanism: true, hasTestablePredictions: true },
+        realThirdAlternative: {
+          score: 3,
+          hasAlternative: true,
+          isSpecific: true,
+          hasMechanism: true,
+          hasTestablePredictions: true,
+        },
       };
 
       const result = calculateAdversarialCriticScore(universal, specific);
@@ -471,7 +529,9 @@ describe("Score Calculation Functions", () => {
 });
 
 describe("Pass/Fail Gates", () => {
-  const createMockContributionScore = (overrides: Partial<ContributionScore> = {}): ContributionScore => ({
+  const createMockContributionScore = (
+    overrides: Partial<ContributionScore> = {},
+  ): ContributionScore => ({
     contributionId: "test-contribution-1",
     sessionId: "RS20251230",
     role: "hypothesis_generator",
@@ -588,8 +648,18 @@ describe("Pass/Fail Gates", () => {
             hasSensitivityVerification: false,
             hasTimingValidation: false,
           },
-          objectTransposition: { score: 0, applicable: false, alternativesConsidered: false, costBenefitProvided: false },
-          scoreCalibrationHonesty: { score: 0, hasEvidenceScore: false, isInflated: false, isConservative: false },
+          objectTransposition: {
+            score: 0,
+            applicable: false,
+            alternativesConsidered: false,
+            costBenefitProvided: false,
+          },
+          scoreCalibrationHonesty: {
+            score: 0,
+            hasEvidenceScore: false,
+            isInflated: false,
+            isConservative: false,
+          },
         },
       });
       const result = checkPassFailGates(score);
@@ -601,7 +671,13 @@ describe("Pass/Fail Gates", () => {
       const score = createMockContributionScore({
         role: "adversarial_critic",
         adversarialCritic: {
-          scaleCheckRigor: { score: 0, hasScaleCheck: false, hasCalculation: false, hasUnits: false, hasConclusion: false },
+          scaleCheckRigor: {
+            score: 0,
+            hasScaleCheck: false,
+            hasCalculation: false,
+            hasUnits: false,
+            hasConclusion: false,
+          },
           anomalyQuarantineDiscipline: {
             score: 0,
             anomalyCount: 0,
@@ -617,7 +693,13 @@ describe("Pass/Fail Gates", () => {
             rescueMovesConsidered: false,
             unjustifiedPatternDetected: true,
           },
-          realThirdAlternative: { score: 0, hasAlternative: false, isSpecific: false, hasMechanism: false, hasTestablePredictions: false },
+          realThirdAlternative: {
+            score: 0,
+            hasAlternative: false,
+            isSpecific: false,
+            hasMechanism: false,
+            hasTestablePredictions: false,
+          },
         },
       });
       const result = checkPassFailGates(score);
@@ -628,7 +710,9 @@ describe("Pass/Fail Gates", () => {
 });
 
 describe("Warning Generation", () => {
-  const createMockContributionScore = (overrides: Partial<ContributionScore> = {}): ContributionScore => ({
+  const createMockContributionScore = (
+    overrides: Partial<ContributionScore> = {},
+  ): ContributionScore => ({
     contributionId: "test-contribution-1",
     sessionId: "RS20251230",
     role: "hypothesis_generator",
@@ -678,7 +762,13 @@ describe("Warning Generation", () => {
         role: "adversarial_critic",
         percentage: 60,
         adversarialCritic: {
-          scaleCheckRigor: { score: 0, hasScaleCheck: false, hasCalculation: false, hasUnits: false, hasConclusion: false },
+          scaleCheckRigor: {
+            score: 0,
+            hasScaleCheck: false,
+            hasCalculation: false,
+            hasUnits: false,
+            hasConclusion: false,
+          },
           anomalyQuarantineDiscipline: {
             score: 3,
             anomalyCount: 1,
@@ -694,7 +784,13 @@ describe("Warning Generation", () => {
             rescueMovesConsidered: false,
             unjustifiedPatternDetected: false,
           },
-          realThirdAlternative: { score: 3, hasAlternative: true, isSpecific: true, hasMechanism: true, hasTestablePredictions: true },
+          realThirdAlternative: {
+            score: 3,
+            hasAlternative: true,
+            isSpecific: true,
+            hasMechanism: true,
+            hasTestablePredictions: true,
+          },
         },
       });
       const warnings = generateWarnings(score);
@@ -719,8 +815,18 @@ describe("Warning Generation", () => {
             hasSensitivityVerification: false,
             hasTimingValidation: false,
           },
-          objectTransposition: { score: 0, applicable: false, alternativesConsidered: false, costBenefitProvided: false },
-          scoreCalibrationHonesty: { score: 0, hasEvidenceScore: false, isInflated: false, isConservative: false },
+          objectTransposition: {
+            score: 0,
+            applicable: false,
+            alternativesConsidered: false,
+            costBenefitProvided: false,
+          },
+          scoreCalibrationHonesty: {
+            score: 0,
+            hasEvidenceScore: false,
+            isInflated: false,
+            isConservative: false,
+          },
         },
       });
       const warnings = generateWarnings(score);
@@ -846,8 +952,18 @@ describe("Composite Score Schemas", () => {
         },
         hypothesisGenerator: {
           levelSeparation: { score: 3, conflationDetected: false, mechanismTyped: true },
-          thirdAlternativePresence: { score: 3, hasThirdAlternative: true, isGenuinelyOrthogonal: true, isPlaceholder: false },
-          paradoxExploitation: { score: 2, applicable: true, paradoxIdentified: true, hypothesisDerivedFromParadox: true },
+          thirdAlternativePresence: {
+            score: 3,
+            hasThirdAlternative: true,
+            isGenuinelyOrthogonal: true,
+            isPlaceholder: false,
+          },
+          paradoxExploitation: {
+            score: 2,
+            applicable: true,
+            paradoxIdentified: true,
+            hypothesisDerivedFromParadox: true,
+          },
         },
         compositeScore: 19,
         maxScore: 19,
@@ -1277,19 +1393,19 @@ describe("Session-Level Warnings", () => {
 // Session-Level Dimension Scoring Tests (7 Dimensions)
 // ============================================================================
 
+import type { Artifact } from "../artifact-merge";
 import {
-  scoreParadoxGrounding,
-  scoreHypothesisKillRate,
-  scoreTestDiscriminability,
-  scoreAssumptionTracking,
-  scoreThirdAlternativeDiscovery,
-  scoreExperimentalFeasibility,
-  scoreAdversarialPressure,
-  scoreSession,
   computeGrade,
   type SessionData,
+  scoreAdversarialPressure,
+  scoreAssumptionTracking,
+  scoreExperimentalFeasibility,
+  scoreHypothesisKillRate,
+  scoreParadoxGrounding,
+  scoreSession,
+  scoreTestDiscriminability,
+  scoreThirdAlternativeDiscovery,
 } from "./scorecard";
-import type { Artifact } from "../artifact-merge";
 
 function createEmptyArtifact(): Artifact {
   return {
@@ -1355,26 +1471,44 @@ describe("Session-Level Dimension Scoring", () => {
     it("detects anomalies in artifact", () => {
       const artifact = createEmptyArtifact();
       artifact.sections.anomaly_register = [
-        { id: "X-1", name: "Anomaly 1", observation: "Unexpected behavior", conflicts_with: ["H1"] },
+        {
+          id: "X-1",
+          name: "Anomaly 1",
+          observation: "Unexpected behavior",
+          conflicts_with: ["H1"],
+        },
       ];
 
       const session = createTestSession({ artifact });
       const result = scoreParadoxGrounding(session);
 
-      expect(result.signals.find((s) => s.signal.includes("surprising observation"))?.found).toBe(true);
-      expect(result.signals.find((s) => s.signal.includes("surprising observation"))?.evidence).toContain("1 anomalies");
+      expect(result.signals.find((s) => s.signal.includes("surprising observation"))?.found).toBe(
+        true,
+      );
+      expect(
+        result.signals.find((s) => s.signal.includes("surprising observation"))?.evidence,
+      ).toContain("1 anomalies");
     });
 
     it("detects falsified assumptions", () => {
       const artifact = createEmptyArtifact();
       artifact.sections.assumption_ledger = [
-        { id: "A-1", name: "Test assumption", statement: "We assume X", load: "H1", test: "Check X", status: "falsified" },
+        {
+          id: "A-1",
+          name: "Test assumption",
+          statement: "We assume X",
+          load: "H1",
+          test: "Check X",
+          status: "falsified",
+        },
       ];
 
       const session = createTestSession({ artifact });
       const result = scoreParadoxGrounding(session);
 
-      expect(result.signals.find((s) => s.signal.includes("assumptions questioned"))?.found).toBe(true);
+      expect(result.signals.find((s) => s.signal.includes("assumptions questioned"))?.found).toBe(
+        true,
+      );
     });
 
     it("achieves max score with all signals", () => {
@@ -1383,7 +1517,14 @@ describe("Session-Level Dimension Scoring", () => {
         { id: "X-1", name: "Anomaly 1", observation: "Test", conflicts_with: [] },
       ];
       artifact.sections.assumption_ledger = [
-        { id: "A-1", name: "Test", statement: "Test", load: "H1", test: "Test", status: "falsified" },
+        {
+          id: "A-1",
+          name: "Test",
+          statement: "Test",
+          load: "H1",
+          test: "Test",
+          status: "falsified",
+        },
       ];
 
       const session = createTestSession({
@@ -1424,7 +1565,14 @@ describe("Session-Level Dimension Scoring", () => {
     it("detects kills from killed flag on hypotheses", () => {
       const artifact = createEmptyArtifact();
       artifact.sections.hypothesis_slate = [
-        { id: "H-1", name: "H1", claim: "Test", mechanism: "Test", killed: true, kill_reason: "Refuted by test T-1 results" },
+        {
+          id: "H-1",
+          name: "H1",
+          claim: "Test",
+          mechanism: "Test",
+          killed: true,
+          kill_reason: "Refuted by test T-1 results",
+        },
       ];
 
       const session = createTestSession({ artifact });
@@ -1437,20 +1585,37 @@ describe("Session-Level Dimension Scoring", () => {
     it("detects reasoning from flagged kills without transitions", () => {
       const artifact = createEmptyArtifact();
       artifact.sections.hypothesis_slate = [
-        { id: "H-1", name: "H1", claim: "Test", mechanism: "Test", killed: true, kill_reason: "Experiment showed no binding affinity" },
+        {
+          id: "H-1",
+          name: "H1",
+          claim: "Test",
+          mechanism: "Test",
+          killed: true,
+          kill_reason: "Experiment showed no binding affinity",
+        },
       ];
 
       const session = createTestSession({ artifact, hypothesisTransitions: [] });
       const result = scoreHypothesisKillRate(session);
 
       // Should detect reasoning from kill_reason field even without transitions
-      expect(result.signals.find((s) => s.signal.includes("reasoning documented"))?.found).toBe(true);
+      expect(result.signals.find((s) => s.signal.includes("reasoning documented"))?.found).toBe(
+        true,
+      );
     });
 
     it("detects test links from flagged kills via killed_by field", () => {
       const artifact = createEmptyArtifact();
       artifact.sections.hypothesis_slate = [
-        { id: "H-1", name: "H1", claim: "Test", mechanism: "Test", killed: true, killed_by: "T-1", kill_reason: "Failed test T-1" },
+        {
+          id: "H-1",
+          name: "H1",
+          claim: "Test",
+          mechanism: "Test",
+          killed: true,
+          killed_by: "T-1",
+          kill_reason: "Failed test T-1",
+        },
       ];
 
       const session = createTestSession({ artifact, hypothesisTransitions: [] });
@@ -1483,7 +1648,9 @@ describe("Session-Level Dimension Scoring", () => {
 
       expect(result.signals.find((s) => s.signal.includes("killed in session"))?.found).toBe(true);
       expect(result.signals.find((s) => s.signal.includes("test result"))?.found).toBe(true);
-      expect(result.signals.find((s) => s.signal.includes("reasoning documented"))?.found).toBe(true);
+      expect(result.signals.find((s) => s.signal.includes("reasoning documented"))?.found).toBe(
+        true,
+      );
     });
   });
 
@@ -1513,7 +1680,9 @@ describe("Session-Level Dimension Scoring", () => {
       const session = createTestSession({ artifact });
       const result = scoreTestDiscriminability(session);
 
-      expect(result.signals.find((s) => s.signal.includes("different predictions"))?.found).toBe(true);
+      expect(result.signals.find((s) => s.signal.includes("different predictions"))?.found).toBe(
+        true,
+      );
       expect(result.signals.find((s) => s.signal.includes("observable"))?.found).toBe(true);
       expect(result.signals.find((s) => s.signal.includes("Potency checks"))?.found).toBe(true);
     });
@@ -1560,14 +1729,22 @@ describe("Session-Level Dimension Scoring", () => {
     it("detects recorded assumptions", () => {
       const artifact = createEmptyArtifact();
       artifact.sections.assumption_ledger = [
-        { id: "A-1", name: "Assumption 1", statement: "We assume X", load: "H1, H2", test: "Check X" },
+        {
+          id: "A-1",
+          name: "Assumption 1",
+          statement: "We assume X",
+          load: "H1, H2",
+          test: "Check X",
+        },
       ];
 
       const session = createTestSession({ artifact });
       const result = scoreAssumptionTracking(session);
 
       expect(result.signals.find((s) => s.signal.includes("recorded"))?.found).toBe(true);
-      expect(result.signals.find((s) => s.signal.includes("linked to hypotheses"))?.found).toBe(true);
+      expect(result.signals.find((s) => s.signal.includes("linked to hypotheses"))?.found).toBe(
+        true,
+      );
     });
 
     it("detects scale/physics checks", () => {
@@ -1618,7 +1795,9 @@ describe("Session-Level Dimension Scoring", () => {
       const session = createTestSession({ artifact });
       const result = scoreThirdAlternativeDiscovery(session);
 
-      expect(result.signals.find((s) => s.signal.includes("Third alternatives proposed"))?.found).toBe(true);
+      expect(
+        result.signals.find((s) => s.signal.includes("Third alternatives proposed"))?.found,
+      ).toBe(true);
       expect(result.signals.find((s) => s.signal.includes("causal structure"))?.found).toBe(true);
     });
   });
@@ -1650,7 +1829,9 @@ describe("Session-Level Dimension Scoring", () => {
       const session = createTestSession({ artifact });
       const result = scoreExperimentalFeasibility(session);
 
-      expect(result.signals.find((s) => s.signal.includes("feasibility assessment"))?.found).toBe(true);
+      expect(result.signals.find((s) => s.signal.includes("feasibility assessment"))?.found).toBe(
+        true,
+      );
     });
 
     it("detects executed tests", () => {
@@ -1691,7 +1872,8 @@ describe("Session-Level Dimension Scoring", () => {
           id: "C-1",
           name: "Scale critique",
           attack: "H1 cannot work at observed timescales",
-          evidence: "Diffusion time is 1000s but differentiation occurs in 100s - this is a fundamental physical constraint",
+          evidence:
+            "Diffusion time is 1000s but differentiation occurs in 100s - this is a fundamental physical constraint",
           current_status: "active",
         },
       ];
@@ -1719,7 +1901,9 @@ describe("Session-Level Dimension Scoring", () => {
       const session = createTestSession({ artifact });
       const result = scoreAdversarialPressure(session);
 
-      expect(result.signals.find((s) => s.signal.includes("Real third alternatives"))?.found).toBe(true);
+      expect(result.signals.find((s) => s.signal.includes("Real third alternatives"))?.found).toBe(
+        true,
+      );
     });
   });
 
@@ -1783,14 +1967,35 @@ describe("Session-Level Dimension Scoring", () => {
 
       // Add falsified assumption
       artifact.sections.assumption_ledger = [
-        { id: "A-1", name: "A1", statement: "Test", load: "H1, H2", test: "Test", status: "falsified", scale_check: true },
+        {
+          id: "A-1",
+          name: "A1",
+          statement: "Test",
+          load: "H1, H2",
+          test: "Test",
+          status: "falsified",
+          scale_check: true,
+        },
       ];
 
       // Add hypotheses with third alternative
       artifact.sections.hypothesis_slate = [
-        { id: "H-1", name: "H1", claim: "Test", mechanism: "Mechanism A", killed: true, kill_reason: "Refuted by T-1 results" },
+        {
+          id: "H-1",
+          name: "H1",
+          claim: "Test",
+          mechanism: "Mechanism A",
+          killed: true,
+          kill_reason: "Refuted by T-1 results",
+        },
         { id: "H-2", name: "H2", claim: "Test", mechanism: "Mechanism B" },
-        { id: "H-3", name: "H3", claim: "Test", mechanism: "Different approach causes different outcome", third_alternative: true },
+        {
+          id: "H-3",
+          name: "H3",
+          claim: "Test",
+          mechanism: "Different approach causes different outcome",
+          third_alternative: true,
+        },
       ];
 
       // Add discriminative tests

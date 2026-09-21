@@ -14,13 +14,24 @@
  * - Stagger reveal animations for premium feel
  */
 
+import { AnimatePresence, motion, type Variants } from "framer-motion";
+import {
+  ArrowRight,
+  BookOpen,
+  Check,
+  ChevronLeft,
+  ChevronRight,
+  Clock,
+  Sparkles,
+  Target,
+  Wrench,
+  Zap,
+} from "lucide-react";
 import * as React from "react";
-import { motion, AnimatePresence, type Variants } from "framer-motion";
-import { Sparkles, Clock, BookOpen, Wrench, ChevronLeft, ChevronRight, Target, Zap, Check, ArrowRight } from "lucide-react";
-import { cn } from "@/lib/utils";
-import type { TutorialStep as TutorialStepType, TroubleshootingItem } from "@/lib/tutorial-types";
-import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
 import { Button } from "@/components/ui/button";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import type { TroubleshootingItem, TutorialStep as TutorialStepType } from "@/lib/tutorial-types";
+import { cn } from "@/lib/utils";
 
 // ============================================================================
 // Types
@@ -52,7 +63,10 @@ function LearningObjectives({ items }: { items: string[] }) {
   if (items.length === 0) return null;
 
   return (
-    <Collapsible defaultOpen className="group/learn rounded-xl border border-primary/20 bg-gradient-to-br from-primary/5 to-primary/10 overflow-hidden">
+    <Collapsible
+      defaultOpen
+      className="group/learn rounded-xl border border-primary/20 bg-gradient-to-br from-primary/5 to-primary/10 overflow-hidden"
+    >
       <CollapsibleTrigger className="w-full px-4 py-3 flex items-center gap-3 text-left transition-colors hover:bg-primary/5">
         <motion.div
           className="relative flex items-center justify-center size-9 rounded-xl bg-gradient-to-br from-primary/30 to-primary/20 text-primary shadow-sm"
@@ -164,7 +178,7 @@ function ActionChecklist({ items }: { items: string[] }) {
               key={i}
               className={cn(
                 "flex items-center gap-3 text-sm rounded-lg p-2 -mx-2 transition-colors cursor-pointer",
-                isChecked ? "text-muted-foreground/60" : "text-muted-foreground hover:bg-muted/50"
+                isChecked ? "text-muted-foreground/60" : "text-muted-foreground hover:bg-muted/50",
               )}
               onClick={() => toggleItem(i)}
               whileTap={{ scale: 0.98 }}
@@ -174,7 +188,7 @@ function ActionChecklist({ items }: { items: string[] }) {
                   "flex items-center justify-center size-5 rounded-md border-2 shrink-0 transition-colors",
                   isChecked
                     ? "bg-[oklch(0.72_0.19_145)] border-[oklch(0.72_0.19_145)]"
-                    : "border-muted-foreground/30 hover:border-[oklch(0.72_0.19_145/0.5)]"
+                    : "border-muted-foreground/30 hover:border-[oklch(0.72_0.19_145/0.5)]",
                 )}
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
@@ -215,7 +229,9 @@ function TroubleshootingSection({ items }: { items: TroubleshootingItem[] }) {
           <Wrench className="size-5" />
         </motion.div>
         <div className="flex-1">
-          <span className="text-sm font-semibold text-amber-600 dark:text-amber-400">Troubleshooting</span>
+          <span className="text-sm font-semibold text-amber-600 dark:text-amber-400">
+            Troubleshooting
+          </span>
           <span className="text-xs text-muted-foreground ml-2">({items.length} common issues)</span>
         </div>
         <motion.div className="text-amber-500/50">
@@ -408,13 +424,13 @@ export function TutorialStep({
         <motion.div variants={itemVariants}>
           <Collapsible className="rounded-xl border border-border bg-muted/30 hover:border-border/80 transition-colors">
             <CollapsibleTrigger className="w-full px-4 py-3 flex items-center gap-3 text-left group">
-              <span className="text-sm font-medium text-muted-foreground group-hover:text-foreground transition-colors">More details</span>
+              <span className="text-sm font-medium text-muted-foreground group-hover:text-foreground transition-colors">
+                More details
+              </span>
               <ChevronRight className="size-4 text-muted-foreground transition-transform group-data-[state=open]:rotate-90" />
             </CollapsibleTrigger>
             <CollapsibleContent>
-              <div className="px-4 pb-4 text-sm text-muted-foreground">
-                {step.moreDetails}
-              </div>
+              <div className="px-4 pb-4 text-sm text-muted-foreground">{step.moreDetails}</div>
             </CollapsibleContent>
           </Collapsible>
         </motion.div>
@@ -465,7 +481,7 @@ export function TutorialStep({
               "relative min-w-[130px] min-h-[44px] group rounded-xl overflow-hidden",
               step.stepNumber === totalSteps
                 ? "bg-gradient-to-r from-[oklch(0.72_0.19_145)] to-[oklch(0.65_0.19_145)] hover:from-[oklch(0.68_0.19_145)] hover:to-[oklch(0.60_0.19_145)] text-[oklch(0.15_0.02_145)] shadow-lg shadow-[oklch(0.72_0.19_145/0.3)]"
-                : "shadow-md"
+                : "shadow-md",
             )}
           >
             {/* Shimmer effect on final step */}

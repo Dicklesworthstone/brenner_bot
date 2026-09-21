@@ -1,19 +1,19 @@
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
 import {
-  HypothesisSchema,
-  HypothesisConfidenceSchema,
-  HypothesisCategorySchema,
-  HypothesisOriginSchema,
-  HypothesisStateSchema,
-  detectLevelConflation,
-  validateThirdAlternative,
-  generateHypothesisId,
-  isValidHypothesisId,
-  isValidAnchor,
   createHypothesis,
   createThirdAlternative,
-  warnMissingMechanism,
+  detectLevelConflation,
+  generateHypothesisId,
   type Hypothesis,
+  HypothesisCategorySchema,
+  HypothesisConfidenceSchema,
+  HypothesisOriginSchema,
+  HypothesisSchema,
+  HypothesisStateSchema,
+  isValidAnchor,
+  isValidHypothesisId,
+  validateThirdAlternative,
+  warnMissingMechanism,
 } from "./hypothesis";
 
 describe("HypothesisSchema", () => {
@@ -60,11 +60,7 @@ describe("HypothesisSchema", () => {
   });
 
   it("accepts alternative valid ID formats", () => {
-    const variations = [
-      "H-CELL-FATE-001-001",
-      "H-test-session-999",
-      "H-ABC123-001",
-    ];
+    const variations = ["H-CELL-FATE-001-001", "H-test-session-999", "H-ABC123-001"];
     for (const id of variations) {
       const data = { ...validHypothesis, id };
       const result = HypothesisSchema.safeParse(data);
@@ -168,26 +164,14 @@ describe("Enum schemas", () => {
   });
 
   it("validates origin types", () => {
-    const validOrigins = [
-      "proposed",
-      "third_alternative",
-      "refinement",
-      "anomaly_spawned",
-    ];
+    const validOrigins = ["proposed", "third_alternative", "refinement", "anomaly_spawned"];
     for (const origin of validOrigins) {
       expect(HypothesisOriginSchema.safeParse(origin).success).toBe(true);
     }
   });
 
   it("validates state types", () => {
-    const validStates = [
-      "proposed",
-      "active",
-      "confirmed",
-      "refuted",
-      "superseded",
-      "deferred",
-    ];
+    const validStates = ["proposed", "active", "confirmed", "refuted", "superseded", "deferred"];
     for (const state of validStates) {
       expect(HypothesisStateSchema.safeParse(state).success).toBe(true);
     }
@@ -287,8 +271,7 @@ describe("validateThirdAlternative", () => {
       baseHypothesis({
         id: "H-TEST-002",
         category: "third_alternative",
-        statement:
-          "The dichotomy is false; cells use a different causal structure entirely.",
+        statement: "The dichotomy is false; cells use a different causal structure entirely.",
         mechanism:
           "Epigenetic memory provides an orthogonal coordinate system that invalidates both gradient and lineage models.",
       }),
@@ -330,9 +313,7 @@ describe("generateHypothesisId", () => {
 
   it("throws error on sequence overflow (>999)", () => {
     const existing = ["H-TEST-999"];
-    expect(() => generateHypothesisId("TEST", existing)).toThrow(
-      /sequence overflow/i
-    );
+    expect(() => generateHypothesisId("TEST", existing)).toThrow(/sequence overflow/i);
   });
 
   it("handles sequence 999 as valid (boundary case)", () => {

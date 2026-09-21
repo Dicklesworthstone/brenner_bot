@@ -9,9 +9,13 @@
  * - Log/attach full results for triage.
  */
 
-import { test, expect, waitForNetworkIdle } from "./utils";
+import { expect, test, waitForNetworkIdle } from "./utils";
+import {
+  checkAccessibility,
+  filterViolationsByImpact,
+  formatViolations,
+} from "./utils/a11y-testing";
 import { withStep } from "./utils/e2e-logging";
-import { checkAccessibility, filterViolationsByImpact, formatViolations } from "./utils/a11y-testing";
 
 type PageSpec = { path: string; name: string };
 
@@ -35,7 +39,9 @@ function baseUrlHost(): string {
 }
 
 const ENFORCE_CRITICAL =
-  process.env.A11Y_ENFORCE === "1" || baseUrlHost() === "localhost" || baseUrlHost() === "127.0.0.1";
+  process.env.A11Y_ENFORCE === "1" ||
+  baseUrlHost() === "localhost" ||
+  baseUrlHost() === "127.0.0.1";
 
 // Helper: Get the cookie domain from the BASE_URL.
 function getCookieDomain(): string {
@@ -110,7 +116,9 @@ test.describe("Accessibility (axe-core)", () => {
 
     await withStep(logger, page, "Open spotlight search", async () => {
       await page.keyboard.press(SPOTLIGHT_SHORTCUT);
-      await expect(page.locator('[role="dialog"][aria-label="Search"]')).toBeVisible({ timeout: 5000 });
+      await expect(page.locator('[role="dialog"][aria-label="Search"]')).toBeVisible({
+        timeout: 5000,
+      });
     });
 
     const results = await checkAccessibility(page, testInfo, {
@@ -134,7 +142,11 @@ test.describe("Accessibility (axe-core)", () => {
   });
 
   test.describe("Session Dashboard (Lab Mode)", () => {
-    test("Session new page has no critical accessibility violations", async ({ page, logger, context }, testInfo) => {
+    test("Session new page has no critical accessibility violations", async ({
+      page,
+      logger,
+      context,
+    }, testInfo) => {
       await setupLabAuth(context);
 
       await withStep(logger, page, "Navigate to /sessions/new", async () => {
@@ -172,7 +184,11 @@ test.describe("Accessibility (axe-core)", () => {
       }
     });
 
-    test("Session list page has no critical accessibility violations", async ({ page, logger, context }, testInfo) => {
+    test("Session list page has no critical accessibility violations", async ({
+      page,
+      logger,
+      context,
+    }, testInfo) => {
       await setupLabAuth(context);
 
       await withStep(logger, page, "Navigate to /sessions", async () => {
@@ -301,7 +317,10 @@ test.describe("Accessibility (axe-core)", () => {
           return el ? { tagName: el.tagName, role: el.getAttribute("role") } : null;
         });
 
-        logger.info("Focused element after Tab navigation", focusedElement ?? { tagName: "none", role: null });
+        logger.info(
+          "Focused element after Tab navigation",
+          focusedElement ?? { tagName: "none", role: null },
+        );
         expect(focusedElement).not.toBeNull();
       });
 

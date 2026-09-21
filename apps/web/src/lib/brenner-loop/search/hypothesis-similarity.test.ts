@@ -4,21 +4,21 @@
  * @see brenner_bot-c2u8 (bead)
  */
 
-import { describe, it, expect } from "vitest";
-import {
-  hypothesisToSearchText,
-  embedHypothesis,
-  cardToIndexed,
-  domainSimilarity,
-  computeSimilarity,
-  findSimilarHypotheses,
-  searchHypothesesByText,
-  clusterSimilarHypotheses,
-  findDuplicates,
-  getSimilarityStats,
-  type IndexedHypothesis,
-} from "./hypothesis-similarity";
+import { describe, expect, it } from "vitest";
 import type { HypothesisCard } from "../hypothesis";
+import {
+  cardToIndexed,
+  clusterSimilarHypotheses,
+  computeSimilarity,
+  domainSimilarity,
+  embedHypothesis,
+  findDuplicates,
+  findSimilarHypotheses,
+  getSimilarityStats,
+  hypothesisToSearchText,
+  type IndexedHypothesis,
+  searchHypothesesByText,
+} from "./hypothesis-similarity";
 
 // ============================================================================
 // Test Fixtures
@@ -29,7 +29,7 @@ const createTestHypothesis = (
   statement: string,
   mechanism: string,
   domain: string[],
-  sessionId: string = "RS-TEST"
+  sessionId: string = "RS-TEST",
 ): IndexedHypothesis => ({
   id,
   sessionId,
@@ -45,7 +45,7 @@ const socialMediaHypothesis = createTestHypothesis(
   "Social media use causes depression in teenagers through negative social comparison",
   "Curated content triggers upward social comparison, releasing cortisol and reducing dopamine sensitivity",
   ["psychology", "social-media"],
-  "RS-001"
+  "RS-001",
 );
 
 const airPollutionHypothesis = createTestHypothesis(
@@ -53,7 +53,7 @@ const airPollutionHypothesis = createTestHypothesis(
   "Air pollution increases cognitive decline through neuroinflammation",
   "PM2.5 particles cross the blood-brain barrier, triggering inflammatory cascades",
   ["epidemiology", "neuroscience"],
-  "RS-002"
+  "RS-002",
 );
 
 const socialMediaVariant = createTestHypothesis(
@@ -61,7 +61,7 @@ const socialMediaVariant = createTestHypothesis(
   "Instagram use leads to anxiety in adolescents via social comparison",
   "Image-based content creates unrealistic expectations, triggering anxiety responses",
   ["psychology", "social-media"],
-  "RS-003"
+  "RS-003",
 );
 
 const economicsHypothesis = createTestHypothesis(
@@ -69,7 +69,7 @@ const economicsHypothesis = createTestHypothesis(
   "Higher education increases income through signaling to employers",
   "Degrees signal unobservable ability, leading to higher wage offers",
   ["economics", "labor"],
-  "RS-004"
+  "RS-004",
 );
 
 const duplicateSocialMedia = createTestHypothesis(
@@ -77,7 +77,7 @@ const duplicateSocialMedia = createTestHypothesis(
   "Social media usage causes depression in teens through negative social comparison",
   "Curated content triggers upward social comparison, releasing cortisol and reducing dopamine",
   ["psychology", "social-media"],
-  "RS-005"
+  "RS-005",
 );
 
 // ============================================================================
@@ -139,9 +139,7 @@ describe("embedHypothesis", () => {
 
   it("produces normalized vectors", () => {
     const embedding = embedHypothesis(socialMediaHypothesis);
-    const magnitude = Math.sqrt(
-      embedding.reduce((sum, val) => sum + val * val, 0)
-    );
+    const magnitude = Math.sqrt(embedding.reduce((sum, val) => sum + val * val, 0));
 
     expect(magnitude).toBeCloseTo(1.0, 5);
   });
@@ -256,10 +254,7 @@ describe("cardToIndexed", () => {
 
 describe("domainSimilarity", () => {
   it("returns 1.0 for identical domains", () => {
-    const sim = domainSimilarity(
-      ["psychology", "social-media"],
-      ["psychology", "social-media"]
-    );
+    const sim = domainSimilarity(["psychology", "social-media"], ["psychology", "social-media"]);
     expect(sim).toBe(1.0);
   });
 
@@ -269,10 +264,7 @@ describe("domainSimilarity", () => {
   });
 
   it("returns partial overlap for shared domains", () => {
-    const sim = domainSimilarity(
-      ["psychology", "social-media"],
-      ["psychology", "neuroscience"]
-    );
+    const sim = domainSimilarity(["psychology", "social-media"], ["psychology", "neuroscience"]);
     // Jaccard: 1 / 3 = 0.333
     expect(sim).toBeCloseTo(0.333, 2);
   });
@@ -299,10 +291,7 @@ describe("domainSimilarity", () => {
 
 describe("computeSimilarity", () => {
   it("computes similarity between hypotheses", () => {
-    const result = computeSimilarity(
-      socialMediaHypothesis,
-      socialMediaVariant
-    );
+    const result = computeSimilarity(socialMediaHypothesis, socialMediaVariant);
 
     expect(result.score).toBeGreaterThan(0.4); // Related topics (hash embeddings have lower ceilings)
     expect(result.breakdown.statement).toBeGreaterThan(0);
@@ -311,28 +300,19 @@ describe("computeSimilarity", () => {
   });
 
   it("returns lower scores for unrelated hypotheses", () => {
-    const result = computeSimilarity(
-      socialMediaHypothesis,
-      airPollutionHypothesis
-    );
+    const result = computeSimilarity(socialMediaHypothesis, airPollutionHypothesis);
 
     expect(result.score).toBeLessThan(0.3);
   });
 
   it("returns high scores for near-duplicates", () => {
-    const result = computeSimilarity(
-      socialMediaHypothesis,
-      duplicateSocialMedia
-    );
+    const result = computeSimilarity(socialMediaHypothesis, duplicateSocialMedia);
 
     expect(result.score).toBeGreaterThan(0.8);
   });
 
   it("provides meaningful reasons", () => {
-    const result = computeSimilarity(
-      socialMediaHypothesis,
-      socialMediaVariant
-    );
+    const result = computeSimilarity(socialMediaHypothesis, socialMediaVariant);
 
     expect(result.reason).toBeTruthy();
     expect(result.reason.length).toBeGreaterThan(0);
@@ -400,11 +380,9 @@ describe("findSimilarHypotheses", () => {
       { ...economicsHypothesis, confidence: 30 },
     ];
 
-    const results = findSimilarHypotheses(
-      socialMediaHypothesis,
-      hypothesesWithConfidence,
-      { minConfidence: 50 }
-    );
+    const results = findSimilarHypotheses(socialMediaHypothesis, hypothesesWithConfidence, {
+      minConfidence: 50,
+    });
 
     expect(results.every((r) => r.hypothesis.confidence >= 50)).toBe(true);
   });
@@ -433,10 +411,7 @@ describe("searchHypothesesByText", () => {
   ];
 
   it("finds hypotheses matching text query", () => {
-    const results = searchHypothesesByText(
-      "social media depression teenagers",
-      allHypotheses
-    );
+    const results = searchHypothesesByText("social media depression teenagers", allHypotheses);
 
     expect(results.length).toBeGreaterThan(0);
     const ids = results.map((r) => r.hypothesis.id);
@@ -444,21 +419,16 @@ describe("searchHypothesesByText", () => {
   });
 
   it("matches domain-specific queries", () => {
-    const results = searchHypothesesByText(
-      "air pollution brain inflammation",
-      allHypotheses
-    );
+    const results = searchHypothesesByText("air pollution brain inflammation", allHypotheses);
 
     const ids = results.map((r) => r.hypothesis.id);
     expect(ids).toContain("H2"); // air pollution hypothesis
   });
 
   it("returns empty for unrelated queries", () => {
-    const results = searchHypothesesByText(
-      "quantum entanglement black holes",
-      allHypotheses,
-      { minScore: 0.5 }
-    );
+    const results = searchHypothesesByText("quantum entanglement black holes", allHypotheses, {
+      minScore: 0.5,
+    });
 
     expect(results.length).toBe(0);
   });
@@ -488,9 +458,7 @@ describe("clusterSimilarHypotheses", () => {
     const clusters = clusterSimilarHypotheses(allHypotheses, 0.4);
 
     // Find the cluster containing H1 (social media)
-    const socialMediaCluster = clusters.find((c) =>
-      c.some((h) => h.id === "H1")
-    );
+    const socialMediaCluster = clusters.find((c) => c.some((h) => h.id === "H1"));
 
     expect(socialMediaCluster).toBeDefined();
     if (socialMediaCluster) {
@@ -523,11 +491,7 @@ describe("clusterSimilarHypotheses", () => {
 // ============================================================================
 
 describe("findDuplicates", () => {
-  const allHypotheses = [
-    socialMediaHypothesis,
-    airPollutionHypothesis,
-    duplicateSocialMedia,
-  ];
+  const allHypotheses = [socialMediaHypothesis, airPollutionHypothesis, duplicateSocialMedia];
 
   it("finds duplicate hypotheses", () => {
     const duplicates = findDuplicates(allHypotheses, 0.7);
@@ -539,11 +503,7 @@ describe("findDuplicates", () => {
   });
 
   it("returns empty when no duplicates", () => {
-    const uniqueHypotheses = [
-      socialMediaHypothesis,
-      airPollutionHypothesis,
-      economicsHypothesis,
-    ];
+    const uniqueHypotheses = [socialMediaHypothesis, airPollutionHypothesis, economicsHypothesis];
 
     const duplicates = findDuplicates(uniqueHypotheses, 0.9);
     expect(duplicates.length).toBe(0);
@@ -563,7 +523,10 @@ describe("findDuplicates", () => {
     const duplicates = findDuplicates(allHypotheses, 0.5);
 
     const pairKeys = duplicates.map((d) =>
-      d.pair.map((h) => h.id).sort().join(":")
+      d.pair
+        .map((h) => h.id)
+        .sort()
+        .join(":"),
     );
     const uniqueKeys = new Set(pairKeys);
     expect(pairKeys.length).toBe(uniqueKeys.size);
@@ -628,14 +591,15 @@ describe("getSimilarityStats", () => {
 // Storage Integration
 // ============================================================================
 
-import { storageToIndexed, storageToIndexedBatch } from "./hypothesis-similarity";
 import type { Hypothesis } from "../../schemas/hypothesis";
+import { storageToIndexed, storageToIndexedBatch } from "./hypothesis-similarity";
 
 describe("storageToIndexed", () => {
   const storageHypothesis: Hypothesis = {
     id: "H-RS20251230-001",
     statement: "Social media usage affects adolescent mental health through comparison mechanisms",
-    mechanism: "Users compare themselves to idealized portrayals, leading to negative self-evaluation",
+    mechanism:
+      "Users compare themselves to idealized portrayals, leading to negative self-evaluation",
     origin: "proposed",
     category: "mechanistic",
     confidence: "high",

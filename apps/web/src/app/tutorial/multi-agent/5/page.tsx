@@ -8,12 +8,11 @@
  * @see brenner_bot-nm89 (Tutorial Path: Multi-Agent Cockpit)
  */
 
-import * as React from "react";
 import { useRouter } from "next/navigation";
-import { TutorialStep } from "@/components/tutorial";
-import { TutorialCodeBlock, ProTip, Warning } from "@/components/tutorial";
+import * as React from "react";
+import { ProTip, TutorialCodeBlock, TutorialStep, Warning } from "@/components/tutorial";
 import { useTutorial } from "@/lib/tutorial-context";
-import type { TutorialStep as TutorialStepType, TroubleshootingItem } from "@/lib/tutorial-types";
+import type { TroubleshootingItem, TutorialStep as TutorialStepType } from "@/lib/tutorial-types";
 
 // ============================================================================
 // Step Data
@@ -82,8 +81,8 @@ export default function MultiAgentStep5() {
         {/* Introduction */}
         <div className="space-y-4">
           <p className="text-muted-foreground leading-relaxed">
-            Now comes the exciting part — launching the multi-agent session. The brenner CLI
-            will send role-specific kickoff messages to each agent via Agent Mail.
+            Now comes the exciting part — launching the multi-agent session. The brenner CLI will
+            send role-specific kickoff messages to each agent via Agent Mail.
           </p>
         </div>
 
@@ -140,19 +139,27 @@ echo "Project: $PROJECT_KEY"`}
             <p className="text-sm font-medium">What this command does:</p>
             <ol className="space-y-2 text-sm text-muted-foreground">
               <li className="flex items-start gap-2">
-                <span className="flex items-center justify-center size-5 rounded-full bg-muted text-xs font-medium shrink-0">1</span>
+                <span className="flex items-center justify-center size-5 rounded-full bg-muted text-xs font-medium shrink-0">
+                  1
+                </span>
                 <span>Registers the Orchestrator agent in Agent Mail</span>
               </li>
               <li className="flex items-start gap-2">
-                <span className="flex items-center justify-center size-5 rounded-full bg-muted text-xs font-medium shrink-0">2</span>
+                <span className="flex items-center justify-center size-5 rounded-full bg-muted text-xs font-medium shrink-0">
+                  2
+                </span>
                 <span>Creates a thread with the session ID</span>
               </li>
               <li className="flex items-start gap-2">
-                <span className="flex items-center justify-center size-5 rounded-full bg-muted text-xs font-medium shrink-0">3</span>
+                <span className="flex items-center justify-center size-5 rounded-full bg-muted text-xs font-medium shrink-0">
+                  3
+                </span>
                 <span>Sends role-specific kickoff messages to each agent</span>
               </li>
               <li className="flex items-start gap-2">
-                <span className="flex items-center justify-center size-5 rounded-full bg-muted text-xs font-medium shrink-0">4</span>
+                <span className="flex items-center justify-center size-5 rounded-full bg-muted text-xs font-medium shrink-0">
+                  4
+                </span>
                 <span>Returns confirmation with message IDs</span>
               </li>
             </ol>
@@ -209,8 +216,9 @@ brenner inbox --agent GreenValley --limit 3`}
         </Warning>
 
         <ProTip>
-          You can watch the session in real-time with: <code>brenner session status --thread-id &quot;$SESSION_ID&quot; --watch</code>.
-          This shows new messages as they arrive.
+          You can watch the session in real-time with:{" "}
+          <code>brenner session status --thread-id &quot;$SESSION_ID&quot; --watch</code>. This
+          shows new messages as they arrive.
         </ProTip>
 
         {/* Ready Checkpoint */}

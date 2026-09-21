@@ -5,13 +5,7 @@
  * Philosophy: Test real user flows with detailed logging.
  */
 
-import {
-  test,
-  expect,
-  navigateTo,
-  waitForNetworkIdle,
-  takeScreenshot,
-} from "./utils";
+import { expect, navigateTo, takeScreenshot, test, waitForNetworkIdle } from "./utils";
 import { withStep } from "./utils/e2e-logging";
 
 const SPOTLIGHT_SHORTCUT = process.platform === "darwin" ? "Meta+k" : "Control+k";
@@ -24,7 +18,10 @@ test.describe("Search Workflow - Desktop", () => {
   });
 
   test("opens spotlight search with Cmd+K and focuses input", async ({ page, logger }) => {
-    test.skip(process.platform !== "darwin", "Cmd+K is macOS-specific; Ctrl+K is covered in a separate test.");
+    test.skip(
+      process.platform !== "darwin",
+      "Cmd+K is macOS-specific; Ctrl+K is covered in a separate test.",
+    );
 
     await withStep(logger, page, "Open spotlight search with Cmd+K", async () => {
       await page.keyboard.press("Meta+k");
@@ -106,7 +103,7 @@ test.describe("Search Workflow - Desktop", () => {
     });
 
     await withStep(logger, page, "Verify results are displayed", async () => {
-      const resultCount = await page.locator('[data-index]').count();
+      const resultCount = await page.locator("[data-index]").count();
       logger.info(`Found ${resultCount} search results`);
       expect(resultCount).toBeGreaterThan(0);
     });
@@ -223,7 +220,7 @@ test.describe("Search Workflow - Desktop", () => {
     await withStep(logger, page, "Click Transcript category filter", async () => {
       // Category pills are small rounded buttons in the filter row
       // Find the container with category pills and click the Transcript one
-      const categoryPills = page.locator('.rounded-full').filter({ hasText: /^Transcript/ });
+      const categoryPills = page.locator(".rounded-full").filter({ hasText: /^Transcript/ });
       await categoryPills.first().click();
     });
 
@@ -231,7 +228,7 @@ test.describe("Search Workflow - Desktop", () => {
       // Wait for results to update
       await page.waitForTimeout(500);
       // Check that we still have results (or no results message for this category)
-      const hasResults = await page.locator('[data-index]').count();
+      const hasResults = await page.locator("[data-index]").count();
       logger.info(`Transcript category has ${hasResults} results`);
     });
 
@@ -248,13 +245,18 @@ test.describe("Search Workflow - Desktop", () => {
       await input.type("brenner method", { delay: 20 });
     });
 
-    await withStep(logger, page, "Verify debounce - results appear after typing stops", async () => {
-      // Should see loading indicator briefly, then results
-      await page.waitForSelector('[data-index="0"]', { timeout: 5000 });
-      const resultCount = await page.locator('[data-index]').count();
-      logger.info(`After debounce, found ${resultCount} results`);
-      expect(resultCount).toBeGreaterThan(0);
-    });
+    await withStep(
+      logger,
+      page,
+      "Verify debounce - results appear after typing stops",
+      async () => {
+        // Should see loading indicator briefly, then results
+        await page.waitForSelector('[data-index="0"]', { timeout: 5000 });
+        const resultCount = await page.locator("[data-index]").count();
+        logger.info(`After debounce, found ${resultCount} results`);
+        expect(resultCount).toBeGreaterThan(0);
+      },
+    );
 
     logger.info("Debounce working correctly");
   });
@@ -366,7 +368,7 @@ test.describe("Search Workflow - Mobile", () => {
 
     await withStep(logger, page, "Verify category pills are visible", async () => {
       // Category pills are in a horizontally scrollable container
-      const allCategory = page.locator('.rounded-full').filter({ hasText: /^All/ }).first();
+      const allCategory = page.locator(".rounded-full").filter({ hasText: /^All/ }).first();
       await expect(allCategory).toBeVisible();
     });
 
@@ -393,8 +395,11 @@ test.describe("Search Workflow - Edge Cases", () => {
     await withStep(logger, page, "Verify search handles special chars", async () => {
       // Wait for either results or no results (both are valid)
       await page.waitForTimeout(1000);
-      const hasResults = (await page.locator('[data-index]').count()) > 0;
-      const hasNoResults = await page.getByText("No results found").isVisible().catch(() => false);
+      const hasResults = (await page.locator("[data-index]").count()) > 0;
+      const hasNoResults = await page
+        .getByText("No results found")
+        .isVisible()
+        .catch(() => false);
       logger.info(`Special char search: has results=${hasResults}, no results=${hasNoResults}`);
       expect(hasResults || hasNoResults).toBe(true);
     });
@@ -407,7 +412,8 @@ test.describe("Search Workflow - Edge Cases", () => {
     await page.keyboard.press(SPOTLIGHT_SHORTCUT);
     const input = page.locator('input[placeholder*="Search transcript"]');
 
-    const longQuery = "molecular biology genetics C elegans worm development Sydney Brenner research methodology scientific approach";
+    const longQuery =
+      "molecular biology genetics C elegans worm development Sydney Brenner research methodology scientific approach";
 
     await withStep(logger, page, "Enter very long search query", async () => {
       await input.fill(longQuery);

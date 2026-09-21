@@ -9,20 +9,13 @@
 
 import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, it, vi, afterEach } from "vitest";
 import type { ReactNode } from "react";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import CorpusIndexPage from "./page";
 
 // Mock next/link
 vi.mock("next/link", () => ({
-  default: ({
-    children,
-    href,
-    ...props
-  }: {
-    children: ReactNode;
-    href: string;
-  }) => (
+  default: ({ children, href, ...props }: { children: ReactNode; href: string }) => (
     <a href={href} {...props}>
       {children}
     </a>
@@ -31,20 +24,12 @@ vi.mock("next/link", () => ({
 
 // Mock IntersectionObserver for AnimatedElement
 vi.mock("@/components/ui/animated-element", () => ({
-  AnimatedElement: ({
-    children,
-    className,
-  }: {
-    children: ReactNode;
-    className?: string;
-  }) => <div className={className}>{children}</div>,
-  HeroBackground: ({
-    children,
-    className,
-  }: {
-    children: ReactNode;
-    className?: string;
-  }) => <div className={className}>{children}</div>,
+  AnimatedElement: ({ children, className }: { children: ReactNode; className?: string }) => (
+    <div className={className}>{children}</div>
+  ),
+  HeroBackground: ({ children, className }: { children: ReactNode; className?: string }) => (
+    <div className={className}>{children}</div>
+  ),
 }));
 
 describe("CorpusIndexPage", () => {
@@ -56,17 +41,13 @@ describe("CorpusIndexPage", () => {
     it("displays the page title", () => {
       render(<CorpusIndexPage />);
 
-      expect(
-        screen.getByRole("heading", { name: /corpus/i, level: 1 })
-      ).toBeInTheDocument();
+      expect(screen.getByRole("heading", { name: /corpus/i, level: 1 })).toBeInTheDocument();
     });
 
     it("shows the subtitle", () => {
       render(<CorpusIndexPage />);
 
-      expect(
-        screen.getByText(/complete brenner document collection/i)
-      ).toBeInTheDocument();
+      expect(screen.getByText(/complete brenner document collection/i)).toBeInTheDocument();
     });
 
     it("displays search input with placeholder", () => {
@@ -155,12 +136,8 @@ describe("CorpusIndexPage", () => {
     it("shows document descriptions", () => {
       render(<CorpusIndexPage />);
 
-      expect(
-        screen.getByText(/236 interview segments.*web of stories/i)
-      ).toBeInTheDocument();
-      expect(
-        screen.getByText(/curated verbatim quotes indexed by operator/i)
-      ).toBeInTheDocument();
+      expect(screen.getByText(/236 interview segments.*web of stories/i)).toBeInTheDocument();
+      expect(screen.getByText(/curated verbatim quotes indexed by operator/i)).toBeInTheDocument();
     });
   });
 
@@ -212,9 +189,7 @@ describe("CorpusIndexPage", () => {
       await user.type(searchInput, "xyznonexistent123");
 
       await waitFor(() => {
-        expect(
-          screen.getByRole("button", { name: /clear filters/i })
-        ).toBeInTheDocument();
+        expect(screen.getByRole("button", { name: /clear filters/i })).toBeInTheDocument();
       });
     });
 

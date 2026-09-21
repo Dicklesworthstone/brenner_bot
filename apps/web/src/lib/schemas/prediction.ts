@@ -71,11 +71,11 @@ export type HypothesisPrediction = z.infer<typeof HypothesisPredictionSchema>;
  * Prediction status tracking
  */
 export const PredictionStatusSchema = z.enum([
-  "untested",     // No test has been run yet
-  "pending",      // Test is in progress
-  "confirmed",    // Test matched one hypothesis's prediction
+  "untested", // No test has been run yet
+  "pending", // Test is in progress
+  "confirmed", // Test matched one hypothesis's prediction
   "inconclusive", // Test was ambiguous
-  "invalidated",  // Prediction was based on false assumption
+  "invalidated", // Prediction was based on false assumption
 ]);
 
 export type PredictionStatus = z.infer<typeof PredictionStatusSchema>;
@@ -156,18 +156,14 @@ export const PredictionSchema = z.object({
    * Which tests address this prediction?
    * Tests are linked here when they're designed to evaluate this prediction.
    */
-  linkedTests: z
-    .array(z.string().regex(testIdPattern, "Invalid test ID format"))
-    .optional(),
+  linkedTests: z.array(z.string().regex(testIdPattern, "Invalid test ID format")).optional(),
 
   // === PROVENANCE ===
 
   /**
    * §n transcript anchors supporting this prediction
    */
-  anchors: z
-    .array(z.string().regex(anchorPattern, "Invalid anchor format"))
-    .optional(),
+  anchors: z.array(z.string().regex(anchorPattern, "Invalid anchor format")).optional(),
 
   /**
    * Is this prediction derived from inference vs transcript?
@@ -243,20 +239,11 @@ export function validateDiscriminativePower(prediction: Prediction): {
   }
 
   // Check for vague predictions
-  const vaguePhrases = [
-    "might",
-    "could",
-    "possibly",
-    "maybe",
-    "some effect",
-    "changes",
-  ];
+  const vaguePhrases = ["might", "could", "possibly", "maybe", "some effect", "changes"];
   for (const hp of predictions) {
     for (const phrase of vaguePhrases) {
       if (hp.prediction.toLowerCase().includes(phrase)) {
-        issues.push(
-          `Prediction for ${hp.hypothesisId} uses vague language: "${phrase}"`
-        );
+        issues.push(`Prediction for ${hp.hypothesisId} uses vague language: "${phrase}"`);
       }
     }
   }
@@ -334,10 +321,7 @@ export function estimateDiscriminativePower(prediction: Prediction): number {
 /**
  * Generate a new prediction ID for a session.
  */
-export function generatePredictionId(
-  sessionId: string,
-  existingIds: string[]
-): string {
+export function generatePredictionId(sessionId: string, existingIds: string[]): string {
   const prefix = `P-${sessionId}-`;
   const sequences = existingIds
     .filter((id) => id.startsWith(prefix))
@@ -411,7 +395,7 @@ export function createBinaryPrediction(input: {
     throw new Error(
       `Binary prediction is not discriminative: both hypotheses predict ${
         input.hypothesis1.predictsPositive ? "positive" : "negative"
-      }. For a discriminative prediction, hypotheses must predict different outcomes.`
+      }. For a discriminative prediction, hypotheses must predict different outcomes.`,
     );
   }
 

@@ -7,10 +7,10 @@
  * Run with: cd apps/web && bun run test -- src/lib/prompts.test.ts
  */
 
-import { describe, it, expect, beforeAll } from "vitest";
-import { resolve } from "node:path";
 import { access } from "node:fs/promises";
-import { composePrompt, type ComposePromptInput, type OperatorSelection } from "./prompts";
+import { resolve } from "node:path";
+import { beforeAll, describe, expect, it } from "vitest";
+import { type ComposePromptInput, composePrompt, type OperatorSelection } from "./prompts";
 
 // ============================================================================
 // Test Setup - Verify template files exist
@@ -26,7 +26,7 @@ beforeAll(async () => {
   } catch {
     throw new Error(
       `Test template not found at ${templateFullPath}. ` +
-        `Tests must run from apps/web/ directory with: bun run test`
+        `Tests must run from apps/web/ directory with: bun run test`,
     );
   }
 });
@@ -284,7 +284,9 @@ describe("composePrompt", () => {
 
       const result = await composePrompt(input);
 
-      expect(result).toContain("**Hypothesis Generator (Codex / GPT)**: LevelSplit, ThirdAlternative");
+      expect(result).toContain(
+        "**Hypothesis Generator (Codex / GPT)**: LevelSplit, ThirdAlternative",
+      );
     });
 
     it("includes test designer operators with label", async () => {

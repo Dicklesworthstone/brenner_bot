@@ -70,8 +70,14 @@ function formatTs(ts: string): string {
 }
 
 const VALID_EVIDENCE_TYPES = new Set<string>([
-  "paper", "preprint", "dataset", "experiment",
-  "observation", "prior_session", "expert_opinion", "code_artifact",
+  "paper",
+  "preprint",
+  "dataset",
+  "experiment",
+  "observation",
+  "prior_session",
+  "expert_opinion",
+  "code_artifact",
 ]);
 
 const VALID_ACCESS_METHODS = new Set<string>(["url", "doi", "file", "session", "manual"]);
@@ -392,37 +398,44 @@ describe("validateEvidencePack", () => {
     }
 
     it("rejects non-object record", () => {
-      expect(() => validateEvidencePack(packWithRecord("string")))
-        .toThrow("Record at index 0 is not an object");
+      expect(() => validateEvidencePack(packWithRecord("string"))).toThrow(
+        "Record at index 0 is not an object",
+      );
     });
 
     it("rejects null record", () => {
-      expect(() => validateEvidencePack(packWithRecord(null)))
-        .toThrow("Record at index 0 is not an object");
+      expect(() => validateEvidencePack(packWithRecord(null))).toThrow(
+        "Record at index 0 is not an object",
+      );
     });
 
     it("rejects missing id", () => {
       const record = omitField(minimalValidRecord, "id");
-      expect(() => validateEvidencePack(packWithRecord(record)))
-        .toThrow("missing 'id' field");
+      expect(() => validateEvidencePack(packWithRecord(record))).toThrow("missing 'id' field");
     });
 
     it("rejects missing type", () => {
       const record = omitField(minimalValidRecord, "type");
-      expect(() => validateEvidencePack(packWithRecord(record)))
-        .toThrow("missing 'type' field");
+      expect(() => validateEvidencePack(packWithRecord(record))).toThrow("missing 'type' field");
     });
 
     it("rejects invalid type", () => {
       const record = { ...minimalValidRecord, type: "invalid_type" };
-      expect(() => validateEvidencePack(packWithRecord(record)))
-        .toThrow("invalid type 'invalid_type'");
+      expect(() => validateEvidencePack(packWithRecord(record))).toThrow(
+        "invalid type 'invalid_type'",
+      );
     });
 
     it("accepts all valid evidence types", () => {
       const validTypes: EvidenceType[] = [
-        "paper", "preprint", "dataset", "experiment",
-        "observation", "prior_session", "expert_opinion", "code_artifact",
+        "paper",
+        "preprint",
+        "dataset",
+        "experiment",
+        "observation",
+        "prior_session",
+        "expert_opinion",
+        "code_artifact",
       ];
       for (const type of validTypes) {
         const record = { ...minimalValidRecord, type };
@@ -432,26 +445,26 @@ describe("validateEvidencePack", () => {
 
     it("rejects missing title", () => {
       const record = omitField(minimalValidRecord, "title");
-      expect(() => validateEvidencePack(packWithRecord(record)))
-        .toThrow("missing 'title' field");
+      expect(() => validateEvidencePack(packWithRecord(record))).toThrow("missing 'title' field");
     });
 
     it("rejects missing source", () => {
       const record = omitField(minimalValidRecord, "source");
-      expect(() => validateEvidencePack(packWithRecord(record)))
-        .toThrow("missing 'source' field");
+      expect(() => validateEvidencePack(packWithRecord(record))).toThrow("missing 'source' field");
     });
 
     it("rejects missing access_method", () => {
       const record = omitField(minimalValidRecord, "access_method");
-      expect(() => validateEvidencePack(packWithRecord(record)))
-        .toThrow("missing 'access_method' field");
+      expect(() => validateEvidencePack(packWithRecord(record))).toThrow(
+        "missing 'access_method' field",
+      );
     });
 
     it("rejects invalid access_method", () => {
       const record = { ...minimalValidRecord, access_method: "ftp" };
-      expect(() => validateEvidencePack(packWithRecord(record)))
-        .toThrow("invalid access_method 'ftp'");
+      expect(() => validateEvidencePack(packWithRecord(record))).toThrow(
+        "invalid access_method 'ftp'",
+      );
     });
 
     it("accepts all valid access methods", () => {
@@ -464,44 +477,51 @@ describe("validateEvidencePack", () => {
 
     it("rejects missing imported_at", () => {
       const record = omitField(minimalValidRecord, "imported_at");
-      expect(() => validateEvidencePack(packWithRecord(record)))
-        .toThrow("missing 'imported_at' field");
+      expect(() => validateEvidencePack(packWithRecord(record))).toThrow(
+        "missing 'imported_at' field",
+      );
     });
 
     it("rejects missing imported_by", () => {
       const record = omitField(minimalValidRecord, "imported_by");
-      expect(() => validateEvidencePack(packWithRecord(record)))
-        .toThrow("missing 'imported_by' field");
+      expect(() => validateEvidencePack(packWithRecord(record))).toThrow(
+        "missing 'imported_by' field",
+      );
     });
 
     it("rejects missing relevance", () => {
       const record = omitField(minimalValidRecord, "relevance");
-      expect(() => validateEvidencePack(packWithRecord(record)))
-        .toThrow("missing 'relevance' field");
+      expect(() => validateEvidencePack(packWithRecord(record))).toThrow(
+        "missing 'relevance' field",
+      );
     });
 
     it("rejects missing verified", () => {
       const record = omitField(minimalValidRecord, "verified");
-      expect(() => validateEvidencePack(packWithRecord(record)))
-        .toThrow("missing or invalid 'verified' field");
+      expect(() => validateEvidencePack(packWithRecord(record))).toThrow(
+        "missing or invalid 'verified' field",
+      );
     });
 
     it("rejects non-boolean verified", () => {
       const record = { ...minimalValidRecord, verified: "true" };
-      expect(() => validateEvidencePack(packWithRecord(record)))
-        .toThrow("missing or invalid 'verified' field");
+      expect(() => validateEvidencePack(packWithRecord(record))).toThrow(
+        "missing or invalid 'verified' field",
+      );
     });
 
     it("rejects missing key_findings", () => {
       const record = omitField(minimalValidRecord, "key_findings");
-      expect(() => validateEvidencePack(packWithRecord(record)))
-        .toThrow("missing 'key_findings' array");
+      expect(() => validateEvidencePack(packWithRecord(record))).toThrow(
+        "missing 'key_findings' array",
+      );
     });
 
     it("rejects missing excerpts", () => {
       const record = omitField(minimalValidRecord, "excerpts");
-      expect(() => validateEvidencePack(packWithRecord(record)))
-        .toThrow("missing 'excerpts' array");
+      expect(() => validateEvidencePack(packWithRecord(record))).toThrow(
+        "missing 'excerpts' array",
+      );
     });
   });
 
@@ -514,37 +534,39 @@ describe("validateEvidencePack", () => {
     }
 
     it("rejects non-object excerpt", () => {
-      expect(() => validateEvidencePack(packWithExcerpt("string")))
-        .toThrow("excerpt 0: not an object");
+      expect(() => validateEvidencePack(packWithExcerpt("string"))).toThrow(
+        "excerpt 0: not an object",
+      );
     });
 
     it("rejects null excerpt", () => {
-      expect(() => validateEvidencePack(packWithExcerpt(null)))
-        .toThrow("excerpt 0: not an object");
+      expect(() => validateEvidencePack(packWithExcerpt(null))).toThrow("excerpt 0: not an object");
     });
 
     it("rejects missing anchor", () => {
       const excerpt = { text: "test", verbatim: true };
-      expect(() => validateEvidencePack(packWithExcerpt(excerpt)))
-        .toThrow("missing 'anchor' field");
+      expect(() => validateEvidencePack(packWithExcerpt(excerpt))).toThrow(
+        "missing 'anchor' field",
+      );
     });
 
     it("rejects missing text", () => {
       const excerpt = { anchor: "E1", verbatim: true };
-      expect(() => validateEvidencePack(packWithExcerpt(excerpt)))
-        .toThrow("missing 'text' field");
+      expect(() => validateEvidencePack(packWithExcerpt(excerpt))).toThrow("missing 'text' field");
     });
 
     it("rejects missing verbatim", () => {
       const excerpt = { anchor: "E1", text: "test" };
-      expect(() => validateEvidencePack(packWithExcerpt(excerpt)))
-        .toThrow("missing or invalid 'verbatim' field");
+      expect(() => validateEvidencePack(packWithExcerpt(excerpt))).toThrow(
+        "missing or invalid 'verbatim' field",
+      );
     });
 
     it("rejects non-boolean verbatim", () => {
       const excerpt = { anchor: "E1", text: "test", verbatim: "true" };
-      expect(() => validateEvidencePack(packWithExcerpt(excerpt)))
-        .toThrow("missing or invalid 'verbatim' field");
+      expect(() => validateEvidencePack(packWithExcerpt(excerpt))).toThrow(
+        "missing or invalid 'verbatim' field",
+      );
     });
 
     it("accepts valid excerpt with optional fields", () => {
@@ -579,8 +601,14 @@ describe("Evidence page component rendering logic", () => {
   describe("evidence type labels", () => {
     it("has label for all evidence types", () => {
       const allTypes: EvidenceType[] = [
-        "paper", "preprint", "dataset", "experiment",
-        "observation", "prior_session", "expert_opinion", "code_artifact",
+        "paper",
+        "preprint",
+        "dataset",
+        "experiment",
+        "observation",
+        "prior_session",
+        "expert_opinion",
+        "code_artifact",
       ];
       for (const type of allTypes) {
         expect(EVIDENCE_TYPE_LABELS[type]).toBeTruthy();
@@ -613,13 +641,13 @@ describe("Evidence page component rendering logic", () => {
   describe("verified/unverified counts", () => {
     it("calculates verified count correctly", () => {
       const records = validEvidencePack.records;
-      const verifiedCount = records.filter(r => r.verified).length;
+      const verifiedCount = records.filter((r) => r.verified).length;
       expect(verifiedCount).toBe(1);
     });
 
     it("calculates unverified count correctly", () => {
       const records = validEvidencePack.records;
-      const unverifiedCount = records.filter(r => !r.verified).length;
+      const unverifiedCount = records.filter((r) => !r.verified).length;
       expect(unverifiedCount).toBe(1);
     });
   });
@@ -659,12 +687,14 @@ describe("Evidence page component rendering logic", () => {
   describe("citation reference generation", () => {
     it("generates citation list for records", () => {
       const record = validEvidencePack.records[0];
-      const citations = record.excerpts.map(e => `${record.id}#${e.anchor}`);
+      const citations = record.excerpts.map((e) => `${record.id}#${e.anchor}`);
       expect(citations).toEqual(["EV-001#E1", "EV-001#E2"]);
     });
 
     it("handles record with no excerpts", () => {
-      const citations = minimalValidRecord.excerpts.map(e => `${minimalValidRecord.id}#${e.anchor}`);
+      const citations = minimalValidRecord.excerpts.map(
+        (e) => `${minimalValidRecord.id}#${e.anchor}`,
+      );
       expect(citations).toEqual([]);
     });
   });

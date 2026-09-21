@@ -5,12 +5,8 @@
  * Uses real data fixtures - no mocks.
  */
 
-import { describe, it, expect } from "vitest";
-import {
-  parseTranscript,
-  getTranscriptSections,
-  searchTranscript,
-} from "./transcript-parser";
+import { describe, expect, it } from "vitest";
+import { getTranscriptSections, parseTranscript, searchTranscript } from "./transcript-parser";
 
 // ============================================================================
 // Test Fixtures
@@ -126,7 +122,7 @@ describe("parseTranscript", () => {
       const result = parseTranscript(SIMPLE_TRANSCRIPT);
       const section2 = result.sections[1];
       const quoteWithHighlight = section2?.content.find(
-        (c) => c.type === "brenner-quote" && c.highlights?.includes("C. elegans")
+        (c) => c.type === "brenner-quote" && c.highlights?.includes("C. elegans"),
       );
       expect(quoteWithHighlight).toBeDefined();
     });

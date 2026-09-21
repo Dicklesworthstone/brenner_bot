@@ -6,23 +6,23 @@
  * @see brenner_bot-rffy (bead)
  */
 
-import { describe, test, expect, beforeEach } from "vitest";
+import { beforeEach, describe, expect, test } from "vitest";
 import {
-  lockPrediction,
-  verifyPrediction,
-  revealPrediction,
   amendPrediction,
   calculatePredictionLockStats,
   calculateRobustnessMultiplier,
-  generatePredictionLockId,
+  formatLockTimestamp,
   generateHash,
+  generatePredictionLockId,
+  getLockStateDisplay,
+  getShortHash,
+  isLockedPrediction,
   isPredictionLockState,
   isPredictionType,
-  isLockedPrediction,
-  getLockStateDisplay,
-  formatLockTimestamp,
-  getShortHash,
   type LockedPrediction,
+  lockPrediction,
+  revealPrediction,
+  verifyPrediction,
 } from "./prediction-lock";
 
 // ============================================================================
@@ -88,7 +88,7 @@ describe("lockPrediction", () => {
       "HC-123",
       "if_true",
       0,
-      "If hypothesis is true, we should observe X"
+      "If hypothesis is true, we should observe X",
     );
 
     expect(result.success).toBe(true);
@@ -104,7 +104,7 @@ describe("lockPrediction", () => {
       "HC-123",
       "if_true",
       0,
-      "  Prediction with extra whitespace  "
+      "  Prediction with extra whitespace  ",
     );
 
     expect(result.success).toBe(true);
@@ -112,12 +112,7 @@ describe("lockPrediction", () => {
   });
 
   test("should generate lock hash", async () => {
-    const result = await lockPrediction(
-      "HC-123",
-      "if_true",
-      0,
-      "Test prediction"
-    );
+    const result = await lockPrediction("HC-123", "if_true", 0, "Test prediction");
 
     expect(result.success).toBe(true);
     expect(result.lockedPrediction!.lockHash).toBeTruthy();
@@ -126,12 +121,7 @@ describe("lockPrediction", () => {
 
   test("should set lock timestamp", async () => {
     const before = new Date().toISOString();
-    const result = await lockPrediction(
-      "HC-123",
-      "if_true",
-      0,
-      "Test prediction"
-    );
+    const result = await lockPrediction("HC-123", "if_true", 0, "Test prediction");
     const after = new Date().toISOString();
 
     expect(result.success).toBe(true);
@@ -153,12 +143,7 @@ describe("lockPrediction", () => {
   });
 
   test("should initialize empty amendments array", async () => {
-    const result = await lockPrediction(
-      "HC-123",
-      "if_true",
-      0,
-      "Test prediction"
-    );
+    const result = await lockPrediction("HC-123", "if_true", 0, "Test prediction");
 
     expect(result.success).toBe(true);
     expect(result.lockedPrediction!.amendments).toEqual([]);
@@ -171,12 +156,7 @@ describe("lockPrediction", () => {
 
 describe("verifyPrediction", () => {
   test("should verify a valid locked prediction", async () => {
-    const lockResult = await lockPrediction(
-      "HC-123",
-      "if_true",
-      0,
-      "Test prediction"
-    );
+    const lockResult = await lockPrediction("HC-123", "if_true", 0, "Test prediction");
 
     const verifyResult = await verifyPrediction(lockResult.lockedPrediction!);
 
@@ -185,12 +165,7 @@ describe("verifyPrediction", () => {
   });
 
   test("should detect tampered prediction", async () => {
-    const lockResult = await lockPrediction(
-      "HC-123",
-      "if_true",
-      0,
-      "Original prediction"
-    );
+    const lockResult = await lockPrediction("HC-123", "if_true", 0, "Original prediction");
 
     // Tamper with the text
     const tampered: LockedPrediction = {
@@ -205,12 +180,7 @@ describe("verifyPrediction", () => {
   });
 
   test("should detect tampered timestamp", async () => {
-    const lockResult = await lockPrediction(
-      "HC-123",
-      "if_true",
-      0,
-      "Test prediction"
-    );
+    const lockResult = await lockPrediction("HC-123", "if_true", 0, "Test prediction");
 
     // Tamper with the timestamp
     const tampered: LockedPrediction = {
@@ -237,7 +207,7 @@ describe("revealPrediction", () => {
       "HC-123",
       "if_true",
       0,
-      "We should observe increased enzyme activity"
+      "We should observe increased enzyme activity",
     );
     lockedPrediction = result.lockedPrediction!;
   });
@@ -246,7 +216,7 @@ describe("revealPrediction", () => {
     const result = revealPrediction(
       lockedPrediction,
       "Enzyme activity increased by 45%",
-      "confirmed"
+      "confirmed",
     );
 
     expect(result.success).toBe(true);
@@ -257,11 +227,7 @@ describe("revealPrediction", () => {
   });
 
   test("should reveal a locked prediction as refuted", () => {
-    const result = revealPrediction(
-      lockedPrediction,
-      "Enzyme activity decreased",
-      "refuted"
-    );
+    const result = revealPrediction(lockedPrediction, "Enzyme activity decreased", "refuted");
 
     expect(result.success).toBe(true);
     expect(result.prediction!.state).toBe("revealed");
@@ -269,11 +235,7 @@ describe("revealPrediction", () => {
   });
 
   test("should reveal a locked prediction as inconclusive", () => {
-    const result = revealPrediction(
-      lockedPrediction,
-      "Results were mixed",
-      "inconclusive"
-    );
+    const result = revealPrediction(lockedPrediction, "Results were mixed", "inconclusive");
 
     expect(result.success).toBe(true);
     expect(result.prediction!.outcomeMatch).toBe("inconclusive");
@@ -292,11 +254,7 @@ describe("revealPrediction", () => {
   });
 
   test("should fail to reveal an already revealed prediction", () => {
-    const revealed = revealPrediction(
-      lockedPrediction,
-      "First outcome",
-      "confirmed"
-    ).prediction!;
+    const revealed = revealPrediction(lockedPrediction, "First outcome", "confirmed").prediction!;
 
     const result = revealPrediction(revealed, "Second outcome", "refuted");
 
@@ -305,11 +263,7 @@ describe("revealPrediction", () => {
   });
 
   test("should preserve original prediction data", () => {
-    const result = revealPrediction(
-      lockedPrediction,
-      "outcome",
-      "confirmed"
-    );
+    const result = revealPrediction(lockedPrediction, "outcome", "confirmed");
 
     expect(result.prediction!.originalText).toBe(lockedPrediction.originalText);
     expect(result.prediction!.lockHash).toBe(lockedPrediction.lockHash);
@@ -325,16 +279,11 @@ describe("amendPrediction", () => {
   let revealedPrediction: LockedPrediction;
 
   beforeEach(async () => {
-    const lockResult = await lockPrediction(
-      "HC-123",
-      "if_true",
-      0,
-      "Test prediction"
-    );
+    const lockResult = await lockPrediction("HC-123", "if_true", 0, "Test prediction");
     const revealResult = revealPrediction(
       lockResult.lockedPrediction!,
       "Outcome observed",
-      "refuted"
+      "refuted",
     );
     revealedPrediction = revealResult.prediction!;
   });
@@ -344,7 +293,7 @@ describe("amendPrediction", () => {
       revealedPrediction,
       "clarification",
       "I meant to say X not Y",
-      "Wording was ambiguous"
+      "Wording was ambiguous",
     );
 
     expect(amended.state).toBe("amended");
@@ -355,16 +304,8 @@ describe("amendPrediction", () => {
   });
 
   test("should allow multiple amendments", () => {
-    const first = amendPrediction(
-      revealedPrediction,
-      "clarification",
-      "First clarification"
-    );
-    const second = amendPrediction(
-      first,
-      "scope_change",
-      "Scope was too broad"
-    );
+    const first = amendPrediction(revealedPrediction, "clarification", "First clarification");
+    const second = amendPrediction(first, "scope_change", "Scope was too broad");
 
     expect(second.amendments).toHaveLength(2);
     expect(second.amendments![0].type).toBe("clarification");
@@ -373,11 +314,7 @@ describe("amendPrediction", () => {
 
   test("should set amendment timestamp", () => {
     const before = new Date().toISOString();
-    const amended = amendPrediction(
-      revealedPrediction,
-      "clarification",
-      "Amendment text"
-    );
+    const amended = amendPrediction(revealedPrediction, "clarification", "Amendment text");
     const after = new Date().toISOString();
 
     expect(amended.amendments![0].amendedAt >= before).toBe(true);
@@ -390,9 +327,7 @@ describe("amendPrediction", () => {
       state: "draft",
     };
 
-    expect(() =>
-      amendPrediction(draft, "clarification", "Amendment")
-    ).toThrow("not been revealed");
+    expect(() => amendPrediction(draft, "clarification", "Amendment")).toThrow("not been revealed");
   });
 
   test("should throw for locked prediction", () => {
@@ -401,17 +336,13 @@ describe("amendPrediction", () => {
       state: "locked",
     };
 
-    expect(() =>
-      amendPrediction(locked, "clarification", "Amendment")
-    ).toThrow("not been revealed");
+    expect(() => amendPrediction(locked, "clarification", "Amendment")).toThrow(
+      "not been revealed",
+    );
   });
 
   test("should preserve original prediction data", () => {
-    const amended = amendPrediction(
-      revealedPrediction,
-      "clarification",
-      "Amendment"
-    );
+    const amended = amendPrediction(revealedPrediction, "clarification", "Amendment");
 
     expect(amended.originalText).toBe(revealedPrediction.originalText);
     expect(amended.lockHash).toBe(revealedPrediction.lockHash);

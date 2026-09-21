@@ -12,9 +12,9 @@
  * @see brenner_bot-6u0z (Performance Benchmarks & Budgets)
  */
 
-import { readdirSync, readFileSync, statSync, existsSync } from "fs";
-import { gzipSync } from "zlib";
+import { existsSync, readdirSync, readFileSync, statSync } from "fs";
 import { join } from "path";
+import { gzipSync } from "zlib";
 
 // ============================================================================
 // Budget Configuration (in bytes, gzipped)
@@ -131,17 +131,13 @@ function checkBundleSizes(): boolean {
   for (const result of results) {
     const icon = result.status === "pass" ? "✓" : result.status === "fail" ? "✗" : "○";
     const color =
-      result.status === "pass"
-        ? "\x1b[32m"
-        : result.status === "fail"
-          ? "\x1b[31m"
-          : "\x1b[90m";
+      result.status === "pass" ? "\x1b[32m" : result.status === "fail" ? "\x1b[31m" : "\x1b[90m";
     const reset = "\x1b[0m";
 
     if (result.budget) {
       const pct = ((result.size / result.budget) * 100).toFixed(0);
       console.log(
-        `${color}${icon}${reset} ${result.name}: ${formatSize(result.size)} (${pct}% of ${formatSize(result.budget)} budget)`
+        `${color}${icon}${reset} ${result.name}: ${formatSize(result.size)} (${pct}% of ${formatSize(result.budget)} budget)`,
       );
     } else {
       console.log(`${color}${icon}${reset} ${result.name}: ${formatSize(result.size)}`);
@@ -159,7 +155,7 @@ function checkBundleSizes(): boolean {
   const totalPct = ((totalSize / TOTAL_BUDGET) * 100).toFixed(0);
 
   console.log(
-    `${totalColor}${totalIcon}${reset} Total JS (gzipped): ${formatSize(totalSize)} (${totalPct}% of ${formatSize(TOTAL_BUDGET)} budget)`
+    `${totalColor}${totalIcon}${reset} Total JS (gzipped): ${formatSize(totalSize)} (${totalPct}% of ${formatSize(TOTAL_BUDGET)} budget)`,
   );
 
   // Summary

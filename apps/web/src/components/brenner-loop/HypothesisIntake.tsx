@@ -15,25 +15,29 @@
  * @see apps/web/src/lib/brenner-loop/hypothesis.ts
  */
 
+import { AnimatePresence, motion } from "framer-motion";
 import * as React from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import type { HypothesisCard } from "@/lib/brenner-loop/hypothesis";
 import { createHypothesisCard, generateHypothesisCardId } from "@/lib/brenner-loop/hypothesis";
-import { upsertAssumptionLedger } from "@/lib/brenner-loop/storage";
-import { generateAssumptionId, type AssumptionCriticality } from "@/lib/schemas/assumption";
-import type { ExclusionTest, ExclusionTestCategory, TestFeasibility } from "@/lib/brenner-loop/operators/exclusion-test";
+import type {
+  ExclusionTest,
+  ExclusionTestCategory,
+  TestFeasibility,
+} from "@/lib/brenner-loop/operators/exclusion-test";
 import {
   CATEGORY_DEFAULT_POWER,
   EXCLUSION_TEST_CATEGORY_LABELS,
   FEASIBILITY_LABELS,
   generateTestId,
 } from "@/lib/brenner-loop/operators/exclusion-test";
+import { upsertAssumptionLedger } from "@/lib/brenner-loop/storage";
 import { addManualQueueItem } from "@/lib/brenner-loop/test-queue";
+import { type AssumptionCriticality, generateAssumptionId } from "@/lib/schemas/assumption";
+import { cn } from "@/lib/utils";
 
 // ============================================================================
 // Types
@@ -95,8 +99,16 @@ type IntakeStep = 1 | 2 | 3 | 4 | 5 | 6 | 7;
 const STEPS: { number: IntakeStep; title: string; description: string }[] = [
   { number: 1, title: "Initial Statement", description: "Enter your hypothesis" },
   { number: 2, title: "Mechanism", description: "What specific mechanism are you proposing?" },
-  { number: 3, title: "Predictions If True", description: "What would we observe if you're right?" },
-  { number: 4, title: "Predictions If False", description: "What would we observe if you're wrong?" },
+  {
+    number: 3,
+    title: "Predictions If True",
+    description: "What would we observe if you're right?",
+  },
+  {
+    number: 4,
+    title: "Predictions If False",
+    description: "What would we observe if you're wrong?",
+  },
   { number: 5, title: "Falsification Conditions", description: "What would prove you wrong?" },
   { number: 6, title: "Assumptions", description: "What are you assuming is true?" },
   { number: 7, title: "Initial Confidence", description: "How confident are you?" },
@@ -125,7 +137,8 @@ const BRENNER_QUOTES: Record<IntakeStep, { quote: string; context: string }> = {
   },
   5: {
     quote: "A theory that cannot be refuted by any conceivable event is non-scientific.",
-    context: "This is the most important step. If you can't specify what would prove you wrong, your hypothesis isn't testable yet.",
+    context:
+      "This is the most important step. If you can't specify what would prove you wrong, your hypothesis isn't testable yet.",
   },
   6: {
     quote: "Exclusion is always a tremendously good thing in science.",
@@ -147,7 +160,11 @@ const MECHANISM_TYPES = [
   { id: "other", label: "Other", description: "Describe your own mechanism" },
 ];
 
-const ASSUMPTION_CRITICALITY_OPTIONS: { value: AssumptionCriticality; label: string; hint: string }[] = [
+const ASSUMPTION_CRITICALITY_OPTIONS: {
+  value: AssumptionCriticality;
+  label: string;
+  hint: string;
+}[] = [
   { value: "foundational", label: "Foundational", hint: "If wrong, hypothesis fails outright" },
   { value: "important", label: "Important", hint: "If wrong, hypothesis is weakened or narrowed" },
   { value: "minor", label: "Minor", hint: "If wrong, hypothesis needs small adjustment" },
@@ -160,11 +177,14 @@ const deriveAssumptionStatements = (assumptions: AssumptionDraft[]): string[] =>
 
 const buildAssumptionDraftsFromStatements = (
   sessionId: string,
-  statements: string[]
+  statements: string[],
 ): AssumptionDraft[] => {
   const drafts: AssumptionDraft[] = [];
   for (const statement of statements) {
-    const id = generateAssumptionId(sessionId, drafts.map((assumption) => assumption.id));
+    const id = generateAssumptionId(
+      sessionId,
+      drafts.map((assumption) => assumption.id),
+    );
     drafts.push({
       id,
       statement,
@@ -176,10 +196,7 @@ const buildAssumptionDraftsFromStatements = (
   return drafts;
 };
 
-const persistAssumptionsToLedger = (
-  sessionId: string,
-  assumptions: AssumptionDraft[]
-): void => {
+const persistAssumptionsToLedger = (sessionId: string, assumptions: AssumptionDraft[]): void => {
   const now = new Date().toISOString();
   const entries = assumptions.map((assumption) => ({
     id: assumption.id,
@@ -195,7 +212,7 @@ const persistAssumptionsToLedger = (
 
 const computeAssumptionCascadePreview = (
   assumptions: AssumptionDraft[],
-  rootAssumptionId: string
+  rootAssumptionId: string,
 ): { affectedAssumptionIds: string[]; byCriticality: Record<AssumptionCriticality, number> } => {
   const assumptionById = new Map(assumptions.map((assumption) => [assumption.id, assumption]));
   const dependents = new Map<string, string[]>();
@@ -241,44 +258,94 @@ const computeAssumptionCascadePreview = (
 // ============================================================================
 
 const ChevronLeftIcon = ({ className }: { className?: string }) => (
-  <svg className={cn("size-4", className)} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+  <svg
+    className={cn("size-4", className)}
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+    strokeWidth={2}
+  >
     <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
   </svg>
 );
 
 const ChevronRightIcon = ({ className }: { className?: string }) => (
-  <svg className={cn("size-4", className)} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+  <svg
+    className={cn("size-4", className)}
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+    strokeWidth={2}
+  >
     <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
   </svg>
 );
 
 const CheckIcon = ({ className }: { className?: string }) => (
-  <svg className={cn("size-4", className)} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+  <svg
+    className={cn("size-4", className)}
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+    strokeWidth={2}
+  >
     <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
   </svg>
 );
 
 const PlusIcon = ({ className }: { className?: string }) => (
-  <svg className={cn("size-4", className)} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+  <svg
+    className={cn("size-4", className)}
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+    strokeWidth={2}
+  >
     <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
   </svg>
 );
 
 const XMarkIcon = ({ className }: { className?: string }) => (
-  <svg className={cn("size-4", className)} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+  <svg
+    className={cn("size-4", className)}
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+    strokeWidth={2}
+  >
     <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
   </svg>
 );
 
 const LightBulbIcon = ({ className }: { className?: string }) => (
-  <svg className={cn("size-5", className)} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M12 18v-5.25m0 0a6.01 6.01 0 001.5-.189m-1.5.189a6.01 6.01 0 01-1.5-.189m3.75 7.478a12.06 12.06 0 01-4.5 0m3.75 2.383a14.406 14.406 0 01-3 0M14.25 18v-.192c0-.983.658-1.823 1.508-2.316a7.5 7.5 0 10-7.517 0c.85.493 1.509 1.333 1.509 2.316V18" />
+  <svg
+    className={cn("size-5", className)}
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+    strokeWidth={1.5}
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M12 18v-5.25m0 0a6.01 6.01 0 001.5-.189m-1.5.189a6.01 6.01 0 01-1.5-.189m3.75 7.478a12.06 12.06 0 01-4.5 0m3.75 2.383a14.406 14.406 0 01-3 0M14.25 18v-.192c0-.983.658-1.823 1.508-2.316a7.5 7.5 0 10-7.517 0c.85.493 1.509 1.333 1.509 2.316V18"
+    />
   </svg>
 );
 
 const ExclamationTriangleIcon = ({ className }: { className?: string }) => (
-  <svg className={cn("size-4", className)} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+  <svg
+    className={cn("size-4", className)}
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+    strokeWidth={2}
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"
+    />
   </svg>
 );
 
@@ -307,25 +374,29 @@ function ProgressIndicator({ currentStep, totalSteps, completedSteps }: Progress
                 initial={false}
                 animate={{
                   scale: isCurrent ? 1.1 : 1,
-                  backgroundColor: isCompleted || isPast
-                    ? "oklch(0.72 0.19 145)"
-                    : isCurrent
-                    ? "oklch(0.58 0.19 195)"
-                    : "oklch(0.4 0 0)",
+                  backgroundColor:
+                    isCompleted || isPast
+                      ? "oklch(0.72 0.19 145)"
+                      : isCurrent
+                        ? "oklch(0.58 0.19 195)"
+                        : "oklch(0.4 0 0)",
                 }}
                 className={cn(
                   "flex items-center justify-center size-8 rounded-full text-xs font-medium transition-colors",
                   (isCompleted || isPast) && "text-white",
-                  isCurrent && "text-white ring-2 ring-offset-2 ring-offset-background ring-primary",
-                  !isCompleted && !isCurrent && !isPast && "text-muted-foreground"
+                  isCurrent &&
+                    "text-white ring-2 ring-offset-2 ring-offset-background ring-primary",
+                  !isCompleted && !isCurrent && !isPast && "text-muted-foreground",
                 )}
               >
                 {isCompleted ? <CheckIcon className="size-4" /> : step.number}
               </motion.div>
-              <span className={cn(
-                "text-xs mt-1 hidden sm:block max-w-[80px] text-center leading-tight",
-                isCurrent ? "text-foreground font-medium" : "text-muted-foreground"
-              )}>
+              <span
+                className={cn(
+                  "text-xs mt-1 hidden sm:block max-w-[80px] text-center leading-tight",
+                  isCurrent ? "text-foreground font-medium" : "text-muted-foreground",
+                )}
+              >
                 {step.title}
               </span>
             </div>
@@ -333,7 +404,7 @@ function ProgressIndicator({ currentStep, totalSteps, completedSteps }: Progress
               <div
                 className={cn(
                   "h-0.5 w-6 sm:w-10 transition-colors",
-                  isPast || (isCompleted && !isCurrent) ? "bg-[oklch(0.72_0.19_145)]" : "bg-muted"
+                  isPast || (isCompleted && !isCurrent) ? "bg-[oklch(0.72_0.19_145)]" : "bg-muted",
                 )}
               />
             )}
@@ -369,9 +440,7 @@ function QuoteBox({ step }: QuoteBoxProps) {
           <blockquote className="text-sm font-medium italic text-foreground">
             &ldquo;{quote}&rdquo;
           </blockquote>
-          <p className="text-xs text-muted-foreground mt-2">
-            — {context}
-          </p>
+          <p className="text-xs text-muted-foreground mt-2">— {context}</p>
         </div>
       </div>
     </motion.div>
@@ -433,12 +502,7 @@ function ListInput({
           error={error && items.length < minItems ? error : undefined}
           className="flex-1"
         />
-        <Button
-          type="button"
-          variant="outline"
-          onClick={addItem}
-          disabled={!newItem.trim()}
-        >
+        <Button type="button" variant="outline" onClick={addItem} disabled={!newItem.trim()}>
           <PlusIcon className="size-4" />
           <span className="sr-only sm:not-sr-only sm:ml-1">{addButtonText}</span>
         </Button>
@@ -472,9 +536,7 @@ function ListInput({
             ))}
           </ul>
         ) : (
-          <p className="text-sm text-muted-foreground italic py-4 text-center">
-            {emptyMessage}
-          </p>
+          <p className="text-sm text-muted-foreground italic py-4 text-center">{emptyMessage}</p>
         )}
       </AnimatePresence>
 
@@ -568,11 +630,7 @@ function AssumptionDependencyMap({ assumptions }: AssumptionDependencyMapProps) 
   );
 }
 
-function AssumptionLadderInput({
-  sessionId,
-  assumptions,
-  onChange,
-}: AssumptionLadderInputProps) {
+function AssumptionLadderInput({ sessionId, assumptions, onChange }: AssumptionLadderInputProps) {
   const [draftingAssumptionId, setDraftingAssumptionId] = React.useState<string | null>(null);
   const [draftTest, setDraftTest] = React.useState<ExclusionTest | null>(null);
   const [draftError, setDraftError] = React.useState<string | null>(null);
@@ -586,7 +644,10 @@ function AssumptionLadderInput({
 
     setDraftTest({
       id: generateTestId(),
-      name: statement.length > 0 ? `Test: ${label}${statement.length > 60 ? "…" : ""}` : `Test ${assumption.id}`,
+      name:
+        statement.length > 0
+          ? `Test: ${label}${statement.length > 60 ? "…" : ""}`
+          : `Test ${assumption.id}`,
       description: statement.length > 0 ? `Discriminative test for assumption: ${statement}` : "",
       category: "custom",
       discriminativePower: CATEGORY_DEFAULT_POWER.custom,
@@ -658,7 +719,10 @@ function AssumptionLadderInput({
   };
 
   const addAssumption = () => {
-    const id = generateAssumptionId(sessionId, assumptions.map((assumption) => assumption.id));
+    const id = generateAssumptionId(
+      sessionId,
+      assumptions.map((assumption) => assumption.id),
+    );
     onChange([
       ...assumptions,
       {
@@ -673,10 +737,10 @@ function AssumptionLadderInput({
 
   const updateAssumption = (
     id: string,
-    updater: (assumption: AssumptionDraft) => AssumptionDraft
+    updater: (assumption: AssumptionDraft) => AssumptionDraft,
   ) => {
     onChange(
-      assumptions.map((assumption) => (assumption.id === id ? updater(assumption) : assumption))
+      assumptions.map((assumption) => (assumption.id === id ? updater(assumption) : assumption)),
     );
   };
 
@@ -716,8 +780,8 @@ function AssumptionLadderInput({
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <p className="text-xs text-muted-foreground">
-          Use criticality to mark how load-bearing each assumption is. Dependencies reveal
-          cascade risk.
+          Use criticality to mark how load-bearing each assumption is. Dependencies reveal cascade
+          risk.
         </p>
         <Button type="button" variant="outline" size="sm" onClick={addAssumption}>
           <PlusIcon className="size-4" />
@@ -731,7 +795,7 @@ function AssumptionLadderInput({
           const cascade = computeAssumptionCascadePreview(assumptions, assumption.id);
           const hasCascade = cascade.affectedAssumptionIds.length > 0;
           const criticalityHint = ASSUMPTION_CRITICALITY_OPTIONS.find(
-            (option) => option.value === assumption.criticality
+            (option) => option.value === assumption.criticality,
           )?.hint;
 
           return (
@@ -831,7 +895,8 @@ function AssumptionLadderInput({
                       Assumption Tests
                     </div>
                     <p className="text-xs text-muted-foreground mt-1">
-                      Draft a discriminative test that could invalidate this assumption. Tests are added to the Test Queue after you finish intake.
+                      Draft a discriminative test that could invalidate this assumption. Tests are
+                      added to the Test Queue after you finish intake.
                     </p>
                   </div>
                   <Button
@@ -846,9 +911,7 @@ function AssumptionLadderInput({
                 </div>
 
                 {assumption.testDrafts.length === 0 ? (
-                  <p className="text-xs text-muted-foreground italic">
-                    No tests drafted yet.
-                  </p>
+                  <p className="text-xs text-muted-foreground italic">No tests drafted yet.</p>
                 ) : (
                   <div className="space-y-2">
                     {assumption.testDrafts.map((test) => (
@@ -903,11 +966,15 @@ function AssumptionLadderInput({
                           value={draftTest.category}
                           onChange={(e) => {
                             const category = e.target.value as ExclusionTestCategory;
-                            setDraftTest((prev) => prev ? ({
-                              ...prev,
-                              category,
-                              discriminativePower: CATEGORY_DEFAULT_POWER[category],
-                            }) : prev);
+                            setDraftTest((prev) =>
+                              prev
+                                ? {
+                                    ...prev,
+                                    category,
+                                    discriminativePower: CATEGORY_DEFAULT_POWER[category],
+                                  }
+                                : prev,
+                            );
                           }}
                           className="h-9 w-full rounded-md border border-border bg-background px-3 text-sm"
                         >
@@ -927,7 +994,7 @@ function AssumptionLadderInput({
                           value={draftTest.feasibility}
                           onChange={(e) => {
                             const feasibility = e.target.value as TestFeasibility;
-                            setDraftTest((prev) => prev ? ({ ...prev, feasibility }) : prev);
+                            setDraftTest((prev) => (prev ? { ...prev, feasibility } : prev));
                           }}
                           className="h-9 w-full rounded-md border border-border bg-background px-3 text-sm"
                         >
@@ -946,7 +1013,9 @@ function AssumptionLadderInput({
                       </Label>
                       <Input
                         value={draftTest.name}
-                        onChange={(e) => setDraftTest((prev) => prev ? ({ ...prev, name: e.target.value }) : prev)}
+                        onChange={(e) =>
+                          setDraftTest((prev) => (prev ? { ...prev, name: e.target.value } : prev))
+                        }
                         placeholder="Short descriptive name"
                       />
                     </div>
@@ -957,7 +1026,11 @@ function AssumptionLadderInput({
                       </Label>
                       <Textarea
                         value={draftTest.description}
-                        onChange={(e) => setDraftTest((prev) => prev ? ({ ...prev, description: e.target.value }) : prev)}
+                        onChange={(e) =>
+                          setDraftTest((prev) =>
+                            prev ? { ...prev, description: e.target.value } : prev,
+                          )
+                        }
                         rows={2}
                       />
                     </div>
@@ -968,7 +1041,11 @@ function AssumptionLadderInput({
                       </Label>
                       <Textarea
                         value={draftTest.supportCondition}
-                        onChange={(e) => setDraftTest((prev) => prev ? ({ ...prev, supportCondition: e.target.value }) : prev)}
+                        onChange={(e) =>
+                          setDraftTest((prev) =>
+                            prev ? { ...prev, supportCondition: e.target.value } : prev,
+                          )
+                        }
                         rows={2}
                         placeholder="What would you expect to observe?"
                       />
@@ -980,7 +1057,11 @@ function AssumptionLadderInput({
                       </Label>
                       <Textarea
                         value={draftTest.falsificationCondition}
-                        onChange={(e) => setDraftTest((prev) => prev ? ({ ...prev, falsificationCondition: e.target.value }) : prev)}
+                        onChange={(e) =>
+                          setDraftTest((prev) =>
+                            prev ? { ...prev, falsificationCondition: e.target.value } : prev,
+                          )
+                        }
                         rows={2}
                         placeholder="What would force you to abandon the assumption?"
                       />
@@ -992,7 +1073,11 @@ function AssumptionLadderInput({
                       </Label>
                       <Textarea
                         value={draftTest.rationale}
-                        onChange={(e) => setDraftTest((prev) => prev ? ({ ...prev, rationale: e.target.value }) : prev)}
+                        onChange={(e) =>
+                          setDraftTest((prev) =>
+                            prev ? { ...prev, rationale: e.target.value } : prev,
+                          )
+                        }
                         rows={2}
                         placeholder="Why is this test discriminative?"
                       />
@@ -1077,21 +1162,26 @@ function ConfidenceSlider({ value, onChange }: ConfidenceSliderProps) {
           />
           {/* Progress fill */}
           <div
-            className={cn("absolute left-0 top-0 h-3 rounded-full pointer-events-none", getConfidenceColor(value))}
+            className={cn(
+              "absolute left-0 top-0 h-3 rounded-full pointer-events-none",
+              getConfidenceColor(value),
+            )}
             style={{ width: `${value}%` }}
           />
         </div>
       </div>
 
       {/* Label */}
-      <div className={cn(
-        "text-center p-3 rounded-lg",
-        value < 20 && "bg-red-500/10 text-red-600",
-        value >= 20 && value < 40 && "bg-orange-500/10 text-orange-600",
-        value >= 40 && value < 60 && "bg-yellow-500/10 text-yellow-700 dark:text-yellow-500",
-        value >= 60 && value < 80 && "bg-lime-500/10 text-lime-700 dark:text-lime-500",
-        value >= 80 && "bg-green-500/10 text-green-600"
-      )}>
+      <div
+        className={cn(
+          "text-center p-3 rounded-lg",
+          value < 20 && "bg-red-500/10 text-red-600",
+          value >= 20 && value < 40 && "bg-orange-500/10 text-orange-600",
+          value >= 40 && value < 60 && "bg-yellow-500/10 text-yellow-700 dark:text-yellow-500",
+          value >= 60 && value < 80 && "bg-lime-500/10 text-lime-700 dark:text-lime-500",
+          value >= 80 && "bg-green-500/10 text-green-600",
+        )}
+      >
         <span className="font-medium">{getConfidenceLabel(value)}</span>
       </div>
 
@@ -1104,8 +1194,8 @@ function ConfidenceSlider({ value, onChange }: ConfidenceSliderProps) {
         >
           <ExclamationTriangleIcon className="size-4 text-amber-600 flex-shrink-0 mt-0.5" />
           <p className="text-xs text-amber-700 dark:text-amber-500">
-            Confidence above 80% is rare in science. Make sure you&apos;ve thoroughly considered
-            how you could be wrong before claiming near-certainty.
+            Confidence above 80% is rare in science. Make sure you&apos;ve thoroughly considered how
+            you could be wrong before claiming near-certainty.
           </p>
         </motion.div>
       )}
@@ -1137,9 +1227,7 @@ function Step1Content({ formData, setFormData, errors }: StepContentProps) {
         autoResize
         className="min-h-[150px]"
       />
-      <p className="text-xs text-muted-foreground">
-        {formData.statement.length}/1000 characters
-      </p>
+      <p className="text-xs text-muted-foreground">{formData.statement.length}/1000 characters</p>
     </div>
   );
 }
@@ -1160,7 +1248,7 @@ function Step2Content({ formData, setFormData, errors }: StepContentProps) {
                 "p-3 rounded-lg border text-left transition-all",
                 formData.selectedMechanismType === mech.id
                   ? "border-primary bg-primary/10 ring-2 ring-primary/20"
-                  : "border-border hover:border-primary/30"
+                  : "border-border hover:border-primary/30",
               )}
             >
               <div className="font-medium text-sm">{mech.label}</div>
@@ -1179,17 +1267,15 @@ function Step2Content({ formData, setFormData, errors }: StepContentProps) {
           formData.selectedMechanismType === "exposure_outcome"
             ? "e.g., 'Viewing curated social media content triggers upward social comparison, leading to decreased self-esteem and increased depressive symptoms'"
             : formData.selectedMechanismType === "mediation"
-            ? "e.g., 'Social media → Social comparison → Self-esteem → Depression'"
-            : "Describe the causal pathway you're proposing..."
+              ? "e.g., 'Social media → Social comparison → Self-esteem → Depression'"
+              : "Describe the causal pathway you're proposing..."
         }
         hint="How would this work? What's the causal pathway?"
         error={errors.mechanism}
         autoResize
         className="min-h-[120px]"
       />
-      <p className="text-xs text-muted-foreground">
-        {formData.mechanism.length}/500 characters
-      </p>
+      <p className="text-xs text-muted-foreground">{formData.mechanism.length}/500 characters</p>
     </div>
   );
 }
@@ -1198,9 +1284,12 @@ function Step3Content({ formData, setFormData, errors }: StepContentProps) {
   return (
     <div className="space-y-4">
       <div>
-        <h3 className="text-sm font-medium mb-1">If your hypothesis is CORRECT, what would we observe?</h3>
+        <h3 className="text-sm font-medium mb-1">
+          If your hypothesis is CORRECT, what would we observe?
+        </h3>
         <p className="text-xs text-muted-foreground mb-3">
-          Add specific, observable predictions. These should be things that MUST be true if you&apos;re right.
+          Add specific, observable predictions. These should be things that MUST be true if
+          you&apos;re right.
         </p>
       </div>
 
@@ -1221,7 +1310,9 @@ function Step4Content({ formData, setFormData }: StepContentProps) {
   return (
     <div className="space-y-4">
       <div>
-        <h3 className="text-sm font-medium mb-1">If your hypothesis is WRONG, what would we observe?</h3>
+        <h3 className="text-sm font-medium mb-1">
+          If your hypothesis is WRONG, what would we observe?
+        </h3>
         <p className="text-xs text-muted-foreground mb-3">
           These help identify what to look for to falsify your hypothesis. Optional but recommended.
         </p>
@@ -1244,8 +1335,8 @@ function Step5Content({ formData, setFormData, errors }: StepContentProps) {
       <div>
         <h3 className="text-sm font-medium mb-1">What observation would PROVE YOU WRONG?</h3>
         <p className="text-xs text-muted-foreground mb-3">
-          Not just weaken your hypothesis, but <strong>definitively rule it out</strong>.
-          This is the most critical step.
+          Not just weaken your hypothesis, but <strong>definitively rule it out</strong>. This is
+          the most critical step.
         </p>
       </div>
 
@@ -1255,8 +1346,8 @@ function Step5Content({ formData, setFormData, errors }: StepContentProps) {
           If you can&apos;t answer this, your hypothesis isn&apos;t testable yet.
         </p>
         <p className="text-xs text-muted-foreground">
-          Every scientific hypothesis must have falsification conditions. What evidence would
-          force you to abandon this hypothesis entirely?
+          Every scientific hypothesis must have falsification conditions. What evidence would force
+          you to abandon this hypothesis entirely?
         </p>
       </div>
 
@@ -1281,7 +1372,8 @@ function Step6Content({ formData, setFormData, errors, sessionId }: StepContentP
       <div>
         <h3 className="text-sm font-medium mb-1">What assumptions does this hypothesis rest on?</h3>
         <p className="text-xs text-muted-foreground mb-4">
-          Capture the load-bearing assumptions. Set criticality and dependencies to surface cascade risk.
+          Capture the load-bearing assumptions. Set criticality and dependencies to surface cascade
+          risk.
         </p>
       </div>
 
@@ -1297,9 +1389,7 @@ function Step6Content({ formData, setFormData, errors, sessionId }: StepContentP
         }
       />
 
-      {errors.assumptions && (
-        <p className="text-xs text-destructive">{errors.assumptions}</p>
-      )}
+      {errors.assumptions && <p className="text-xs text-destructive">{errors.assumptions}</p>}
 
       <p className="text-xs text-muted-foreground">
         {assumptionCount === 0
@@ -1376,13 +1466,14 @@ const INITIAL_FORM_DATA: IntakeFormData = {
 
 const normalizeAssumptionDrafts = (
   sessionId: string,
-  drafts: AssumptionDraft[]
+  drafts: AssumptionDraft[],
 ): AssumptionDraft[] => {
   const usedIds = new Set<string>();
   return drafts.map((draft) => {
-    const id = draft.id && !usedIds.has(draft.id)
-      ? draft.id
-      : generateAssumptionId(sessionId, Array.from(usedIds));
+    const id =
+      draft.id && !usedIds.has(draft.id)
+        ? draft.id
+        : generateAssumptionId(sessionId, Array.from(usedIds));
     usedIds.add(id);
     return {
       id,
@@ -1396,7 +1487,7 @@ const normalizeAssumptionDrafts = (
 
 const buildInitialFormData = (
   sessionId: string,
-  initialValues?: Partial<IntakeFormData>
+  initialValues?: Partial<IntakeFormData>,
 ): IntakeFormData => {
   const seeded = { ...INITIAL_FORM_DATA, ...initialValues };
   const assumptionDetails = initialValues?.assumptionDetails?.length
@@ -1422,7 +1513,7 @@ export function HypothesisIntake({
 }: HypothesisIntakeProps) {
   const [currentStep, setCurrentStep] = React.useState<IntakeStep>(1);
   const [formData, setFormData] = React.useState<IntakeFormData>(() =>
-    buildInitialFormData(sessionId, initialValues)
+    buildInitialFormData(sessionId, initialValues),
   );
   const [errors, setErrors] = React.useState<Record<string, string>>({});
   const [completedSteps, setCompletedSteps] = React.useState<Set<IntakeStep>>(new Set());
@@ -1547,7 +1638,7 @@ export function HypothesisIntake({
       }
 
       const draftedTests = assumptionDrafts.flatMap((assumption) =>
-        Array.isArray(assumption.testDrafts) ? assumption.testDrafts : []
+        Array.isArray(assumption.testDrafts) ? assumption.testDrafts : [],
       );
 
       if (draftedTests.length > 0) {
@@ -1607,19 +1698,27 @@ export function HypothesisIntake({
     const props: StepContentProps = { formData, setFormData, errors, sessionId };
 
     switch (currentStep) {
-      case 1: return <Step1Content {...props} />;
-      case 2: return <Step2Content {...props} />;
-      case 3: return <Step3Content {...props} />;
-      case 4: return <Step4Content {...props} />;
-      case 5: return <Step5Content {...props} />;
-      case 6: return <Step6Content {...props} />;
-      case 7: return <Step7Content {...props} />;
+      case 1:
+        return <Step1Content {...props} />;
+      case 2:
+        return <Step2Content {...props} />;
+      case 3:
+        return <Step3Content {...props} />;
+      case 4:
+        return <Step4Content {...props} />;
+      case 5:
+        return <Step5Content {...props} />;
+      case 6:
+        return <Step6Content {...props} />;
+      case 7:
+        return <Step7Content {...props} />;
     }
   };
 
   const isLastStep = currentStep === 7;
   // Note: canProceed must match validation logic (use trim() for text fields)
-  const canProceed = currentStep === 4 || // Step 4 is optional
+  const canProceed =
+    currentStep === 4 || // Step 4 is optional
     (currentStep === 1 && formData.statement.trim().length >= 10) ||
     (currentStep === 2 && formData.mechanism.trim().length >= 10) ||
     (currentStep === 3 && formData.predictionsIfTrue.length > 0) ||
@@ -1651,9 +1750,7 @@ export function HypothesisIntake({
           <h2 className="text-lg font-semibold">
             Step {currentStep}: {STEPS[currentStep - 1].title}
           </h2>
-          <p className="text-sm text-muted-foreground">
-            {STEPS[currentStep - 1].description}
-          </p>
+          <p className="text-sm text-muted-foreground">{STEPS[currentStep - 1].description}</p>
         </div>
 
         {/* Form Content */}
@@ -1681,11 +1778,7 @@ export function HypothesisIntake({
         <div className="flex items-center justify-between pt-4 border-t border-border">
           <div className="flex items-center gap-2">
             {onCancel && (
-              <Button
-                type="button"
-                variant="ghost"
-                onClick={onCancel}
-              >
+              <Button type="button" variant="ghost" onClick={onCancel}>
                 Cancel
               </Button>
             )}
@@ -1723,11 +1816,7 @@ export function HypothesisIntake({
                 )}
               </Button>
             ) : (
-              <Button
-                type="button"
-                onClick={handleNext}
-                disabled={!canProceed}
-              >
+              <Button type="button" onClick={handleNext} disabled={!canProceed}>
                 <span className="hidden sm:inline mr-1">Next</span>
                 <ChevronRightIcon className="size-4" />
               </Button>

@@ -14,11 +14,8 @@
  * - Load: < 5s
  */
 
-import { test, expect } from "@playwright/test";
-import {
-  collectPerformanceTiming,
-  type PerformanceTimingData,
-} from "./utils/network-logging";
+import { expect, test } from "@playwright/test";
+import { collectPerformanceTiming, type PerformanceTimingData } from "./utils/network-logging";
 
 // ============================================================================
 // Performance Budgets (in milliseconds)
@@ -84,15 +81,15 @@ function formatCLS(value: number | undefined): string {
 async function collectMetrics(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   page: any,
-  testTitle: string
+  testTitle: string,
 ): Promise<PerformanceTimingData & { ttfb?: number }> {
   const timing = await collectPerformanceTiming(page, testTitle);
 
   // Also collect TTFB
   const ttfb = await page.evaluate(() => {
-    const nav = performance.getEntriesByType(
-      "navigation"
-    )[0] as PerformanceNavigationTiming | undefined;
+    const nav = performance.getEntriesByType("navigation")[0] as
+      | PerformanceNavigationTiming
+      | undefined;
     if (!nav) return undefined;
     return nav.responseStart - nav.requestStart;
   });
@@ -124,12 +121,22 @@ test.describe("Performance: Core Web Vitals", () => {
 
       // Log metrics for debugging
       console.log(`\n${name} Performance Metrics:`);
-      console.log(`  FCP:  ${formatMetric(metrics.firstContentfulPaint)} (budget: ${formatMetric(budget.fcp)})`);
-      console.log(`  LCP:  ${formatMetric(metrics.largestContentfulPaint)} (budget: ${formatMetric(budget.lcp)})`);
+      console.log(
+        `  FCP:  ${formatMetric(metrics.firstContentfulPaint)} (budget: ${formatMetric(budget.fcp)})`,
+      );
+      console.log(
+        `  LCP:  ${formatMetric(metrics.largestContentfulPaint)} (budget: ${formatMetric(budget.lcp)})`,
+      );
       console.log(`  LCP element: ${metrics.lcpElement || "N/A"}`);
-      console.log(`  INP:  ${formatMetric(metrics.interactionToNextPaint)} (budget: ${formatMetric(budget.inp)})`);
-      console.log(`  CLS:  ${formatCLS(metrics.cumulativeLayoutShift)} (budget: ${formatCLS(budget.cls)})`);
-      console.log(`  DCL:  ${formatMetric(metrics.domContentLoaded)} (budget: ${formatMetric(budget.domContentLoaded)})`);
+      console.log(
+        `  INP:  ${formatMetric(metrics.interactionToNextPaint)} (budget: ${formatMetric(budget.inp)})`,
+      );
+      console.log(
+        `  CLS:  ${formatCLS(metrics.cumulativeLayoutShift)} (budget: ${formatCLS(budget.cls)})`,
+      );
+      console.log(
+        `  DCL:  ${formatMetric(metrics.domContentLoaded)} (budget: ${formatMetric(budget.domContentLoaded)})`,
+      );
       console.log(`  Load: ${formatMetric(metrics.load)} (budget: ${formatMetric(budget.load)})`);
       console.log(`  TTFB: ${formatMetric(metrics.ttfb)}`);
 
@@ -151,7 +158,7 @@ test.describe("Performance: Core Web Vitals", () => {
             budgets: budget,
           },
           null,
-          2
+          2,
         ),
         contentType: "application/json",
       });
@@ -162,7 +169,7 @@ test.describe("Performance: Core Web Vitals", () => {
       if (budget.fcp && metrics.firstContentfulPaint !== undefined) {
         if (metrics.firstContentfulPaint > budget.fcp) {
           errors.push(
-            `FCP ${formatMetric(metrics.firstContentfulPaint)} exceeds budget ${formatMetric(budget.fcp)}`
+            `FCP ${formatMetric(metrics.firstContentfulPaint)} exceeds budget ${formatMetric(budget.fcp)}`,
           );
         }
       }
@@ -170,7 +177,7 @@ test.describe("Performance: Core Web Vitals", () => {
       if (budget.lcp && metrics.largestContentfulPaint !== undefined) {
         if (metrics.largestContentfulPaint > budget.lcp) {
           errors.push(
-            `LCP ${formatMetric(metrics.largestContentfulPaint)} exceeds budget ${formatMetric(budget.lcp)}`
+            `LCP ${formatMetric(metrics.largestContentfulPaint)} exceeds budget ${formatMetric(budget.lcp)}`,
           );
         }
       }
@@ -178,7 +185,7 @@ test.describe("Performance: Core Web Vitals", () => {
       if (budget.inp && metrics.interactionToNextPaint !== undefined) {
         if (metrics.interactionToNextPaint > budget.inp) {
           errors.push(
-            `INP ${formatMetric(metrics.interactionToNextPaint)} exceeds budget ${formatMetric(budget.inp)}`
+            `INP ${formatMetric(metrics.interactionToNextPaint)} exceeds budget ${formatMetric(budget.inp)}`,
           );
         }
       }
@@ -186,7 +193,7 @@ test.describe("Performance: Core Web Vitals", () => {
       if (budget.cls && metrics.cumulativeLayoutShift !== undefined) {
         if (metrics.cumulativeLayoutShift > budget.cls) {
           errors.push(
-            `CLS ${formatCLS(metrics.cumulativeLayoutShift)} exceeds budget ${formatCLS(budget.cls)}`
+            `CLS ${formatCLS(metrics.cumulativeLayoutShift)} exceeds budget ${formatCLS(budget.cls)}`,
           );
         }
       }
@@ -194,7 +201,7 @@ test.describe("Performance: Core Web Vitals", () => {
       if (budget.domContentLoaded && metrics.domContentLoaded !== undefined) {
         if (metrics.domContentLoaded > budget.domContentLoaded) {
           errors.push(
-            `DOM Content Loaded ${formatMetric(metrics.domContentLoaded)} exceeds budget ${formatMetric(budget.domContentLoaded)}`
+            `DOM Content Loaded ${formatMetric(metrics.domContentLoaded)} exceeds budget ${formatMetric(budget.domContentLoaded)}`,
           );
         }
       }
@@ -202,7 +209,7 @@ test.describe("Performance: Core Web Vitals", () => {
       if (budget.load && metrics.load !== undefined) {
         if (metrics.load > budget.load) {
           errors.push(
-            `Load ${formatMetric(metrics.load)} exceeds budget ${formatMetric(budget.load)}`
+            `Load ${formatMetric(metrics.load)} exceeds budget ${formatMetric(budget.load)}`,
           );
         }
       }
@@ -219,9 +226,7 @@ test.describe("Performance: Core Web Vitals", () => {
 // ============================================================================
 
 test.describe("Performance: Large Pages", () => {
-  test("Transcript page loads within extended budget", async ({
-    page,
-  }, testInfo) => {
+  test("Transcript page loads within extended budget", async ({ page }, testInfo) => {
     const budget = getBudget("/corpus/transcript");
 
     await page.goto("/corpus/transcript", { waitUntil: "networkidle" });
@@ -229,8 +234,12 @@ test.describe("Performance: Large Pages", () => {
     const metrics = await collectMetrics(page, testInfo.title);
 
     console.log(`\nTranscript Performance Metrics:`);
-    console.log(`  FCP:  ${formatMetric(metrics.firstContentfulPaint)} (budget: ${formatMetric(budget.fcp)})`);
-    console.log(`  LCP:  ${formatMetric(metrics.largestContentfulPaint)} (budget: ${formatMetric(budget.lcp)})`);
+    console.log(
+      `  FCP:  ${formatMetric(metrics.firstContentfulPaint)} (budget: ${formatMetric(budget.fcp)})`,
+    );
+    console.log(
+      `  LCP:  ${formatMetric(metrics.largestContentfulPaint)} (budget: ${formatMetric(budget.lcp)})`,
+    );
     console.log(`  Load: ${formatMetric(metrics.load)} (budget: ${formatMetric(budget.load)})`);
 
     // Transcript is a large document - just ensure it loads within extended budget
@@ -239,9 +248,7 @@ test.describe("Performance: Large Pages", () => {
     }
   });
 
-  test("Method reference page loads within extended budget", async ({
-    page,
-  }, testInfo) => {
+  test("Method reference page loads within extended budget", async ({ page }, testInfo) => {
     const budget = getBudget("/method");
 
     await page.goto("/method", { waitUntil: "networkidle" });
@@ -249,8 +256,12 @@ test.describe("Performance: Large Pages", () => {
     const metrics = await collectMetrics(page, testInfo.title);
 
     console.log(`\nMethod Reference Performance Metrics:`);
-    console.log(`  FCP:  ${formatMetric(metrics.firstContentfulPaint)} (budget: ${formatMetric(budget.fcp)})`);
-    console.log(`  LCP:  ${formatMetric(metrics.largestContentfulPaint)} (budget: ${formatMetric(budget.lcp)})`);
+    console.log(
+      `  FCP:  ${formatMetric(metrics.firstContentfulPaint)} (budget: ${formatMetric(budget.fcp)})`,
+    );
+    console.log(
+      `  LCP:  ${formatMetric(metrics.largestContentfulPaint)} (budget: ${formatMetric(budget.lcp)})`,
+    );
     console.log(`  Load: ${formatMetric(metrics.load)} (budget: ${formatMetric(budget.load)})`);
 
     if (metrics.load !== undefined && budget.load) {
@@ -322,9 +333,9 @@ test.describe("Performance: Time to First Byte", () => {
       await page.goto(path, { waitUntil: "domcontentloaded" });
 
       const ttfb = await page.evaluate(() => {
-        const nav = performance.getEntriesByType(
-          "navigation"
-        )[0] as PerformanceNavigationTiming | undefined;
+        const nav = performance.getEntriesByType("navigation")[0] as
+          | PerformanceNavigationTiming
+          | undefined;
         if (!nav) return undefined;
         return nav.responseStart - nav.requestStart;
       });

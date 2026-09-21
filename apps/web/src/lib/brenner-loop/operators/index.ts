@@ -11,50 +11,43 @@
 // ============================================================================
 
 export type {
-  // Core types
-  OperatorType,
-  OperatorMetadata,
-  OperatorSessionStatus,
   OperatorInsight,
-
-  // Step types
-  OperatorStepConfig,
-  StepValidation,
-  OperatorStepState,
-
+  OperatorMetadata,
   // Session types
   OperatorSession,
   OperatorSessionAction,
+  OperatorSessionStatus,
+  // Step types
+  OperatorStepConfig,
+  OperatorStepState,
+  // Core types
+  OperatorType,
+  StepValidation,
 } from "./framework";
 
 export {
-  // Type guards
-  isOperatorType,
-
-  // Metadata
-  OPERATOR_METADATA,
-
+  canGoBack,
+  canProceedToNext,
+  canSkipCurrent,
+  createSession,
+  createStepStates,
+  deserializeSession,
+  generateInsightId,
   // Factory functions
   generateSessionId,
-  generateInsightId,
-  createStepStates,
-  createSession,
-
-  // State management
-  sessionReducer,
-
   // Utility functions
   getCurrentStep,
   getCurrentStepConfig,
-  canProceedToNext,
-  canGoBack,
-  canSkipCurrent,
   getProgress,
   getSessionSummary,
-
+  // Type guards
+  isOperatorType,
+  // Metadata
+  OPERATOR_METADATA,
   // Serialization
   serializeSession,
-  deserializeSession,
+  // State management
+  sessionReducer,
 } from "./framework";
 
 // ============================================================================
@@ -65,29 +58,26 @@ export type {
   Level,
   LevelCategory,
   LevelCombination,
-  SubHypothesis,
   LevelSplitResult,
+  SubHypothesis,
 } from "./level-split";
 
 export {
-  // Step configurations
-  LEVEL_SPLIT_STEP_IDS,
-  LEVEL_SPLIT_STEPS,
-
-  // Level templates
-  X_LEVEL_TEMPLATES,
-  Y_LEVEL_TEMPLATES,
-
+  buildLevelSplitResult,
+  generateCombinationMatrix,
+  generateSubHypothesis,
   // Generation functions
   generateXLevels,
   generateYLevels,
-  generateCombinationMatrix,
-  generateSubHypothesis,
-  buildLevelSplitResult,
-
+  LEVEL_SPLIT_FALLBACK_QUOTES,
   // Quote references
   LEVEL_SPLIT_QUOTE_ANCHORS,
-  LEVEL_SPLIT_FALLBACK_QUOTES,
+  // Step configurations
+  LEVEL_SPLIT_STEP_IDS,
+  LEVEL_SPLIT_STEPS,
+  // Level templates
+  X_LEVEL_TEMPLATES,
+  Y_LEVEL_TEMPLATES,
 } from "./level-split";
 
 // ============================================================================
@@ -95,40 +85,36 @@ export {
 // ============================================================================
 
 export type {
-  ExclusionTestCategory,
-  TestFeasibility,
   ExclusionTest,
-  TestProtocol,
+  ExclusionTestCategory,
   ExclusionTestResult,
+  TestFeasibility,
+  TestProtocol,
 } from "./exclusion-test";
 
 export {
+  buildExclusionTestResult,
+  CATEGORY_DEFAULT_POWER,
+  createCustomTest,
   // Labels and constants
   EXCLUSION_TEST_CATEGORY_LABELS,
-  CATEGORY_DEFAULT_POWER,
-  FEASIBILITY_LABELS,
-
+  EXCLUSION_TEST_FALLBACK_QUOTES,
+  // Quote references
+  EXCLUSION_TEST_QUOTE_ANCHORS,
   // Step configurations
   EXCLUSION_TEST_STEP_IDS,
   EXCLUSION_TEST_STEPS,
-
+  FEASIBILITY_LABELS,
+  generateExclusionTests,
+  generateProtocols,
+  generateProtocolTemplate,
   // Generation functions
   generateTestId,
-  generateExclusionTests,
-  createCustomTest,
-  generateProtocolTemplate,
-  generateProtocols,
-  buildExclusionTestResult,
-
+  getCategoryColor,
+  getDiscriminativePowerLabel,
   // Display utilities
   getDiscriminativePowerStars,
-  getDiscriminativePowerLabel,
   getFeasibilityColor,
-  getCategoryColor,
-
-  // Quote references
-  EXCLUSION_TEST_QUOTE_ANCHORS,
-  EXCLUSION_TEST_FALLBACK_QUOTES,
 } from "./exclusion-test";
 
 // ============================================================================
@@ -136,34 +122,31 @@ export {
 // ============================================================================
 
 export type {
-  AlternativeType,
   AlternativeExplanation,
+  AlternativeType,
   DiscriminatingTest,
-  PlausibilityRating,
   ObjectTransposeResult,
+  PlausibilityRating,
 } from "./object-transpose";
 
 export {
+  buildObjectTransposeResult,
+  generateAlternatives,
+  generateBidirectional,
+  generateCoincidence,
+  generateDiscriminatingTests,
+  // Generation functions
+  generateReverseCausation,
+  generateSelectionEffect,
+  generateThirdVariables,
+  OBJECT_TRANSPOSE_FALLBACK_QUOTES,
+  // Quote references
+  OBJECT_TRANSPOSE_QUOTE_ANCHORS,
   // Step configurations
   OBJECT_TRANSPOSE_STEP_IDS,
   OBJECT_TRANSPOSE_STEPS,
-
   // Third variable templates
   THIRD_VARIABLE_TEMPLATES,
-
-  // Generation functions
-  generateReverseCausation,
-  generateThirdVariables,
-  generateSelectionEffect,
-  generateBidirectional,
-  generateCoincidence,
-  generateAlternatives,
-  generateDiscriminatingTests,
-  buildObjectTransposeResult,
-
-  // Quote references
-  OBJECT_TRANSPOSE_QUOTE_ANCHORS,
-  OBJECT_TRANSPOSE_FALLBACK_QUOTES,
 } from "./object-transpose";
 
 // ============================================================================
@@ -171,44 +154,40 @@ export {
 // ============================================================================
 
 export type {
-  EffectSizeType,
+  Benchmark,
+  ContextComparison,
+  DomainContext,
   EffectDirection,
   EffectMagnitude,
   EffectSizeSpec,
-  DomainContext,
-  TypicalEffect,
-  Benchmark,
-  ContextComparison,
+  EffectSizeType,
   MeasurementAssessment,
-  PracticalSignificance,
   PopulationConsideration,
+  PracticalSignificance,
   ScaleCheckResult,
+  TypicalEffect,
 } from "./scale-check";
 
 export {
-  // Step configurations
-  SCALE_CHECK_STEP_IDS,
-  SCALE_CHECK_STEPS,
-
+  approximateSampleSize,
+  buildScaleCheckResult,
+  classifyEffectSize,
+  // Domain context
+  DOMAIN_CONTEXTS,
   // Effect size utilities
   EFFECT_SIZE_CONVENTIONS,
   estimateToValue,
-  classifyEffectSize,
-  varianceExplained,
-  approximateSampleSize,
-
-  // Domain context
-  DOMAIN_CONTEXTS,
-  getDomainContext,
-
   // Generation functions
   generateContextComparison,
   generatePopulationConsiderations,
-  buildScaleCheckResult,
-
+  getDomainContext,
+  SCALE_CHECK_FALLBACK_QUOTES,
   // Quote references
   SCALE_CHECK_QUOTE_ANCHORS,
-  SCALE_CHECK_FALLBACK_QUOTES,
+  // Step configurations
+  SCALE_CHECK_STEP_IDS,
+  SCALE_CHECK_STEPS,
+  varianceExplained,
 } from "./scale-check";
 
 // ============================================================================
@@ -221,18 +200,16 @@ export type {
 } from "./docs";
 
 export {
-  // Documentation by operator
-  LEVEL_SPLIT_DOCS,
   EXCLUSION_TEST_DOCS,
-  OBJECT_TRANSPOSE_DOCS,
-  SCALE_CHECK_DOCS,
-
-  // Documentation index
-  OPERATOR_DOCUMENTATION,
-
+  getCommonMistakes,
   // Utility functions
   getOperatorDocumentation,
   getStepTip,
-  getCommonMistakes,
   getSuccessCriteria,
+  // Documentation by operator
+  LEVEL_SPLIT_DOCS,
+  OBJECT_TRANSPOSE_DOCS,
+  // Documentation index
+  OPERATOR_DOCUMENTATION,
+  SCALE_CHECK_DOCS,
 } from "./docs";

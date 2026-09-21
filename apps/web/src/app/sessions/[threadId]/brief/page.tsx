@@ -1,9 +1,9 @@
 "use client";
 
+import { AnimatePresence, motion } from "framer-motion";
 import Link from "next/link";
-import { useEffect, useState, useTransition } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { motion, AnimatePresence } from "framer-motion";
+import { useEffect, useState, useTransition } from "react";
 import { DemoFeaturePreview } from "@/components/sessions/DemoFeaturePreview";
 import { recordSessionResumeEntry } from "@/lib/brenner-loop";
 import { isDemoThreadId, normalizeThreadId } from "@/lib/demo-mode";
@@ -14,7 +14,13 @@ import { isDemoThreadId, normalizeThreadId } from "@/lib/demo-mode";
 
 function ChevronLeftIcon({ className }: { className?: string }) {
   return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+    <svg
+      className={className}
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+      strokeWidth={2}
+    >
       <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
     </svg>
   );
@@ -22,7 +28,13 @@ function ChevronLeftIcon({ className }: { className?: string }) {
 
 function ChevronDownIcon({ className }: { className?: string }) {
   return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+    <svg
+      className={className}
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+      strokeWidth={2}
+    >
       <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
     </svg>
   );
@@ -30,64 +42,144 @@ function ChevronDownIcon({ className }: { className?: string }) {
 
 function DocumentIcon({ className }: { className?: string }) {
   return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+    <svg
+      className={className}
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+      strokeWidth={1.5}
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"
+      />
     </svg>
   );
 }
 
 function DownloadIcon({ className }: { className?: string }) {
   return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
+    <svg
+      className={className}
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+      strokeWidth={1.5}
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"
+      />
     </svg>
   );
 }
 
 function CheckCircleIcon({ className }: { className?: string }) {
   return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+    <svg
+      className={className}
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+      strokeWidth={1.5}
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+      />
     </svg>
   );
 }
 
 function SparklesIcon({ className }: { className?: string }) {
   return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 001.423 1.423l1.183.394-1.183.394a2.25 2.25 0 00-1.423 1.423z" />
+    <svg
+      className={className}
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+      strokeWidth={1.5}
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 001.423 1.423l1.183.394-1.183.394a2.25 2.25 0 00-1.423 1.423z"
+      />
     </svg>
   );
 }
 
 function ClipboardIcon({ className }: { className?: string }) {
   return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M15.666 3.888A2.25 2.25 0 0013.5 2.25h-3c-1.03 0-1.9.693-2.166 1.638m7.332 0c.055.194.084.4.084.612v0a.75.75 0 01-.75.75H9a.75.75 0 01-.75-.75v0c0-.212.03-.418.084-.612m7.332 0c.646.049 1.288.11 1.927.184 1.1.128 1.907 1.077 1.907 2.185V19.5a2.25 2.25 0 01-2.25 2.25H6.75A2.25 2.25 0 014.5 19.5V6.257c0-1.108.806-2.057 1.907-2.185a48.208 48.208 0 011.927-.184" />
+    <svg
+      className={className}
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+      strokeWidth={1.5}
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M15.666 3.888A2.25 2.25 0 0013.5 2.25h-3c-1.03 0-1.9.693-2.166 1.638m7.332 0c.055.194.084.4.084.612v0a.75.75 0 01-.75.75H9a.75.75 0 01-.75-.75v0c0-.212.03-.418.084-.612m7.332 0c.646.049 1.288.11 1.927.184 1.1.128 1.907 1.077 1.907 2.185V19.5a2.25 2.25 0 01-2.25 2.25H6.75A2.25 2.25 0 014.5 19.5V6.257c0-1.108.806-2.057 1.907-2.185a48.208 48.208 0 011.927-.184"
+      />
     </svg>
   );
 }
 
 function ShareIcon({ className }: { className?: string }) {
   return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M7.217 10.907a2.25 2.25 0 100 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186l9.566-5.314m-9.566 7.5l9.566 5.314m0 0a2.25 2.25 0 103.935 2.186 2.25 2.25 0 00-3.935-2.186zm0-12.814a2.25 2.25 0 103.933-2.185 2.25 2.25 0 00-3.933 2.185z" />
+    <svg
+      className={className}
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+      strokeWidth={1.5}
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M7.217 10.907a2.25 2.25 0 100 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186l9.566-5.314m-9.566 7.5l9.566 5.314m0 0a2.25 2.25 0 103.935 2.186 2.25 2.25 0 00-3.935-2.186zm0-12.814a2.25 2.25 0 103.933-2.185 2.25 2.25 0 00-3.933 2.185z"
+      />
     </svg>
   );
 }
 
 function PrinterIcon({ className }: { className?: string }) {
   return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0110.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0l.229 2.523a1.125 1.125 0 01-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0021 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 00-1.913-.247M6.34 18H5.25A2.25 2.25 0 013 15.75V9.456c0-1.081.768-2.015 1.837-2.175a48.041 48.041 0 011.913-.247m10.5 0a48.536 48.536 0 00-10.5 0m10.5 0V3.375c0-.621-.504-1.125-1.125-1.125h-8.25c-.621 0-1.125.504-1.125 1.125v3.659M18 10.5h.008v.008H18V10.5zm-3 0h.008v.008H15V10.5z" />
+    <svg
+      className={className}
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+      strokeWidth={1.5}
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0110.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0l.229 2.523a1.125 1.125 0 01-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0021 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 00-1.913-.247M6.34 18H5.25A2.25 2.25 0 013 15.75V9.456c0-1.081.768-2.015 1.837-2.175a48.041 48.041 0 011.913-.247m10.5 0a48.536 48.536 0 00-10.5 0m10.5 0V3.375c0-.621-.504-1.125-1.125-1.125h-8.25c-.621 0-1.125.504-1.125 1.125v3.659M18 10.5h.008v.008H18V10.5zm-3 0h.008v.008H15V10.5z"
+      />
     </svg>
   );
 }
 
 function EyeIcon({ className }: { className?: string }) {
   return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
+    <svg
+      className={className}
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+      strokeWidth={1.5}
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z"
+      />
       <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
     </svg>
   );
@@ -95,8 +187,18 @@ function EyeIcon({ className }: { className?: string }) {
 
 function RefreshIcon({ className }: { className?: string }) {
   return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" />
+    <svg
+      className={className}
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+      strokeWidth={1.5}
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99"
+      />
     </svg>
   );
 }
@@ -293,7 +395,9 @@ function StatusBadge({ status }: { status: "complete" | "partial" | "pending" })
   const { bg, text, label } = config[status];
 
   return (
-    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${bg} ${text}`}>
+    <span
+      className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${bg} ${text}`}
+    >
       {status === "complete" && <CheckCircleIcon className="size-3" />}
       {label}
     </span>
@@ -318,11 +422,10 @@ function SectionCard({
           : "border-border bg-card hover:border-border/80"
       }`}
     >
-      <button
-        onClick={onToggle}
-        className="w-full p-4 flex items-center gap-4 text-left"
-      >
-        <div className={`flex items-center justify-center size-10 rounded-xl ${section.bgColor} ${section.color}`}>
+      <button onClick={onToggle} className="w-full p-4 flex items-center gap-4 text-left">
+        <div
+          className={`flex items-center justify-center size-10 rounded-xl ${section.bgColor} ${section.color}`}
+        >
           {section.icon}
         </div>
         <div className="flex-1 min-w-0">
@@ -331,15 +434,10 @@ function SectionCard({
             <StatusBadge status={section.status} />
           </div>
           {section.summary && (
-            <p className="text-sm text-muted-foreground truncate mt-0.5">
-              {section.summary}
-            </p>
+            <p className="text-sm text-muted-foreground truncate mt-0.5">{section.summary}</p>
           )}
         </div>
-        <motion.div
-          animate={{ rotate: isExpanded ? 180 : 0 }}
-          transition={{ duration: 0.2 }}
-        >
+        <motion.div animate={{ rotate: isExpanded ? 180 : 0 }} transition={{ duration: 0.2 }}>
           <ChevronDownIcon className="size-5 text-muted-foreground" />
         </motion.div>
       </button>
@@ -363,7 +461,9 @@ function SectionCard({
                     transition={{ delay: idx * 0.05 }}
                     className="flex items-start gap-2 text-sm"
                   >
-                    <span className={`mt-1.5 size-1.5 rounded-full ${section.color.replace("text-", "bg-")} flex-shrink-0`} />
+                    <span
+                      className={`mt-1.5 size-1.5 rounded-full ${section.color.replace("text-", "bg-")} flex-shrink-0`}
+                    />
                     <span className="text-muted-foreground">{item}</span>
                   </motion.div>
                 ))}
@@ -398,9 +498,11 @@ function ExportCard({
       }`}
     >
       <div className="flex items-start gap-3">
-        <div className={`flex items-center justify-center size-10 rounded-lg ${
-          format.available ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"
-        }`}>
+        <div
+          className={`flex items-center justify-center size-10 rounded-lg ${
+            format.available ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"
+          }`}
+        >
           {isExporting ? (
             <motion.div
               animate={{ rotate: 360 }}
@@ -419,9 +521,7 @@ function ExportCard({
           </div>
           <p className="text-xs text-muted-foreground mt-0.5">{format.description}</p>
         </div>
-        {format.available && (
-          <DownloadIcon className="size-4 text-muted-foreground" />
-        )}
+        {format.available && <DownloadIcon className="size-4 text-muted-foreground" />}
       </div>
       {!format.available && (
         <div className="absolute top-2 right-2">
@@ -470,13 +570,7 @@ function formatRelativeTime(timestampMs: number, nowMs: number): string {
   return `${days} day${days === 1 ? "" : "s"} ago`;
 }
 
-type ObjectionStatus =
-  | "open"
-  | "acknowledged"
-  | "testing"
-  | "addressed"
-  | "accepted"
-  | "dismissed";
+type ObjectionStatus = "open" | "acknowledged" | "testing" | "addressed" | "accepted" | "dismissed";
 
 type ObjectionSnapshot = {
   id: string;
@@ -503,11 +597,16 @@ const OBJECTION_STATUS_LABELS: Record<ObjectionStatus, string> = {
   dismissed: "Dismissed",
 };
 
-const RESOLVED_OBJECTION_STATUSES = new Set<ObjectionStatus>(["addressed", "accepted", "dismissed"]);
+const RESOLVED_OBJECTION_STATUSES = new Set<ObjectionStatus>([
+  "addressed",
+  "accepted",
+  "dismissed",
+]);
 
 const objectionStatusKey = (threadId: string): string => `brenner-objection-register:${threadId}`;
 
-const objectionSnapshotKey = (threadId: string): string => `brenner-objection-register-snapshot:${threadId}`;
+const objectionSnapshotKey = (threadId: string): string =>
+  `brenner-objection-register-snapshot:${threadId}`;
 
 const isRecord = (value: unknown): value is Record<string, unknown> => {
   return typeof value === "object" && value !== null && !Array.isArray(value);
@@ -634,7 +733,12 @@ const buildObjectionRegisterBriefSection = (threadId: string): BriefSection | nu
   };
 };
 
-const renderBriefMarkdown = (params: { threadId: string; generatedAt: string; qualityScore: number; sections: BriefSection[] }): string => {
+const renderBriefMarkdown = (params: {
+  threadId: string;
+  generatedAt: string;
+  qualityScore: number;
+  sections: BriefSection[];
+}): string => {
   const { threadId, generatedAt, qualityScore, sections } = params;
   const lines: string[] = [];
 
@@ -702,7 +806,9 @@ function BriefPageContent({ threadId }: { threadId: string }) {
     recordSessionResumeEntry(threadId, "brief");
   }, [threadId]);
 
-  const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(["hypothesis_slate"]));
+  const [expandedSections, setExpandedSections] = useState<Set<string>>(
+    new Set(["hypothesis_slate"]),
+  );
   const [exportingFormat, setExportingFormat] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [lastUpdatedAt, setLastUpdatedAt] = useState(() => Date.now());
@@ -718,7 +824,7 @@ function BriefPageContent({ threadId }: { threadId: string }) {
   }, []);
 
   const toggleSection = (id: string) => {
-    setExpandedSections(prev => {
+    setExpandedSections((prev) => {
       const next = new Set(prev);
       if (next.has(id)) {
         next.delete(id);
@@ -733,7 +839,9 @@ function BriefPageContent({ threadId }: { threadId: string }) {
     setObjectionSection(buildObjectionRegisterBriefSection(threadId));
   }, [threadId]);
 
-  const briefSections = objectionSection ? [...BASE_BRIEF_SECTIONS, objectionSection] : BASE_BRIEF_SECTIONS;
+  const briefSections = objectionSection
+    ? [...BASE_BRIEF_SECTIONS, objectionSection]
+    : BASE_BRIEF_SECTIONS;
 
   const handleExport = async (formatId: string) => {
     setExportingFormat(formatId);
@@ -743,7 +851,12 @@ function BriefPageContent({ threadId }: { threadId: string }) {
       const qualityScore = Math.round((completedSections / briefSections.length) * 100);
 
       if (formatId === "markdown") {
-        const markdown = renderBriefMarkdown({ threadId, generatedAt, qualityScore, sections: briefSections });
+        const markdown = renderBriefMarkdown({
+          threadId,
+          generatedAt,
+          qualityScore,
+          sections: briefSections,
+        });
         downloadTextFile(`research-brief-${threadId}.md`, markdown, "text/markdown");
         return;
       }
@@ -764,7 +877,11 @@ function BriefPageContent({ threadId }: { threadId: string }) {
           })),
         };
 
-        downloadTextFile(`research-brief-${threadId}.json`, JSON.stringify(payload, null, 2), "application/json");
+        downloadTextFile(
+          `research-brief-${threadId}.json`,
+          JSON.stringify(payload, null, 2),
+          "application/json",
+        );
         return;
       }
 
@@ -803,7 +920,7 @@ function BriefPageContent({ threadId }: { threadId: string }) {
     });
   };
 
-  const completedSections = briefSections.filter(s => s.status === "complete").length;
+  const completedSections = briefSections.filter((s) => s.status === "complete").length;
   const qualityScore = Math.round((completedSections / briefSections.length) * 100);
   const lastUpdatedLabel = formatRelativeTime(lastUpdatedAt, now);
 
@@ -868,7 +985,9 @@ function BriefPageContent({ threadId }: { threadId: string }) {
                 </motion.div>
               </div>
               <div>
-                <h1 className="text-2xl font-bold tracking-tight text-foreground">Research Brief</h1>
+                <h1 className="text-2xl font-bold tracking-tight text-foreground">
+                  Research Brief
+                </h1>
                 <p className="text-muted-foreground">
                   Comprehensive research artifact ready for export
                 </p>
@@ -889,7 +1008,8 @@ function BriefPageContent({ threadId }: { threadId: string }) {
             <div className="flex-1">
               <div className="font-medium text-foreground">Brief Generated Successfully</div>
               <div className="text-sm text-muted-foreground">
-                Last updated {lastUpdatedLabel} · {completedSections}/{briefSections.length} sections complete
+                Last updated {lastUpdatedLabel} · {completedSections}/{briefSections.length}{" "}
+                sections complete
               </div>
             </div>
             <button
@@ -918,7 +1038,7 @@ function BriefPageContent({ threadId }: { threadId: string }) {
                   if (expandedSections.size === briefSections.length) {
                     setExpandedSections(new Set());
                   } else {
-                    setExpandedSections(new Set(briefSections.map(s => s.id)));
+                    setExpandedSections(new Set(briefSections.map((s) => s.id)));
                   }
                 }}
                 className="text-xs text-muted-foreground hover:text-foreground transition-colors"
@@ -993,7 +1113,13 @@ function BriefPageContent({ threadId }: { threadId: string }) {
                 onClick={() => {}}
               />
               <QuickAction
-                icon={copied ? <CheckCircleIcon className="size-5 text-emerald-500" /> : <ClipboardIcon className="size-5" />}
+                icon={
+                  copied ? (
+                    <CheckCircleIcon className="size-5 text-emerald-500" />
+                  ) : (
+                    <ClipboardIcon className="size-5" />
+                  )
+                }
                 label={copied ? "Copied!" : "Copy"}
                 onClick={handleCopy}
               />
@@ -1040,7 +1166,8 @@ function BriefPageContent({ threadId }: { threadId: string }) {
           {/* Brenner Quote */}
           <div className="p-5 rounded-xl border border-dashed border-primary/30 bg-primary/5">
             <blockquote className="text-sm italic text-muted-foreground">
-              &ldquo;A good research brief is not a summary of what you found, but a map of where the truth might hide.&rdquo;
+              &ldquo;A good research brief is not a summary of what you found, but a map of where
+              the truth might hide.&rdquo;
             </blockquote>
             <cite className="block mt-2 text-xs text-primary font-medium">— Sydney Brenner</cite>
           </div>

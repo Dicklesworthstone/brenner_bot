@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 /**
  * useTutorialAnalytics - Hook for tutorial analytics tracking
@@ -20,15 +20,15 @@
  *   };
  */
 
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef } from "react";
 import {
-  trackTutorialStepEnter,
-  trackTutorialStepComplete,
-  trackTutorialDropoff,
   getTutorialProgress,
   initTutorialFunnel,
   type TutorialStep,
-} from '@/lib/analytics';
+  trackTutorialDropoff,
+  trackTutorialStepComplete,
+  trackTutorialStepEnter,
+} from "@/lib/analytics";
 
 export interface UseTutorialAnalyticsOptions {
   /** Auto-initialize funnel on mount */
@@ -41,7 +41,11 @@ export interface TutorialAnalyticsHook {
   /** Track when user views a step */
   trackStepView: (stepNumber: number, stepName: TutorialStep) => void;
   /** Track when user completes a step */
-  trackStepComplete: (stepNumber: number, stepName: TutorialStep, additionalData?: Record<string, unknown>) => void;
+  trackStepComplete: (
+    stepNumber: number,
+    stepName: TutorialStep,
+    additionalData?: Record<string, unknown>,
+  ) => void;
   /** Track explicit dropoff */
   trackDropoff: (reason?: string) => void;
   /** Get current progress */
@@ -54,7 +58,7 @@ export interface TutorialAnalyticsHook {
  * Hook for tutorial analytics tracking
  */
 export function useTutorialAnalytics(
-  options: UseTutorialAnalyticsOptions = {}
+  options: UseTutorialAnalyticsOptions = {},
 ): TutorialAnalyticsHook {
   const { autoInit = true, trackDropoffOnUnmount = true } = options;
   const hasInitialized = useRef(false);
@@ -78,7 +82,7 @@ export function useTutorialAnalytics(
         const progress = getTutorialProgress();
         // Only track dropoff if not completed
         if (progress.completedSteps.length < progress.totalSteps) {
-          trackTutorialDropoff('navigation_away');
+          trackTutorialDropoff("navigation_away");
         }
       }
     };
@@ -93,7 +97,7 @@ export function useTutorialAnalytics(
     (stepNumber: number, stepName: TutorialStep, additionalData?: Record<string, unknown>) => {
       trackTutorialStepComplete(stepNumber, stepName, additionalData);
     },
-    []
+    [],
   );
 
   const trackDropoff = useCallback((reason?: string) => {

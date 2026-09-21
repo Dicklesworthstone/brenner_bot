@@ -1,24 +1,24 @@
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
 import {
-  ResearchProgramSchema,
-  ProgramStatusSchema,
-  HypothesisFunnelSchema,
-  RegistryHealthSchema,
-  TestExecutionSummarySchema,
-  TimelineEventSchema,
-  HealthWarningSchema,
-  ProgramDashboardSchema,
-  type ResearchProgram,
+  abandonProgram,
+  addSessionToProgram,
+  completeProgram,
   createResearchProgram,
   generateProgramId,
-  addSessionToProgram,
-  removeSessionFromProgram,
-  pauseProgram,
-  resumeProgram,
-  completeProgram,
-  abandonProgram,
+  HealthWarningSchema,
+  HypothesisFunnelSchema,
   isValidProgramId,
   isValidSessionId,
+  ProgramDashboardSchema,
+  ProgramStatusSchema,
+  pauseProgram,
+  RegistryHealthSchema,
+  type ResearchProgram,
+  ResearchProgramSchema,
+  removeSessionFromProgram,
+  resumeProgram,
+  TestExecutionSummarySchema,
+  TimelineEventSchema,
 } from "./research-program";
 
 // ============================================================================
@@ -275,11 +275,11 @@ describe("ResearchProgramSchema", () => {
 
     it("rejects invalid ID format", () => {
       const invalidIds = [
-        "CELL-FATE-001",      // Missing RP- prefix
-        "RP-001",             // Missing slug
-        "RP-CELL-FATE",       // Missing sequence
-        "RP-CELL-FATE-1",     // Sequence not zero-padded
-        "RP--FATE-001",       // Empty slug part (starts with -)
+        "CELL-FATE-001", // Missing RP- prefix
+        "RP-001", // Missing slug
+        "RP-CELL-FATE", // Missing sequence
+        "RP-CELL-FATE-1", // Sequence not zero-padded
+        "RP--FATE-001", // Empty slug part (starts with -)
       ];
 
       for (const id of invalidIds) {

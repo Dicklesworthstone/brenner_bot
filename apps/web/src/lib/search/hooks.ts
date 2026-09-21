@@ -8,14 +8,14 @@
 
 "use client";
 
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useDebounce } from "../../hooks/useDebounce";
-import { searchEngine, loadSearchIndex } from "./engine";
+import { loadSearchIndex, searchEngine } from "./engine";
 import type {
+  SearchActions,
   SearchResult,
   SearchScope,
   SearchState,
-  SearchActions,
   UseSearchReturn,
 } from "./types";
 
@@ -143,7 +143,7 @@ export function useSearch(options: { limit?: number } = {}): UseSearchReturn {
       scope,
       error,
     }),
-    [query, results, isPending, isIndexLoaded, scope, error]
+    [query, results, isPending, isIndexLoaded, scope, error],
   );
 
   const actions: SearchActions = useMemo(
@@ -152,7 +152,7 @@ export function useSearch(options: { limit?: number } = {}): UseSearchReturn {
       clearSearch,
       setScope: updateScope,
     }),
-    [search, clearSearch, updateScope]
+    [search, clearSearch, updateScope],
   );
 
   return { ...state, ...actions };

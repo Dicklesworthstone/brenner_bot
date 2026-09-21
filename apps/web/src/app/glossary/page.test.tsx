@@ -10,24 +10,13 @@
 
 import { act, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { getCategoryCounts, getTermCount, jargonDictionary } from "@/lib/jargon";
 import GlossaryPage from "./page";
-import {
-  jargonDictionary,
-  getTermCount,
-  getCategoryCounts,
-} from "@/lib/jargon";
 
 // Mock next/link for testing
 vi.mock("next/link", () => ({
-  default: ({
-    children,
-    href,
-    ...props
-  }: {
-    children: React.ReactNode;
-    href: string;
-  }) => (
+  default: ({ children, href, ...props }: { children: React.ReactNode; href: string }) => (
     <a href={href} {...props}>
       {children}
     </a>
@@ -48,12 +37,8 @@ describe("GlossaryPage", () => {
     it("displays page title and description", () => {
       render(<GlossaryPage />);
 
-      expect(
-        screen.getByRole("heading", { name: /glossary/i })
-      ).toBeInTheDocument();
-      expect(
-        screen.getByText(/plain-english definitions/i)
-      ).toBeInTheDocument();
+      expect(screen.getByRole("heading", { name: /glossary/i })).toBeInTheDocument();
+      expect(screen.getByText(/plain-english definitions/i)).toBeInTheDocument();
     });
 
     it("shows all terms from dictionary", () => {
@@ -61,7 +46,7 @@ describe("GlossaryPage", () => {
 
       const totalCount = getTermCount();
       expect(
-        screen.getByText(new RegExp(`Showing ${totalCount} of ${totalCount}`))
+        screen.getByText(new RegExp(`Showing ${totalCount} of ${totalCount}`)),
       ).toBeInTheDocument();
     });
 
@@ -96,9 +81,7 @@ describe("GlossaryPage", () => {
 
       // Filter to just term toggle buttons (exclude category and clear buttons)
       const termCardButtons = termButtons.filter(
-        (btn) =>
-          btn.classList.contains("w-full") ||
-          btn.closest('[class*="rounded-xl"]')
+        (btn) => btn.classList.contains("w-full") || btn.closest('[class*="rounded-xl"]'),
       );
 
       // First few should be alphabetical
@@ -124,9 +107,7 @@ describe("GlossaryPage", () => {
 
       await waitFor(() => {
         // Should show matching text in the status line
-        expect(
-          screen.getByText(/matching "level-split"/i)
-        ).toBeInTheDocument();
+        expect(screen.getByText(/matching "level-split"/i)).toBeInTheDocument();
       });
     });
 
@@ -138,9 +119,7 @@ describe("GlossaryPage", () => {
       await user.type(searchInput, "xyznonexistentterm123");
 
       await waitFor(() => {
-        expect(
-          screen.getByText(/no terms found/i)
-        ).toBeInTheDocument();
+        expect(screen.getByText(/no terms found/i)).toBeInTheDocument();
       });
     });
 
@@ -152,9 +131,7 @@ describe("GlossaryPage", () => {
       await user.type(searchInput, "xyznonexistentterm123");
 
       await waitFor(() => {
-        expect(
-          screen.getByRole("button", { name: /clear all filters/i })
-        ).toBeInTheDocument();
+        expect(screen.getByRole("button", { name: /clear all filters/i })).toBeInTheDocument();
       });
     });
 
@@ -166,9 +143,7 @@ describe("GlossaryPage", () => {
       await user.type(searchInput, "xyznonexistentterm123");
 
       await waitFor(() => {
-        expect(
-          screen.getByText(/no terms found/i)
-        ).toBeInTheDocument();
+        expect(screen.getByText(/no terms found/i)).toBeInTheDocument();
       });
 
       const clearButton = screen.getByRole("button", { name: /clear all filters/i });
@@ -177,9 +152,7 @@ describe("GlossaryPage", () => {
       await waitFor(() => {
         expect(searchInput).toHaveValue("");
         const totalCount = getTermCount();
-        expect(
-          screen.getByText(new RegExp(`Showing ${totalCount}`))
-        ).toBeInTheDocument();
+        expect(screen.getByText(new RegExp(`Showing ${totalCount}`))).toBeInTheDocument();
       });
     });
 
@@ -194,9 +167,7 @@ describe("GlossaryPage", () => {
       await waitFor(() => {
         // Should show fewer than all terms (getTermCount() would give total)
         // Verify filtered results are shown
-        expect(
-          screen.getByText(/matching "genetic"/i)
-        ).toBeInTheDocument();
+        expect(screen.getByText(/matching "genetic"/i)).toBeInTheDocument();
       });
     });
   });
@@ -218,9 +189,7 @@ describe("GlossaryPage", () => {
         // Should only show operators
         const categoryCounts = getCategoryCounts();
         const operatorsCount = categoryCounts.find(([cat]) => cat === "operators")?.[1] ?? 0;
-        expect(
-          screen.getByText(new RegExp(`Showing ${operatorsCount}`))
-        ).toBeInTheDocument();
+        expect(screen.getByText(new RegExp(`Showing ${operatorsCount}`))).toBeInTheDocument();
       });
     });
 
@@ -244,7 +213,7 @@ describe("GlossaryPage", () => {
 
       await waitFor(() => {
         expect(
-          screen.getByText(new RegExp(`Showing ${totalCount} of ${totalCount}`))
+          screen.getByText(new RegExp(`Showing ${totalCount} of ${totalCount}`)),
         ).toBeInTheDocument();
       });
     });
@@ -371,15 +340,13 @@ describe("GlossaryPage", () => {
           // Check that the long explanation is visible (proves expansion worked)
           expect(screen.getByText(term.long)).toBeInTheDocument();
         },
-        { timeout: 1000 }
+        { timeout: 1000 },
       );
 
       // Now check for the analogy section - look within the card for the exact heading
       const expandedCard = document.getElementById("level-split");
       // The heading is "Think of it like..." - use getAllByText and verify at least one exists
-      const analogyHeaders = within(expandedCard as HTMLElement).getAllByText(
-        /think of it like/i
-      );
+      const analogyHeaders = within(expandedCard as HTMLElement).getAllByText(/think of it like/i);
       expect(analogyHeaders.length).toBeGreaterThan(0);
     });
 
@@ -412,10 +379,12 @@ describe("GlossaryPage", () => {
       expect(term.related?.length).toBeGreaterThan(0);
 
       const firstRelatedKey = term.related?.[0];
-      if (!firstRelatedKey) throw new Error("Expected level-split to have at least one related term");
+      if (!firstRelatedKey)
+        throw new Error("Expected level-split to have at least one related term");
 
       const relatedTerm = jargonDictionary[firstRelatedKey];
-      if (!relatedTerm) throw new Error(`Expected jargonDictionary to contain related term: ${firstRelatedKey}`);
+      if (!relatedTerm)
+        throw new Error(`Expected jargonDictionary to contain related term: ${firstRelatedKey}`);
 
       // Find the card by ID and click its button
       const card = document.getElementById("level-split");
@@ -446,7 +415,7 @@ describe("GlossaryPage", () => {
           // Should auto-expand the term
           expect(screen.getByText(term.long)).toBeInTheDocument();
         },
-        { timeout: 500 }
+        { timeout: 500 },
       );
     });
 
@@ -464,11 +433,9 @@ describe("GlossaryPage", () => {
         () => {
           // Should show full term count (filters cleared)
           const totalCount = getTermCount();
-          expect(
-            screen.getByText(new RegExp(`Showing ${totalCount}`))
-          ).toBeInTheDocument();
+          expect(screen.getByText(new RegExp(`Showing ${totalCount}`))).toBeInTheDocument();
         },
-        { timeout: 500 }
+        { timeout: 500 },
       );
     });
 
@@ -486,7 +453,7 @@ describe("GlossaryPage", () => {
 
       // Check that at least one category badge exists
       const categoryBadges = screen.getAllByText(
-        /^(Operators|Brenner|Biology|Bayesian|Method|Project)$/
+        /^(Operators|Brenner|Biology|Bayesian|Method|Project)$/,
       );
       expect(categoryBadges.length).toBeGreaterThan(0);
     });
@@ -543,9 +510,7 @@ describe("GlossaryPage", () => {
 
       // Verify total count matches dictionary size
       const totalCount = Object.keys(jargonDictionary).length;
-      expect(
-        screen.getByText(new RegExp(`Showing ${totalCount}`))
-      ).toBeInTheDocument();
+      expect(screen.getByText(new RegExp(`Showing ${totalCount}`))).toBeInTheDocument();
     });
   });
 });

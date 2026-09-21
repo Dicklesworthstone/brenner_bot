@@ -55,14 +55,26 @@ describe("extractKeyObjectionBlocks", () => {
     ].join("\n");
 
     expect(extractKeyObjectionBlocks(md)).toEqual([
-      ["Here is a fenced example:", "", "```md", "### Not A Real Heading", "```", "", "Still part of the objection."].join(
-        "\n"
-      ),
+      [
+        "Here is a fenced example:",
+        "",
+        "```md",
+        "### Not A Real Heading",
+        "```",
+        "",
+        "Still part of the objection.",
+      ].join("\n"),
     ]);
   });
 
   it("accepts Key Objection headings with trailing punctuation", () => {
-    const md = ["### Key Objection:", "Colon headings should still parse.", "", "### Next", "ignored"].join("\n");
+    const md = [
+      "### Key Objection:",
+      "Colon headings should still parse.",
+      "",
+      "### Next",
+      "ignored",
+    ].join("\n");
     expect(extractKeyObjectionBlocks(md)).toEqual(["Colon headings should still parse."]);
   });
 });
@@ -78,27 +90,37 @@ describe("classifyObjectionType (via extractTribunalObjections)", () => {
   });
 
   it("classifies selection bias", () => {
-    const objections = extractTribunalObjections([makeMessage("This has selection bias in the sample.")]);
+    const objections = extractTribunalObjections([
+      makeMessage("This has selection bias in the sample."),
+    ]);
     expect(objections[0]!.type).toBe("selection_bias");
   });
 
   it("classifies self-selection as selection_bias", () => {
-    const objections = extractTribunalObjections([makeMessage("The self-selection problem is clear.")]);
+    const objections = extractTribunalObjections([
+      makeMessage("The self-selection problem is clear."),
+    ]);
     expect(objections[0]!.type).toBe("selection_bias");
   });
 
   it("classifies confound_identified", () => {
-    const objections = extractTribunalObjections([makeMessage("There is a confounding variable Z.")]);
+    const objections = extractTribunalObjections([
+      makeMessage("There is a confounding variable Z."),
+    ]);
     expect(objections[0]!.type).toBe("confound_identified");
   });
 
   it("classifies third variable as confound", () => {
-    const objections = extractTribunalObjections([makeMessage("A third variable could explain this.")]);
+    const objections = extractTribunalObjections([
+      makeMessage("A third variable could explain this."),
+    ]);
     expect(objections[0]!.type).toBe("confound_identified");
   });
 
   it("classifies measurement_issue", () => {
-    const objections = extractTribunalObjections([makeMessage("The measurement approach is flawed.")]);
+    const objections = extractTribunalObjections([
+      makeMessage("The measurement approach is flawed."),
+    ]);
     expect(objections[0]!.type).toBe("measurement_issue");
   });
 
@@ -108,22 +130,30 @@ describe("classifyObjectionType (via extractTribunalObjections)", () => {
   });
 
   it("classifies effect_size_concern", () => {
-    const objections = extractTribunalObjections([makeMessage("The effect size is too small to matter.")]);
+    const objections = extractTribunalObjections([
+      makeMessage("The effect size is too small to matter."),
+    ]);
     expect(objections[0]!.type).toBe("effect_size_concern");
   });
 
   it("classifies generalization_problem", () => {
-    const objections = extractTribunalObjections([makeMessage("This has external validity issues.")]);
+    const objections = extractTribunalObjections([
+      makeMessage("This has external validity issues."),
+    ]);
     expect(objections[0]!.type).toBe("generalization_problem");
   });
 
   it("classifies generaliz keyword as generalization_problem", () => {
-    const objections = extractTribunalObjections([makeMessage("The generalizability is questionable.")]);
+    const objections = extractTribunalObjections([
+      makeMessage("The generalizability is questionable."),
+    ]);
     expect(objections[0]!.type).toBe("generalization_problem");
   });
 
   it("classifies missing_evidence", () => {
-    const objections = extractTribunalObjections([makeMessage("There is no evidence for this claim.")]);
+    const objections = extractTribunalObjections([
+      makeMessage("There is no evidence for this claim."),
+    ]);
     expect(objections[0]!.type).toBe("missing_evidence");
   });
 
@@ -138,12 +168,16 @@ describe("classifyObjectionType (via extractTribunalObjections)", () => {
   });
 
   it("classifies logic_error for doesn't follow", () => {
-    const objections = extractTribunalObjections([makeMessage("The conclusion doesn't follow from the premises.")]);
+    const objections = extractTribunalObjections([
+      makeMessage("The conclusion doesn't follow from the premises."),
+    ]);
     expect(objections[0]!.type).toBe("logic_error");
   });
 
   it("classifies alternative_explanation", () => {
-    const objections = extractTribunalObjections([makeMessage("Another explanation is that Z causes both.")]);
+    const objections = extractTribunalObjections([
+      makeMessage("Another explanation is that Z causes both."),
+    ]);
     expect(objections[0]!.type).toBe("alternative_explanation");
   });
 
@@ -153,7 +187,9 @@ describe("classifyObjectionType (via extractTribunalObjections)", () => {
   });
 
   it("classifies unknown patterns as other", () => {
-    const objections = extractTribunalObjections([makeMessage("Something vague about the approach.")]);
+    const objections = extractTribunalObjections([
+      makeMessage("Something vague about the approach."),
+    ]);
     expect(objections[0]!.type).toBe("other");
   });
 });
@@ -184,7 +220,9 @@ describe("classifySeverity (via extractTribunalObjections)", () => {
   });
 
   it("classifies rules out (without denial) as fatal", () => {
-    const objections = extractTribunalObjections([makeMessage("This evidence rules out the hypothesis.")]);
+    const objections = extractTribunalObjections([
+      makeMessage("This evidence rules out the hypothesis."),
+    ]);
     expect(objections[0]!.severity).toBe("fatal");
   });
 
@@ -199,12 +237,16 @@ describe("classifySeverity (via extractTribunalObjections)", () => {
   });
 
   it("classifies fundamental as serious", () => {
-    const objections = extractTribunalObjections([makeMessage("This is fundamental to the argument.")]);
+    const objections = extractTribunalObjections([
+      makeMessage("This is fundamental to the argument."),
+    ]);
     expect(objections[0]!.severity).toBe("serious");
   });
 
   it("classifies undermines as serious", () => {
-    const objections = extractTribunalObjections([makeMessage("This undermines the whole thesis.")]);
+    const objections = extractTribunalObjections([
+      makeMessage("This undermines the whole thesis."),
+    ]);
     expect(objections[0]!.severity).toBe("serious");
   });
 
@@ -214,7 +256,9 @@ describe("classifySeverity (via extractTribunalObjections)", () => {
   });
 
   it("classifies minor as minor", () => {
-    const objections = extractTribunalObjections([makeMessage("A minor quibble with the wording.")]);
+    const objections = extractTribunalObjections([
+      makeMessage("A minor quibble with the wording."),
+    ]);
     expect(objections[0]!.severity).toBe("minor");
   });
 
@@ -395,7 +439,10 @@ describe("extractTribunalObjections", () => {
         thread_id: "TRIBUNAL-SESSION-abc",
         subject: "TRIBUNAL[devils_advocate]: HYP-1",
         created_ts: "2026-01-01T00:00:00.000Z",
-        body_md: ["### Key Objection", "This does not rule out the hypothesis; it highlights uncertainty."].join("\n"),
+        body_md: [
+          "### Key Objection",
+          "This does not rule out the hypothesis; it highlights uncertainty.",
+        ].join("\n"),
       },
     ];
 

@@ -1,12 +1,12 @@
 import { z } from "zod";
 import type { Hypothesis, HypothesisConfidence, HypothesisState } from "./hypothesis";
-import type { TestRecord, TestExecution } from "./test-record";
-import type { Prediction, HypothesisPrediction } from "./prediction";
 import {
-  transitionHypothesis,
-  type TransitionResult,
   type StateTransition,
+  type TransitionResult,
+  transitionHypothesis,
 } from "./hypothesis-lifecycle";
+import type { HypothesisPrediction, Prediction } from "./prediction";
+import type { TestExecution, TestRecord } from "./test-record";
 
 /**
  * Test→Prediction Binding Logic
@@ -174,7 +174,7 @@ const ExecutionInputSchema = z.object({
 export function recordTestExecution(
   input: ExecutionInput,
   test: TestRecord,
-  predictions: Prediction[]
+  predictions: Prediction[],
 ): ExecutionRecordResult {
   const errors: string[] = [];
   const warnings: string[] = [];
@@ -198,7 +198,7 @@ export function recordTestExecution(
   if (!input.potencyCheckPassed) {
     warnings.push(
       "Potency check failed - results may be uninterpretable. " +
-        'From Brenner: without potency check, negative results are meaningless ("was the assay broken?")'
+        'From Brenner: without potency check, negative results are meaningless ("was the assay broken?")',
     );
   }
 
@@ -224,9 +224,7 @@ export function recordTestExecution(
   const violatedSet = new Set(input.violatedPredictions);
   const overlap = [...matchedSet].filter((id) => violatedSet.has(id));
   if (overlap.length > 0) {
-    errors.push(
-      `Predictions cannot be both matched and violated: ${overlap.join(", ")}`
-    );
+    errors.push(`Predictions cannot be both matched and violated: ${overlap.join(", ")}`);
   }
 
   // If there are errors, return early
@@ -274,7 +272,7 @@ export function recordTestExecution(
 export function suggestTransitionsFromExecution(
   input: ExecutionInput,
   predictions: Prediction[],
-  hypotheses: Hypothesis[]
+  hypotheses: Hypothesis[],
 ): SuggestTransitionsResult {
   const suggestions: TransitionSuggestion[] = [];
   const warnings: string[] = [];
@@ -298,7 +296,7 @@ export function suggestTransitionsFromExecution(
     // Use result-based matching to determine which hypothesis's prediction was matched
     const categorized = categorizeHypothesesByResult(
       input.result,
-      prediction.hypothesisPredictions
+      prediction.hypothesisPredictions,
     );
 
     for (const hId of categorized.matched) {
@@ -363,14 +361,16 @@ export function suggestTransitionsFromExecution(
       // Violation takes precedence - suggest killing the hypothesis
       // Per Brenner §229: "When they go ugly, kill them."
       suggestedAction = "kill";
-      reason = `Prediction(s) ${violatedPreds.join(", ")} violated by test result. ` +
+      reason =
+        `Prediction(s) ${violatedPreds.join(", ")} violated by test result. ` +
         "Hypothesis makes predictions inconsistent with observed outcome.";
       supportingPredictions = violatedPreds;
     } else if (matchedPreds.length > 0) {
       // Only matched predictions (no violations) - suggest validation
       // Note: Confirmation is provisional in science
       suggestedAction = "validate";
-      reason = `Prediction(s) ${matchedPreds.join(", ")} matched by test result. ` +
+      reason =
+        `Prediction(s) ${matchedPreds.join(", ")} matched by test result. ` +
         "Hypothesis predictions consistent with observed outcome.";
       supportingPredictions = matchedPreds;
     } else {
@@ -386,9 +386,7 @@ export function suggestTransitionsFromExecution(
 
     if (!canTransition.allowed) {
       if (suggestedAction !== "none") {
-        warnings.push(
-          `Cannot ${suggestedAction} hypothesis ${hId}: ${canTransition.reason}`
-        );
+        warnings.push(`Cannot ${suggestedAction} hypothesis ${hId}: ${canTransition.reason}`);
       }
       continue;
     }
@@ -397,7 +395,7 @@ export function suggestTransitionsFromExecution(
     const suggestionConfidence = deriveConfidence(
       input.confidence,
       supportingPredictions.length,
-      input.potencyCheckPassed
+      input.potencyCheckPassed,
     );
 
     suggestions.push({
@@ -439,7 +437,7 @@ export function applyTransitionSuggestions(
     minConfidence?: ExecutionConfidence;
     /** Skip 'validate' actions (only apply kills) */
     killsOnly?: boolean;
-  } = {}
+  } = {},
 ): ApplyTransitionsResult {
   const applied: ApplyResult[] = [];
   const skipped: string[] = [];
@@ -526,7 +524,7 @@ export function applyTransitionSuggestions(
  */
 function canSuggestTransition(
   state: HypothesisState,
-  action: SuggestedAction
+  action: SuggestedAction,
 ): { allowed: boolean; reason?: string } {
   if (action === "none") {
     return { allowed: true };
@@ -585,7 +583,7 @@ function canSuggestTransition(
  */
 function categorizeHypothesesByResult(
   result: string,
-  hypothesisPredictions: HypothesisPrediction[]
+  hypothesisPredictions: HypothesisPrediction[],
 ): { matched: string[]; violated: string[]; ambiguous: string[] } {
   const matched: string[] = [];
   const violated: string[] = [];
@@ -654,7 +652,7 @@ function detectPolarity(text: string): "positive" | "negative" | "ambiguous" {
 function deriveConfidence(
   inputConfidence: ExecutionConfidence,
   predictionCount: number,
-  potencyCheckPassed: boolean
+  potencyCheckPassed: boolean,
 ): ExecutionConfidence {
   const confidenceOrder: ExecutionConfidence[] = ["high", "medium", "low", "speculative"];
   let index = confidenceOrder.indexOf(inputConfidence);
@@ -692,7 +690,7 @@ export function processTestExecution(
     sessionId?: string;
     minConfidence?: ExecutionConfidence;
     killsOnly?: boolean;
-  } = {}
+  } = {},
 ): {
   recordResult: ExecutionRecordResult;
   suggestResult?: SuggestTransitionsResult;
@@ -713,16 +711,12 @@ export function processTestExecution(
   }
 
   // Step 3: Apply transitions
-  const applyResult = applyTransitionSuggestions(
-    suggestResult.suggestions,
-    hypotheses,
-    {
-      triggeredBy: options.triggeredBy,
-      sessionId: options.sessionId,
-      minConfidence: options.minConfidence,
-      killsOnly: options.killsOnly,
-    }
-  );
+  const applyResult = applyTransitionSuggestions(suggestResult.suggestions, hypotheses, {
+    triggeredBy: options.triggeredBy,
+    sessionId: options.sessionId,
+    minConfidence: options.minConfidence,
+    killsOnly: options.killsOnly,
+  });
 
   return { recordResult, suggestResult, applyResult };
 }
@@ -737,7 +731,7 @@ export function processTestExecution(
 export function categorizePredictions(
   result: string,
   predictions: Prediction[],
-  hypothesisId: string
+  hypothesisId: string,
 ): {
   matched: string[];
   violated: string[];
@@ -751,9 +745,7 @@ export function categorizePredictions(
 
   for (const prediction of predictions) {
     // Find the hypothesis's prediction within this prediction
-    const hp = prediction.hypothesisPredictions.find(
-      (p) => p.hypothesisId === hypothesisId
-    );
+    const hp = prediction.hypothesisPredictions.find((p) => p.hypothesisId === hypothesisId);
 
     if (!hp) continue;
 

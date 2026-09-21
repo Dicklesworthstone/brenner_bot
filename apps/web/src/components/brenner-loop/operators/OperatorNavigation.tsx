@@ -10,12 +10,12 @@
  * @module components/brenner-loop/operators/OperatorNavigation
  */
 
+import { AnimatePresence, motion } from "framer-motion";
+import { AlertCircle, Check, ChevronLeft, ChevronRight, SkipForward } from "lucide-react";
 import * as React from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { ChevronLeft, ChevronRight, SkipForward, AlertCircle, Check } from "lucide-react";
-import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import type { StepValidation } from "@/lib/brenner-loop/operators/framework";
+import { cn } from "@/lib/utils";
 
 // ============================================================================
 // Types
@@ -78,9 +78,7 @@ function ValidationFeedback({ validation, className }: ValidationFeedbackProps) 
           <div className="flex items-start gap-2 p-3 rounded-lg bg-destructive/10 border border-destructive/20">
             <AlertCircle className="size-4 text-destructive flex-shrink-0 mt-0.5" />
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-destructive">
-                Cannot proceed
-              </p>
+              <p className="text-sm font-medium text-destructive">Cannot proceed</p>
               <ul className="mt-1 space-y-1">
                 {validation.errors.map((error, i) => (
                   <li key={i} className="text-xs text-destructive/80">
@@ -144,12 +142,7 @@ export function OperatorNavigation({
       {/* Navigation buttons */}
       <div className="flex items-center justify-between gap-4">
         {/* Previous button */}
-        <Button
-          variant="outline"
-          onClick={onPrev}
-          disabled={!canPrev || loading}
-          className="gap-2"
-        >
+        <Button variant="outline" onClick={onPrev} disabled={!canPrev || loading} className="gap-2">
           <ChevronLeft className="size-4" />
           <span className="hidden sm:inline">Previous</span>
         </Button>
@@ -204,23 +197,14 @@ export function OperatorNavigation({
       {/* Keyboard hints (desktop only) */}
       <div className="hidden md:flex items-center justify-center gap-4 text-xs text-muted-foreground">
         <span>
-          <kbd className="px-1.5 py-0.5 rounded bg-muted font-mono text-[10px]">
-            ←
-          </kbd>
-          {" "}Previous
+          <kbd className="px-1.5 py-0.5 rounded bg-muted font-mono text-[10px]">←</kbd> Previous
         </span>
         <span>
-          <kbd className="px-1.5 py-0.5 rounded bg-muted font-mono text-[10px]">
-            →
-          </kbd>
-          {" "}Next
+          <kbd className="px-1.5 py-0.5 rounded bg-muted font-mono text-[10px]">→</kbd> Next
         </span>
         {canSkip && (
           <span>
-            <kbd className="px-1.5 py-0.5 rounded bg-muted font-mono text-[10px]">
-              S
-            </kbd>
-            {" "}Skip
+            <kbd className="px-1.5 py-0.5 rounded bg-muted font-mono text-[10px]">S</kbd> Skip
           </span>
         )}
       </div>

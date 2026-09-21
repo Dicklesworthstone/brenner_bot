@@ -11,7 +11,7 @@
 
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from "./tooltip";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./tooltip";
 
 describe("Tooltip", () => {
   describe("TooltipProvider", () => {
@@ -19,7 +19,7 @@ describe("Tooltip", () => {
       render(
         <TooltipProvider>
           <span data-testid="child">Child content</span>
-        </TooltipProvider>
+        </TooltipProvider>,
       );
       expect(screen.getByTestId("child")).toBeInTheDocument();
     });
@@ -34,7 +34,7 @@ describe("Tooltip", () => {
         <Tooltip>
           <TooltipTrigger>Hover me</TooltipTrigger>
           <TooltipContent>Tooltip content</TooltipContent>
-        </Tooltip>
+        </Tooltip>,
       );
       expect(screen.getByText("Hover me")).toBeInTheDocument();
     });
@@ -44,12 +44,9 @@ describe("Tooltip", () => {
         <Tooltip>
           <TooltipTrigger data-testid="trigger">Hover me</TooltipTrigger>
           <TooltipContent>Tooltip content</TooltipContent>
-        </Tooltip>
+        </Tooltip>,
       );
-      expect(screen.getByTestId("trigger")).toHaveAttribute(
-        "data-slot",
-        "tooltip-trigger"
-      );
+      expect(screen.getByTestId("trigger")).toHaveAttribute("data-slot", "tooltip-trigger");
     });
 
     it("trigger is a button by default", () => {
@@ -57,7 +54,7 @@ describe("Tooltip", () => {
         <Tooltip>
           <TooltipTrigger>Hover me</TooltipTrigger>
           <TooltipContent>Tooltip content</TooltipContent>
-        </Tooltip>
+        </Tooltip>,
       );
       expect(screen.getByRole("button", { name: "Hover me" })).toBeInTheDocument();
     });
@@ -69,7 +66,7 @@ describe("Tooltip", () => {
             <span data-testid="custom-trigger">Custom trigger</span>
           </TooltipTrigger>
           <TooltipContent>Tooltip content</TooltipContent>
-        </Tooltip>
+        </Tooltip>,
       );
       expect(screen.getByTestId("custom-trigger")).toBeInTheDocument();
       expect(screen.queryByRole("button")).not.toBeInTheDocument();
@@ -80,7 +77,7 @@ describe("Tooltip", () => {
         <Tooltip>
           <TooltipTrigger className="custom-trigger">Hover me</TooltipTrigger>
           <TooltipContent>Tooltip content</TooltipContent>
-        </Tooltip>
+        </Tooltip>,
       );
       expect(screen.getByRole("button")).toHaveClass("custom-trigger");
     });
@@ -99,10 +96,8 @@ describe("Tooltip", () => {
       const { container } = render(
         <Tooltip defaultOpen>
           <TooltipTrigger>Hover me</TooltipTrigger>
-          <TooltipContent className="custom-content">
-            Tooltip text
-          </TooltipContent>
-        </Tooltip>
+          <TooltipContent className="custom-content">Tooltip text</TooltipContent>
+        </Tooltip>,
       );
 
       // The content should be rendered somewhere (in portal)

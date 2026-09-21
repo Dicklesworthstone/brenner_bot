@@ -1,8 +1,5 @@
 import { z } from "zod";
-import {
-  OperatorInterventionSchema,
-  InterventionSummarySchema,
-} from "./operator-intervention";
+import { InterventionSummarySchema, OperatorInterventionSchema } from "./operator-intervention";
 
 /**
  * Session Replay Schema
@@ -66,8 +63,8 @@ export type MessageType = z.infer<typeof MessageTypeSchema>;
  */
 export const ReplayModeSchema = z.enum([
   "verification", // Re-run with same agents to verify outputs match
-  "comparison",   // Re-run with different agents to compare
-  "trace",        // Step through recorded messages without re-running
+  "comparison", // Re-run with different agents to compare
+  "trace", // Step through recorded messages without re-running
 ]);
 
 export type ReplayMode = z.infer<typeof ReplayModeSchema>;
@@ -76,10 +73,10 @@ export type ReplayMode = z.infer<typeof ReplayModeSchema>;
  * Divergence severity in replay comparison.
  */
 export const DivergenceSeveritySchema = z.enum([
-  "none",      // Identical or semantically equivalent
-  "minor",     // Slight wording differences, same meaning
-  "moderate",  // Different approach, similar conclusions
-  "major",     // Fundamentally different conclusions
+  "none", // Identical or semantically equivalent
+  "minor", // Slight wording differences, same meaning
+  "moderate", // Different approach, similar conclusions
+  "major", // Fundamentally different conclusions
 ]);
 
 export type DivergenceSeverity = z.infer<typeof DivergenceSeveritySchema>;
@@ -587,7 +584,9 @@ export function createEmptySessionRecord(sessionId: string): SessionRecord {
 export async function computeContentHash(content: string): Promise<string> {
   const crypto = globalThis.crypto;
   if (!crypto || !crypto.subtle) {
-    throw new Error("Secure hashing unavailable: crypto.subtle is required for session replay verification. Ensure you are running in a secure context (HTTPS/localhost) or Node/Bun environment.");
+    throw new Error(
+      "Secure hashing unavailable: crypto.subtle is required for session replay verification. Ensure you are running in a secure context (HTTPS/localhost) or Node/Bun environment.",
+    );
   }
 
   const encoder = new TextEncoder();
@@ -608,7 +607,7 @@ export async function createTraceMessage(
     message_id?: number;
     subject?: string;
     acknowledged?: boolean;
-  }
+  },
 ): Promise<TraceMessage> {
   return {
     message_id: options?.message_id,
@@ -630,7 +629,7 @@ export async function createTraceMessage(
  * Validates a session record.
  */
 export function validateSessionRecord(
-  record: unknown
+  record: unknown,
 ): { valid: true; data: SessionRecord } | { valid: false; errors: string[] } {
   const result = SessionRecordSchema.safeParse(record);
   if (result.success) {
@@ -666,7 +665,7 @@ export function isReplayMatch(
   thresholds?: {
     similarity?: number;
     max_major_divergences?: number;
-  }
+  },
 ): boolean {
   const similarityThreshold = thresholds?.similarity ?? 80;
   const maxMajorDivergences = thresholds?.max_major_divergences ?? 0;
@@ -677,9 +676,7 @@ export function isReplayMatch(
   }
 
   // Check major divergences
-  const majorDivergences = report.divergences.filter(
-    (d) => d.severity === "major"
-  ).length;
+  const majorDivergences = report.divergences.filter((d) => d.severity === "major").length;
   if (majorDivergences > maxMajorDivergences) {
     return false;
   }

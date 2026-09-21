@@ -48,7 +48,9 @@ function sanitizeReadingPosition(value: unknown): ReadingPosition | null {
   return { scrollOffset, activeSection, lastRead };
 }
 
-function toNullProtoPositions(entries: Array<[string, ReadingPosition]>): Record<string, ReadingPosition> {
+function toNullProtoPositions(
+  entries: Array<[string, ReadingPosition]>,
+): Record<string, ReadingPosition> {
   const out: Record<string, ReadingPosition> = Object.create(null);
   for (const [key, value] of entries) {
     out[key] = value;
@@ -56,7 +58,9 @@ function toNullProtoPositions(entries: Array<[string, ReadingPosition]>): Record
   return out;
 }
 
-function prunePositions(positions: Record<string, ReadingPosition>): Record<string, ReadingPosition> {
+function prunePositions(
+  positions: Record<string, ReadingPosition>,
+): Record<string, ReadingPosition> {
   const entries = Object.entries(positions);
   if (entries.length <= MAX_POSITIONS) return positions;
 
@@ -123,15 +127,20 @@ if (typeof window !== "undefined") {
   const GLOBAL_STORAGE_HANDLER_KEY = "__brenner_readingStore_storageHandler__";
   const GLOBAL_UNSUBSCRIBE_KEY = "__brenner_readingStore_unsubscribe__";
 
-  const previousUnsubscribe = (globalThis as unknown as Record<string, unknown>)[GLOBAL_UNSUBSCRIBE_KEY];
+  const previousUnsubscribe = (globalThis as unknown as Record<string, unknown>)[
+    GLOBAL_UNSUBSCRIBE_KEY
+  ];
   if (typeof previousUnsubscribe === "function") {
     previousUnsubscribe();
   }
 
-  (globalThis as unknown as Record<string, unknown>)[GLOBAL_UNSUBSCRIBE_KEY] = readingStore.subscribe(persistState);
+  (globalThis as unknown as Record<string, unknown>)[GLOBAL_UNSUBSCRIBE_KEY] =
+    readingStore.subscribe(persistState);
 
   // Cross-tab sync
-  const previousStorageHandler = (globalThis as unknown as Record<string, unknown>)[GLOBAL_STORAGE_HANDLER_KEY];
+  const previousStorageHandler = (globalThis as unknown as Record<string, unknown>)[
+    GLOBAL_STORAGE_HANDLER_KEY
+  ];
   if (typeof previousStorageHandler === "function") {
     window.removeEventListener("storage", previousStorageHandler as (e: StorageEvent) => void);
   }
@@ -157,7 +166,7 @@ if (typeof window !== "undefined") {
 export function saveReadingPosition(
   docId: string,
   scrollOffset: number,
-  activeSection: number
+  activeSection: number,
 ): void {
   readingStore.setState((state) => {
     const newPositions = toNullProtoPositions(Object.entries(state.positions));
@@ -178,7 +187,7 @@ export function getReadingPosition(docId: string): ReadingPosition | null {
 export function clearReadingPosition(docId: string): void {
   readingStore.setState((state) => {
     const positions = toNullProtoPositions(
-      Object.entries(state.positions).filter(([key]) => key !== docId)
+      Object.entries(state.positions).filter(([key]) => key !== docId),
     );
     return { positions: prunePositions(positions) };
   });

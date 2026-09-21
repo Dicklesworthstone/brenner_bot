@@ -124,9 +124,7 @@ export async function listRobotSessions(): Promise<RobotThreadSummary[]> {
   let entries: string[];
   try {
     const dirEntries = await readdir(baseDir, { withFileTypes: true });
-    entries = dirEntries
-      .filter((e) => e.isDirectory())
-      .map((e) => e.name);
+    entries = dirEntries.filter((e) => e.isDirectory()).map((e) => e.name);
   } catch {
     return [];
   }

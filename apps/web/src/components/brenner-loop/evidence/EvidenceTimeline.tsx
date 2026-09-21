@@ -12,33 +12,30 @@
  * @module components/brenner-loop/evidence/EvidenceTimeline
  */
 
-import * as React from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import {
-  TrendingUp,
-  TrendingDown,
-  Minus,
-  CheckCircle2,
-  XCircle,
-  HelpCircle,
-  X,
-  TestTube,
   Calendar,
+  CheckCircle2,
   FileText,
+  HelpCircle,
+  Minus,
+  TestTube,
+  TrendingDown,
+  TrendingUp,
+  X,
+  XCircle,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import * as React from "react";
 import { Button } from "@/components/ui/button";
-import type { EvidenceEntry, EvidenceResult } from "@/lib/brenner-loop/evidence";
-import {
-  calculateConfidenceDelta,
-  TEST_TYPE_LABELS,
-} from "@/lib/brenner-loop/evidence";
 import {
   formatConfidence,
   formatDelta,
-  getStarRating,
   getConfidenceAssessment,
+  getStarRating,
 } from "@/lib/brenner-loop/confidence";
+import type { EvidenceEntry, EvidenceResult } from "@/lib/brenner-loop/evidence";
+import { calculateConfidenceDelta, TEST_TYPE_LABELS } from "@/lib/brenner-loop/evidence";
+import { cn } from "@/lib/utils";
 
 // ============================================================================
 // Types
@@ -66,13 +63,7 @@ export interface EvidenceTimelineProps {
 /**
  * Result indicator icon with color
  */
-function ResultIcon({
-  result,
-  className,
-}: {
-  result: EvidenceResult;
-  className?: string;
-}) {
+function ResultIcon({ result, className }: { result: EvidenceResult; className?: string }) {
   const config = {
     supports: {
       icon: CheckCircle2,
@@ -97,13 +88,7 @@ function ResultIcon({
 /**
  * Confidence change indicator with arrow
  */
-function DeltaIndicator({
-  delta,
-  className,
-}: {
-  delta: number;
-  className?: string;
-}) {
+function DeltaIndicator({ delta, className }: { delta: number; className?: string }) {
   if (delta > 0) {
     return (
       <div className={cn("flex items-center gap-1 text-green-500", className)}>
@@ -169,9 +154,7 @@ function TimelineNode({
       {/* Timeline connector */}
       <div className="flex flex-col items-center">
         {/* Top line */}
-        {!isFirst && (
-          <div className={cn("w-0.5 h-4", lineColors[entry.result])} />
-        )}
+        {!isFirst && <div className={cn("w-0.5 h-4", lineColors[entry.result])} />}
         {isFirst && <div className="h-4" />}
 
         {/* Node */}
@@ -180,7 +163,7 @@ function TimelineNode({
           className={cn(
             "relative size-4 rounded-full transition-all",
             nodeColors[entry.result],
-            isSelected && "ring-4"
+            isSelected && "ring-4",
           )}
           whileHover={{ scale: 1.2 }}
           whileTap={{ scale: 0.95 }}
@@ -188,18 +171,13 @@ function TimelineNode({
         />
 
         {/* Bottom line */}
-        {!isLast && (
-          <div className={cn("w-0.5 flex-1 min-h-8", lineColors[entry.result])} />
-        )}
+        {!isLast && <div className={cn("w-0.5 flex-1 min-h-8", lineColors[entry.result])} />}
         {isLast && <div className="flex-1" />}
       </div>
 
       {/* Content card */}
       <motion.div
-        className={cn(
-          "flex-1 pb-4",
-          isLast && "pb-0"
-        )}
+        className={cn("flex-1 pb-4", isLast && "pb-0")}
         initial={{ opacity: 0, x: -10 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ delay: 0.05 }}
@@ -210,7 +188,7 @@ function TimelineNode({
             "w-full p-3 rounded-lg border text-left transition-all",
             isSelected
               ? "border-primary bg-primary/5 shadow-sm"
-              : "border-border hover:border-primary/50 hover:bg-muted/30"
+              : "border-border hover:border-primary/50 hover:bg-muted/30",
           )}
           whileTap={{ scale: 0.99 }}
         >
@@ -242,9 +220,7 @@ function TimelineNode({
           {!compact && (
             <>
               {/* Observation preview */}
-              <p className="mt-2 text-xs text-muted-foreground line-clamp-2">
-                {entry.observation}
-              </p>
+              <p className="mt-2 text-xs text-muted-foreground line-clamp-2">{entry.observation}</p>
 
               {/* Date */}
               <div className="mt-2 flex items-center gap-1 text-xs text-muted-foreground/70">
@@ -269,13 +245,7 @@ function TimelineNode({
 /**
  * Detail popover for selected evidence entry
  */
-function EvidenceDetail({
-  entry,
-  onClose,
-}: {
-  entry: EvidenceEntry;
-  onClose: () => void;
-}) {
+function EvidenceDetail({ entry, onClose }: { entry: EvidenceEntry; onClose: () => void }) {
   const delta = calculateConfidenceDelta(entry);
   const assessment = getConfidenceAssessment(entry.confidenceAfter);
   const stars = getStarRating(entry.test.discriminativePower);
@@ -316,7 +286,7 @@ function EvidenceDetail({
         <div
           className={cn(
             "inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium border",
-            resultColors[entry.result]
+            resultColors[entry.result],
           )}
         >
           <ResultIcon result={entry.result} className="size-4" />
@@ -325,9 +295,7 @@ function EvidenceDetail({
 
         {/* Test info */}
         <div>
-          <label className="text-xs text-muted-foreground uppercase tracking-wide">
-            Test
-          </label>
+          <label className="text-xs text-muted-foreground uppercase tracking-wide">Test</label>
           <p className="mt-1 text-sm font-medium">{entry.test.description}</p>
           <div className="mt-1 flex items-center gap-2 text-xs text-muted-foreground">
             <span>{TEST_TYPE_LABELS[entry.test.type]}</span>
@@ -341,18 +309,14 @@ function EvidenceDetail({
           <div className="flex items-center justify-between">
             <div className="text-center">
               <div className="text-xs text-muted-foreground">Before</div>
-              <div className="text-lg font-bold">
-                {formatConfidence(entry.confidenceBefore)}
-              </div>
+              <div className="text-lg font-bold">{formatConfidence(entry.confidenceBefore)}</div>
             </div>
 
             <DeltaIndicator delta={delta} className="text-base" />
 
             <div className="text-center">
               <div className="text-xs text-muted-foreground">After</div>
-              <div className="text-lg font-bold">
-                {formatConfidence(entry.confidenceAfter)}
-              </div>
+              <div className="text-lg font-bold">{formatConfidence(entry.confidenceAfter)}</div>
             </div>
           </div>
 
@@ -365,7 +329,7 @@ function EvidenceDetail({
                 assessment.color === "lime" && "bg-lime-500/10 text-lime-600",
                 assessment.color === "yellow" && "bg-yellow-500/10 text-yellow-600",
                 assessment.color === "orange" && "bg-orange-500/10 text-orange-600",
-                assessment.color === "red" && "bg-red-500/10 text-red-600"
+                assessment.color === "red" && "bg-red-500/10 text-red-600",
               )}
             >
               {assessment.label}
@@ -384,9 +348,7 @@ function EvidenceDetail({
             </p>
           </div>
           <div className="p-2 rounded bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
-            <div className="text-xs text-red-700 dark:text-red-400 font-medium mb-1">
-              If False
-            </div>
+            <div className="text-xs text-red-700 dark:text-red-400 font-medium mb-1">If False</div>
             <p className="text-xs text-red-600 dark:text-red-300 line-clamp-3">
               {entry.predictionIfFalse}
             </p>
@@ -400,9 +362,7 @@ function EvidenceDetail({
           </label>
           <p className="mt-1 text-sm">{entry.observation}</p>
           {entry.source && (
-            <p className="mt-1 text-xs text-muted-foreground">
-              Source: {entry.source}
-            </p>
+            <p className="mt-1 text-xs text-muted-foreground">Source: {entry.source}</p>
           )}
         </div>
 
@@ -502,7 +462,7 @@ export function EvidenceTimeline({
   // Sort entries by date (newest first for timeline)
   const sortedEntries = React.useMemo(() => {
     return [...entries].sort(
-      (a, b) => new Date(b.recordedAt).getTime() - new Date(a.recordedAt).getTime()
+      (a, b) => new Date(b.recordedAt).getTime() - new Date(a.recordedAt).getTime(),
     );
   }, [entries]);
 

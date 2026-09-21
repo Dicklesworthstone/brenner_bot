@@ -2,8 +2,8 @@
 
 import * as React from "react";
 import { createPortal } from "react-dom";
-import { cn } from "@/lib/utils";
 import { getJargon, type JargonTerm } from "@/lib/jargon";
+import { cn } from "@/lib/utils";
 
 // ============================================================================
 // Types
@@ -47,7 +47,10 @@ interface TooltipProps {
 }
 
 function JargonTooltip({ term, triggerRect, onClose, onMouseEnter, onMouseLeave }: TooltipProps) {
-  const [position, setPosition] = React.useState<{ top: number; left: number }>({ top: 0, left: 0 });
+  const [position, setPosition] = React.useState<{ top: number; left: number }>({
+    top: 0,
+    left: 0,
+  });
   const [isBelow, setIsBelow] = React.useState(false);
   const tooltipRef = React.useRef<HTMLDivElement>(null);
 
@@ -66,9 +69,7 @@ function JargonTooltip({ term, triggerRect, onClose, onMouseEnter, onMouseLeave 
     setIsBelow(showBelow);
 
     // Calculate vertical position
-    const top = showBelow
-      ? triggerRect.bottom + 8
-      : triggerRect.top - tooltipRect.height - 8;
+    const top = showBelow ? triggerRect.bottom + 8 : triggerRect.top - tooltipRect.height - 8;
 
     // Calculate horizontal position (centered, but clamped to viewport)
     let left = triggerRect.left + triggerRect.width / 2 - tooltipRect.width / 2;
@@ -88,7 +89,7 @@ function JargonTooltip({ term, triggerRect, onClose, onMouseEnter, onMouseLeave 
         "rounded-xl border border-border/50 bg-card/95 backdrop-blur-xl shadow-2xl",
         "p-4",
         "animate-fade-in-scale",
-        isBelow ? "origin-top" : "origin-bottom"
+        isBelow ? "origin-top" : "origin-bottom",
       )}
       style={{ top: position.top, left: position.left }}
       onMouseEnter={onMouseEnter}
@@ -100,7 +101,7 @@ function JargonTooltip({ term, triggerRect, onClose, onMouseEnter, onMouseLeave 
           "absolute size-3 bg-card/95 border border-border/50 rotate-45",
           isBelow
             ? "-top-1.5 left-1/2 -translate-x-1/2 border-b-0 border-r-0"
-            : "-bottom-1.5 left-1/2 -translate-x-1/2 border-t-0 border-l-0"
+            : "-bottom-1.5 left-1/2 -translate-x-1/2 border-t-0 border-l-0",
         )}
       />
 
@@ -111,11 +112,7 @@ function JargonTooltip({ term, triggerRect, onClose, onMouseEnter, onMouseLeave 
       <p className="text-sm text-muted-foreground leading-relaxed">{term.short}</p>
 
       {/* Analogy (if present) */}
-      {term.analogy && (
-        <p className="text-sm text-primary/80 mt-2 italic">
-          {term.analogy}
-        </p>
-      )}
+      {term.analogy && <p className="text-sm text-primary/80 mt-2 italic">{term.analogy}</p>}
 
       {/* View in glossary link */}
       <div className="mt-3 pt-2 border-t border-border/50">
@@ -129,7 +126,7 @@ function JargonTooltip({ term, triggerRect, onClose, onMouseEnter, onMouseLeave 
         </a>
       </div>
     </div>,
-    document.body
+    document.body,
   );
 }
 
@@ -212,7 +209,7 @@ function JargonBottomSheet({ term, open, onClose }: BottomSheetProps) {
         className={cn(
           "fixed inset-0 z-50 bg-black/50 backdrop-blur-sm",
           "animate-fade-in",
-          exiting && "animate-fade-out"
+          exiting && "animate-fade-out",
         )}
         onClick={handleClose}
         aria-hidden="true"
@@ -229,7 +226,7 @@ function JargonBottomSheet({ term, open, onClose }: BottomSheetProps) {
           "max-h-[85vh] overflow-y-auto overscroll-contain",
           "bg-card rounded-t-3xl shadow-2xl",
           "animate-sheet-up",
-          exiting && "animate-sheet-down"
+          exiting && "animate-sheet-down",
         )}
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
@@ -276,9 +273,7 @@ function JargonBottomSheet({ term, open, onClose }: BottomSheetProps) {
           {/* Analogy */}
           {term.analogy && (
             <div className="bg-primary/5 rounded-xl p-4 border border-primary/10">
-              <h3 className="text-sm font-medium text-primary mb-2">
-                Think of it like...
-              </h3>
+              <h3 className="text-sm font-medium text-primary mb-2">Think of it like...</h3>
               <p className="text-foreground/90 leading-relaxed">{term.analogy}</p>
             </div>
           )}
@@ -326,7 +321,7 @@ function JargonBottomSheet({ term, open, onClose }: BottomSheetProps) {
         </div>
       </div>
     </>,
-    document.body
+    document.body,
   );
 }
 
@@ -460,7 +455,7 @@ export function Jargon({ term: termKey, children, className }: JargonProps) {
           "hover:decoration-primary/60 hover:text-primary/90",
           "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
           "transition-colors",
-          className
+          className,
         )}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
@@ -485,11 +480,7 @@ export function Jargon({ term: termKey, children, className }: JargonProps) {
       )}
 
       {/* Mobile bottom sheet */}
-      <JargonBottomSheet
-        term={term}
-        open={isSheetOpen}
-        onClose={() => setIsSheetOpen(false)}
-      />
+      <JargonBottomSheet term={term} open={isSheetOpen} onClose={() => setIsSheetOpen(false)} />
     </>
   );
 }

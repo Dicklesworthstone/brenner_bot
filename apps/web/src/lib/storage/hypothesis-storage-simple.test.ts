@@ -1,9 +1,8 @@
-
-import { describe, it, expect, beforeEach, afterEach } from "vitest";
-import { HypothesisStorage } from "./hypothesis-storage";
-import { createHypothesis } from "../schemas/hypothesis";
 import { promises as fs } from "fs";
 import { join } from "path";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { createHypothesis } from "../schemas/hypothesis";
+import { HypothesisStorage } from "./hypothesis-storage";
 
 const TEST_DIR = "/tmp/brenner_hypothesis_test_simple";
 

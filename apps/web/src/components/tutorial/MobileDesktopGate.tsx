@@ -13,14 +13,14 @@
  * @module components/tutorial/MobileDesktopGate
  */
 
-import * as React from "react";
-import Link from "next/link";
 import { motion } from "framer-motion";
-import { Monitor, BookOpen, ChevronRight, Bookmark, ExternalLink } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { useIsMobile } from "@/hooks/useIsMobile";
+import { Bookmark, BookOpen, ChevronRight, ExternalLink, Monitor } from "lucide-react";
+import Link from "next/link";
+import * as React from "react";
 import { Button } from "@/components/ui/button";
+import { useIsMobile } from "@/hooks/useIsMobile";
 import type { TutorialStepMeta } from "@/lib/tutorial-types";
+import { cn } from "@/lib/utils";
 
 // ============================================================================
 // Types
@@ -109,8 +109,8 @@ export function MobileDesktopGate({
               This step requires a desktop computer
             </h3>
             <p className="text-sm text-muted-foreground mt-1">
-              The commands below need to run in a terminal on your Mac, Windows
-              (WSL), or Linux computer.
+              The commands below need to run in a terminal on your Mac, Windows (WSL), or Linux
+              computer.
             </p>
           </div>
         </div>
@@ -122,10 +122,10 @@ export function MobileDesktopGate({
             <span>What you&apos;ll do on desktop</span>
           </div>
           <div className="text-sm text-muted-foreground space-y-2">
-            <p>Step {step.stepNumber}: {step.title}</p>
-            {step.mobileAlternative && (
-              <p className="text-xs italic">{step.mobileAlternative}</p>
-            )}
+            <p>
+              Step {step.stepNumber}: {step.title}
+            </p>
+            {step.mobileAlternative && <p className="text-xs italic">{step.mobileAlternative}</p>}
           </div>
         </div>
 
@@ -153,7 +153,7 @@ export function MobileDesktopGate({
                 <ChevronRight
                   className={cn(
                     "size-4 text-muted-foreground transition-transform",
-                    showContent && "rotate-90"
+                    showContent && "rotate-90",
                   )}
                 />
               </button>
@@ -165,9 +165,7 @@ export function MobileDesktopGate({
                 <Bookmark className="size-4 text-muted-foreground" />
               </div>
               <div className="flex-1">
-                <span className="text-sm font-medium text-foreground">
-                  Bookmark this page
-                </span>
+                <span className="text-sm font-medium text-foreground">Bookmark this page</span>
                 <span className="text-xs text-muted-foreground block">
                   Return when you&apos;re on your computer
                 </span>
@@ -184,9 +182,7 @@ export function MobileDesktopGate({
                   <ExternalLink className="size-4 text-primary" />
                 </div>
                 <div className="flex-1">
-                  <span className="text-sm font-medium text-primary">
-                    Skip to next step
-                  </span>
+                  <span className="text-sm font-medium text-primary">Skip to next step</span>
                   <span className="text-xs text-muted-foreground block">
                     Some steps are mobile-friendly
                   </span>

@@ -7,18 +7,19 @@
 
 import { test as base, expect, type Page, type Response } from "@playwright/test";
 import {
-  createE2ELogger,
-  withStep,
-  clearTestContext,
   attachLogsToTest,
+  clearTestContext,
+  createE2ELogger,
   setupConsoleLogging,
+  withStep,
 } from "./e2e-logging";
 import {
-  setupNetworkLogging,
-  collectPerformanceTiming,
   attachNetworkLogsToTest,
   clearNetworkContext,
+  collectPerformanceTiming,
+  setupNetworkLogging,
 } from "./network-logging";
+
 // Lazy import to avoid loading agent-mail-seeder during config phase
 // This prevents Playwright from trying to load test server code during test discovery
 type AgentMailSeederModule = typeof import("./agent-mail-seeder");
@@ -33,6 +34,7 @@ async function getAgentMailSeeder(): Promise<AgentMailSeederModule> {
 
 // Import and re-export SessionConfig type
 import type { SessionConfig } from "./agent-mail-seeder";
+
 export type { SessionConfig };
 
 /**
@@ -195,7 +197,7 @@ export async function navigateTo(
   page: Page,
   logger: ReturnType<typeof createE2ELogger>,
   path: string,
-  options?: { waitUntil?: "load" | "networkidle" | "domcontentloaded" }
+  options?: { waitUntil?: "load" | "networkidle" | "domcontentloaded" },
 ): Promise<Response | null> {
   return await withStep(logger, page, `Navigate to ${path}`, async () => {
     return await page.goto(path, { waitUntil: options?.waitUntil || "networkidle" });
@@ -209,13 +211,16 @@ export async function waitForContent(
   page: Page,
   logger: ReturnType<typeof createE2ELogger>,
   selector: string,
-  options?: { timeout?: number }
+  options?: { timeout?: number },
 ): Promise<void> {
   await withStep(logger, page, `Wait for: ${selector}`, async () => {
-    await page.locator(selector).first().waitFor({
-      state: "visible",
-      timeout: options?.timeout || 10000,
-    });
+    await page
+      .locator(selector)
+      .first()
+      .waitFor({
+        state: "visible",
+        timeout: options?.timeout || 10000,
+      });
   });
 }
 
@@ -226,7 +231,7 @@ export async function clickElement(
   page: Page,
   logger: ReturnType<typeof createE2ELogger>,
   selector: string | ReturnType<Page["locator"]>,
-  description?: string
+  description?: string,
 ): Promise<void> {
   const locator = typeof selector === "string" ? page.locator(selector) : selector;
   const desc = description || (typeof selector === "string" ? selector : "element");
@@ -244,7 +249,7 @@ export async function fillInput(
   logger: ReturnType<typeof createE2ELogger>,
   selector: string,
   value: string,
-  description?: string
+  description?: string,
 ): Promise<void> {
   const desc = description || selector;
 
@@ -261,7 +266,7 @@ export async function takeScreenshot(
   page: Page,
   logger: ReturnType<typeof createE2ELogger>,
   name: string,
-  options?: { fullPage?: boolean }
+  options?: { fullPage?: boolean },
 ): Promise<void> {
   await withStep(logger, page, `Screenshot: ${name}`, async () => {
     const fullPage = options?.fullPage ?? true;
@@ -303,7 +308,7 @@ export async function assertTextContent(
   logger: ReturnType<typeof createE2ELogger>,
   selector: string,
   expectedText: string | RegExp,
-  description?: string
+  description?: string,
 ): Promise<void> {
   const desc = description || `${selector} contains "${expectedText}"`;
 
@@ -325,7 +330,7 @@ export async function assertElementCount(
   logger: ReturnType<typeof createE2ELogger>,
   selector: string,
   expectedCount: number | { min?: number; max?: number },
-  description?: string
+  description?: string,
 ): Promise<void> {
   const desc = description || `${selector} count matches`;
 
@@ -354,7 +359,7 @@ export async function assertElementCount(
 export async function assertUrl(
   page: Page,
   logger: ReturnType<typeof createE2ELogger>,
-  expectedPath: string | RegExp
+  expectedPath: string | RegExp,
 ): Promise<void> {
   await withStep(logger, page, `Assert URL: ${expectedPath}`, async () => {
     if (typeof expectedPath === "string") {
@@ -371,7 +376,7 @@ export async function assertUrl(
 export async function waitForNetworkIdle(
   page: Page,
   logger: ReturnType<typeof createE2ELogger>,
-  timeout?: number
+  timeout?: number,
 ): Promise<void> {
   await withStep(logger, page, "Wait for network idle", async () => {
     await page.waitForLoadState("networkidle", { timeout: timeout || 30000 });
@@ -384,7 +389,7 @@ export async function waitForNetworkIdle(
 export async function assertPageHasContent(
   page: Page,
   logger: ReturnType<typeof createE2ELogger>,
-  minLength: number = 100
+  minLength: number = 100,
 ): Promise<void> {
   await withStep(logger, page, `Assert page has content (min ${minLength} chars)`, async () => {
     const bodyText = await page.locator("body").textContent();

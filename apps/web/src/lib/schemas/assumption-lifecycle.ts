@@ -39,11 +39,7 @@ import {
  * - verify: Evidence supports the assumption (for now)
  * - falsify: Evidence contradicts the assumption (triggers propagation!)
  */
-export const AssumptionTriggerSchema = z.enum([
-  "challenge",
-  "verify",
-  "falsify",
-]);
+export const AssumptionTriggerSchema = z.enum(["challenge", "verify", "falsify"]);
 
 export type AssumptionTrigger = z.infer<typeof AssumptionTriggerSchema>;
 
@@ -219,7 +215,7 @@ export type AssumptionTransitionResult =
  */
 export function isValidAssumptionTransition(
   fromState: AssumptionStatus,
-  trigger: AssumptionTrigger
+  trigger: AssumptionTrigger,
 ): boolean {
   const transitions = VALID_ASSUMPTION_TRANSITIONS[fromState];
   return trigger in transitions;
@@ -230,7 +226,7 @@ export function isValidAssumptionTransition(
  */
 export function getAssumptionTargetState(
   fromState: AssumptionStatus,
-  trigger: AssumptionTrigger
+  trigger: AssumptionTrigger,
 ): AssumptionStatus | null {
   const transitions = VALID_ASSUMPTION_TRANSITIONS[fromState];
   return (transitions[trigger] as AssumptionStatus) ?? null;
@@ -239,9 +235,7 @@ export function getAssumptionTargetState(
 /**
  * Get all valid triggers from a given state.
  */
-export function getValidAssumptionTriggers(
-  fromState: AssumptionStatus
-): AssumptionTrigger[] {
+export function getValidAssumptionTriggers(fromState: AssumptionStatus): AssumptionTrigger[] {
   const transitions = VALID_ASSUMPTION_TRANSITIONS[fromState];
   return Object.keys(transitions) as AssumptionTrigger[];
 }
@@ -262,7 +256,7 @@ export function validateAssumptionTransitionRequirements(
   trigger: AssumptionTrigger,
   options: {
     evidenceRef?: string;
-  }
+  },
 ): { valid: boolean; warning?: string } {
   if (trigger === "falsify" && !options.evidenceRef) {
     return {
@@ -297,9 +291,7 @@ export function validateAssumptionTransitionRequirements(
  * Note: This function computes what SHOULD be affected.
  * The actual update to hypothesis/test records must be done by the caller.
  */
-export function computeFalsificationPropagation(
-  assumption: Assumption
-): PropagationResult {
+export function computeFalsificationPropagation(assumption: Assumption): PropagationResult {
   const affected = getAffectedByFalsification(assumption);
 
   const undermindedCount = affected.hypotheses.length;
@@ -331,7 +323,7 @@ export function computeFalsificationPropagation(
  */
 export function computeAssumptionCascade(
   assumptions: Assumption[],
-  rootAssumptionId: string
+  rootAssumptionId: string,
 ): AssumptionCascadeResult {
   const assumptionById = new Map(assumptions.map((assumption) => [assumption.id, assumption]));
   const dependents = new Map<string, string[]>();
@@ -418,7 +410,7 @@ export function transitionAssumption(
     evidenceRef?: string;
     reason?: string;
     sessionId?: string;
-  } = {}
+  } = {},
 ): AssumptionTransitionResult {
   const fromState = assumption.status;
 
@@ -505,7 +497,7 @@ export function challengeAssumption(
     evidenceRef?: string;
     reason?: string;
     sessionId?: string;
-  } = {}
+  } = {},
 ): AssumptionTransitionResult {
   return transitionAssumption(assumption, "challenge", options);
 }
@@ -521,7 +513,7 @@ export function verifyAssumption(
     evidenceRef?: string;
     reason?: string;
     sessionId?: string;
-  } = {}
+  } = {},
 ): AssumptionTransitionResult {
   return transitionAssumption(assumption, "verify", options);
 }
@@ -542,7 +534,7 @@ export function falsifyAssumption(
     evidenceRef?: string;
     reason?: string;
     sessionId?: string;
-  } = {}
+  } = {},
 ): AssumptionTransitionResult {
   return transitionAssumption(assumption, "falsify", options);
 }
@@ -618,9 +610,7 @@ export class AssumptionTransitionHistoryStore {
     for (const transitions of this.history.values()) {
       all.push(...transitions);
     }
-    return all.sort(
-      (a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
-    );
+    return all.sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
   }
 
   /**
@@ -658,4 +648,4 @@ export class AssumptionTransitionHistoryStore {
 // Exports
 // ============================================================================
 
-export { AssumptionStatusSchema, type AssumptionStatus } from "./assumption";
+export { type AssumptionStatus, AssumptionStatusSchema } from "./assumption";

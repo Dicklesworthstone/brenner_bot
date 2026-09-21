@@ -10,7 +10,7 @@
 
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { CommandPalette, CommandPaletteHint } from "./command-palette";
 
 // Mock next/navigation
@@ -501,7 +501,7 @@ describe("CommandPaletteHint", () => {
         type: "keydown",
         key: "/",
         metaKey: true,
-      })
+      }),
     );
 
     dispatchSpy.mockRestore();

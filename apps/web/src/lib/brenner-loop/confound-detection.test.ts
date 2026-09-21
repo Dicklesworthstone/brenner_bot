@@ -1,22 +1,22 @@
 import { describe, expect, it } from "vitest";
 import {
+  BIOLOGY_CONFOUNDS,
   classifyDomain,
   detectConfounds,
+  ECONOMICS_CONFOUNDS,
+  EPIDEMIOLOGY_CONFOUNDS,
+  GENERAL_CONFOUNDS,
   getConfoundQuestions,
   getConfoundTemplates,
   getSupportedDomains,
   PSYCHOLOGY_CONFOUNDS,
-  EPIDEMIOLOGY_CONFOUNDS,
-  ECONOMICS_CONFOUNDS,
-  BIOLOGY_CONFOUNDS,
-  GENERAL_CONFOUNDS,
   type ResearchDomain,
 } from "./confound-detection";
-import { createHypothesisCard, generateHypothesisCardId } from "./hypothesis";
 import type { HypothesisCard } from "./hypothesis";
+import { createHypothesisCard, generateHypothesisCardId } from "./hypothesis";
 
 function createTestHypothesis(
-  overrides: Partial<Parameters<typeof createHypothesisCard>[0]> = {}
+  overrides: Partial<Parameters<typeof createHypothesisCard>[0]> = {},
 ): HypothesisCard {
   const id = generateHypothesisCardId("TEST-CONFOUND", 1, 1);
   return createHypothesisCard({
@@ -35,7 +35,8 @@ describe("classifyDomain", () => {
   it("classifies psychology hypothesis correctly", () => {
     const hypothesis = createTestHypothesis({
       statement: "Cognitive behavioral therapy reduces anxiety symptoms in participants",
-      mechanism: "Changing thought patterns alters emotional responses via learned behavior modification",
+      mechanism:
+        "Changing thought patterns alters emotional responses via learned behavior modification",
       domain: ["psychology"],
     });
 
@@ -59,7 +60,8 @@ describe("classifyDomain", () => {
   it("classifies economics hypothesis correctly", () => {
     const hypothesis = createTestHypothesis({
       statement: "Higher interest rates reduce consumer spending and slow economic growth",
-      mechanism: "Increased borrowing costs decrease investment and consumption via market equilibrium",
+      mechanism:
+        "Increased borrowing costs decrease investment and consumption via market equilibrium",
       domain: ["economics"],
     });
 
@@ -83,7 +85,8 @@ describe("classifyDomain", () => {
   it("classifies computer science hypothesis correctly", () => {
     const hypothesis = createTestHypothesis({
       statement: "Deep learning models with attention achieve higher accuracy on NLP benchmarks",
-      mechanism: "Self-attention allows the neural network to capture long-range dependencies in training data",
+      mechanism:
+        "Self-attention allows the neural network to capture long-range dependencies in training data",
       domain: ["computer_science"],
     });
 
@@ -143,9 +146,7 @@ describe("detectConfounds", () => {
     const result = detectConfounds(hypothesis);
 
     // Should detect reverse causation (cause, effect, lead)
-    const reverseCausation = result.confounds.find(
-      (c) => c.name === "Reverse Causation"
-    );
+    const reverseCausation = result.confounds.find((c) => c.name === "Reverse Causation");
     expect(reverseCausation).toBeDefined();
   });
 
@@ -160,9 +161,7 @@ describe("detectConfounds", () => {
     const result = detectConfounds(hypothesis);
 
     // Should detect healthy user bias
-    const healthyUserBias = result.confounds.find(
-      (c) => c.name === "Healthy User Bias"
-    );
+    const healthyUserBias = result.confounds.find((c) => c.name === "Healthy User Bias");
     expect(healthyUserBias).toBeDefined();
   });
 
@@ -178,7 +177,7 @@ describe("detectConfounds", () => {
 
     // Should detect endogeneity or omitted variable bias
     const hasRelevantConfound = result.confounds.some(
-      (c) => c.name === "Endogeneity" || c.name === "Omitted Variable Bias"
+      (c) => c.name === "Endogeneity" || c.name === "Omitted Variable Bias",
     );
     expect(hasRelevantConfound).toBe(true);
   });
@@ -196,14 +195,13 @@ describe("detectConfounds", () => {
     // High threshold should return fewer confounds
     const highThreshold = detectConfounds(hypothesis, { threshold: 0.8 });
 
-    expect(lowThreshold.confounds.length).toBeGreaterThanOrEqual(
-      highThreshold.confounds.length
-    );
+    expect(lowThreshold.confounds.length).toBeGreaterThanOrEqual(highThreshold.confounds.length);
   });
 
   it("respects maxConfounds parameter", () => {
     const hypothesis = createTestHypothesis({
-      statement: "Complex hypothesis touching many domains about participants, treatment, cause, effect, measurement, study",
+      statement:
+        "Complex hypothesis touching many domains about participants, treatment, cause, effect, measurement, study",
       mechanism: "Complex mechanism involving regression, selection, causation, observation",
       domain: ["psychology"],
     });

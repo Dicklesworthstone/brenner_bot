@@ -9,28 +9,30 @@
 
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   Collapsible,
-  CollapsibleTrigger,
-  CollapsibleContent,
   CollapsibleCard,
+  CollapsibleContent,
   CollapsibleSection,
+  CollapsibleTrigger,
 } from "./collapsible";
 
 // ============================================================================
 // Test Helpers
 // ============================================================================
 
-function renderCollapsible(props: {
-  defaultOpen?: boolean;
-  open?: boolean;
-  onOpenChange?: (open: boolean) => void;
-  triggerText?: string;
-  contentText?: string;
-  showChevron?: boolean;
-  chevronPosition?: "left" | "right";
-} = {}) {
+function renderCollapsible(
+  props: {
+    defaultOpen?: boolean;
+    open?: boolean;
+    onOpenChange?: (open: boolean) => void;
+    triggerText?: string;
+    contentText?: string;
+    showChevron?: boolean;
+    chevronPosition?: "left" | "right";
+  } = {},
+) {
   const {
     triggerText = "Toggle",
     contentText = "Content",
@@ -45,7 +47,7 @@ function renderCollapsible(props: {
         {triggerText}
       </CollapsibleTrigger>
       <CollapsibleContent>{contentText}</CollapsibleContent>
-    </Collapsible>
+    </Collapsible>,
   );
 }
 
@@ -102,7 +104,7 @@ describe("Collapsible", () => {
         <Collapsible open={false}>
           <CollapsibleTrigger>Toggle</CollapsibleTrigger>
           <CollapsibleContent>Content</CollapsibleContent>
-        </Collapsible>
+        </Collapsible>,
       );
 
       expect(screen.queryByText("Content")).not.toBeInTheDocument();
@@ -111,7 +113,7 @@ describe("Collapsible", () => {
         <Collapsible open={true}>
           <CollapsibleTrigger>Toggle</CollapsibleTrigger>
           <CollapsibleContent>Content</CollapsibleContent>
-        </Collapsible>
+        </Collapsible>,
       );
 
       expect(screen.getByText("Content")).toBeInTheDocument();
@@ -125,7 +127,7 @@ describe("Collapsible", () => {
         <Collapsible open={false} onOpenChange={onOpenChange}>
           <CollapsibleTrigger>Toggle</CollapsibleTrigger>
           <CollapsibleContent>Content</CollapsibleContent>
-        </Collapsible>
+        </Collapsible>,
       );
 
       await user.click(screen.getByRole("button"));
@@ -140,7 +142,7 @@ describe("Collapsible", () => {
         <Collapsible open={false} onOpenChange={onOpenChange}>
           <CollapsibleTrigger>Toggle</CollapsibleTrigger>
           <CollapsibleContent>Content</CollapsibleContent>
-        </Collapsible>
+        </Collapsible>,
       );
 
       await user.click(screen.getByRole("button"));
@@ -156,7 +158,7 @@ describe("Collapsible", () => {
         <Collapsible className="custom-class">
           <CollapsibleTrigger>Toggle</CollapsibleTrigger>
           <CollapsibleContent>Content</CollapsibleContent>
-        </Collapsible>
+        </Collapsible>,
       );
 
       expect(container.firstChild).toHaveClass("custom-class");
@@ -275,7 +277,7 @@ describe("CollapsibleTrigger", () => {
         <Collapsible>
           <CollapsibleTrigger onClick={onClick}>Toggle</CollapsibleTrigger>
           <CollapsibleContent>Content</CollapsibleContent>
-        </Collapsible>
+        </Collapsible>,
       );
 
       await user.click(screen.getByRole("button"));
@@ -290,7 +292,7 @@ describe("CollapsibleTrigger", () => {
         <Collapsible>
           <CollapsibleTrigger onClick={(e) => e.preventDefault()}>Toggle</CollapsibleTrigger>
           <CollapsibleContent>Content</CollapsibleContent>
-        </Collapsible>
+        </Collapsible>,
       );
 
       await user.click(screen.getByRole("button"));
@@ -342,7 +344,7 @@ describe("CollapsibleContent", () => {
         <Collapsible defaultOpen>
           <CollapsibleTrigger>Toggle</CollapsibleTrigger>
           <CollapsibleContent className="custom-content-class">Content</CollapsibleContent>
-        </Collapsible>
+        </Collapsible>,
       );
 
       // The framer-motion wrapper gets the class
@@ -362,7 +364,7 @@ describe("CollapsibleCard", () => {
       render(
         <CollapsibleCard title="Card Title">
           <p>Card Content</p>
-        </CollapsibleCard>
+        </CollapsibleCard>,
       );
 
       expect(screen.getByText("Card Title")).toBeInTheDocument();
@@ -372,7 +374,7 @@ describe("CollapsibleCard", () => {
       render(
         <CollapsibleCard title="Card Title" subtitle="Card Subtitle">
           <p>Card Content</p>
-        </CollapsibleCard>
+        </CollapsibleCard>,
       );
 
       expect(screen.getByText("Card Subtitle")).toBeInTheDocument();
@@ -382,7 +384,7 @@ describe("CollapsibleCard", () => {
       render(
         <CollapsibleCard title="Card Title" badge={<span>Badge</span>}>
           <p>Card Content</p>
-        </CollapsibleCard>
+        </CollapsibleCard>,
       );
 
       expect(screen.getByText("Badge")).toBeInTheDocument();
@@ -392,7 +394,7 @@ describe("CollapsibleCard", () => {
       render(
         <CollapsibleCard title="Card Title" defaultOpen>
           <p>Card Content</p>
-        </CollapsibleCard>
+        </CollapsibleCard>,
       );
 
       expect(screen.getByText("Card Content")).toBeInTheDocument();
@@ -402,7 +404,7 @@ describe("CollapsibleCard", () => {
       render(
         <CollapsibleCard title="Card Title">
           <p>Card Content</p>
-        </CollapsibleCard>
+        </CollapsibleCard>,
       );
 
       expect(screen.queryByText("Card Content")).not.toBeInTheDocument();
@@ -415,7 +417,7 @@ describe("CollapsibleCard", () => {
       render(
         <CollapsibleCard title="Card Title">
           <p>Card Content</p>
-        </CollapsibleCard>
+        </CollapsibleCard>,
       );
 
       // Initially closed
@@ -432,7 +434,7 @@ describe("CollapsibleCard", () => {
       render(
         <CollapsibleCard title="Card Title" open={true}>
           <p>Card Content</p>
-        </CollapsibleCard>
+        </CollapsibleCard>,
       );
 
       expect(screen.getByText("Card Content")).toBeInTheDocument();
@@ -445,7 +447,7 @@ describe("CollapsibleCard", () => {
       render(
         <CollapsibleCard title="Card Title" open={false} onOpenChange={onOpenChange}>
           <p>Card Content</p>
-        </CollapsibleCard>
+        </CollapsibleCard>,
       );
 
       await user.click(screen.getByRole("button"));
@@ -458,7 +460,7 @@ describe("CollapsibleCard", () => {
       render(
         <CollapsibleCard title="Card Title" className="card-custom-class">
           <p>Card Content</p>
-        </CollapsibleCard>
+        </CollapsibleCard>,
       );
 
       const card = screen.getByText("Card Title").closest("[data-state]");
@@ -469,7 +471,7 @@ describe("CollapsibleCard", () => {
       render(
         <CollapsibleCard title="Card Title" defaultOpen contentClassName="content-custom-class">
           <p>Card Content</p>
-        </CollapsibleCard>
+        </CollapsibleCard>,
       );
 
       // The content wrapper should have the class
@@ -483,7 +485,7 @@ describe("CollapsibleCard", () => {
       render(
         <CollapsibleCard title="Card Title">
           <p>Card Content</p>
-        </CollapsibleCard>
+        </CollapsibleCard>,
       );
 
       const card = screen.getByText("Card Title").closest("[data-state]");
@@ -502,7 +504,7 @@ describe("CollapsibleSection", () => {
       render(
         <CollapsibleSection label="Section Label">
           <p>Section Content</p>
-        </CollapsibleSection>
+        </CollapsibleSection>,
       );
 
       expect(screen.getByText("Section Label")).toBeInTheDocument();
@@ -512,7 +514,7 @@ describe("CollapsibleSection", () => {
       render(
         <CollapsibleSection label="Section Label" hint="Help text" defaultOpen>
           <p>Section Content</p>
-        </CollapsibleSection>
+        </CollapsibleSection>,
       );
 
       expect(screen.getByText("Help text")).toBeInTheDocument();
@@ -522,7 +524,7 @@ describe("CollapsibleSection", () => {
       render(
         <CollapsibleSection label="Section Label" defaultOpen>
           <p>Section Content</p>
-        </CollapsibleSection>
+        </CollapsibleSection>,
       );
 
       expect(screen.getByText("Section Content")).toBeInTheDocument();
@@ -532,7 +534,7 @@ describe("CollapsibleSection", () => {
       render(
         <CollapsibleSection label="Section Label">
           <p>Section Content</p>
-        </CollapsibleSection>
+        </CollapsibleSection>,
       );
 
       expect(screen.queryByText("Section Content")).not.toBeInTheDocument();
@@ -545,7 +547,7 @@ describe("CollapsibleSection", () => {
       render(
         <CollapsibleSection label="Section Label">
           <p>Section Content</p>
-        </CollapsibleSection>
+        </CollapsibleSection>,
       );
 
       // Initially closed
@@ -562,7 +564,7 @@ describe("CollapsibleSection", () => {
       render(
         <CollapsibleSection label="Section Label" open={true}>
           <p>Section Content</p>
-        </CollapsibleSection>
+        </CollapsibleSection>,
       );
 
       expect(screen.getByText("Section Content")).toBeInTheDocument();
@@ -575,7 +577,7 @@ describe("CollapsibleSection", () => {
       render(
         <CollapsibleSection label="Section Label" open={false} onOpenChange={onOpenChange}>
           <p>Section Content</p>
-        </CollapsibleSection>
+        </CollapsibleSection>,
       );
 
       await user.click(screen.getByRole("button"));
@@ -588,7 +590,7 @@ describe("CollapsibleSection", () => {
       render(
         <CollapsibleSection label="Section Label" className="section-custom-class">
           <p>Section Content</p>
-        </CollapsibleSection>
+        </CollapsibleSection>,
       );
 
       const section = screen.getByText("Section Label").closest("[data-state]");
@@ -601,7 +603,7 @@ describe("CollapsibleSection", () => {
       render(
         <CollapsibleSection label="Section Label">
           <p>Section Content</p>
-        </CollapsibleSection>
+        </CollapsibleSection>,
       );
 
       const section = screen.getByText("Section Label").closest("[data-state]");

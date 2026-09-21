@@ -2,10 +2,10 @@ import { promises as fs } from "fs";
 import { join } from "path";
 import {
   type Critique,
-  type CritiqueStatus,
-  type CritiqueSeverity,
-  type CritiqueTargetType,
   CritiqueSchema,
+  type CritiqueSeverity,
+  type CritiqueStatus,
+  type CritiqueTargetType,
 } from "../schemas/critique";
 import { withFileLock } from "./file-lock";
 
@@ -163,7 +163,9 @@ export class CritiqueStorage {
       }
 
       if (!Array.isArray(data.critiques)) {
-        console.warn(`[CritiqueStorage] Malformed session file ${filePath}; returning empty critiques.`);
+        console.warn(
+          `[CritiqueStorage] Malformed session file ${filePath}; returning empty critiques.`,
+        );
         return [];
       }
 
@@ -194,7 +196,10 @@ export class CritiqueStorage {
     });
   }
 
-  private async saveSessionCritiquesUnlocked(sessionId: string, critiques: Critique[]): Promise<void> {
+  private async saveSessionCritiquesUnlocked(
+    sessionId: string,
+    critiques: Critique[],
+  ): Promise<void> {
     await ensureStorageStructure(this.baseDir);
 
     const filePath = getSessionFilePath(this.baseDir, sessionId);
@@ -224,7 +229,10 @@ export class CritiqueStorage {
     }
   }
 
-  private async updateIndexForSessionUnlocked(sessionId: string, critiques: Critique[]): Promise<void> {
+  private async updateIndexForSessionUnlocked(
+    sessionId: string,
+    critiques: Critique[],
+  ): Promise<void> {
     const indexPath = getIndexPath(this.baseDir);
     let index: CritiqueIndex;
 
@@ -373,7 +381,10 @@ export class CritiqueStorage {
         }
 
         if (!Array.isArray(data.critiques)) {
-          warnings.push({ file: filePath, message: "Skipping malformed session file (missing critiques[])." });
+          warnings.push({
+            file: filePath,
+            message: "Skipping malformed session file (missing critiques[]).",
+          });
           continue;
         }
 
@@ -530,7 +541,10 @@ export class CritiqueStorage {
   /**
    * Get all critiques targeting a specific entity.
    */
-  async getCritiquesForTarget(targetType: CritiqueTargetType, targetId?: string): Promise<Critique[]> {
+  async getCritiquesForTarget(
+    targetType: CritiqueTargetType,
+    targetId?: string,
+  ): Promise<Critique[]> {
     const index = await this.loadIndex();
     const matching = index.entries.filter((e) => {
       if (e.targetType !== targetType) return false;
@@ -548,7 +562,7 @@ export class CritiqueStorage {
           if (c.targetType !== targetType) return false;
           if (targetId !== undefined && c.targetId !== targetId) return false;
           return true;
-        })
+        }),
       );
     }
 
@@ -597,7 +611,10 @@ export class CritiqueStorage {
   /**
    * Get active critiques for a specific target (unaddressed critiques).
    */
-  async getActiveCritiquesForTarget(targetType: CritiqueTargetType, targetId?: string): Promise<Critique[]> {
+  async getActiveCritiquesForTarget(
+    targetType: CritiqueTargetType,
+    targetId?: string,
+  ): Promise<Critique[]> {
     const all = await this.getCritiquesForTarget(targetType, targetId);
     return all.filter((c) => c.status === "active");
   }
@@ -608,7 +625,7 @@ export class CritiqueStorage {
   async getBlockingCritiques(): Promise<Critique[]> {
     const index = await this.loadIndex();
     const matching = index.entries.filter(
-      (e) => e.status === "active" && (e.severity === "serious" || e.severity === "critical")
+      (e) => e.status === "active" && (e.severity === "serious" || e.severity === "critical"),
     );
 
     const results: Critique[] = [];
@@ -618,8 +635,8 @@ export class CritiqueStorage {
       const critiques = await this.loadSessionCritiques(sessionId);
       results.push(
         ...critiques.filter(
-          (c) => c.status === "active" && (c.severity === "serious" || c.severity === "critical")
-        )
+          (c) => c.status === "active" && (c.severity === "serious" || c.severity === "critical"),
+        ),
       );
     }
 
@@ -723,7 +740,10 @@ export class CritiqueStorage {
   /**
    * Get count of unaddressed critiques for a specific target.
    */
-  async getUnaddressedCount(targetType: CritiqueTargetType, targetId?: string): Promise<{
+  async getUnaddressedCount(
+    targetType: CritiqueTargetType,
+    targetId?: string,
+  ): Promise<{
     total: number;
     bySeverity: Record<CritiqueSeverity, number>;
   }> {
@@ -799,24 +819,29 @@ export class CritiqueStorage {
    * Get targets with the most unaddressed critiques.
    * Returns a list sorted by number of unaddressed critiques.
    */
-  async getTargetsUnderAttack(): Promise<Array<{
-    targetType: CritiqueTargetType;
-    targetId: string | undefined;
-    unaddressedCount: number;
-    criticalCount: number;
-    seriousCount: number;
-  }>> {
-    const index = await this.loadIndex();
-    const activeCritiques = index.entries.filter((e) => e.status === "active");
-
-    // Group by target
-    const targetMap = new Map<string, {
+  async getTargetsUnderAttack(): Promise<
+    Array<{
       targetType: CritiqueTargetType;
       targetId: string | undefined;
       unaddressedCount: number;
       criticalCount: number;
       seriousCount: number;
-    }>();
+    }>
+  > {
+    const index = await this.loadIndex();
+    const activeCritiques = index.entries.filter((e) => e.status === "active");
+
+    // Group by target
+    const targetMap = new Map<
+      string,
+      {
+        targetType: CritiqueTargetType;
+        targetId: string | undefined;
+        unaddressedCount: number;
+        criticalCount: number;
+        seriousCount: number;
+      }
+    >();
 
     for (const entry of activeCritiques) {
       const key = `${entry.targetType}:${entry.targetId ?? ""}`;
@@ -836,9 +861,7 @@ export class CritiqueStorage {
     }
 
     // Sort by unaddressed count descending
-    return Array.from(targetMap.values()).sort(
-      (a, b) => b.unaddressedCount - a.unaddressedCount
-    );
+    return Array.from(targetMap.values()).sort((a, b) => b.unaddressedCount - a.unaddressedCount);
   }
 }
 

@@ -1,9 +1,8 @@
 "use client";
 
-import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { cn } from "@/lib/utils";
+import * as React from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -16,18 +15,19 @@ import {
 } from "@/components/ui/dialog";
 import { nowMs, trackSystemLatency } from "@/lib/analytics";
 import {
-  sessionStorage,
+  buildSessionPath,
   exportSession,
   getPhaseName,
   getPhaseSymbol,
-  buildSessionPath,
   getSessionResumeEntry,
   recordSessionResumeEntry,
   SESSION_RESUME_LOCATION_LABELS,
   type Session,
   type SessionResumeEntry,
   type SessionResumeLocation,
+  sessionStorage,
 } from "@/lib/brenner-loop";
+import { cn } from "@/lib/utils";
 
 export interface LocalSessionHubProps {
   sessionId: string;
@@ -231,10 +231,14 @@ export function LocalSessionHub({ sessionId, className }: LocalSessionHubProps) 
           <DialogHeader separated>
             <DialogTitle>Delete local session?</DialogTitle>
             <DialogDescription>
-              This removes <span className="font-mono">{session.id}</span> from your browser storage. This action can’t be undone.
+              This removes <span className="font-mono">{session.id}</span> from your browser
+              storage. This action can’t be undone.
             </DialogDescription>
           </DialogHeader>
-          <DialogFooter separated className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+          <DialogFooter
+            separated
+            className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end"
+          >
             <Button
               type="button"
               variant="outline"
@@ -259,7 +263,9 @@ export function LocalSessionHub({ sessionId, className }: LocalSessionHubProps) 
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
             <h1 className="text-2xl font-bold tracking-tight text-foreground">Local Session</h1>
-            <div className="mt-1 text-sm text-muted-foreground font-mono break-words">{session.id}</div>
+            <div className="mt-1 text-sm text-muted-foreground font-mono break-words">
+              {session.id}
+            </div>
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <Button size="sm" onClick={() => router.push(suggestedHref)}>
@@ -301,14 +307,18 @@ export function LocalSessionHub({ sessionId, className }: LocalSessionHubProps) 
           <span className="mx-2">·</span>
           <span className="font-medium text-foreground/80">Updated:</span>{" "}
           {formatRelativeTime(session.updatedAt)}
-          {resumeEntry?.location && resumeEntry.location !== "overview" && resumeEntry.visitedAt && (
-            <>
-              <span className="mx-2">·</span>
-              <span className="font-medium text-foreground/80">Last viewed:</span>{" "}
-              {SESSION_RESUME_LOCATION_LABELS[resumeEntry.location] ?? resumeEntry.location}{" "}
-              <span className="text-muted-foreground">({formatRelativeTime(resumeEntry.visitedAt)})</span>
-            </>
-          )}
+          {resumeEntry?.location &&
+            resumeEntry.location !== "overview" &&
+            resumeEntry.visitedAt && (
+              <>
+                <span className="mx-2">·</span>
+                <span className="font-medium text-foreground/80">Last viewed:</span>{" "}
+                {SESSION_RESUME_LOCATION_LABELS[resumeEntry.location] ?? resumeEntry.location}{" "}
+                <span className="text-muted-foreground">
+                  ({formatRelativeTime(resumeEntry.visitedAt)})
+                </span>
+              </>
+            )}
         </div>
 
         {error && (
@@ -337,7 +347,7 @@ export function LocalSessionHub({ sessionId, className }: LocalSessionHubProps) 
           <Card
             className={cn(
               "h-full hover:border-primary/30 hover:bg-muted/20 transition-colors",
-              suggestedLocation === "hypothesis" && "border-primary/40 bg-primary/5"
+              suggestedLocation === "hypothesis" && "border-primary/40 bg-primary/5",
             )}
           >
             <CardHeader className="pb-3">
@@ -351,7 +361,7 @@ export function LocalSessionHub({ sessionId, className }: LocalSessionHubProps) 
           <Card
             className={cn(
               "h-full hover:border-primary/30 hover:bg-muted/20 transition-colors",
-              suggestedLocation === "operators" && "border-primary/40 bg-primary/5"
+              suggestedLocation === "operators" && "border-primary/40 bg-primary/5",
             )}
           >
             <CardHeader className="pb-3">
@@ -365,7 +375,7 @@ export function LocalSessionHub({ sessionId, className }: LocalSessionHubProps) 
           <Card
             className={cn(
               "h-full hover:border-primary/30 hover:bg-muted/20 transition-colors",
-              suggestedLocation === "test-queue" && "border-primary/40 bg-primary/5"
+              suggestedLocation === "test-queue" && "border-primary/40 bg-primary/5",
             )}
           >
             <CardHeader className="pb-3">
@@ -379,7 +389,7 @@ export function LocalSessionHub({ sessionId, className }: LocalSessionHubProps) 
           <Card
             className={cn(
               "h-full hover:border-primary/30 hover:bg-muted/20 transition-colors",
-              suggestedLocation === "agents" && "border-primary/40 bg-primary/5"
+              suggestedLocation === "agents" && "border-primary/40 bg-primary/5",
             )}
           >
             <CardHeader className="pb-3">
@@ -393,7 +403,7 @@ export function LocalSessionHub({ sessionId, className }: LocalSessionHubProps) 
           <Card
             className={cn(
               "h-full hover:border-primary/30 hover:bg-muted/20 transition-colors",
-              suggestedLocation === "brief" && "border-primary/40 bg-primary/5"
+              suggestedLocation === "brief" && "border-primary/40 bg-primary/5",
             )}
           >
             <CardHeader className="pb-3">

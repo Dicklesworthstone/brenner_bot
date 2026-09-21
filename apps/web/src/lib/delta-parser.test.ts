@@ -7,11 +7,11 @@
 
 import { describe, expect, it } from "vitest";
 import {
+  type DeltaSection,
   extractValidDeltas,
   generateNextId,
   parseDeltaMessage,
   validateTargetIdPrefix,
-  type DeltaSection,
 } from "./delta-parser";
 
 describe("parseDeltaMessage", () => {
@@ -353,7 +353,7 @@ Some prose explanation here.
 
     expect(result.invalidCount).toBe(1);
     if (!result.deltas[0]?.valid) {
-      expect(result.deltas[0].error).toContain("research_thread target_id must be \"RT\"");
+      expect(result.deltas[0].error).toContain('research_thread target_id must be "RT"');
     }
   });
 

@@ -7,10 +7,19 @@
  * Run with: cd apps/web && bun run test -- src/components/transcript/TranscriptViewer.test.tsx
  */
 
-import { describe, it, expect, beforeEach, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
-import type { ParsedTranscript, TranscriptSection as TSection, TranscriptContent } from "@/lib/transcript-parser";
-import { TranscriptHero, TableOfContents, ReadingProgress, TranscriptSection } from "./TranscriptViewer";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import type {
+  ParsedTranscript,
+  TranscriptContent,
+  TranscriptSection as TSection,
+} from "@/lib/transcript-parser";
+import {
+  ReadingProgress,
+  TableOfContents,
+  TranscriptHero,
+  TranscriptSection,
+} from "./TranscriptViewer";
 
 // ============================================================================
 // Test Fixtures - Realistic ParsedTranscript data
@@ -19,7 +28,7 @@ import { TranscriptHero, TableOfContents, ReadingProgress, TranscriptSection } f
 function createTestContent(
   type: "brenner-quote" | "interviewer-question" | "paragraph",
   text: string,
-  highlights?: string[]
+  highlights?: string[],
 ): TranscriptContent {
   return { type, text, highlights };
 }
@@ -27,7 +36,7 @@ function createTestContent(
 function createTestSection(
   number: number,
   title: string,
-  content: TranscriptContent[] = []
+  content: TranscriptContent[] = [],
 ): TSection {
   return { number, title, content };
 }
@@ -41,25 +50,44 @@ const comprehensiveTranscript: ParsedTranscript = {
   totalSections: 8,
   sections: [
     createTestSection(58, "Reducing Complexity", [
-      createTestContent("brenner-quote", "The key thing about the genetics of behaviour is that you can make behaviour by just deleting things."),
+      createTestContent(
+        "brenner-quote",
+        "The key thing about the genetics of behaviour is that you can make behaviour by just deleting things.",
+      ),
       createTestContent("paragraph", "This insight led to the choice of C. elegans."),
     ]),
     createTestSection(103, "Third Alternative", [
       createTestContent("interviewer-question", "What about the two competing theories?"),
-      createTestContent("brenner-quote", "You've forgotten there's a third alternative: both could be wrong."),
-      createTestContent("paragraph", "This anti-binary thinking is central to Brenner's methodology."),
+      createTestContent(
+        "brenner-quote",
+        "You've forgotten there's a third alternative: both could be wrong.",
+      ),
+      createTestContent(
+        "paragraph",
+        "This anti-binary thinking is central to Brenner's methodology.",
+      ),
     ]),
     createTestSection(105, "Evidence Per Week", [
-      createTestContent("brenner-quote", "Exclusion is always a tremendously good thing in science.", ["Exclusion"]),
+      createTestContent(
+        "brenner-quote",
+        "Exclusion is always a tremendously good thing in science.",
+        ["Exclusion"],
+      ),
       createTestContent("paragraph", "The emphasis on rapid iteration and falsification."),
     ]),
     createTestSection(107, "Model Organism Selection", [
-      createTestContent("brenner-quote", "We needed something with a nervous system simple enough to trace."),
+      createTestContent(
+        "brenner-quote",
+        "We needed something with a nervous system simple enough to trace.",
+      ),
       createTestContent("paragraph", "C. elegans has exactly 959 somatic cells."),
     ]),
     createTestSection(110, "Experimental Platform", [
       createTestContent("interviewer-question", "How did you design your experiments?"),
-      createTestContent("brenner-quote", "The experiment must be designed to exclude, not to confirm."),
+      createTestContent(
+        "brenner-quote",
+        "The experiment must be designed to exclude, not to confirm.",
+      ),
     ]),
   ],
 };
@@ -81,7 +109,7 @@ describe("TranscriptHero", () => {
         totalSections={8}
         estimatedReadTime="45 min"
         wordCount="12.5k"
-      />
+      />,
     );
 
     expect(screen.getByText("A Life in Science")).toBeInTheDocument();
@@ -95,7 +123,7 @@ describe("TranscriptHero", () => {
         totalSections={8}
         estimatedReadTime="45 min"
         wordCount="12.5k"
-      />
+      />,
     );
 
     expect(screen.getByText("Sydney Brenner in Conversation")).toBeInTheDocument();
@@ -109,7 +137,7 @@ describe("TranscriptHero", () => {
         totalSections={8}
         estimatedReadTime="45 min"
         wordCount="12.5k"
-      />
+      />,
     );
 
     expect(screen.getByText("8")).toBeInTheDocument();
@@ -123,7 +151,7 @@ describe("TranscriptHero", () => {
         totalSections={8}
         estimatedReadTime="45 min"
         wordCount="12.5k"
-      />
+      />,
     );
 
     expect(screen.getByText("45 min")).toBeInTheDocument();
@@ -137,7 +165,7 @@ describe("TranscriptHero", () => {
         totalSections={8}
         estimatedReadTime="45 min"
         wordCount="12.5k"
-      />
+      />,
     );
 
     expect(screen.getByText("12.5k")).toBeInTheDocument();
@@ -151,7 +179,7 @@ describe("TranscriptHero", () => {
         totalSections={8}
         estimatedReadTime="45 min"
         wordCount="12.5k"
-      />
+      />,
     );
 
     expect(screen.getByText("Primary Source")).toBeInTheDocument();
@@ -166,7 +194,7 @@ describe("TranscriptHero", () => {
         estimatedReadTime="45 min"
         wordCount="12.5k"
         isCollapsed={true}
-      />
+      />,
     );
 
     // Check for collapse classes
@@ -189,11 +217,7 @@ describe("TableOfContents", () => {
 
   it("renders all section titles", () => {
     const { container } = render(
-      <TableOfContents
-        sections={sections}
-        activeSection={0}
-        onSectionClick={mockOnSectionClick}
-      />
+      <TableOfContents sections={sections} activeSection={0} onSectionClick={mockOnSectionClick} />,
     );
 
     expect(container.textContent).toContain("Reducing Complexity");
@@ -203,11 +227,7 @@ describe("TableOfContents", () => {
 
   it("renders section numbers", () => {
     const { container } = render(
-      <TableOfContents
-        sections={sections}
-        activeSection={0}
-        onSectionClick={mockOnSectionClick}
-      />
+      <TableOfContents sections={sections} activeSection={0} onSectionClick={mockOnSectionClick} />,
     );
 
     expect(container.textContent).toContain("58.");
@@ -217,11 +237,7 @@ describe("TableOfContents", () => {
 
   it("shows Contents header", () => {
     render(
-      <TableOfContents
-        sections={sections}
-        activeSection={0}
-        onSectionClick={mockOnSectionClick}
-      />
+      <TableOfContents sections={sections} activeSection={0} onSectionClick={mockOnSectionClick} />,
     );
 
     expect(screen.getByText("Contents")).toBeInTheDocument();
@@ -229,11 +245,7 @@ describe("TableOfContents", () => {
 
   it("has mobile toggle button", () => {
     render(
-      <TableOfContents
-        sections={sections}
-        activeSection={0}
-        onSectionClick={mockOnSectionClick}
-      />
+      <TableOfContents sections={sections} activeSection={0} onSectionClick={mockOnSectionClick} />,
     );
 
     expect(screen.getByText("Table of Contents")).toBeInTheDocument();
@@ -279,8 +291,14 @@ describe("ReadingProgress", () => {
 describe("TranscriptSection", () => {
   const testSection = createTestSection(103, "Third Alternative", [
     createTestContent("interviewer-question", "What about the two competing theories?"),
-    createTestContent("brenner-quote", "You've forgotten there's a third alternative: both could be wrong."),
-    createTestContent("paragraph", "This anti-binary thinking is central to Brenner's methodology."),
+    createTestContent(
+      "brenner-quote",
+      "You've forgotten there's a third alternative: both could be wrong.",
+    ),
+    createTestContent(
+      "paragraph",
+      "This anti-binary thinking is central to Brenner's methodology.",
+    ),
   ]);
 
   beforeEach(() => {
@@ -289,34 +307,19 @@ describe("TranscriptSection", () => {
   });
 
   it("renders section title", () => {
-    render(
-      <TranscriptSection
-        section={testSection}
-        isActive={false}
-      />
-    );
+    render(<TranscriptSection section={testSection} isActive={false} />);
 
     expect(screen.getByText("Third Alternative")).toBeInTheDocument();
   });
 
   it("renders section number prominently", () => {
-    render(
-      <TranscriptSection
-        section={testSection}
-        isActive={false}
-      />
-    );
+    render(<TranscriptSection section={testSection} isActive={false} />);
 
     expect(screen.getByText("103")).toBeInTheDocument();
   });
 
   it("renders Brenner quote with SB badge", () => {
-    const { container } = render(
-      <TranscriptSection
-        section={testSection}
-        isActive={false}
-      />
-    );
+    const { container } = render(<TranscriptSection section={testSection} isActive={false} />);
 
     // Brenner quote content
     expect(container.textContent).toContain("third alternative");
@@ -326,46 +329,26 @@ describe("TranscriptSection", () => {
   });
 
   it("renders interviewer question with Q badge", () => {
-    render(
-      <TranscriptSection
-        section={testSection}
-        isActive={false}
-      />
-    );
+    render(<TranscriptSection section={testSection} isActive={false} />);
 
     expect(screen.getByText("Q")).toBeInTheDocument();
   });
 
   it("renders paragraph content", () => {
-    const { container } = render(
-      <TranscriptSection
-        section={testSection}
-        isActive={false}
-      />
-    );
+    const { container } = render(<TranscriptSection section={testSection} isActive={false} />);
 
     expect(container.textContent).toContain("anti-binary thinking");
   });
 
   it("has proper section ID for navigation", () => {
-    const { container } = render(
-      <TranscriptSection
-        section={testSection}
-        isActive={false}
-      />
-    );
+    const { container } = render(<TranscriptSection section={testSection} isActive={false} />);
 
     const sectionEl = container.querySelector("#section-103");
     expect(sectionEl).toBeInTheDocument();
   });
 
   it("renders copy buttons for citation and excerpt", () => {
-    const { container } = render(
-      <TranscriptSection
-        section={testSection}
-        isActive={false}
-      />
-    );
+    const { container } = render(<TranscriptSection section={testSection} isActive={false} />);
 
     // Should have copy buttons (they render with § anchor text)
     expect(container.textContent).toContain("§103");
@@ -374,11 +357,7 @@ describe("TranscriptSection", () => {
 
   it("applies highlight flash when isHighlighted is true", () => {
     const { container } = render(
-      <TranscriptSection
-        section={testSection}
-        isActive={false}
-        isHighlighted={true}
-      />
+      <TranscriptSection section={testSection} isActive={false} isHighlighted={true} />,
     );
 
     expect(container.innerHTML).toContain("animate-highlight-flash");
@@ -400,9 +379,7 @@ describe("TranscriptSection Content Types", () => {
       createTestContent("brenner-quote", "Second quote from Brenner."),
     ]);
 
-    const { container } = render(
-      <TranscriptSection section={section} isActive={false} />
-    );
+    const { container } = render(<TranscriptSection section={section} isActive={false} />);
 
     expect(container.textContent).toContain("First quote from Brenner");
     expect(container.textContent).toContain("Second quote from Brenner");
@@ -413,9 +390,7 @@ describe("TranscriptSection Content Types", () => {
       createTestContent("brenner-quote", "Exclusion is key.", ["Exclusion"]),
     ]);
 
-    const { container } = render(
-      <TranscriptSection section={section} isActive={false} />
-    );
+    const { container } = render(<TranscriptSection section={section} isActive={false} />);
 
     expect(container.textContent).toContain("Exclusion is key");
   });
@@ -426,11 +401,7 @@ describe("TranscriptSection Content Types", () => {
     ]);
 
     const { container } = render(
-      <TranscriptSection
-        section={section}
-        isActive={false}
-        searchHighlights={["evidence"]}
-      />
+      <TranscriptSection section={section} isActive={false} searchHighlights={["evidence"]} />,
     );
 
     expect(container.textContent).toContain("evidence per week");
@@ -454,7 +425,7 @@ describe("TranscriptViewer Accessibility", () => {
         totalSections={8}
         estimatedReadTime="45 min"
         wordCount="12.5k"
-      />
+      />,
     );
 
     const h1 = screen.getByRole("heading", { level: 1 });
@@ -465,9 +436,7 @@ describe("TranscriptViewer Accessibility", () => {
   it("TranscriptSection has h2 heading for section title", () => {
     const section = createTestSection(1, "Test Section", []);
 
-    render(
-      <TranscriptSection section={section} isActive={false} />
-    );
+    render(<TranscriptSection section={section} isActive={false} />);
 
     const h2 = screen.getByRole("heading", { level: 2 });
     expect(h2).toBeInTheDocument();
@@ -480,7 +449,7 @@ describe("TranscriptViewer Accessibility", () => {
         sections={comprehensiveTranscript.sections}
         activeSection={0}
         onSectionClick={vi.fn()}
-      />
+      />,
     );
 
     const nav = container.querySelector("nav");
@@ -496,7 +465,7 @@ describe("TranscriptViewer Accessibility", () => {
         estimatedReadTime="45 min"
         wordCount="12.5k"
         isCollapsed={true}
-      />
+      />,
     );
 
     const heroContainer = container.firstChild as HTMLElement;

@@ -7,7 +7,7 @@
  * @see brenner_bot-1v26.4 (bead)
  */
 
-import type { Session, AttachedQuote, AttachedQuoteField } from "./types";
+import type { AttachedQuote, AttachedQuoteField, Session } from "./types";
 import { CURRENT_SESSION_VERSION, createSession, isSession } from "./types";
 
 // ============================================================================
@@ -71,9 +71,7 @@ export async function importSession(file: File): Promise<SessionImportResult> {
 
   const format = typeof parsed.format === "string" ? parsed.format : "";
   if (format !== "brenner-session-v1") {
-    warnings.push(
-      `Unexpected export format "${format || "missing"}"; attempting to import as v1.`
-    );
+    warnings.push(`Unexpected export format "${format || "missing"}"; attempting to import as v1.`);
   }
 
   const rawSession = parsed.session;
@@ -99,7 +97,7 @@ export async function importSession(file: File): Promise<SessionImportResult> {
 
   if (normalized._version > CURRENT_SESSION_VERSION) {
     warnings.push(
-      `Session schema version ${normalized._version} is newer than supported (${CURRENT_SESSION_VERSION}).`
+      `Session schema version ${normalized._version} is newer than supported (${CURRENT_SESSION_VERSION}).`,
     );
   }
 
@@ -141,8 +139,16 @@ function normalizeSession(raw: Session, warnings: string[]): Session {
     ...raw,
     createdAt: typeof raw.createdAt === "string" ? raw.createdAt : base.createdAt,
     updatedAt: typeof raw.updatedAt === "string" ? raw.updatedAt : base.updatedAt,
-    alternativeHypothesisIds: coerceStringArray(raw.alternativeHypothesisIds, "alternativeHypothesisIds", warnings),
-    archivedHypothesisIds: coerceStringArray(raw.archivedHypothesisIds, "archivedHypothesisIds", warnings),
+    alternativeHypothesisIds: coerceStringArray(
+      raw.alternativeHypothesisIds,
+      "alternativeHypothesisIds",
+      warnings,
+    ),
+    archivedHypothesisIds: coerceStringArray(
+      raw.archivedHypothesisIds,
+      "archivedHypothesisIds",
+      warnings,
+    ),
     predictionIds: coerceStringArray(raw.predictionIds, "predictionIds", warnings),
     testIds: coerceStringArray(raw.testIds, "testIds", warnings),
     assumptionIds: coerceStringArray(raw.assumptionIds, "assumptionIds", warnings),
@@ -188,7 +194,9 @@ function coerceStringArray(value: unknown, label: string, warnings: string[]): s
 }
 
 function isAttachedQuoteField(value: unknown): value is AttachedQuoteField {
-  return value === "statement" || value === "mechanism" || value === "prediction" || value === "general";
+  return (
+    value === "statement" || value === "mechanism" || value === "prediction" || value === "general"
+  );
 }
 
 function isDocCategory(value: unknown): value is AttachedQuote["category"] {
@@ -224,7 +232,8 @@ function coerceAttachedQuotes(value: unknown, warnings: string[]): AttachedQuote
 
     const field: AttachedQuoteField = isAttachedQuoteField(entry.field) ? entry.field : "general";
     const id = typeof entry.id === "string" ? entry.id : `AQ-import-${out.length + 1}`;
-    const attachedAt = typeof entry.attachedAt === "string" ? entry.attachedAt : new Date().toISOString();
+    const attachedAt =
+      typeof entry.attachedAt === "string" ? entry.attachedAt : new Date().toISOString();
 
     const model =
       entry.model === "gpt" || entry.model === "opus" || entry.model === "gemini"
@@ -280,8 +289,8 @@ function renderSessionMarkdown(session: Session): string {
       ...renderHypothesis(
         primary as unknown as Record<string, unknown>,
         session.primaryHypothesisId,
-        attachedQuotes.filter((quote) => quote.hypothesisId === session.primaryHypothesisId)
-      )
+        attachedQuotes.filter((quote) => quote.hypothesisId === session.primaryHypothesisId),
+      ),
     );
   } else if (session.primaryHypothesisId) {
     lines.push("");
@@ -300,8 +309,8 @@ function renderSessionMarkdown(session: Session): string {
           ...renderHypothesis(
             card as unknown as Record<string, unknown>,
             id,
-            attachedQuotes.filter((quote) => quote.hypothesisId === id)
-          )
+            attachedQuotes.filter((quote) => quote.hypothesisId === id),
+          ),
         );
       } else {
         lines.push(`- Missing hypothesis card for ${id}`);
@@ -383,7 +392,7 @@ function renderSessionMarkdown(session: Session): string {
 function renderHypothesis(
   card: Record<string, unknown>,
   fallbackId: string,
-  attachments: AttachedQuote[]
+  attachments: AttachedQuote[],
 ): string[] {
   const lines: string[] = [];
   const id = typeof card.id === "string" ? card.id : fallbackId;

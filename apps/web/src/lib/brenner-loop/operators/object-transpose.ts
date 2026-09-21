@@ -12,7 +12,7 @@
  */
 
 import type { HypothesisCard } from "../hypothesis";
-import type { OperatorStepConfig, OperatorSession } from "./framework";
+import type { OperatorSession, OperatorStepConfig } from "./framework";
 
 // ============================================================================
 // Types
@@ -23,10 +23,10 @@ import type { OperatorStepConfig, OperatorSession } from "./framework";
  */
 export type AlternativeType =
   | "reverse_causation" // Y causes X instead of X causes Y
-  | "third_variable"    // Z causes both X and Y
-  | "selection"         // Selection effects distort the relationship
-  | "bidirectional"     // X and Y cause each other (feedback loop)
-  | "coincidence"       // No causal relationship, just correlation
+  | "third_variable" // Z causes both X and Y
+  | "selection" // Selection effects distort the relationship
+  | "bidirectional" // X and Y cause each other (feedback loop)
+  | "coincidence" // No causal relationship, just correlation
   | "other";
 
 /**
@@ -121,7 +121,9 @@ export const OBJECT_TRANSPOSE_STEP_IDS = {
  * Check if alternatives have been generated
  */
 function hasAlternativesGenerated(session: OperatorSession): boolean {
-  const alts = session.generatedContent[OBJECT_TRANSPOSE_STEP_IDS.GENERATE_ALTERNATIVES] as AlternativeExplanation[] | undefined;
+  const alts = session.generatedContent[OBJECT_TRANSPOSE_STEP_IDS.GENERATE_ALTERNATIVES] as
+    | AlternativeExplanation[]
+    | undefined;
   return Array.isArray(alts) && alts.length > 0;
 }
 
@@ -129,15 +131,19 @@ function hasAlternativesGenerated(session: OperatorSession): boolean {
  * Check if user has rated at least one alternative
  */
 function hasRatingsProvided(session: OperatorSession): boolean {
-  const ratings = session.userSelections[OBJECT_TRANSPOSE_STEP_IDS.RATE_PLAUSIBILITY] as PlausibilityRating[] | undefined;
-  return Array.isArray(ratings) && ratings.some(r => r.plausibility > 0);
+  const ratings = session.userSelections[OBJECT_TRANSPOSE_STEP_IDS.RATE_PLAUSIBILITY] as
+    | PlausibilityRating[]
+    | undefined;
+  return Array.isArray(ratings) && ratings.some((r) => r.plausibility > 0);
 }
 
 /**
  * Check if discriminating tests have been identified
  */
 function hasTestsIdentified(session: OperatorSession): boolean {
-  const tests = session.generatedContent[OBJECT_TRANSPOSE_STEP_IDS.IDENTIFY_TESTS] as DiscriminatingTest[] | undefined;
+  const tests = session.generatedContent[OBJECT_TRANSPOSE_STEP_IDS.IDENTIFY_TESTS] as
+    | DiscriminatingTest[]
+    | undefined;
   return Array.isArray(tests) && tests.length > 0;
 }
 
@@ -206,16 +212,21 @@ Consider:
     `.trim(),
     isComplete: hasRatingsProvided,
     validate: (session) => {
-      const ratings = session.userSelections[OBJECT_TRANSPOSE_STEP_IDS.RATE_PLAUSIBILITY] as PlausibilityRating[] | undefined;
-      if (!ratings || !ratings.some(r => r.plausibility > 0)) {
+      const ratings = session.userSelections[OBJECT_TRANSPOSE_STEP_IDS.RATE_PLAUSIBILITY] as
+        | PlausibilityRating[]
+        | undefined;
+      if (!ratings || !ratings.some((r) => r.plausibility > 0)) {
         return {
           valid: false,
           errors: ["Rate at least one alternative"],
           warnings: [],
         };
       }
-      const unrated = (session.generatedContent[OBJECT_TRANSPOSE_STEP_IDS.GENERATE_ALTERNATIVES] as AlternativeExplanation[] || [])
-        .filter(alt => !ratings.find(r => r.alternativeId === alt.id && r.plausibility > 0));
+      const unrated = (
+        (session.generatedContent[
+          OBJECT_TRANSPOSE_STEP_IDS.GENERATE_ALTERNATIVES
+        ] as AlternativeExplanation[]) || []
+      ).filter((alt) => !ratings.find((r) => r.alternativeId === alt.id && r.plausibility > 0));
       if (unrated.length > 0) {
         return {
           valid: true,
@@ -315,7 +326,7 @@ export const THIRD_VARIABLE_TEMPLATES: Record<string, string[]> = {
  */
 export function generateThirdVariables(hypothesis: HypothesisCard): AlternativeExplanation[] {
   const alternatives: AlternativeExplanation[] = [];
-  const domains = hypothesis.domain.map(d => d.toLowerCase());
+  const domains = hypothesis.domain.map((d) => d.toLowerCase());
 
   // Collect relevant third variables
   const relevantVariables: string[] = [];
@@ -327,7 +338,11 @@ export function generateThirdVariables(hypothesis: HypothesisCard): AlternativeE
     if (domain.includes("social") || domain.includes("socio")) {
       relevantVariables.push(...THIRD_VARIABLE_TEMPLATES.social);
     }
-    if (domain.includes("health") || domain.includes("medical") || domain.includes("epidemiology")) {
+    if (
+      domain.includes("health") ||
+      domain.includes("medical") ||
+      domain.includes("epidemiology")
+    ) {
       relevantVariables.push(...THIRD_VARIABLE_TEMPLATES.health);
     }
     if (domain.includes("tech") || domain.includes("digital") || domain.includes("media")) {
@@ -411,7 +426,8 @@ export function generateCoincidence(): AlternativeExplanation {
     id: "alt-coincidence",
     type: "coincidence",
     name: "Coincidental Correlation",
-    description: "What if X and Y are not causally related at all? The observed correlation might be a statistical artifact, a result of multiple comparisons, or a coincidence of timing.",
+    description:
+      "What if X and Y are not causally related at all? The observed correlation might be a statistical artifact, a result of multiple comparisons, or a coincidence of timing.",
     implications: [
       "Replication in independent samples is crucial",
       "Check for publication bias",
@@ -455,13 +471,13 @@ export function generateAlternatives(hypothesis: HypothesisCard): AlternativeExp
  */
 export function generateDiscriminatingTests(
   alternatives: AlternativeExplanation[],
-  ratings: PlausibilityRating[]
+  ratings: PlausibilityRating[],
 ): DiscriminatingTest[] {
   const tests: DiscriminatingTest[] = [];
 
   // Find high-plausibility alternatives
-  const highPlausibility = alternatives.filter(alt => {
-    const rating = ratings.find(r => r.alternativeId === alt.id);
+  const highPlausibility = alternatives.filter((alt) => {
+    const rating = ratings.find((r) => r.alternativeId === alt.id);
     return rating && rating.plausibility >= 3;
   });
 
@@ -539,21 +555,31 @@ function generateTestForAlternative(alt: AlternativeExplanation): Discriminating
  * Build the complete Object Transpose result from session state
  */
 export function buildObjectTransposeResult(
-  session: OperatorSession<ObjectTransposeResult>
+  session: OperatorSession<ObjectTransposeResult>,
 ): ObjectTransposeResult {
-  const alternatives = (session.generatedContent[OBJECT_TRANSPOSE_STEP_IDS.GENERATE_ALTERNATIVES] as AlternativeExplanation[]) ?? [];
-  const ratings = (session.userSelections[OBJECT_TRANSPOSE_STEP_IDS.RATE_PLAUSIBILITY] as PlausibilityRating[]) ?? [];
-  const tests = (session.generatedContent[OBJECT_TRANSPOSE_STEP_IDS.IDENTIFY_TESTS] as DiscriminatingTest[]) ?? [];
+  const alternatives =
+    (session.generatedContent[
+      OBJECT_TRANSPOSE_STEP_IDS.GENERATE_ALTERNATIVES
+    ] as AlternativeExplanation[]) ?? [];
+  const ratings =
+    (session.userSelections[OBJECT_TRANSPOSE_STEP_IDS.RATE_PLAUSIBILITY] as PlausibilityRating[]) ??
+    [];
+  const tests =
+    (session.generatedContent[OBJECT_TRANSPOSE_STEP_IDS.IDENTIFY_TESTS] as DiscriminatingTest[]) ??
+    [];
 
   // Find high-priority alternatives
   const highPriorityAlternativeIds = ratings
-    .filter(r => r.plausibility >= 3)
-    .map(r => r.alternativeId);
+    .filter((r) => r.plausibility >= 3)
+    .map((r) => r.alternativeId);
 
   // Find selected tests (priority > 0 or feasibility is easy/moderate)
   const selectedTestIds = tests
-    .filter(t => (t.priority && t.priority > 0) || t.feasibility === "easy" || t.feasibility === "moderate")
-    .map(t => t.id);
+    .filter(
+      (t) =>
+        (t.priority && t.priority > 0) || t.feasibility === "easy" || t.feasibility === "moderate",
+    )
+    .map((t) => t.id);
 
   return {
     alternatives,

@@ -13,12 +13,7 @@ describe("AgentProgress", () => {
 
   it("renders agent name and progress state", () => {
     render(
-      <AgentProgress
-        agent="devils_advocate"
-        steps={steps}
-        currentStep={1}
-        status="working"
-      />
+      <AgentProgress agent="devils_advocate" steps={steps} currentStep={1} status="working" />,
     );
 
     expect(screen.getByText(/devils advocate is working/i)).toBeInTheDocument();
@@ -28,12 +23,7 @@ describe("AgentProgress", () => {
 
   it("shows completion state when status is complete", () => {
     render(
-      <AgentProgress
-        agent="experiment_designer"
-        steps={steps}
-        currentStep={1}
-        status="complete"
-      />
+      <AgentProgress agent="experiment_designer" steps={steps} currentStep={1} status="complete" />,
     );
 
     expect(screen.getByText(/experiment designer completed/i)).toBeInTheDocument();

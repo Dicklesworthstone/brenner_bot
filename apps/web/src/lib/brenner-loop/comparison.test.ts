@@ -1,12 +1,12 @@
-import { describe, it, expect } from "vitest";
-import type { HypothesisCard } from "./hypothesis";
-import type { ComparisonMatrix } from "./hypothesis-arena";
+import { describe, expect, it } from "vitest";
 import {
   buildComparisonResults,
   buildEvidenceSummary,
   buildPredictionConflictMatrix,
   type ComparisonField,
 } from "./comparison";
+import type { HypothesisCard } from "./hypothesis";
+import type { ComparisonMatrix } from "./hypothesis-arena";
 
 function makeHypothesis(overrides: Partial<HypothesisCard>): HypothesisCard {
   return {
@@ -78,7 +78,10 @@ describe("comparison", () => {
       predictionsIfTrue: ["Anxiety falls with usage"],
     });
 
-    const results = buildComparisonResults(hypothesisA, hypothesisB, ["statement", "predictionsIfTrue"]);
+    const results = buildComparisonResults(hypothesisA, hypothesisB, [
+      "statement",
+      "predictionsIfTrue",
+    ]);
     const statement = results.find((result) => result.field === "statement");
     const predictions = results.find((result) => result.field === "predictionsIfTrue");
 
@@ -144,7 +147,15 @@ describe("comparison", () => {
       predictionsIfFalse: ["F1"],
       impossibleIfTrue: ["X cannot happen"],
       assumptions: ["Assume A"],
-      confounds: [{ id: "CF-1", name: "Confound", description: "Desc", likelihood: 0.2, domain: "testing" } as never],
+      confounds: [
+        {
+          id: "CF-1",
+          name: "Confound",
+          description: "Desc",
+          likelihood: 0.2,
+          domain: "testing",
+        } as never,
+      ],
       confidence: 70,
     });
     const hypothesisB = makeHypothesis({
@@ -155,7 +166,15 @@ describe("comparison", () => {
       predictionsIfFalse: ["F2"],
       impossibleIfTrue: ["X cannot happen"],
       assumptions: ["Assume A"],
-      confounds: [{ id: "CF-2", name: "Other", description: "Desc", likelihood: 0.2, domain: "testing" } as never],
+      confounds: [
+        {
+          id: "CF-2",
+          name: "Other",
+          description: "Desc",
+          likelihood: 0.2,
+          domain: "testing",
+        } as never,
+      ],
       confidence: 65,
     });
 

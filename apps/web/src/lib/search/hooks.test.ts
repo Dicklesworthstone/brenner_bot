@@ -11,12 +11,12 @@
  * Run with: cd apps/web && bun run test -- src/lib/search/hooks.test.ts
  */
 
-import { describe, it, expect, beforeAll, vi, afterAll } from "vitest";
-import { renderHook, act, waitFor } from "@testing-library/react";
-import { useSearch, useSearchIndex, useSearchResult } from "./hooks";
-import { searchEngine } from "./engine";
 import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
+import { act, renderHook, waitFor } from "@testing-library/react";
+import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
+import { searchEngine } from "./engine";
+import { useSearch, useSearchIndex, useSearchResult } from "./hooks";
 import type { SearchResult } from "./types";
 
 // Load real index data before tests
@@ -24,10 +24,7 @@ let mockIndexData: unknown = null;
 
 beforeAll(async () => {
   // Read the real search index
-  const indexContent = await readFile(
-    resolve(process.cwd(), "public/search/index.json"),
-    "utf8"
-  );
+  const indexContent = await readFile(resolve(process.cwd(), "public/search/index.json"), "utf8");
   mockIndexData = JSON.parse(indexContent);
 
   // Mock fetch to return our real index data
@@ -46,9 +43,7 @@ afterAll(() => {
 // ============================================================================
 
 describe("useSearchResult", () => {
-  const createMockResult = (
-    overrides: Partial<SearchResult> = {}
-  ): SearchResult => ({
+  const createMockResult = (overrides: Partial<SearchResult> = {}): SearchResult => ({
     id: "transcript",
     docId: "transcript",
     docTitle: "Complete Transcript Collection",
@@ -118,9 +113,7 @@ describe("useSearchResult", () => {
       });
       const { result: hookResult } = renderHook(() => useSearchResult(result));
 
-      expect(hookResult.current.highlightedSnippet).toBe(
-        "Plain text without highlights"
-      );
+      expect(hookResult.current.highlightedSnippet).toBe("Plain text without highlights");
     });
 
     it("wraps matched text in mark tags", () => {
@@ -131,7 +124,7 @@ describe("useSearchResult", () => {
       const { result: hookResult } = renderHook(() => useSearchResult(result));
 
       expect(hookResult.current.highlightedSnippet).toContain(
-        '<mark class="search-highlight">the</mark>'
+        '<mark class="search-highlight">the</mark>',
       );
     });
 
@@ -196,9 +189,7 @@ describe("useSearchResult", () => {
   describe("memoization", () => {
     it("returns same reference for same result", () => {
       const result = createMockResult();
-      const { result: hookResult, rerender } = renderHook(() =>
-        useSearchResult(result)
-      );
+      const { result: hookResult, rerender } = renderHook(() => useSearchResult(result));
 
       const first = hookResult.current;
       rerender();
@@ -371,7 +362,7 @@ describe("useSearch", () => {
         () => {
           expect(result.current.results.length).toBeGreaterThan(0);
         },
-        { timeout: 2000 }
+        { timeout: 2000 },
       );
 
       // Results should have expected shape (from SearchResult type)
@@ -406,7 +397,7 @@ describe("useSearch", () => {
           expect(result.current.results.length).toBeGreaterThan(0);
           expect(result.current.results.length).toBeLessThanOrEqual(5);
         },
-        { timeout: 2000 }
+        { timeout: 2000 },
       );
     });
 

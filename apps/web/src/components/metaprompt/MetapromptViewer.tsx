@@ -1,8 +1,8 @@
 "use client";
 
-import type { ParsedMetaprompt, MetapromptSection } from "@/lib/metaprompt-parser";
-import { slugifyHeadingForAnchor } from "@/lib/anchors";
 import { JargonText } from "@/components/jargon-text";
+import { slugifyHeadingForAnchor } from "@/lib/anchors";
+import type { MetapromptSection, ParsedMetaprompt } from "@/lib/metaprompt-parser";
 
 // ============================================================================
 // HERO
@@ -227,11 +227,16 @@ function ContentPart({ part }: { part: ContentPart }) {
         return (
           <ol className="ml-2 sm:ml-4 space-y-1.5 sm:space-y-2">
             {part.items.map((item, i) => (
-              <li key={i} className="flex items-start gap-2 sm:gap-3 text-[15px] sm:text-base lg:text-lg text-foreground/85">
+              <li
+                key={i}
+                className="flex items-start gap-2 sm:gap-3 text-[15px] sm:text-base lg:text-lg text-foreground/85"
+              >
                 <span className="flex-shrink-0 size-5 sm:size-6 rounded-full bg-primary/10 text-primary flex items-center justify-center text-[10px] sm:text-xs font-bold mt-0.5">
                   {i + 1}
                 </span>
-                <span className="leading-relaxed"><JargonText>{item}</JargonText></span>
+                <span className="leading-relaxed">
+                  <JargonText>{item}</JargonText>
+                </span>
               </li>
             ))}
           </ol>
@@ -240,9 +245,14 @@ function ContentPart({ part }: { part: ContentPart }) {
       return (
         <ul className="ml-2 sm:ml-4 space-y-1.5 sm:space-y-2">
           {part.items.map((item, i) => (
-            <li key={i} className="flex items-start gap-2 sm:gap-3 text-[15px] sm:text-base lg:text-lg text-foreground/85">
+            <li
+              key={i}
+              className="flex items-start gap-2 sm:gap-3 text-[15px] sm:text-base lg:text-lg text-foreground/85"
+            >
               <span className="flex-shrink-0 size-1.5 rounded-full bg-primary mt-2" />
-              <span className="leading-relaxed"><JargonText>{item}</JargonText></span>
+              <span className="leading-relaxed">
+                <JargonText>{item}</JargonText>
+              </span>
             </li>
           ))}
         </ul>
@@ -299,7 +309,11 @@ export function MetapromptViewer({ data }: MetapromptViewerProps) {
       <div className="max-w-3xl mx-auto">
         {data.sections.length > 0 ? (
           data.sections.map((section, i) => (
-            <Section key={i} section={section} sectionId={slugifyHeadingForAnchor(section.title) || `section-${i}`} />
+            <Section
+              key={i}
+              section={section}
+              sectionId={slugifyHeadingForAnchor(section.title) || `section-${i}`}
+            />
           ))
         ) : data.rawContent ? (
           <RawContent content={data.rawContent} />
@@ -315,8 +329,18 @@ export function MetapromptViewer({ data }: MetapromptViewerProps) {
 
 function CodeIcon({ className = "" }: { className?: string }) {
   return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M17.25 6.75L22.5 12l-5.25 5.25m-10.5 0L1.5 12l5.25-5.25m7.5-3l-4.5 16.5" />
+    <svg
+      className={className}
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+      strokeWidth={1.5}
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M17.25 6.75L22.5 12l-5.25 5.25m-10.5 0L1.5 12l5.25-5.25m7.5-3l-4.5 16.5"
+      />
     </svg>
   );
 }

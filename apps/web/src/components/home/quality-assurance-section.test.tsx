@@ -1,5 +1,5 @@
-import { describe, it, expect } from "vitest";
 import { render, screen } from "@testing-library/react";
+import { describe, expect, it } from "vitest";
 import { QualityAssuranceSection } from "./quality-assurance-section";
 
 describe("QualityAssuranceSection", () => {

@@ -20,8 +20,7 @@ export const corpusDocKeys = {
 
 export const corpusListKeys = {
   all: ["corpus", "list"] as const,
-  filtered: (filters?: { category?: string }) =>
-    ["corpus", "list", filters ?? {}] as const,
+  filtered: (filters?: { category?: string }) => ["corpus", "list", filters ?? {}] as const,
 };
 
 // ============================================================================

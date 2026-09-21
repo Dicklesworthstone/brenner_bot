@@ -9,13 +9,13 @@
  * - ExcerptBasketTrigger component
  */
 
-import * as React from "react";
-import { describe, expect, it, beforeEach, afterEach, vi } from "vitest";
-import { render, screen, fireEvent, waitFor, act, renderHook } from "@testing-library/react";
+import { act, fireEvent, render, renderHook, screen, waitFor } from "@testing-library/react";
+import type * as React from "react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   ExcerptBasketProvider,
-  useExcerptBasket,
   ExcerptBasketTrigger,
+  useExcerptBasket,
 } from "./ExcerptBasketContext";
 
 // ============================================================================
@@ -153,7 +153,7 @@ describe("ExcerptBasketProvider", () => {
     render(
       <ExcerptBasketProvider>
         <div data-testid="child">Hello</div>
-      </ExcerptBasketProvider>
+      </ExcerptBasketProvider>,
     );
 
     expect(screen.getByTestId("child")).toHaveTextContent("Hello");
@@ -163,7 +163,7 @@ describe("ExcerptBasketProvider", () => {
     render(
       <ExcerptBasketProvider>
         <BasketConsumer />
-      </ExcerptBasketProvider>
+      </ExcerptBasketProvider>,
     );
 
     expect(screen.getByTestId("item-count")).toHaveTextContent("0");
@@ -173,7 +173,7 @@ describe("ExcerptBasketProvider", () => {
     render(
       <ExcerptBasketProvider>
         <BasketConsumer />
-      </ExcerptBasketProvider>
+      </ExcerptBasketProvider>,
     );
 
     expect(screen.getByTestId("is-open")).toHaveTextContent("closed");
@@ -183,7 +183,7 @@ describe("ExcerptBasketProvider", () => {
     render(
       <ExcerptBasketProvider>
         <BasketConsumer />
-      </ExcerptBasketProvider>
+      </ExcerptBasketProvider>,
     );
 
     await act(async () => {
@@ -197,7 +197,7 @@ describe("ExcerptBasketProvider", () => {
     render(
       <ExcerptBasketProvider>
         <BasketConsumer />
-      </ExcerptBasketProvider>
+      </ExcerptBasketProvider>,
     );
 
     expect(screen.getByTestId("is-open")).toHaveTextContent("closed");
@@ -213,7 +213,7 @@ describe("ExcerptBasketProvider", () => {
     render(
       <ExcerptBasketProvider>
         <BasketConsumer />
-      </ExcerptBasketProvider>
+      </ExcerptBasketProvider>,
     );
 
     await act(async () => {
@@ -234,7 +234,7 @@ describe("ExcerptBasketProvider", () => {
     render(
       <ExcerptBasketProvider>
         <BasketConsumer />
-      </ExcerptBasketProvider>
+      </ExcerptBasketProvider>,
     );
 
     await act(async () => {
@@ -254,7 +254,7 @@ describe("ExcerptBasketProvider", () => {
     render(
       <ExcerptBasketProvider>
         <BasketConsumer />
-      </ExcerptBasketProvider>
+      </ExcerptBasketProvider>,
     );
 
     // Add multiple items by using different anchors
@@ -273,7 +273,7 @@ describe("ExcerptBasketProvider", () => {
     render(
       <ExcerptBasketProvider>
         <BasketConsumer />
-      </ExcerptBasketProvider>
+      </ExcerptBasketProvider>,
     );
 
     expect(screen.getByTestId("is-open")).toHaveTextContent("closed");
@@ -295,7 +295,7 @@ describe("ExcerptBasketProvider", () => {
     render(
       <ExcerptBasketProvider>
         <BasketConsumer />
-      </ExcerptBasketProvider>
+      </ExcerptBasketProvider>,
     );
 
     await act(async () => {
@@ -306,7 +306,7 @@ describe("ExcerptBasketProvider", () => {
     await waitFor(() => {
       expect(localStorageMock.setItem).toHaveBeenCalledWith(
         "brenner-excerpt-basket",
-        expect.any(String)
+        expect.any(String),
       );
     });
 
@@ -335,7 +335,7 @@ describe("ExcerptBasketProvider", () => {
     render(
       <ExcerptBasketProvider>
         <BasketConsumer />
-      </ExcerptBasketProvider>
+      </ExcerptBasketProvider>,
     );
 
     await waitFor(() => {
@@ -354,7 +354,7 @@ describe("ExcerptBasketProvider", () => {
     render(
       <ExcerptBasketProvider>
         <BasketConsumer />
-      </ExcerptBasketProvider>
+      </ExcerptBasketProvider>,
     );
 
     // Should render without crashing
@@ -417,7 +417,7 @@ describe("ExcerptBasketTrigger", () => {
     render(
       <ExcerptBasketProvider>
         <ExcerptBasketTrigger />
-      </ExcerptBasketProvider>
+      </ExcerptBasketProvider>,
     );
 
     expect(screen.getByRole("button")).toBeInTheDocument();
@@ -443,7 +443,7 @@ describe("ExcerptBasketTrigger", () => {
     render(
       <ExcerptBasketProvider>
         <ExcerptBasketTrigger />
-      </ExcerptBasketProvider>
+      </ExcerptBasketProvider>,
     );
 
     await waitFor(() => {
@@ -456,7 +456,7 @@ describe("ExcerptBasketTrigger", () => {
       <ExcerptBasketProvider>
         <ExcerptBasketTrigger />
         <BasketConsumer />
-      </ExcerptBasketProvider>
+      </ExcerptBasketProvider>,
     );
 
     expect(screen.getByTestId("is-open")).toHaveTextContent("closed");
@@ -482,13 +482,13 @@ describe("ExcerptBasketTrigger", () => {
     render(
       <ExcerptBasketProvider>
         <ExcerptBasketTrigger />
-      </ExcerptBasketProvider>
+      </ExcerptBasketProvider>,
     );
 
     await waitFor(() => {
       expect(screen.getByRole("button")).toHaveAttribute(
         "aria-label",
-        "Open excerpt basket (1 item)"
+        "Open excerpt basket (1 item)",
       );
     });
   });

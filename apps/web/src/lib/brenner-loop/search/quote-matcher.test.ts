@@ -1,11 +1,11 @@
 import { describe, expect, it } from "vitest";
-import type { EmbeddingEntry } from "./embeddings";
 import type { HypothesisCard } from "../hypothesis";
+import type { EmbeddingEntry } from "./embeddings";
 import {
   buildQuoteQueryText,
+  computeOperatorRelevance,
   embeddingEntryToQuote,
   filterQuoteEntriesByTags,
-  computeOperatorRelevance,
   findRelevantQuotes,
   getOperatorQuotes,
   OPERATOR_QUOTE_KEYWORDS,
@@ -54,7 +54,10 @@ describe("quote-matcher", () => {
     };
 
     expect(filterQuoteEntriesByTags([a, b], ["mechanism"]).map((e) => e.id)).toEqual(["a"]);
-    expect(filterQuoteEntriesByTags([a, b], ["does-not-exist"]).map((e) => e.id)).toEqual(["a", "b"]);
+    expect(filterQuoteEntriesByTags([a, b], ["does-not-exist"]).map((e) => e.id)).toEqual([
+      "a",
+      "b",
+    ]);
     expect(filterQuoteEntriesByTags([a, b], ["", "  "]).map((e) => e.id)).toEqual(["a", "b"]);
   });
 });
@@ -316,24 +319,17 @@ describe("findRelevantQuotes", () => {
 
   it("applies semantic weight correctly", () => {
     // With high semantic weight (0.9), semantic score should dominate
-    const highSemanticResults = findRelevantQuotes(
-      testHypothesis,
-      "level_split",
-      testEntries,
-      { semanticWeight: 0.9 }
-    );
+    const highSemanticResults = findRelevantQuotes(testHypothesis, "level_split", testEntries, {
+      semanticWeight: 0.9,
+    });
 
     // With low semantic weight (0.1), operator relevance should dominate
-    const lowSemanticResults = findRelevantQuotes(
-      testHypothesis,
-      "level_split",
-      testEntries,
-      { semanticWeight: 0.1 }
-    );
+    const lowSemanticResults = findRelevantQuotes(testHypothesis, "level_split", testEntries, {
+      semanticWeight: 0.1,
+    });
 
     // Both should return results (exact ordering depends on data)
     expect(highSemanticResults.length).toBeGreaterThan(0);
     expect(lowSemanticResults.length).toBeGreaterThan(0);
   });
 });
-

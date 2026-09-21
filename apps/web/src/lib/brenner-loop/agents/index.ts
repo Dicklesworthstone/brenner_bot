@@ -100,7 +100,7 @@ const promptCache: Map<TribunalAgentRole, string> = new Map();
 const ROLE_PROMPTS_SPEC_PATH = "specs/role_prompts_v0.1.md";
 const ROLE_PROMPT_START_PREFIX = "<!-- BRENNER_ROLE_PROMPT_START ";
 const ROLE_PROMPT_END_PREFIX = "<!-- BRENNER_ROLE_PROMPT_END ";
-let rolePromptsSpecCache: string | null | undefined = undefined;
+let rolePromptsSpecCache: string | null | undefined;
 
 /**
  * Mapping from internal role names to spec marker names.
@@ -167,7 +167,11 @@ function rolePromptMarkers(role: TribunalAgentRole): { start: string; end: strin
   };
 }
 
-function extractBetweenMarkers(markdown: string, startMarker: string, endMarker: string): string | null {
+function extractBetweenMarkers(
+  markdown: string,
+  startMarker: string,
+  endMarker: string,
+): string | null {
   const start = markdown.indexOf(startMarker);
   if (start === -1) return null;
   const from = start + startMarker.length;
@@ -258,9 +262,7 @@ export function getTribunalAgentsInOrder(): TribunalAgentConfig[] {
 /**
  * Get a specific agent's configuration
  */
-export function getAgentConfig(
-  role: TribunalAgentRole
-): TribunalAgentConfig | undefined {
+export function getAgentConfig(role: TribunalAgentRole): TribunalAgentConfig | undefined {
   return TRIBUNAL_AGENTS[role];
 }
 
@@ -277,10 +279,7 @@ const VALID_TRIBUNAL_ROLES = Object.keys(TRIBUNAL_AGENTS) as TribunalAgentRole[]
  * Check if a string is a valid tribunal agent role
  */
 export function isTribunalAgentRole(value: unknown): value is TribunalAgentRole {
-  return (
-    typeof value === "string" &&
-    VALID_TRIBUNAL_ROLES.includes(value as TribunalAgentRole)
-  );
+  return typeof value === "string" && VALID_TRIBUNAL_ROLES.includes(value as TribunalAgentRole);
 }
 
 // ============================================================================
@@ -288,44 +287,39 @@ export function isTribunalAgentRole(value: unknown): value is TribunalAgentRole 
 // ============================================================================
 
 export type {
+  // Behavior & interaction types
+  AgentBehavior,
+  // Main persona type
+  AgentPersona,
+  InteractionPattern,
+  InvocationTrigger,
+  ModelConfig,
   // Phase & invocation types
   PersonaPhaseGroup,
   SessionPhase, // Deprecated alias for PersonaPhaseGroup
-  InvocationTrigger,
-
-  // Behavior & interaction types
-  AgentBehavior,
-  InteractionPattern,
   ToneCalibration,
-  ModelConfig,
-
-  // Main persona type
-  AgentPersona,
 } from "./agent-personas";
 
 export {
-  // Phase mapping
-  mapSessionPhaseToPersonaGroup,
-
+  // Registry
+  AGENT_PERSONAS,
+  BRENNER_CHANNELER_PERSONA,
+  buildSystemPromptContext,
   // Individual personas
   DEVILS_ADVOCATE_PERSONA,
   EXPERIMENT_DESIGNER_PERSONA,
-  STATISTICIAN_PERSONA,
-  BRENNER_CHANNELER_PERSONA,
-  SYNTHESIS_PERSONA,
-
-  // Registry
-  AGENT_PERSONAS,
-
-  // Utility functions
-  getPersona,
   getActivePersonasForPhase,
-  getPersonasForTrigger,
-  shouldInvokePersona,
   getBehaviorsByPriority,
-  buildSystemPromptContext,
   getInteractionExamples,
   getModelConfig,
+  // Utility functions
+  getPersona,
+  getPersonasForTrigger,
+  // Phase mapping
+  mapSessionPhaseToPersonaGroup,
+  STATISTICIAN_PERSONA,
+  SYNTHESIS_PERSONA,
+  shouldInvokePersona,
 } from "./agent-personas";
 
 // ============================================================================
@@ -333,34 +327,33 @@ export {
 // ============================================================================
 
 export type {
+  AgentDispatch,
+  AgentTask,
   // Task types
   AgentTaskStatus,
-  AgentTask,
-  TribunalAgentResponse,
-  OperatorResults,
-  AgentDispatch,
   CreateDispatchOptions,
+  OperatorResults,
   PollOptions,
+  TribunalAgentResponse,
 } from "./dispatch";
 
 export {
+  buildAgentPrompt,
+  checkAgentAvailability,
+  // Core functions
+  createDispatch,
   // Constants
   DEFAULT_DISPATCH_ROLES,
   DISPATCH_SUBJECT_PREFIX,
-  FALLBACK_BRENNER_QUOTES,
-
-  // Core functions
-  createDispatch,
-  generateThreadId,
-  formatHypothesisForPrompt,
-  formatOperatorResultsForPrompt,
-  buildAgentPrompt,
   dispatchAgentTask,
   dispatchAllTasks,
-  pollForResponses,
-  checkAgentAvailability,
-  getFallbackContent,
+  FALLBACK_BRENNER_QUOTES,
+  formatHypothesisForPrompt,
+  formatOperatorResultsForPrompt,
+  generateThreadId,
   getDispatchStatus,
+  getFallbackContent,
+  pollForResponses,
 } from "./dispatch";
 
 // ============================================================================
@@ -368,15 +361,15 @@ export {
 // ============================================================================
 
 export type {
-  SynthesisStrength,
+  AppliedPrinciple,
+  ConflictPoint,
+  ConsensusPoint,
+  Recommendation,
   RecommendationPriority,
   SynthesisInputResponse,
-  ConsensusPoint,
-  ConflictPoint,
-  Recommendation,
-  AppliedPrinciple,
-  SynthesisResult,
   SynthesisOptions,
+  SynthesisResult,
+  SynthesisStrength,
 } from "./synthesis";
 
 export { synthesizeResponses } from "./synthesis";
@@ -386,35 +379,35 @@ export { synthesizeResponses } from "./synthesis";
 // ============================================================================
 
 export type {
-  DebateFormat,
-  DebateStatus,
-  RoundAnalysis,
-  DebateRound,
-  DebateConclusion,
-  UserInjection,
   AgentDebate,
   CreateDebateOptions,
+  DebateConclusion,
+  DebateFormat,
   DebateFormatConfig,
+  DebateRound,
+  DebateStatus,
+  RoundAnalysis,
+  UserInjection,
 } from "./debate";
 
 export {
-  DEBATE_FORMAT_CONFIGS,
-  DEBATE_SUBJECT_PREFIX,
-  generateDebateId,
-  generateDebateThreadId,
-  createDebate,
-  generateDefaultTopic,
-  getNextSpeaker,
-  buildDebateOpeningPrompt,
-  buildDebateFollowUpPrompt,
   addRound,
   addUserInjection,
   analyzeRound,
-  generateConclusion,
+  buildDebateFollowUpPrompt,
+  buildDebateOpeningPrompt,
   concludeDebate,
-  shouldConclude,
+  createDebate,
+  DEBATE_FORMAT_CONFIGS,
+  DEBATE_SUBJECT_PREFIX,
+  generateConclusion,
+  generateDebateId,
+  generateDebateThreadId,
+  generateDefaultTopic,
   getDebateStatus,
+  getNextSpeaker,
+  isAgentDebate,
   isDebateFormat,
   isDebateStatus,
-  isAgentDebate,
+  shouldConclude,
 } from "./debate";

@@ -4,10 +4,10 @@
  * @see brenner_bot-1v26.4 (bead)
  */
 
-import { describe, test, expect } from "vitest";
+import { describe, expect, test } from "vitest";
+import { exportSession, importSession } from "./export";
 import type { Session } from "./types";
 import { createSession } from "./types";
-import { exportSession, importSession } from "./export";
 
 function buildTestSession(options?: { withAttachedQuote?: boolean }): Session {
   const now = new Date();
@@ -46,7 +46,8 @@ function buildTestSession(options?: { withAttachedQuote?: boolean }): Session {
         docTitle: "Sydney Brenner Transcript",
         category: "transcript",
         title: "Design experiments that can exclude",
-        snippet: "The most important thing is to design experiments that can give you a clean answer.",
+        snippet:
+          "The most important thing is to design experiments that can give you a clean answer.",
         anchor: "§42",
         url: "/corpus/transcript#transcript-42",
       },
@@ -159,7 +160,9 @@ describe("exportSession / importSession", () => {
         },
       ],
     } as never;
-    session.evidenceLedger = [{ recordedAt: "2026-01-01T00:00:00Z", observation: "Observed" }] as never;
+    session.evidenceLedger = [
+      { recordedAt: "2026-01-01T00:00:00Z", observation: "Observed" },
+    ] as never;
 
     const blob = await exportSession(session, "markdown");
     const markdown = await blob.text();

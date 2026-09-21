@@ -6,12 +6,12 @@
  */
 
 export {
-  useSessionMutation,
-  isSessionMutationError,
   getSessionErrorMessage,
-  SessionMutationError,
+  isSessionMutationError,
+  type SessionKickoffError,
   type SessionKickoffInput,
   type SessionKickoffResult,
-  type SessionKickoffError,
+  SessionMutationError,
   type UseSessionMutationOptions,
+  useSessionMutation,
 } from "./useSessionMutation";

@@ -13,21 +13,18 @@
  * - Success notification and redirect
  */
 
-import * as React from "react";
-import { useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "@tanstack/react-form";
+import { useRouter, useSearchParams } from "next/navigation";
+import * as React from "react";
+import { Jargon } from "@/components/jargon";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Button } from "@/components/ui/button";
-import {
-  useSessionMutation,
-  getSessionErrorMessage,
-} from "@/hooks/mutations/useSessionMutation";
-import { sessionFormSchema, sessionFieldValidators } from "@/lib/schemas/session";
-import { Jargon } from "@/components/jargon";
-import { OperatorSelector, DEFAULT_OPERATORS, type OperatorSelection } from "./OperatorSelector";
-import { RosterAssignment, type RosterEntry } from "./RosterAssignment";
+import { getSessionErrorMessage, useSessionMutation } from "@/hooks/mutations/useSessionMutation";
 import { useNetworkStatus } from "@/lib/offline";
+import { sessionFieldValidators, sessionFormSchema } from "@/lib/schemas/session";
+import { DEFAULT_OPERATORS, type OperatorSelection, OperatorSelector } from "./OperatorSelector";
+import { RosterAssignment, type RosterEntry } from "./RosterAssignment";
 
 // ============================================================================
 // Icons
@@ -45,14 +42,7 @@ const SendIcon = () => (
 
 const LoadingSpinner = () => (
   <svg className="size-4 animate-spin" fill="none" viewBox="0 0 24 24">
-    <circle
-      className="opacity-25"
-      cx="12"
-      cy="12"
-      r="10"
-      stroke="currentColor"
-      strokeWidth="4"
-    />
+    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
     <path
       className="opacity-75"
       fill="currentColor"
@@ -117,11 +107,14 @@ export function SessionForm({ defaultSender = "", defaultProjectKey = "" }: Sess
   } | null>(null);
 
   // Operator selection state (for prompt builder)
-  const [operatorSelection, setOperatorSelection] = React.useState<OperatorSelection>(DEFAULT_OPERATORS);
+  const [operatorSelection, setOperatorSelection] =
+    React.useState<OperatorSelection>(DEFAULT_OPERATORS);
 
   // Roster state for role assignment
   const [roster, setRoster] = React.useState<RosterEntry[]>([]);
-  const [rosterMode, setRosterMode] = React.useState<"role_separated" | "unified">("role_separated");
+  const [rosterMode, setRosterMode] = React.useState<"role_separated" | "unified">(
+    "role_separated",
+  );
 
   // Parse recipients from form value to array
   const [parsedRecipients, setParsedRecipients] = React.useState<string[]>([]);
@@ -169,7 +162,7 @@ export function SessionForm({ defaultSender = "", defaultProjectKey = "" }: Sess
             }
             router.push(`/sessions/new?sent=1&thread=${encodeURIComponent(result.threadId)}`);
           },
-        }
+        },
       );
     },
   });
@@ -509,9 +502,7 @@ export function SessionForm({ defaultSender = "", defaultProjectKey = "" }: Sess
 
       {/* Submit */}
       <div className="flex items-center gap-4 pt-4 border-t border-border">
-        <form.Subscribe
-          selector={(state) => [state.canSubmit, state.isSubmitting]}
-        >
+        <form.Subscribe selector={(state) => [state.canSubmit, state.isSubmitting]}>
           {([canSubmit, isSubmitting]) => (
             <Button
               type="submit"
@@ -534,9 +525,14 @@ export function SessionForm({ defaultSender = "", defaultProjectKey = "" }: Sess
           )}
         </form.Subscribe>
         <p className="text-sm text-muted-foreground">
-          {mutation.isPending
-            ? "Composing prompt and sending to Agent Mail..."
-            : <>This will compose and send a <Jargon term="brenner-loop">Brenner Loop</Jargon> prompt to the specified agents.</>}
+          {mutation.isPending ? (
+            "Composing prompt and sending to Agent Mail..."
+          ) : (
+            <>
+              This will compose and send a <Jargon term="brenner-loop">Brenner Loop</Jargon> prompt
+              to the specified agents.
+            </>
+          )}
         </p>
       </div>
     </form>

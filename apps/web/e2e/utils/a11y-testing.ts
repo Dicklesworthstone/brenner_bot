@@ -28,7 +28,7 @@ export async function checkAccessibility(
     include?: string[];
     exclude?: string[];
     tag?: string[];
-  } = {}
+  } = {},
 ): Promise<AxeResults> {
   const builder = new AxeBuilder({ page });
 
@@ -52,7 +52,10 @@ export async function checkAccessibility(
   return results;
 }
 
-export function filterViolationsByImpact(results: AxeResults, impacts: AxeImpact[]): AxeResults["violations"] {
+export function filterViolationsByImpact(
+  results: AxeResults,
+  impacts: AxeImpact[],
+): AxeResults["violations"] {
   const wanted = new Set(impacts);
   return results.violations.filter((v) => (v.impact ? wanted.has(v.impact) : false));
 }
@@ -68,4 +71,3 @@ export function formatViolations(violations: AxeResults["violations"]): string {
     })
     .join("\n\n");
 }
-

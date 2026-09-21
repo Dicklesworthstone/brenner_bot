@@ -9,39 +9,36 @@
 // Explanation components
 export {
   CoachExplanation,
-  CoachTip,
   type CoachExplanationProps,
+  CoachTip,
   type CoachTipProps,
 } from "./CoachExplanation";
-
-// Quality checkpoint components
-export {
-  QualityCheckpoint,
-  HypothesisQualityChecker,
-  type QualityCheckpointProps,
-  type QualityCheckResult,
-  type QualityIssue,
-  type CheckSeverity,
-  type HypothesisQualityCheckerProps,
-} from "./QualityCheckpoint";
-
 // Progress components
 export {
-  ProgressCelebration,
-  LevelBadge,
-  AchievementCard,
-  CoachProgressStats,
-  type ProgressCelebrationProps,
-  type LevelBadgeProps,
-  type AchievementCardProps,
   type Achievement,
+  AchievementCard,
+  type AchievementCardProps,
+  CoachProgressStats,
   type CoachProgressStatsProps,
+  LevelBadge,
+  type LevelBadgeProps,
+  ProgressCelebration,
+  type ProgressCelebrationProps,
 } from "./CoachProgress";
-
 // Settings components
 export {
   CoachSettingsPanel,
-  CoachToggle,
   type CoachSettingsPanelProps,
+  CoachToggle,
   type CoachToggleProps,
 } from "./CoachSettingsPanel";
+// Quality checkpoint components
+export {
+  type CheckSeverity,
+  HypothesisQualityChecker,
+  type HypothesisQualityCheckerProps,
+  QualityCheckpoint,
+  type QualityCheckpointProps,
+  type QualityCheckResult,
+  type QualityIssue,
+} from "./QualityCheckpoint";

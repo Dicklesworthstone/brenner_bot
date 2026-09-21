@@ -83,7 +83,7 @@ export function cosineSimilarity(a: number[], b: number[]): number {
 export function findSimilar(
   query: string | number[],
   entries: EmbeddingEntry[],
-  topK: number = 5
+  topK: number = 5,
 ): EmbeddingMatch[] {
   const queryEmbedding = Array.isArray(query) ? query : embedText(query);
 
@@ -92,9 +92,7 @@ export function findSimilar(
     score: cosineSimilarity(queryEmbedding, entry.embedding),
   }));
 
-  return scored
-    .sort((a, b) => b.score - a.score)
-    .slice(0, Math.max(topK, 1));
+  return scored.sort((a, b) => b.score - a.score).slice(0, Math.max(topK, 1));
 }
 
 export async function loadEmbeddings(url: string = "/embeddings.json"): Promise<EmbeddingIndex> {

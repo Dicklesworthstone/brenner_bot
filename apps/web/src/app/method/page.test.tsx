@@ -8,20 +8,13 @@
  */
 
 import { render, screen } from "@testing-library/react";
-import { describe, expect, it, vi, afterEach } from "vitest";
 import type { ReactNode } from "react";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import MethodPage from "./page";
 
 // Mock next/link
 vi.mock("next/link", () => ({
-  default: ({
-    children,
-    href,
-    ...props
-  }: {
-    children: ReactNode;
-    href: string;
-  }) => (
+  default: ({ children, href, ...props }: { children: ReactNode; href: string }) => (
     <a href={href} {...props}>
       {children}
     </a>
@@ -30,9 +23,7 @@ vi.mock("next/link", () => ({
 
 // Mock the BrennerLoopDiagram component (it's interactive/complex)
 vi.mock("@/components/method/BrennerLoopDiagram", () => ({
-  BrennerLoopDiagram: () => (
-    <div data-testid="brenner-loop-diagram">Brenner Loop Diagram</div>
-  ),
+  BrennerLoopDiagram: () => <div data-testid="brenner-loop-diagram">Brenner Loop Diagram</div>,
 }));
 
 describe("MethodPage", () => {
@@ -45,23 +36,21 @@ describe("MethodPage", () => {
       render(<MethodPage />);
 
       expect(
-        screen.getByRole("heading", { name: /brenner method/i, level: 1 })
+        screen.getByRole("heading", { name: /brenner method/i, level: 1 }),
       ).toBeInTheDocument();
     });
 
     it("shows the subtitle", () => {
       render(<MethodPage />);
 
-      expect(
-        screen.getByText(/framework for scientific discovery/i)
-      ).toBeInTheDocument();
+      expect(screen.getByText(/framework for scientific discovery/i)).toBeInTheDocument();
     });
 
     it("shows the methodology description", () => {
       render(<MethodPage />);
 
       expect(
-        screen.getByText(/sydney brenner developed.*distinctive approach/i)
+        screen.getByText(/sydney brenner developed.*distinctive approach/i),
       ).toBeInTheDocument();
     });
   });
@@ -76,9 +65,7 @@ describe("MethodPage", () => {
     it("shows The Brenner Loop heading", () => {
       render(<MethodPage />);
 
-      expect(
-        screen.getByRole("heading", { name: /brenner loop/i })
-      ).toBeInTheDocument();
+      expect(screen.getByRole("heading", { name: /brenner loop/i })).toBeInTheDocument();
     });
 
     it("renders the BrennerLoopDiagram component", () => {
@@ -90,9 +77,7 @@ describe("MethodPage", () => {
     it("shows diagram instructions", () => {
       render(<MethodPage />);
 
-      expect(
-        screen.getByText(/hover over each stage to explore/i)
-      ).toBeInTheDocument();
+      expect(screen.getByText(/hover over each stage to explore/i)).toBeInTheDocument();
     });
   });
 
@@ -100,9 +85,7 @@ describe("MethodPage", () => {
     it("displays the Operators heading", () => {
       render(<MethodPage />);
 
-      expect(
-        screen.getByRole("heading", { name: /^operators$/i })
-      ).toBeInTheDocument();
+      expect(screen.getByRole("heading", { name: /^operators$/i })).toBeInTheDocument();
     });
 
     it("shows all five operators", () => {
@@ -128,21 +111,11 @@ describe("MethodPage", () => {
     it("shows operator descriptions", () => {
       render(<MethodPage />);
 
-      expect(
-        screen.getByText(/produce multiple competing explanations/i)
-      ).toBeInTheDocument();
-      expect(
-        screen.getByText(/create an experiment that differentiates/i)
-      ).toBeInTheDocument();
-      expect(
-        screen.getByText(/perform the experiment and record results/i)
-      ).toBeInTheDocument();
-      expect(
-        screen.getByText(/revise probability estimates/i)
-      ).toBeInTheDocument();
-      expect(
-        screen.getByText(/decide whether to continue investigation/i)
-      ).toBeInTheDocument();
+      expect(screen.getByText(/produce multiple competing explanations/i)).toBeInTheDocument();
+      expect(screen.getByText(/create an experiment that differentiates/i)).toBeInTheDocument();
+      expect(screen.getByText(/perform the experiment and record results/i)).toBeInTheDocument();
+      expect(screen.getByText(/revise probability estimates/i)).toBeInTheDocument();
+      expect(screen.getByText(/decide whether to continue investigation/i)).toBeInTheDocument();
     });
 
     it("shows operator examples", () => {
@@ -174,9 +147,7 @@ describe("MethodPage", () => {
     it("displays the Core Principles heading", () => {
       render(<MethodPage />);
 
-      expect(
-        screen.getByRole("heading", { name: /core principles/i })
-      ).toBeInTheDocument();
+      expect(screen.getByRole("heading", { name: /core principles/i })).toBeInTheDocument();
     });
 
     it("shows all four principles", () => {
@@ -191,18 +162,14 @@ describe("MethodPage", () => {
     it("shows principle descriptions", () => {
       render(<MethodPage />);
 
-      expect(
-        screen.getByText(/theory follows experiment.*not the other way/i)
-      ).toBeInTheDocument();
+      expect(screen.getByText(/theory follows experiment.*not the other way/i)).toBeInTheDocument();
       const humilityHeading = screen.getByRole("heading", { name: "Epistemic Humility" });
       const humilityCard = humilityHeading.parentElement;
       expect(humilityCard).not.toBeNull();
       expect(humilityCard).toHaveTextContent(/hold all hypotheses loosely/i);
+      expect(screen.getByText(/choosing the right problem is more important/i)).toBeInTheDocument();
       expect(
-        screen.getByText(/choosing the right problem is more important/i)
-      ).toBeInTheDocument();
-      expect(
-        screen.getByText(/build intuition through direct experimentation/i)
+        screen.getByText(/build intuition through direct experimentation/i),
       ).toBeInTheDocument();
     });
   });
@@ -211,9 +178,7 @@ describe("MethodPage", () => {
     it("displays the Go Deeper heading", () => {
       render(<MethodPage />);
 
-      expect(
-        screen.getByRole("heading", { name: /go deeper/i })
-      ).toBeInTheDocument();
+      expect(screen.getByRole("heading", { name: /go deeper/i })).toBeInTheDocument();
     });
 
     it("shows Corpus link card", () => {
@@ -222,7 +187,7 @@ describe("MethodPage", () => {
       const corpusLink = screen.getByRole("link", { name: /corpus.*browse/i });
       expect(corpusLink).toHaveAttribute("href", "/corpus");
       expect(
-        screen.getByText(/primary sources with the original transcripts/i)
+        screen.getByText(/primary sources with the original transcripts/i),
       ).toBeInTheDocument();
     });
 
@@ -233,9 +198,7 @@ describe("MethodPage", () => {
         name: /distillations.*compare/i,
       });
       expect(distillationsLink).toHaveAttribute("href", "/distillations");
-      expect(
-        screen.getByText(/three frontier model analyses/i)
-      ).toBeInTheDocument();
+      expect(screen.getByText(/three frontier model analyses/i)).toBeInTheDocument();
     });
 
     it("shows link labels", () => {
@@ -262,12 +225,8 @@ describe("MethodPage", () => {
     it("lists planned features", () => {
       render(<MethodPage />);
 
-      expect(
-        screen.getByText(/interactive operator palette/i)
-      ).toBeInTheDocument();
-      expect(
-        screen.getByText(/example walkthroughs from historical/i)
-      ).toBeInTheDocument();
+      expect(screen.getByText(/interactive operator palette/i)).toBeInTheDocument();
+      expect(screen.getByText(/example walkthroughs from historical/i)).toBeInTheDocument();
     });
 
     it("shows the Bayesian Crosswalk section (now implemented)", () => {
@@ -275,9 +234,7 @@ describe("MethodPage", () => {
 
       // The Bayesian Crosswalk is now a fully implemented interactive component
       expect(screen.getByText(/the bayesian crosswalk/i)).toBeInTheDocument();
-      expect(
-        screen.getByText(/implicit bayesianism/i)
-      ).toBeInTheDocument();
+      expect(screen.getByText(/implicit bayesianism/i)).toBeInTheDocument();
     });
   });
 

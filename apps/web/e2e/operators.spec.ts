@@ -5,15 +5,15 @@
  */
 
 import {
-  test,
-  expect,
-  navigateTo,
-  waitForNetworkIdle,
-  clickElement,
-  fillInput,
-  takeScreenshot,
-  assertUrl,
   assertPageHasContent,
+  assertUrl,
+  clickElement,
+  expect,
+  fillInput,
+  navigateTo,
+  takeScreenshot,
+  test,
+  waitForNetworkIdle,
 } from "./utils";
 
 test.describe("Operators Page", () => {
@@ -25,7 +25,7 @@ test.describe("Operators Page", () => {
 
     await expect(page.locator("h1")).toContainText("Brenner Operators");
     await expect(
-      page.locator('input[placeholder="Search operators, triggers, failure modes, quotes..."]')
+      page.locator('input[placeholder="Search operators, triggers, failure modes, quotes..."]'),
     ).toBeVisible();
 
     const operatorCards = page.locator('button:has(div[role="checkbox"])');
@@ -88,7 +88,12 @@ test.describe("Operators Page", () => {
 
     await takeScreenshot(page, logger, "operators-detail-sheet");
 
-    await clickElement(page, logger, sheet.locator('button[aria-label="Close"]').first(), "Close sheet");
+    await clickElement(
+      page,
+      logger,
+      sheet.locator('button[aria-label="Close"]').first(),
+      "Close sheet",
+    );
     await expect(sheet).toBeHidden();
   });
 
@@ -103,7 +108,8 @@ test.describe("Operators Page", () => {
     const firstTitle = (await operatorCards.first().locator("h3").textContent())?.trim();
     expect(firstTitle).toBeTruthy();
 
-    const searchInputSelector = 'input[placeholder="Search operators, triggers, failure modes, quotes..."]';
+    const searchInputSelector =
+      'input[placeholder="Search operators, triggers, failure modes, quotes..."]';
     await fillInput(page, logger, searchInputSelector, firstTitle ?? "", "Search input");
 
     const matchingCard = operatorCards.filter({ hasText: firstTitle ?? "" }).first();

@@ -1,13 +1,10 @@
-import { describe, test, expect, beforeEach } from "vitest";
 import { randomUUID } from "node:crypto";
 import { promises as fs } from "fs";
-import { join } from "path";
 import { tmpdir } from "os";
-import {
-  HypothesisStorage,
-  type SessionHypothesisFile,
-} from "./hypothesis-storage";
+import { join } from "path";
+import { beforeEach, describe, expect, test } from "vitest";
 import { createHypothesis, type Hypothesis } from "../schemas/hypothesis";
+import { HypothesisStorage, type SessionHypothesisFile } from "./hypothesis-storage";
 
 /**
  * Tests for Hypothesis Storage Layer
@@ -41,7 +38,7 @@ function createTestHypothesisData(
     mechanism: string;
     tags: string[];
     notes: string;
-  }> = {}
+  }> = {},
 ): Hypothesis {
   const sessionId = overrides.sessionId ?? "TEST";
   const id = overrides.id ?? `H-${sessionId}-001`;
@@ -64,10 +61,7 @@ function createTestHypothesisData(
 }
 
 beforeEach(async () => {
-  testDir = join(
-    tmpdir(),
-    `hypothesis-storage-test-${randomUUID()}`
-  );
+  testDir = join(tmpdir(), `hypothesis-storage-test-${randomUUID()}`);
   await fs.mkdir(testDir, { recursive: true });
   storage = new HypothesisStorage({ baseDir: testDir, autoRebuildIndex: false });
 });
@@ -116,7 +110,11 @@ describe("Session File Operations", () => {
     await fs.mkdir(join(testDir, ".research", "hypotheses"), { recursive: true });
     await fs.writeFile(
       join(testDir, ".research", "hypotheses", "MALFORMED-hypotheses.json"),
-      JSON.stringify({ sessionId: "MALFORMED", createdAt: "2025-01-01", hypotheses: "not-an-array" })
+      JSON.stringify({
+        sessionId: "MALFORMED",
+        createdAt: "2025-01-01",
+        hypotheses: "not-an-array",
+      }),
     );
 
     const loaded = await storage.loadSessionHypotheses("MALFORMED");
@@ -137,7 +135,7 @@ describe("Session File Operations", () => {
           { invalid: "entry", missing: "required fields" },
           { id: "also-invalid" },
         ],
-      })
+      }),
     );
 
     const loaded = await storage.loadSessionHypotheses("MIXED");
@@ -170,7 +168,7 @@ describe("Session File Operations", () => {
 
     const indexPath = join(testDir, ".research", "hypothesis-index.json");
     const content = await fs.readFile(indexPath, "utf-8");
-    expect(content).toContain("\"version\"");
+    expect(content).toContain('"version"');
   });
 });
 
@@ -283,7 +281,7 @@ describe("Concurrency", () => {
         sessionId,
         id: `H-${sessionId}-${String(i + 1).padStart(3, "0")}`,
         statement: `Hypothesis ${i + 1}`,
-      })
+      }),
     );
 
     await Promise.all(hypotheses.map((h) => storage.saveHypothesis(h)));
@@ -362,7 +360,7 @@ describe("Index Operations", () => {
     await fs.mkdir(join(testDir, ".research", "hypotheses"), { recursive: true });
     await fs.writeFile(
       join(testDir, ".research", "hypotheses", "NOARRAY-hypotheses.json"),
-      JSON.stringify({ sessionId: "NOARRAY", hypotheses: { not: "an-array" } })
+      JSON.stringify({ sessionId: "NOARRAY", hypotheses: { not: "an-array" } }),
     );
 
     const index = await storage.rebuildIndex();
@@ -377,15 +375,14 @@ describe("Index Operations", () => {
         sessionId: "HASINVALID",
         createdAt: "2025-01-01",
         updatedAt: "2025-01-01",
-        hypotheses: [
-          { invalid: "hypothesis1" },
-          { invalid: "hypothesis2" },
-        ],
-      })
+        hypotheses: [{ invalid: "hypothesis1" }, { invalid: "hypothesis2" }],
+      }),
     );
 
     const index = await storage.rebuildIndex();
-    expect(index.warnings?.some((w) => w.message.includes("Skipped 2 invalid hypotheses"))).toBe(true);
+    expect(index.warnings?.some((w) => w.message.includes("Skipped 2 invalid hypotheses"))).toBe(
+      true,
+    );
   });
 
   test("index entries contain correct metadata", async () => {
@@ -446,12 +443,12 @@ describe("Query Operations", () => {
     await storage.saveSessionHypotheses("S1", [h1]);
     await storage.saveSessionHypotheses("S2", [h2]);
 
-    expect((await storage.searchHypotheses("H-S1-001"))).toHaveLength(1);
-    expect((await storage.searchHypotheses("cell fate"))).toHaveLength(1);
-    expect((await storage.searchHypotheses("remodeling"))).toHaveLength(1);
-    expect((await storage.searchHypotheses("magic word"))).toHaveLength(1);
-    expect((await storage.searchHypotheses("chromatin"))).toHaveLength(2);
-    expect((await storage.searchHypotheses("   "))).toHaveLength(0);
+    expect(await storage.searchHypotheses("H-S1-001")).toHaveLength(1);
+    expect(await storage.searchHypotheses("cell fate")).toHaveLength(1);
+    expect(await storage.searchHypotheses("remodeling")).toHaveLength(1);
+    expect(await storage.searchHypotheses("magic word")).toHaveLength(1);
+    expect(await storage.searchHypotheses("chromatin")).toHaveLength(2);
+    expect(await storage.searchHypotheses("   ")).toHaveLength(0);
   });
 });
 
@@ -519,7 +516,10 @@ describe("Auto-Rebuild Index", () => {
     await autoStorage.saveHypothesis(hypothesis);
 
     const indexPath = join(testDir, ".research", "hypothesis-index.json");
-    const exists = await fs.access(indexPath).then(() => true).catch(() => false);
+    const exists = await fs
+      .access(indexPath)
+      .then(() => true)
+      .catch(() => false);
     expect(exists).toBe(true);
   });
 
@@ -528,7 +528,10 @@ describe("Auto-Rebuild Index", () => {
     await storage.saveHypothesis(hypothesis);
 
     const indexPath = join(testDir, ".research", "hypothesis-index.json");
-    const exists = await fs.access(indexPath).then(() => true).catch(() => false);
+    const exists = await fs
+      .access(indexPath)
+      .then(() => true)
+      .catch(() => false);
     expect(exists).toBe(false);
   });
 });

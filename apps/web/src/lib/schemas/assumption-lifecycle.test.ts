@@ -1,32 +1,30 @@
-import { describe, it, expect, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
+import { type Assumption, createAssumption } from "./assumption";
 import {
-  VALID_ASSUMPTION_TRANSITIONS,
-  AssumptionTriggerSchema,
-  AssumptionTransitionSchema,
+  type AssumptionTransition,
   AssumptionTransitionErrorCode,
-  isValidAssumptionTransition,
+  AssumptionTransitionHistoryStore,
+  AssumptionTransitionSchema,
+  AssumptionTriggerSchema,
+  challengeAssumption,
+  computeAssumptionCascade,
+  computeFalsificationPropagation,
+  falsifyAssumption,
   getAssumptionTargetState,
   getValidAssumptionTriggers,
   isTerminalAssumptionState,
-  validateAssumptionTransitionRequirements,
+  isValidAssumptionTransition,
   transitionAssumption,
-  challengeAssumption,
+  VALID_ASSUMPTION_TRANSITIONS,
+  validateAssumptionTransitionRequirements,
   verifyAssumption,
-  falsifyAssumption,
-  computeFalsificationPropagation,
-  computeAssumptionCascade,
-  AssumptionTransitionHistoryStore,
-  type AssumptionTransition,
 } from "./assumption-lifecycle";
-import { type Assumption, createAssumption } from "./assumption";
 
 // ============================================================================
 // Test Fixtures
 // ============================================================================
 
-const createTestAssumption = (
-  overrides: Partial<Assumption> = {}
-): Assumption => {
+const createTestAssumption = (overrides: Partial<Assumption> = {}): Assumption => {
   const base = createAssumption({
     id: "A-TEST-001",
     statement: "Test assumption for lifecycle validation tests.",
@@ -43,7 +41,9 @@ const createTestAssumption = (
 
 type FalsificationPropagation = ReturnType<typeof computeFalsificationPropagation>;
 
-function requirePropagation(result: { propagation?: FalsificationPropagation }): FalsificationPropagation {
+function requirePropagation(result: {
+  propagation?: FalsificationPropagation;
+}): FalsificationPropagation {
   if (!result.propagation) {
     throw new Error("Expected propagation to be defined");
   }
@@ -206,14 +206,12 @@ describe("getAssumptionTargetState", () => {
 describe("getValidAssumptionTriggers", () => {
   it("returns valid triggers for each state", () => {
     expect(getValidAssumptionTriggers("unchecked")).toEqual(
-      expect.arrayContaining(["challenge", "verify", "falsify"])
+      expect.arrayContaining(["challenge", "verify", "falsify"]),
     );
     expect(getValidAssumptionTriggers("challenged")).toEqual(
-      expect.arrayContaining(["verify", "falsify"])
+      expect.arrayContaining(["verify", "falsify"]),
     );
-    expect(getValidAssumptionTriggers("verified")).toEqual(
-      expect.arrayContaining(["challenge"])
-    );
+    expect(getValidAssumptionTriggers("verified")).toEqual(expect.arrayContaining(["challenge"]));
     expect(getValidAssumptionTriggers("falsified")).toEqual([]);
   });
 });
@@ -569,7 +567,7 @@ describe("AssumptionTransitionHistoryStore", () => {
       expect(all).toHaveLength(2);
       // Check they're in chronological order
       expect(new Date(all[0].timestamp).getTime()).toBeLessThanOrEqual(
-        new Date(all[1].timestamp).getTime()
+        new Date(all[1].timestamp).getTime(),
       );
     });
   });
@@ -847,7 +845,7 @@ describe("Falsification Cascade (end-to-end)", () => {
         expect(result.transition.reason).toContain("3 orders of magnitude");
         expect(result.transition.sessionId).toBe("SESSION-2025-12-31");
         expect(result.transition.id).toMatch(
-          /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
+          /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/,
         );
         expect(result.transition.timestamp).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/);
       }
@@ -863,7 +861,7 @@ describe("Falsification Cascade (end-to-end)", () => {
       expect(result.success).toBe(true);
       if (result.success) {
         expect(new Date(result.assumption.updatedAt).getTime()).toBeGreaterThanOrEqual(
-          new Date(originalUpdatedAt).getTime()
+          new Date(originalUpdatedAt).getTime(),
         );
       }
     });
@@ -871,8 +869,14 @@ describe("Falsification Cascade (end-to-end)", () => {
 
   describe("edge cases", () => {
     it("handles assumption with many dependencies", () => {
-      const manyHypotheses = Array.from({ length: 20 }, (_, i) => `H-MULTI-${String(i + 1).padStart(3, "0")}`);
-      const manyTests = Array.from({ length: 15 }, (_, i) => `T-MULTI-${String(i + 1).padStart(3, "0")}`);
+      const manyHypotheses = Array.from(
+        { length: 20 },
+        (_, i) => `H-MULTI-${String(i + 1).padStart(3, "0")}`,
+      );
+      const manyTests = Array.from(
+        { length: 15 },
+        (_, i) => `T-MULTI-${String(i + 1).padStart(3, "0")}`,
+      );
 
       const assumption = createTestAssumption({
         id: "A-CENTRAL-001",
@@ -914,15 +918,23 @@ describe("computeAssumptionCascade", () => {
   it("collects transitive dependents with criticality counts", () => {
     const assumptions: Assumption[] = [
       createTestAssumption({ id: "A-ROOT-001" }),
-      createTestAssumption({ id: "A-DEP-001", criticality: "foundational", dependsOn: ["A-ROOT-001"] }),
-      createTestAssumption({ id: "A-DEP-002", criticality: "important", dependsOn: ["A-ROOT-001"] }),
+      createTestAssumption({
+        id: "A-DEP-001",
+        criticality: "foundational",
+        dependsOn: ["A-ROOT-001"],
+      }),
+      createTestAssumption({
+        id: "A-DEP-002",
+        criticality: "important",
+        dependsOn: ["A-ROOT-001"],
+      }),
       createTestAssumption({ id: "A-DEP-003", criticality: "minor", dependsOn: ["A-DEP-001"] }),
     ];
 
     const result = computeAssumptionCascade(assumptions, "A-ROOT-001");
 
     expect(result.affectedAssumptionIds).toEqual(
-      expect.arrayContaining(["A-DEP-001", "A-DEP-002", "A-DEP-003"])
+      expect.arrayContaining(["A-DEP-001", "A-DEP-002", "A-DEP-003"]),
     );
     expect(result.byCriticality.foundational).toBe(1);
     expect(result.byCriticality.important).toBe(1);

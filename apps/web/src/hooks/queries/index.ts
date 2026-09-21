@@ -31,31 +31,31 @@
 
 // Document hooks
 export {
-  useCorpusDoc,
-  prefetchCorpusDoc,
-  corpusDocKeys,
   type CorpusDocData,
+  corpusDocKeys,
+  prefetchCorpusDoc,
   type UseCorpusDocOptions,
+  useCorpusDoc,
 } from "./useCorpusDoc";
 
 // List hooks
 export {
+  corpusListKeys,
+  prefetchCorpusList,
+  type UseCorpusListOptions,
   useCorpusList,
   useCorpusListGrouped,
-  prefetchCorpusList,
-  corpusListKeys,
-  type UseCorpusListOptions,
 } from "./useCorpusList";
 
 // Search hooks
 export {
-  useCorpusSearch,
-  useCorpusSearchInstant,
-  prefetchCorpusSearch,
-  invalidateSearchResults,
   corpusSearchKeys,
+  invalidateSearchResults,
+  prefetchCorpusSearch,
   type SearchOptions,
   type UseCorpusSearchOptions,
+  useCorpusSearch,
+  useCorpusSearchInstant,
 } from "./useCorpusSearch";
 
 // ============================================================================

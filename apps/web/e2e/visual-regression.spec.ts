@@ -18,11 +18,14 @@
  * - Skip animations/transitions before capture
  */
 
-import { test, expect, waitForNetworkIdle } from "./utils";
+import { expect, test, waitForNetworkIdle } from "./utils";
 import { withStep } from "./utils/e2e-logging";
 
 // Only run visual regression tests on desktop-chrome for consistent baselines
-test.skip(({ browserName }) => browserName !== "chromium", "Visual regression tests only run on Chromium");
+test.skip(
+  ({ browserName }) => browserName !== "chromium",
+  "Visual regression tests only run on Chromium",
+);
 
 // Viewport configurations for responsive testing
 const VIEWPORTS = [
@@ -180,7 +183,7 @@ test.describe("Visual Regression", () => {
         await expect(footer).toHaveScreenshot("footer.png", {
           ...SNAPSHOT_OPTIONS,
           // Footer has higher variance due to dynamic content (dates, links)
-          maxDiffPixelRatio: 0.10, // Allow up to 10% pixel difference
+          maxDiffPixelRatio: 0.1, // Allow up to 10% pixel difference
         });
         logger.info("Footer screenshot captured");
       });

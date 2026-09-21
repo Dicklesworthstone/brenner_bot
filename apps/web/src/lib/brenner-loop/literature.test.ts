@@ -6,47 +6,39 @@
 
 import { describe, expect, it } from "vitest";
 import type { HypothesisCard } from "./hypothesis";
-import type { PaperResult, BibTeXEntry } from "./literature";
+import type { BibTeXEntry, PaperResult } from "./literature";
 import {
-  // ID generation
-  generateSearchId,
-  generatePaperId,
-
-  // Search query generation
-  generateSearchQueries,
-
+  bibTeXToPaperResult,
   // Relevance scoring
   calculateRelevance,
-  rankByRelevance,
-  getRelevanceLabel,
-  getRelevanceColor,
-  RELEVANCE_THRESHOLDS,
-
-  // Citation parsing
-  parseBibTeX,
-  bibTeXToPaperResult,
-
-  // DOI utilities
-  isValidDOI,
-  extractDOI,
-  doiToUrl,
-
-  // Evidence recording
-  formatCitation,
-  formatPaperSource,
-  preparePaperEvidenceData,
-
   // Factory functions
   createLiteratureSearch,
   createPaperResult,
-
-  // Utility functions
-  summarizePaper,
+  doiToUrl,
+  extractDOI,
+  // Evidence recording
+  formatCitation,
+  formatPaperSource,
+  generatePaperId,
+  // ID generation
+  generateSearchId,
+  // Search query generation
+  generateSearchQueries,
   getPaperAgeCategory,
-
+  getRelevanceColor,
+  getRelevanceLabel,
+  isLiteratureSearch,
   // Type guards
   isPaperResult,
-  isLiteratureSearch,
+  // DOI utilities
+  isValidDOI,
+  // Citation parsing
+  parseBibTeX,
+  preparePaperEvidenceData,
+  RELEVANCE_THRESHOLDS,
+  rankByRelevance,
+  // Utility functions
+  summarizePaper,
 } from "./literature";
 
 // ============================================================================
@@ -58,7 +50,8 @@ function createMockHypothesis(overrides: Partial<HypothesisCard> = {}): Hypothes
   return {
     id: "HC-test-001-v1",
     version: 1,
-    statement: "Social media algorithm-driven content selection causes increased depression in teenagers",
+    statement:
+      "Social media algorithm-driven content selection causes increased depression in teenagers",
     mechanism: "Algorithm amplifies negative content which increases rumination",
     domain: ["psychology", "technology"],
     predictionsIfTrue: [
@@ -68,9 +61,7 @@ function createMockHypothesis(overrides: Partial<HypothesisCard> = {}): Hypothes
     predictionsIfFalse: [
       "Depression rates should be similar regardless of social media usage patterns",
     ],
-    impossibleIfTrue: [
-      "Teens using social media extensively show improved mental health outcomes",
-    ],
+    impossibleIfTrue: ["Teens using social media extensively show improved mental health outcomes"],
     confounds: [
       {
         id: "CF-001",
@@ -183,7 +174,7 @@ describe("generateSearchQueries", () => {
     const suggestions = generateSearchQueries(hypothesis);
 
     const hasAlgorithmQuery = suggestions.alternativeQueries.some(
-      (q) => q.toLowerCase().includes("algorithm") || q.toLowerCase().includes("amplif")
+      (q) => q.toLowerCase().includes("algorithm") || q.toLowerCase().includes("amplif"),
     );
     expect(hasAlgorithmQuery).toBe(true);
   });
@@ -550,7 +541,7 @@ describe("createPaperResult", () => {
         citationCount: 10,
         url: "https://example.com",
       },
-      hypothesis
+      hypothesis,
     );
 
     expect(paper.relevanceScore).toBeGreaterThan(0);

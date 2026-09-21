@@ -1,18 +1,14 @@
 "use client";
 
-import * as React from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import { useRouter } from "next/navigation";
-import { motion, AnimatePresence } from "framer-motion";
+import * as React from "react";
 import { Button } from "@/components/ui/button";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { enqueueOfflineAction, useOfflineQueue } from "@/lib/offline";
 import { normalizeSystemError, nowMs, trackSystemEvent, trackSystemLatency } from "@/lib/analytics";
-import {
-  Collapsible,
-  CollapsibleTrigger,
-  CollapsibleContent,
-} from "@/components/ui/collapsible";
+import { enqueueOfflineAction, useOfflineQueue } from "@/lib/offline";
 
 type SessionActionsProps = {
   threadId: string;
@@ -32,7 +28,13 @@ type ApiSuccess =
       artifactMarkdown: string;
       lint: { valid: boolean; summary: { errors: number; warnings: number; info: number } };
       merge: { applied: number; skipped: number };
-      deltaStats: { deltaMessageCount: number; totalBlocks: number; validBlocks: number; invalidBlocks: number; currentRoundDeltaCount: number };
+      deltaStats: {
+        deltaMessageCount: number;
+        totalBlocks: number;
+        validBlocks: number;
+        invalidBlocks: number;
+        currentRoundDeltaCount: number;
+      };
     }
   | {
       success: true;
@@ -90,8 +92,8 @@ function parseRecipients(text: string): string[] {
       text
         .split(",")
         .map((t) => t.trim())
-        .filter((t) => t.length > 0)
-    )
+        .filter((t) => t.length > 0),
+    ),
   );
 }
 
@@ -138,7 +140,7 @@ function parseCommandInput(input: string): string[] {
     }
 
     if (inDouble) {
-      if (ch === "\"") {
+      if (ch === '"') {
         inDouble = false;
         continue;
       }
@@ -151,7 +153,7 @@ function parseCommandInput(input: string): string[] {
       continue;
     }
 
-    if (ch === "\"") {
+    if (ch === '"') {
       inDouble = true;
       continue;
     }
@@ -222,7 +224,9 @@ async function postAction(body: Record<string, unknown>): Promise<ApiSuccess> {
   }
 }
 
-async function postExperiment(body: Record<string, unknown>): Promise<Extract<ExperimentRunResponse, { success: true }>> {
+async function postExperiment(
+  body: Record<string, unknown>,
+): Promise<Extract<ExperimentRunResponse, { success: true }>> {
   const start = nowMs();
   let res: Response | null = null;
   let payload: ExperimentRunResponse | null = null;
@@ -247,7 +251,10 @@ async function postExperiment(body: Record<string, unknown>): Promise<Extract<Ex
     if (!errorInfo) errorInfo = normalizeSystemError(err);
     trackSystemEvent("experiment_error", {
       status_code: res?.status ?? undefined,
-      error_code: payload && !payload.success ? (payload as Extract<ExperimentRunResponse, { success: false }>).code : undefined,
+      error_code:
+        payload && !payload.success
+          ? (payload as Extract<ExperimentRunResponse, { success: false }>).code
+          : undefined,
       ...errorInfo,
     });
     throw err;
@@ -261,7 +268,10 @@ async function postExperiment(body: Record<string, unknown>): Promise<Extract<Ex
 
 function truncateText(s: string, maxChars: number): { preview: string; truncated: boolean } {
   if (s.length <= maxChars) return { preview: s, truncated: false };
-  return { preview: `${s.slice(0, maxChars)}\n…(truncated; ${s.length} chars total)…\n`, truncated: true };
+  return {
+    preview: `${s.slice(0, maxChars)}\n…(truncated; ${s.length} chars total)…\n`,
+    truncated: true,
+  };
 }
 
 function generateDeltaFromExperiment(params: {
@@ -297,7 +307,8 @@ function generateDeltaFromExperiment(params: {
         ...(params.result.git ? { git: params.result.git } : {}),
       },
     },
-    rationale: "Record experiment result provenance as a research_thread delta for compilation/audit.",
+    rationale:
+      "Record experiment result provenance as a research_thread delta for compilation/audit.",
   };
 
   const subject = `DELTA[human]: [${params.threadId}] ${params.testId} experiment result`;
@@ -336,9 +347,14 @@ export function SessionActions({
   const [sender, setSender] = React.useState(defaultSender);
   const [recipientsText, setRecipientsText] = React.useState(defaultRecipients.join(", "));
 
-  const [busy, setBusy] = React.useState<null | "compile" | "publish" | "request_critique" | "experiment_run" | "post_delta">(null);
+  const [busy, setBusy] = React.useState<
+    null | "compile" | "publish" | "request_critique" | "experiment_run" | "post_delta"
+  >(null);
   const [error, setError] = React.useState<string | null>(null);
-  const [compilePreview, setCompilePreview] = React.useState<Extract<ApiSuccess, { action: "compile" }> | null>(null);
+  const [compilePreview, setCompilePreview] = React.useState<Extract<
+    ApiSuccess,
+    { action: "compile" }
+  > | null>(null);
   const [lastOk, setLastOk] = React.useState<string | null>(null);
 
   const [experimentTestId, setExperimentTestId] = React.useState<string>("");
@@ -454,7 +470,12 @@ export function SessionActions({
     }
 
     const testId = experimentResult.test_id || experimentTestId.trim() || "T?";
-    const generated = generateDeltaFromExperiment({ threadId, testId, result: experimentResult, resultFile: experimentResultFile });
+    const generated = generateDeltaFromExperiment({
+      threadId,
+      testId,
+      result: experimentResult,
+      resultFile: experimentResultFile,
+    });
     setDeltaSubject(generated.subject);
     setDeltaBodyMd(generated.bodyMd);
     setError(null);
@@ -500,7 +521,9 @@ export function SessionActions({
         throw new Error("Unexpected response");
       }
 
-      setLastOk(`Posted DELTA message${typeof result.messageId === "number" ? ` (id ${result.messageId})` : ""}`);
+      setLastOk(
+        `Posted DELTA message${typeof result.messageId === "number" ? ` (id ${result.messageId})` : ""}`,
+      );
       router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
@@ -514,7 +537,9 @@ export function SessionActions({
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="space-y-1">
           <div className="text-sm text-muted-foreground">Actions</div>
-          <div className="text-sm font-medium text-foreground">Compile → publish → request critique</div>
+          <div className="text-sm font-medium text-foreground">
+            Compile → publish → request critique
+          </div>
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
@@ -577,7 +602,8 @@ export function SessionActions({
           </div>
           {!hasCompiledArtifact && (
             <p className="px-4 pb-4 text-xs text-muted-foreground">
-              Request Critique is disabled until a <span className="font-mono">COMPILED:</span> message exists in the thread.
+              Request Critique is disabled until a <span className="font-mono">COMPILED:</span>{" "}
+              message exists in the thread.
             </p>
           )}
         </CollapsibleContent>
@@ -662,24 +688,32 @@ export function SessionActions({
                     Result: <span className="font-mono">{experimentResult.test_id}</span>
                   </div>
                   <div className="text-xs font-mono text-muted-foreground">
-                    exit {experimentResult.exit_code}{experimentResult.timed_out ? " (timed out)" : ""}
+                    exit {experimentResult.exit_code}
+                    {experimentResult.timed_out ? " (timed out)" : ""}
                   </div>
                 </div>
 
                 <div className="text-xs text-muted-foreground space-y-1">
                   <div>
                     <span className="font-medium text-foreground/80">Command:</span>{" "}
-                    <span className="font-mono">{Array.isArray(experimentResult.argv) ? experimentResult.argv.join(" ") : "(unknown)"}</span>
+                    <span className="font-mono">
+                      {Array.isArray(experimentResult.argv)
+                        ? experimentResult.argv.join(" ")
+                        : "(unknown)"}
+                    </span>
                   </div>
                   <div>
-                    <span className="font-medium text-foreground/80">CWD:</span> <span className="font-mono">{experimentResult.cwd}</span>
+                    <span className="font-medium text-foreground/80">CWD:</span>{" "}
+                    <span className="font-mono">{experimentResult.cwd}</span>
                   </div>
                   <div>
-                    <span className="font-medium text-foreground/80">Created:</span> <span className="font-mono">{experimentResult.created_at}</span>
+                    <span className="font-medium text-foreground/80">Created:</span>{" "}
+                    <span className="font-mono">{experimentResult.created_at}</span>
                   </div>
                   {experimentResult.duration_ms !== null && (
                     <div>
-                      <span className="font-medium text-foreground/80">Duration:</span> <span className="font-mono">{experimentResult.duration_ms}ms</span>
+                      <span className="font-medium text-foreground/80">Duration:</span>{" "}
+                      <span className="font-mono">{experimentResult.duration_ms}ms</span>
                     </div>
                   )}
                   {experimentResultFile && (
@@ -716,7 +750,7 @@ export function SessionActions({
                 value={deltaSubject}
                 onChange={(e) => setDeltaSubject(e.target.value)}
                 placeholder={`DELTA[human]: [${threadId}] experiment deltas`}
-                hint='Must start with DELTA[...]: (server will normalize if needed).'
+                hint="Must start with DELTA[...]: (server will normalize if needed)."
               />
               <Textarea
                 label="DELTA body (markdown)"
@@ -760,14 +794,19 @@ export function SessionActions({
                   <span className="size-2 rounded-full bg-success animate-pulse" />
                   <span>Preview: compiled v{compilePreview.version}</span>
                   <span className="text-xs font-normal text-muted-foreground">
-                    (lint: {compilePreview.lint.summary.errors}e/{compilePreview.lint.summary.warnings}w)
+                    (lint: {compilePreview.lint.summary.errors}e/
+                    {compilePreview.lint.summary.warnings}w)
                   </span>
                 </div>
               </CollapsibleTrigger>
               <CollapsibleContent>
                 <div className="px-4 pb-4 space-y-3">
                   <div className="text-xs text-muted-foreground font-mono">
-                    {compilePreview.deltaStats.deltaMessageCount} delta messages ({compilePreview.deltaStats.currentRoundDeltaCount} in current round) • {compilePreview.deltaStats.validBlocks}/{compilePreview.deltaStats.totalBlocks} valid blocks • applied {compilePreview.merge.applied}, skipped {compilePreview.merge.skipped}
+                    {compilePreview.deltaStats.deltaMessageCount} delta messages (
+                    {compilePreview.deltaStats.currentRoundDeltaCount} in current round) •{" "}
+                    {compilePreview.deltaStats.validBlocks}/{compilePreview.deltaStats.totalBlocks}{" "}
+                    valid blocks • applied {compilePreview.merge.applied}, skipped{" "}
+                    {compilePreview.merge.skipped}
                   </div>
                   <pre className="text-xs font-mono whitespace-pre-wrap rounded-lg border border-border bg-muted/30 p-3 overflow-auto max-h-[420px]">
                     {compilePreview.artifactMarkdown}

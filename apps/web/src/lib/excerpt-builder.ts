@@ -98,12 +98,7 @@ function countWords(text: string): number {
  * @returns Composed excerpt with markdown, metadata, and warnings
  */
 export function composeExcerpt(config: ExcerptConfig): ComposedExcerpt {
-  const {
-    theme,
-    sections,
-    ordering = "relevance",
-    maxTotalWords = DEFAULT_MAX_WORDS,
-  } = config;
+  const { theme, sections, ordering = "relevance", maxTotalWords = DEFAULT_MAX_WORDS } = config;
 
   const warnings: string[] = [];
 
@@ -134,7 +129,7 @@ export function composeExcerpt(config: ExcerptConfig): ComposedExcerpt {
   const orderedSections =
     ordering === "chronological"
       ? [...sections].sort(
-          (a, b) => extractSectionNumber(a.anchor) - extractSectionNumber(b.anchor)
+          (a, b) => extractSectionNumber(a.anchor) - extractSectionNumber(b.anchor),
         )
       : sections;
 
@@ -160,10 +155,7 @@ export function composeExcerpt(config: ExcerptConfig): ComposedExcerpt {
   lines.push(`**Sections included**: ${anchorList}`);
 
   // Calculate word count
-  const totalWords = orderedSections.reduce(
-    (sum, section) => sum + countWords(section.quote),
-    0
-  );
+  const totalWords = orderedSections.reduce((sum, section) => sum + countWords(section.quote), 0);
   lines.push(`**Total words**: ~${totalWords} words`);
 
   // Check word limit
@@ -189,10 +181,10 @@ export function composeExcerpt(config: ExcerptConfig): ComposedExcerpt {
 export function parseExcerpt(markdown: string): ExcerptSection[] | null {
   const sections: ExcerptSection[] = [];
   const lines = markdown.split("\n");
-  
+
   let currentAnchor: string | null = null;
   let currentQuoteLines: string[] = [];
-  let currentTitle: string | undefined = undefined;
+  let currentTitle: string | undefined;
 
   // Regex to detect start of a quote block: > **§n**: "text...
   const quoteStartRegex = /^>\s*(?:\*\*)?(§\d+)(?:\*\*)?:?\s*(.*)$/;
@@ -216,7 +208,7 @@ export function parseExcerpt(markdown: string): ExcerptSection[] | null {
           title: currentTitle,
         });
       }
-      
+
       // Start new quote
       currentAnchor = startMatch[1];
       currentQuoteLines = [startMatch[2]]; // Content after anchor
@@ -255,7 +247,10 @@ export function parseExcerpt(markdown: string): ExcerptSection[] | null {
 function cleanQuote(lines: string[]): string {
   let text = lines.join(" ").trim();
   // Strip surrounding quotes if present
-  if ((text.startsWith('"') && text.endsWith('"')) || (text.startsWith("'") && text.endsWith("'"))) {
+  if (
+    (text.startsWith('"') && text.endsWith('"')) ||
+    (text.startsWith("'") && text.endsWith("'"))
+  ) {
     text = text.slice(1, -1);
   }
   return text.trim();
@@ -307,7 +302,7 @@ function extractSectionQuote(section: TranscriptSection, maxWords: number = 150)
  * Truncate text to a maximum number of words.
  */
 function truncateToWords(text: string, maxWords: number): string {
-  const normalized = text.replace(/\s+/g, " ").trim().replaceAll("\"", "'");
+  const normalized = text.replace(/\s+/g, " ").trim().replaceAll('"', "'");
   const words = normalized.split(/\s+/);
   if (words.length <= maxWords) {
     return normalized;
@@ -392,14 +387,9 @@ export function buildExcerptFromSections(
     ordering?: "relevance" | "chronological";
     maxTotalWords?: number;
     maxQuoteWords?: number;
-  } = {}
+  } = {},
 ): ComposedExcerpt {
-  const {
-    theme,
-    ordering = "relevance",
-    maxTotalWords = 800,
-    maxQuoteWords = 150,
-  } = options;
+  const { theme, ordering = "relevance", maxTotalWords = 800, maxQuoteWords = 150 } = options;
 
   // Parse section IDs
   const ids = parseSectionIds(sectionIds);
@@ -444,7 +434,7 @@ export function buildExcerptFromSections(
 export function buildExcerptFromSearchHits(
   transcript: ParsedTranscript,
   hits: Array<{ sectionNumber: number; snippet?: string }>,
-  theme?: string
+  theme?: string,
 ): ComposedExcerpt {
   const excerptSections: ExcerptSection[] = [];
   const notFound: string[] = [];
@@ -460,7 +450,10 @@ export function buildExcerptFromSearchHits(
       continue;
     }
 
-    const quoteSource = hit.snippet && hit.snippet.trim().length > 0 ? hit.snippet : extractSectionQuote(section, 150);
+    const quoteSource =
+      hit.snippet && hit.snippet.trim().length > 0
+        ? hit.snippet
+        : extractSectionQuote(section, 150);
 
     excerptSections.push({
       anchor: `§${section.number}`,

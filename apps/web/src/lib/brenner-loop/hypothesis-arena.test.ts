@@ -1,18 +1,17 @@
-
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
+import { createHypothesisCard } from "./hypothesis";
 import {
-  generateArenaId,
-  generateTestResultId,
-  generateArenaTestId,
+  addCompetitor,
+  assessPredictionBoldness,
+  calculateScoreDelta,
   createArena,
   createArenaHypothesis,
-  addCompetitor,
-  recordTestResult,
-  calculateScoreDelta,
-  assessPredictionBoldness,
+  generateArenaId,
+  generateArenaTestId,
+  generateTestResultId,
   isHypothesisArena,
+  recordTestResult,
 } from "./hypothesis-arena";
-import { createHypothesisCard } from "./hypothesis";
 
 const MOCK_HYPOTHESIS = createHypothesisCard({
   id: "HC-RS20260105-001-v1",
@@ -79,7 +78,9 @@ describe("hypothesis-arena", () => {
         primaryHypothesis: MOCK_HYPOTHESIS,
       });
 
-      expect(() => addCompetitor(arena, MOCK_HYPOTHESIS, "user_added")).toThrow(/already in this arena/);
+      expect(() => addCompetitor(arena, MOCK_HYPOTHESIS, "user_added")).toThrow(
+        /already in this arena/,
+      );
     });
   });
 

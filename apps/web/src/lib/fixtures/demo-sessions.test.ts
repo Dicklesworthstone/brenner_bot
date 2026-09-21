@@ -2,16 +2,16 @@
  * Tests for Demo Session Fixtures
  */
 
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
 import {
   DEMO_SESSIONS,
-  getDemoThreadSummaries,
-  getDemoThreadMessages,
-  isDemoSession,
-  getDemoSession,
+  type DemoMessage,
   type DemoSession,
   type DemoThreadSummary,
-  type DemoMessage,
+  getDemoSession,
+  getDemoThreadMessages,
+  getDemoThreadSummaries,
+  isDemoSession,
 } from "./demo-sessions";
 
 describe("Demo Sessions Fixtures", () => {
@@ -102,7 +102,7 @@ describe("Demo Sessions Fixtures", () => {
 
     it("compiled sessions have hasArtifact=true", () => {
       const compiledSessions = DEMO_SESSIONS.filter(
-        (s) => s.summary.phase === "compiled" || s.summary.phase === "in_critique"
+        (s) => s.summary.phase === "compiled" || s.summary.phase === "in_critique",
       );
       expect(compiledSessions.length).toBeGreaterThan(0);
       for (const session of compiledSessions) {
@@ -112,7 +112,7 @@ describe("Demo Sessions Fixtures", () => {
 
     it("awaiting_responses sessions have pending acks", () => {
       const awaitingSessions = DEMO_SESSIONS.filter(
-        (s) => s.summary.phase === "awaiting_responses"
+        (s) => s.summary.phase === "awaiting_responses",
       );
       for (const session of awaitingSessions) {
         expect(session.summary.pendingAcks).toBeGreaterThan(0);
@@ -232,12 +232,10 @@ describe("Demo Sessions Fixtures", () => {
 
     it("compiled sessions have a COMPILED message", () => {
       const compiledSessions = DEMO_SESSIONS.filter(
-        (s) => s.summary.phase === "compiled" || s.summary.phase === "in_critique"
+        (s) => s.summary.phase === "compiled" || s.summary.phase === "in_critique",
       );
       for (const session of compiledSessions) {
-        const hasCompiled = session.messages.some((m) =>
-          m.subject.match(/COMPILED/i)
-        );
+        const hasCompiled = session.messages.some((m) => m.subject.match(/COMPILED/i));
         expect(hasCompiled).toBe(true);
       }
     });

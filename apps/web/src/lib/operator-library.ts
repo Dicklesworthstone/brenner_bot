@@ -144,7 +144,9 @@ function normalizeOperatorTitle(value: string): string {
 }
 
 function parsePromptModule(block: string): string | null {
-  const match = block.match(/\*\*Prompt module \(copy\/paste\)\*\*:\s*\n~~~text\n([\s\S]*?)\n~~~\s*/m);
+  const match = block.match(
+    /\*\*Prompt module \(copy\/paste\)\*\*:\s*\n~~~text\n([\s\S]*?)\n~~~\s*/m,
+  );
   return match ? match[1].trim() : null;
 }
 
@@ -177,13 +179,13 @@ function parseOperatorCardsFromSection(args: {
     const title = titleParts.join(" ").trim();
 
     const definitionMatch = block.match(
-      /\*\*Definition\*\*:\s*([\s\S]*?)(?=\n\s*\*\*When-to-Use Triggers\*\*:)/i
+      /\*\*Definition\*\*:\s*([\s\S]*?)(?=\n\s*\*\*When-to-Use Triggers\*\*:)/i,
     );
     const triggersMatch = block.match(
-      /\*\*When-to-Use Triggers\*\*:\s*([\s\S]*?)(?=\n\s*\*\*Failure Modes\*\*:)/i
+      /\*\*When-to-Use Triggers\*\*:\s*([\s\S]*?)(?=\n\s*\*\*Failure Modes\*\*:)/i,
     );
     const failureModesMatch = block.match(
-      /\*\*Failure Modes\*\*:\s*([\s\S]*?)(?=\n\s*\*\*(?:Prompt module \(copy\/paste\)|Canonical tag)\*\*:)/i
+      /\*\*Failure Modes\*\*:\s*([\s\S]*?)(?=\n\s*\*\*(?:Prompt module \(copy\/paste\)|Canonical tag)\*\*:)/i,
     );
     const promptModule = parsePromptModule(block);
 
@@ -191,7 +193,7 @@ function parseOperatorCardsFromSection(args: {
     // Match value on same line OR next line (but not spanning to next section)
     // Pattern: **Canonical tag**: [optional content on same line]\n[content on next line if not a section header]
     const canonicalTagMatch = block.match(
-      /\*\*Canonical tag\*\*:[ \t]*`?([^`\n]*)`?(?:\r?\n(?!\*\*)([^\n]+))?/i
+      /\*\*Canonical tag\*\*:[ \t]*`?([^`\n]*)`?(?:\r?\n(?!\*\*)([^\n]+))?/i,
     );
     const quoteBankAnchorsMatch = block.match(/\*\*Quote-bank anchors\*\*:\s*([^\n]+)/i);
     const transcriptAnchorsMatch = block.match(/\*\*Transcript Anchors\*\*:\s*([^\n]+)/i);
@@ -215,8 +217,8 @@ function parseOperatorCardsFromSection(args: {
     // Group 1 is same-line content, group 2 is next-line content
     // Prefer same-line content if non-empty, otherwise use next-line
     const canonicalTag = canonicalTagMatch
-      ? (canonicalTagMatch[1]?.trim() || canonicalTagMatch[2]?.trim())
-      : DERIVED_CANONICAL_TAG_BY_SYMBOL[symbol] ?? null;
+      ? canonicalTagMatch[1]?.trim() || canonicalTagMatch[2]?.trim()
+      : (DERIVED_CANONICAL_TAG_BY_SYMBOL[symbol] ?? null);
 
     if (!canonicalTag) {
       throw new Error(`Operator library: missing Canonical tag for ${headerLine}`);
@@ -257,15 +259,23 @@ export function parseOperatorCards(markdown: string): OperatorCard[] {
   }
 
   const derivedStart = markdown.indexOf("## Derived Operators", coreStart);
-  const coreSection = markdown.slice(coreStart, derivedStart === -1 ? markdown.length : derivedStart);
+  const coreSection = markdown.slice(
+    coreStart,
+    derivedStart === -1 ? markdown.length : derivedStart,
+  );
 
   const derivedSectionStart = derivedStart === -1 ? null : derivedStart;
   const compositionsStart =
-    derivedSectionStart === null ? -1 : markdown.indexOf("## Operator Compositions", derivedSectionStart);
+    derivedSectionStart === null
+      ? -1
+      : markdown.indexOf("## Operator Compositions", derivedSectionStart);
   const derivedSection =
     derivedSectionStart === null
       ? ""
-      : markdown.slice(derivedSectionStart, compositionsStart === -1 ? markdown.length : compositionsStart);
+      : markdown.slice(
+          derivedSectionStart,
+          compositionsStart === -1 ? markdown.length : compositionsStart,
+        );
 
   const cards: OperatorCard[] = [];
   cards.push(
@@ -297,7 +307,7 @@ export function parseOperatorCards(markdown: string): OperatorCard[] {
 export function parseOperatorLibrary(markdown: string): OperatorDefinition[] {
   // Ensure we still validate '## Core Operators' existence which parseOperatorCards does.
   const cards = parseOperatorCards(markdown);
-  return cards.filter(c => c.kind === "core");
+  return cards.filter((c) => c.kind === "core");
 }
 
 export function resolveOperatorCard(cards: OperatorCard[], query: string): OperatorCard | null {
@@ -317,7 +327,9 @@ export function resolveOperatorCard(cards: OperatorCard[], query: string): Opera
   const byNormalizedTitle = cards.find((c) => normalizeOperatorTitle(c.title) === normalizedQuery);
   if (byNormalizedTitle) return byNormalizedTitle;
 
-  const byContains = cards.find((c) => normalizeOperatorTitle(`${c.symbol} ${c.title}`) === normalizedQuery);
+  const byContains = cards.find(
+    (c) => normalizeOperatorTitle(`${c.symbol} ${c.title}`) === normalizedQuery,
+  );
   if (byContains) return byContains;
 
   return null;

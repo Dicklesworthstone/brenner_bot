@@ -5,21 +5,19 @@
  * @see brenner_bot-mqg7 (bead)
  */
 
-import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { randomUUID } from "node:crypto";
 import { promises as fs } from "fs";
-import { join } from "path";
 import { tmpdir } from "os";
-import { InterventionStorage } from "./intervention-storage";
+import { join } from "path";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import type { OperatorIntervention } from "../schemas/operator-intervention";
+import { InterventionStorage } from "./intervention-storage";
 
 // ============================================================================
 // Test Helpers
 // ============================================================================
 
-function makeIntervention(
-  overrides: Partial<OperatorIntervention> = {}
-): OperatorIntervention {
+function makeIntervention(overrides: Partial<OperatorIntervention> = {}): OperatorIntervention {
   return {
     id: "INT-TEST-001",
     session_id: "TEST",
@@ -72,7 +70,10 @@ describe("InterventionStorage", () => {
       await storage.saveIntervention(good);
 
       await fs.mkdir(join(tempDir, ".research", "interventions"), { recursive: true });
-      await fs.writeFile(join(tempDir, ".research", "interventions", "BAD-interventions.json"), "not-json");
+      await fs.writeFile(
+        join(tempDir, ".research", "interventions", "BAD-interventions.json"),
+        "not-json",
+      );
 
       const loaded = await storage.loadSessionInterventions("BAD");
       expect(loaded).toEqual([]);
@@ -118,7 +119,7 @@ describe("InterventionStorage", () => {
 
       expect(data.createdAt).not.toBe(data.updatedAt);
       expect(new Date(data.updatedAt).getTime()).toBeGreaterThan(
-        new Date(data.createdAt).getTime()
+        new Date(data.createdAt).getTime(),
       );
     });
 
@@ -238,7 +239,7 @@ describe("InterventionStorage", () => {
           id: "INT-TEST-002",
           severity: "major",
           type: "decision_override",
-        })
+        }),
       );
 
       const index = await storage.loadIndex();
@@ -264,7 +265,7 @@ describe("InterventionStorage", () => {
           severity: "critical",
           type: "session_control",
           operator_id: "admin",
-        })
+        }),
       );
 
       const index = await storage.loadIndex();
@@ -281,7 +282,7 @@ describe("InterventionStorage", () => {
         makeIntervention({
           reversed_at: "2025-12-30T11:00:00+00:00",
           reversed_by: "admin",
-        })
+        }),
       );
 
       const index = await storage.loadIndex();
@@ -336,10 +337,13 @@ describe("InterventionStorage", () => {
           session_id: sessionId,
           id: `INT-${sessionId}-${String(i + 1).padStart(3, "0")}`,
           rationale: `Concurrent intervention ${i + 1}`,
-        })
+        }),
       );
 
-      const concurrencyStorage = new InterventionStorage({ baseDir: tempDir, autoRebuildIndex: false });
+      const concurrencyStorage = new InterventionStorage({
+        baseDir: tempDir,
+        autoRebuildIndex: false,
+      });
       await Promise.all(interventions.map((iv) => concurrencyStorage.saveIntervention(iv)));
 
       const loaded = await concurrencyStorage.loadSessionInterventions(sessionId);
@@ -360,7 +364,7 @@ describe("InterventionStorage", () => {
           severity: "minor",
           type: "artifact_edit",
           operator_id: "alice",
-        })
+        }),
       );
       await storage.saveIntervention(
         makeIntervention({
@@ -368,7 +372,7 @@ describe("InterventionStorage", () => {
           severity: "major",
           type: "decision_override",
           operator_id: "bob",
-        })
+        }),
       );
       await storage.saveIntervention(
         makeIntervention({
@@ -376,7 +380,7 @@ describe("InterventionStorage", () => {
           severity: "critical",
           type: "session_control",
           operator_id: "alice",
-        })
+        }),
       );
     });
 
@@ -421,12 +425,8 @@ describe("InterventionStorage", () => {
     });
 
     it("returns correct session summary", async () => {
-      await storage.saveIntervention(
-        makeIntervention({ id: "INT-TEST-001", severity: "minor" })
-      );
-      await storage.saveIntervention(
-        makeIntervention({ id: "INT-TEST-002", severity: "major" })
-      );
+      await storage.saveIntervention(makeIntervention({ id: "INT-TEST-001", severity: "minor" }));
+      await storage.saveIntervention(makeIntervention({ id: "INT-TEST-002", severity: "major" }));
 
       const summary = await storage.getSessionSummary("TEST");
       expect(summary.total_count).toBe(2);
@@ -436,11 +436,9 @@ describe("InterventionStorage", () => {
     });
 
     it("identifies clean sessions", async () => {
+      await storage.saveIntervention(makeIntervention({ severity: "minor" }));
       await storage.saveIntervention(
-        makeIntervention({ severity: "minor" })
-      );
-      await storage.saveIntervention(
-        makeIntervention({ id: "INT-TEST-002", severity: "moderate" })
+        makeIntervention({ id: "INT-TEST-002", severity: "moderate" }),
       );
 
       const isClean = await storage.isCleanSession("TEST");
@@ -448,9 +446,7 @@ describe("InterventionStorage", () => {
     });
 
     it("identifies non-clean sessions", async () => {
-      await storage.saveIntervention(
-        makeIntervention({ severity: "critical" })
-      );
+      await storage.saveIntervention(makeIntervention({ severity: "critical" }));
 
       const isClean = await storage.isCleanSession("TEST");
       expect(isClean).toBe(false);
@@ -465,7 +461,7 @@ describe("InterventionStorage", () => {
           severity: "minor",
           type: "artifact_edit",
           operator_id: "alice",
-        })
+        }),
       );
       await storage.saveIntervention(
         makeIntervention({
@@ -474,7 +470,7 @@ describe("InterventionStorage", () => {
           type: "decision_override",
           operator_id: "bob",
           reversed_at: "2025-12-30T12:00:00+00:00",
-        })
+        }),
       );
 
       const stats = await storage.getStatistics();
@@ -492,24 +488,16 @@ describe("InterventionStorage", () => {
 
   describe("Bulk Operations", () => {
     it("gets all interventions across sessions", async () => {
-      await storage.saveIntervention(
-        makeIntervention({ id: "INT-S1-001", session_id: "S1" })
-      );
-      await storage.saveIntervention(
-        makeIntervention({ id: "INT-S2-001", session_id: "S2" })
-      );
+      await storage.saveIntervention(makeIntervention({ id: "INT-S1-001", session_id: "S1" }));
+      await storage.saveIntervention(makeIntervention({ id: "INT-S2-001", session_id: "S2" }));
 
       const all = await storage.getAllInterventions();
       expect(all).toHaveLength(2);
     });
 
     it("lists all session IDs with interventions", async () => {
-      await storage.saveIntervention(
-        makeIntervention({ id: "INT-S1-001", session_id: "S1" })
-      );
-      await storage.saveIntervention(
-        makeIntervention({ id: "INT-S2-001", session_id: "S2" })
-      );
+      await storage.saveIntervention(makeIntervention({ id: "INT-S1-001", session_id: "S1" }));
+      await storage.saveIntervention(makeIntervention({ id: "INT-S2-001", session_id: "S2" }));
 
       const sessions = await storage.listSessions();
       expect(sessions.sort()).toEqual(["S1", "S2"]);
@@ -520,24 +508,24 @@ describe("InterventionStorage", () => {
         makeIntervention({
           id: "INT-TEST-001",
           timestamp: "2025-12-30T08:00:00+00:00",
-        })
+        }),
       );
       await storage.saveIntervention(
         makeIntervention({
           id: "INT-TEST-002",
           timestamp: "2025-12-30T10:00:00+00:00",
-        })
+        }),
       );
       await storage.saveIntervention(
         makeIntervention({
           id: "INT-TEST-003",
           timestamp: "2025-12-30T12:00:00+00:00",
-        })
+        }),
       );
 
       const inRange = await storage.getInterventionsInRange(
         "2025-12-30T09:00:00+00:00",
-        "2025-12-30T11:00:00+00:00"
+        "2025-12-30T11:00:00+00:00",
       );
 
       expect(inRange).toHaveLength(1);
@@ -549,7 +537,7 @@ describe("InterventionStorage", () => {
     it("handles session IDs with special characters", async () => {
       const sessionId = "RS-2025/12/30";
       await storage.saveIntervention(
-        makeIntervention({ id: "INT-RS-2025_12_30-001", session_id: sessionId })
+        makeIntervention({ id: "INT-RS-2025_12_30-001", session_id: sessionId }),
       );
 
       const loaded = await storage.loadSessionInterventions(sessionId);

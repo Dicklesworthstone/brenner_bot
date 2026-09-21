@@ -9,11 +9,11 @@
  */
 
 import * as React from "react";
-import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import type { HypothesisCard } from "@/lib/brenner-loop/hypothesis";
 import type { ComparisonMatrix, HypothesisArena } from "@/lib/brenner-loop/hypothesis-arena";
 import { buildComparisonMatrix } from "@/lib/brenner-loop/hypothesis-arena";
+import { cn } from "@/lib/utils";
 import { HypothesisDiff } from "./HypothesisDiff";
 import { PredictionMatrix } from "./PredictionMatrix";
 
@@ -34,7 +34,10 @@ function ConfidenceBar({ value }: { value: number }) {
 
   return (
     <div className="h-2 w-full rounded-full bg-muted">
-      <div className={cn("h-2 rounded-full", color)} style={{ width: `${Math.min(100, Math.max(0, value))}%` }} />
+      <div
+        className={cn("h-2 rounded-full", color)}
+        style={{ width: `${Math.min(100, Math.max(0, value))}%` }}
+      />
     </div>
   );
 }
@@ -44,7 +47,9 @@ function HypothesisSummary({ label, hypothesis }: { label: string; hypothesis: H
 
   return (
     <div className="rounded-xl border bg-card p-4 shadow-sm">
-      <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{label}</div>
+      <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+        {label}
+      </div>
       <div className="mt-2 text-sm font-semibold text-foreground">{hypothesis.statement}</div>
       <div className="mt-3 text-xs text-muted-foreground">Mechanism</div>
       <div className="text-sm text-foreground">{hypothesis.mechanism}</div>
@@ -157,11 +162,7 @@ export function ComparisonView({
             </Button>
           )}
           {onResolve && (
-            <Button
-              size="sm"
-              onClick={handleResolve}
-              disabled={readonly || !winnerId}
-            >
+            <Button size="sm" onClick={handleResolve} disabled={readonly || !winnerId}>
               Resolve Competition
             </Button>
           )}

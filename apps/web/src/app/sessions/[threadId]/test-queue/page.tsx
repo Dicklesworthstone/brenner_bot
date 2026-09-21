@@ -11,17 +11,22 @@
  * @see brenner_bot-njjo.5
  */
 
-import * as React from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { cn } from "@/lib/utils";
+import * as React from "react";
 import { DemoFeaturePreview } from "@/components/sessions/DemoFeaturePreview";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { recordSessionResumeEntry } from "@/lib/brenner-loop";
 import { createHypothesisCard, generateHypothesisCardId } from "@/lib/brenner-loop/hypothesis";
@@ -32,7 +37,7 @@ import {
   getDiscriminativePowerStars,
   getFeasibilityColor,
 } from "@/lib/brenner-loop/operators/exclusion-test";
-import { loadAssumptionLedger, type AssumptionLedgerEntry } from "@/lib/brenner-loop/storage";
+import { type AssumptionLedgerEntry, loadAssumptionLedger } from "@/lib/brenner-loop/storage";
 import {
   addExclusionTestsToQueue,
   clearTestQueue,
@@ -40,12 +45,13 @@ import {
   isPredictionsLocked,
   loadTestQueue,
   lockQueueItemPredictions,
-  updateQueueItem,
   type TestQueueItem,
   type TestQueuePriority,
   type TestQueueStatus,
+  updateQueueItem,
 } from "@/lib/brenner-loop/test-queue";
 import { isDemoThreadId } from "@/lib/demo-mode";
+import { cn } from "@/lib/utils";
 
 // ============================================================================//
 // Helpers
@@ -176,7 +182,10 @@ function TestQueuePageContent({ threadId }: { threadId: string }) {
   const stats = React.useMemo(() => getTestQueueStats(items), [items]);
   const grouped = React.useMemo(() => groupByPriority(items), [items]);
 
-  const canGenerate = statement.trim().length >= 10 && mechanism.trim().length >= 10 && hypothesisSessionId.length > 0;
+  const canGenerate =
+    statement.trim().length >= 10 &&
+    mechanism.trim().length >= 10 &&
+    hypothesisSessionId.length > 0;
 
   const toggleSelected = (testId: string) => {
     setSelectedTestIds((prev) => {
@@ -255,7 +264,8 @@ function TestQueuePageContent({ threadId }: { threadId: string }) {
           </div>
           <h1 className="text-2xl font-bold tracking-tight">Test Queue</h1>
           <p className="text-sm text-muted-foreground">
-            Convert planned discriminative tests into executed evidence — with pre-registered predictions.
+            Convert planned discriminative tests into executed evidence — with pre-registered
+            predictions.
           </p>
         </div>
 
@@ -294,7 +304,8 @@ function TestQueuePageContent({ threadId }: { threadId: string }) {
             <Badge variant="secondary">adds to queue</Badge>
           </CardTitle>
           <CardDescription>
-            Provide a minimal hypothesis statement and mechanism, then select high-discriminative tests to enqueue.
+            Provide a minimal hypothesis statement and mechanism, then select high-discriminative
+            tests to enqueue.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -308,9 +319,7 @@ function TestQueuePageContent({ threadId }: { threadId: string }) {
                 placeholder="e.g., Increased X causes Y via mechanism M"
                 className="min-h-[110px]"
               />
-              <div className="text-xs text-muted-foreground">
-                Minimum 10 characters.
-              </div>
+              <div className="text-xs text-muted-foreground">Minimum 10 characters.</div>
             </div>
 
             <div className="space-y-2">
@@ -322,9 +331,7 @@ function TestQueuePageContent({ threadId }: { threadId: string }) {
                 placeholder="How would X produce Y? What is the causal pathway?"
                 className="min-h-[110px]"
               />
-              <div className="text-xs text-muted-foreground">
-                Minimum 10 characters.
-              </div>
+              <div className="text-xs text-muted-foreground">Minimum 10 characters.</div>
             </div>
           </div>
 
@@ -359,7 +366,9 @@ function TestQueuePageContent({ threadId }: { threadId: string }) {
                       onClick={() => toggleSelected(test.id)}
                       className={cn(
                         "w-full text-left rounded-xl border p-4 transition-colors",
-                        selected ? "border-primary bg-primary/5" : "border-border bg-card hover:bg-muted/30"
+                        selected
+                          ? "border-primary bg-primary/5"
+                          : "border-border bg-card hover:bg-muted/30",
                       )}
                     >
                       <div className="flex items-start justify-between gap-3">
@@ -372,7 +381,10 @@ function TestQueuePageContent({ threadId }: { threadId: string }) {
                             <Badge variant="outline">
                               {EXCLUSION_TEST_CATEGORY_LABELS[test.category]}
                             </Badge>
-                            <Badge variant="outline" className={getFeasibilityColor(test.feasibility)}>
+                            <Badge
+                              variant="outline"
+                              className={getFeasibilityColor(test.feasibility)}
+                            >
                               {test.feasibility}
                             </Badge>
                           </div>
@@ -381,7 +393,9 @@ function TestQueuePageContent({ threadId }: { threadId: string }) {
                         <div
                           className={cn(
                             "shrink-0 size-6 rounded-md border flex items-center justify-center text-xs font-bold",
-                            selected ? "border-primary text-primary bg-primary/10" : "border-border text-muted-foreground"
+                            selected
+                              ? "border-primary text-primary bg-primary/10"
+                              : "border-border text-muted-foreground",
                           )}
                         >
                           {selected ? "✓" : "+"}
@@ -389,11 +403,15 @@ function TestQueuePageContent({ threadId }: { threadId: string }) {
                       </div>
                       <div className="mt-3 grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
                         <div className="rounded-lg border border-border bg-muted/20 p-3">
-                          <div className="text-xs text-muted-foreground mb-1">If Hypothesis True</div>
+                          <div className="text-xs text-muted-foreground mb-1">
+                            If Hypothesis True
+                          </div>
                           <div className="text-foreground">{test.supportCondition}</div>
                         </div>
                         <div className="rounded-lg border border-border bg-muted/20 p-3">
-                          <div className="text-xs text-muted-foreground mb-1">If Hypothesis False</div>
+                          <div className="text-xs text-muted-foreground mb-1">
+                            If Hypothesis False
+                          </div>
                           <div className="text-foreground">{test.falsificationCondition}</div>
                         </div>
                       </div>
@@ -410,7 +428,8 @@ function TestQueuePageContent({ threadId }: { threadId: string }) {
         <div className="flex items-center justify-between gap-3">
           <h2 className="text-xl font-bold tracking-tight">Queue</h2>
           <div className="text-xs text-muted-foreground">
-            Tip: Lock predictions before progressing beyond <span className="font-mono text-foreground">queued</span>.
+            Tip: Lock predictions before progressing beyond{" "}
+            <span className="font-mono text-foreground">queued</span>.
           </div>
         </div>
 
@@ -452,15 +471,24 @@ function TestQueuePageContent({ threadId }: { threadId: string }) {
                                   <Badge variant="outline">
                                     {EXCLUSION_TEST_CATEGORY_LABELS[item.test.category]}
                                   </Badge>
-                                  <Badge variant="outline" className={getFeasibilityColor(item.test.feasibility)}>
+                                  <Badge
+                                    variant="outline"
+                                    className={getFeasibilityColor(item.test.feasibility)}
+                                  >
                                     {item.test.feasibility}
                                   </Badge>
                                   {locked ? (
-                                    <Badge variant="outline" className="border-success/40 text-success">
+                                    <Badge
+                                      variant="outline"
+                                      className="border-success/40 text-success"
+                                    >
                                       Predictions locked
                                     </Badge>
                                   ) : (
-                                    <Badge variant="outline" className="border-warning/40 text-warning">
+                                    <Badge
+                                      variant="outline"
+                                      className="border-warning/40 text-warning"
+                                    >
                                       Predictions unlocked
                                     </Badge>
                                   )}
@@ -471,7 +499,9 @@ function TestQueuePageContent({ threadId }: { threadId: string }) {
                                 <Button
                                   size="sm"
                                   variant={locked ? "secondary" : "default"}
-                                  onClick={() => setItems(lockQueueItemPredictions(queueSessionId, item.id))}
+                                  onClick={() =>
+                                    setItems(lockQueueItemPredictions(queueSessionId, item.id))
+                                  }
                                   disabled={lockDisabled}
                                 >
                                   {locked ? "Locked" : "Lock Predictions"}
@@ -498,7 +528,9 @@ function TestQueuePageContent({ threadId }: { threadId: string }) {
                                           variant="outline"
                                           className="max-w-full gap-2"
                                         >
-                                          <span className="font-mono text-[11px]">{assumptionId}</span>
+                                          <span className="font-mono text-[11px]">
+                                            {assumptionId}
+                                          </span>
                                           {entry?.statement && (
                                             <span className="text-[11px] text-muted-foreground line-clamp-1">
                                               {entry.statement}
@@ -516,15 +548,24 @@ function TestQueuePageContent({ threadId }: { threadId: string }) {
                                   </summary>
                                   <div className="mt-3 space-y-2">
                                     {assumptionLedger.map((assumption) => (
-                                      <label key={assumption.id} className="flex items-start gap-2 text-sm">
+                                      <label
+                                        key={assumption.id}
+                                        className="flex items-start gap-2 text-sm"
+                                      >
                                         <input
                                           type="checkbox"
                                           checked={item.assumptionIds.includes(assumption.id)}
                                           onChange={() => {
                                             const next = item.assumptionIds.includes(assumption.id)
-                                              ? item.assumptionIds.filter((id) => id !== assumption.id)
+                                              ? item.assumptionIds.filter(
+                                                  (id) => id !== assumption.id,
+                                                )
                                               : [...item.assumptionIds, assumption.id];
-                                            setItems(updateQueueItem(queueSessionId, item.id, { assumptionIds: next }));
+                                            setItems(
+                                              updateQueueItem(queueSessionId, item.id, {
+                                                assumptionIds: next,
+                                              }),
+                                            );
                                           }}
                                           className="mt-0.5 h-4 w-4 rounded border-border"
                                         />
@@ -552,7 +593,9 @@ function TestQueuePageContent({ threadId }: { threadId: string }) {
                                     const nextValue = e.currentTarget.value;
                                     if (nextValue !== item.predictionIfTrue) {
                                       setItems(
-                                        updateQueueItem(queueSessionId, item.id, { predictionIfTrue: nextValue })
+                                        updateQueueItem(queueSessionId, item.id, {
+                                          predictionIfTrue: nextValue,
+                                        }),
                                       );
                                     }
                                   }}
@@ -569,7 +612,9 @@ function TestQueuePageContent({ threadId }: { threadId: string }) {
                                     const nextValue = e.currentTarget.value;
                                     if (nextValue !== item.predictionIfFalse) {
                                       setItems(
-                                        updateQueueItem(queueSessionId, item.id, { predictionIfFalse: nextValue })
+                                        updateQueueItem(queueSessionId, item.id, {
+                                          predictionIfFalse: nextValue,
+                                        }),
                                       );
                                     }
                                   }}
@@ -584,22 +629,33 @@ function TestQueuePageContent({ threadId }: { threadId: string }) {
                                   value={item.status}
                                   onValueChange={(value) => {
                                     const nextStatus = value as TestQueueStatus;
-                                    setItems(updateQueueItem(queueSessionId, item.id, { status: nextStatus }));
+                                    setItems(
+                                      updateQueueItem(queueSessionId, item.id, {
+                                        status: nextStatus,
+                                      }),
+                                    );
                                   }}
                                 >
                                   <SelectTrigger>
                                     <SelectValue placeholder="Select status" />
                                   </SelectTrigger>
                                   <SelectContent>
-                                    {(Object.keys(STATUS_LABELS) as TestQueueStatus[]).map((status) => {
-                                      const disabled = !locked && STATUSES_REQUIRING_LOCK.has(status);
-                                      return (
-                                        <SelectItem key={status} value={status} disabled={disabled}>
-                                          {STATUS_LABELS[status]}
-                                          {!locked && disabled ? " (lock required)" : ""}
-                                        </SelectItem>
-                                      );
-                                    })}
+                                    {(Object.keys(STATUS_LABELS) as TestQueueStatus[]).map(
+                                      (status) => {
+                                        const disabled =
+                                          !locked && STATUSES_REQUIRING_LOCK.has(status);
+                                        return (
+                                          <SelectItem
+                                            key={status}
+                                            value={status}
+                                            disabled={disabled}
+                                          >
+                                            {STATUS_LABELS[status]}
+                                            {!locked && disabled ? " (lock required)" : ""}
+                                          </SelectItem>
+                                        );
+                                      },
+                                    )}
                                   </SelectContent>
                                 </Select>
                               </div>
@@ -610,7 +666,9 @@ function TestQueuePageContent({ threadId }: { threadId: string }) {
                                   value={item.priority}
                                   onValueChange={(value) => {
                                     setItems(
-                                      updateQueueItem(queueSessionId, item.id, { priority: value as TestQueuePriority })
+                                      updateQueueItem(queueSessionId, item.id, {
+                                        priority: value as TestQueuePriority,
+                                      }),
                                     );
                                   }}
                                 >
@@ -635,7 +693,11 @@ function TestQueuePageContent({ threadId }: { threadId: string }) {
                                   onBlur={(e) => {
                                     const nextValue = e.currentTarget.value.trim();
                                     if (nextValue !== (item.assignedTo ?? "")) {
-                                      setItems(updateQueueItem(queueSessionId, item.id, { assignedTo: nextValue || undefined }));
+                                      setItems(
+                                        updateQueueItem(queueSessionId, item.id, {
+                                          assignedTo: nextValue || undefined,
+                                        }),
+                                      );
                                     }
                                   }}
                                 />
@@ -651,7 +713,11 @@ function TestQueuePageContent({ threadId }: { threadId: string }) {
                                   onBlur={(e) => {
                                     const nextValue = e.currentTarget.value;
                                     if (nextValue !== (item.dueDate ?? "")) {
-                                      setItems(updateQueueItem(queueSessionId, item.id, { dueDate: nextValue || undefined }));
+                                      setItems(
+                                        updateQueueItem(queueSessionId, item.id, {
+                                          dueDate: nextValue || undefined,
+                                        }),
+                                      );
                                     }
                                   }}
                                 />
@@ -665,7 +731,11 @@ function TestQueuePageContent({ threadId }: { threadId: string }) {
                                   onBlur={(e) => {
                                     const nextValue = e.currentTarget.value.trim();
                                     if (nextValue !== (item.estimatedEffort ?? "")) {
-                                      setItems(updateQueueItem(queueSessionId, item.id, { estimatedEffort: nextValue || undefined }));
+                                      setItems(
+                                        updateQueueItem(queueSessionId, item.id, {
+                                          estimatedEffort: nextValue || undefined,
+                                        }),
+                                      );
                                     }
                                   }}
                                 />
@@ -673,7 +743,9 @@ function TestQueuePageContent({ threadId }: { threadId: string }) {
                             </div>
 
                             <div className="rounded-lg border border-border bg-muted/20 p-3 text-sm">
-                              <div className="text-xs text-muted-foreground mb-1">Test Description</div>
+                              <div className="text-xs text-muted-foreground mb-1">
+                                Test Description
+                              </div>
                               <div className="text-foreground">{item.test.description}</div>
                             </div>
                           </CardContent>

@@ -1,22 +1,19 @@
-import { describe, test, expect, beforeEach, afterEach } from "vitest";
 import { randomUUID } from "node:crypto";
 import { promises as fs } from "fs";
-import { join } from "path";
 import { tmpdir } from "os";
+import { join } from "path";
+import { afterEach, beforeEach, describe, expect, test } from "vitest";
 import {
-  CritiqueStorage,
-  type SessionCritiqueFile,
-} from "./critique-storage";
-import {
+  acceptCritique,
+  addressCritique,
+  type Critique,
   createCritique,
+  createFramingCritique,
   createHypothesisCritique,
   createTestCritique,
-  createFramingCritique,
-  addressCritique,
   dismissCritique,
-  acceptCritique,
-  type Critique,
 } from "../schemas/critique";
+import { CritiqueStorage, type SessionCritiqueFile } from "./critique-storage";
 
 /**
  * Tests for Critique Storage Layer
@@ -39,7 +36,7 @@ async function createTestCritiqueData(
     targetId: string;
     severity: "minor" | "moderate" | "serious" | "critical";
     status: "active" | "addressed" | "dismissed" | "accepted";
-  }> = {}
+  }> = {},
 ): Promise<Critique> {
   const sessionId = overrides.sessionId ?? "TEST";
   const id = overrides.id ?? `C-${sessionId}-001`;
@@ -290,18 +287,17 @@ describe("Query by Status", () => {
   beforeEach(async () => {
     // Set up test data with different statuses
     const active = await createTestCritiqueData({ id: "C-TEST-001" });
-    const addressed = addressCritique(
-      await createTestCritiqueData({ id: "C-TEST-002" }),
-      { text: "This has been addressed" }
-    );
+    const addressed = addressCritique(await createTestCritiqueData({ id: "C-TEST-002" }), {
+      text: "This has been addressed",
+    });
     const dismissed = dismissCritique(
       await createTestCritiqueData({ id: "C-TEST-003" }),
-      "Invalid critique"
+      "Invalid critique",
     );
     const accepted = acceptCritique(
       await createTestCritiqueData({ id: "C-TEST-004" }),
       "modified",
-      "Changes have been made"
+      "Changes have been made",
     );
 
     await storage.saveSessionCritiques("TEST", [active, addressed, dismissed, accepted]);
@@ -409,7 +405,12 @@ describe("Query by Target", () => {
       sessionId: "TEST",
     });
 
-    await storage.saveSessionCritiques("TEST", [h1Critique, h2Critique, testCritique, framingCritique]);
+    await storage.saveSessionCritiques("TEST", [
+      h1Critique,
+      h2Critique,
+      testCritique,
+      framingCritique,
+    ]);
     await storage.rebuildIndex();
   });
 
@@ -470,7 +471,7 @@ describe("Combined Queries", () => {
         severity: "serious",
         sessionId: "TEST",
       }),
-      { text: "This was addressed" }
+      { text: "This was addressed" },
     );
 
     const activeMinor = createHypothesisCritique({
@@ -654,7 +655,10 @@ describe("Auto-Rebuild Index", () => {
 
     // Index should exist
     const indexPath = join(testDir, ".research", "critique-index.json");
-    const exists = await fs.access(indexPath).then(() => true).catch(() => false);
+    const exists = await fs
+      .access(indexPath)
+      .then(() => true)
+      .catch(() => false);
     expect(exists).toBe(true);
   });
 
@@ -664,7 +668,10 @@ describe("Auto-Rebuild Index", () => {
 
     // Index should not exist
     const indexPath = join(testDir, ".research", "critique-index.json");
-    const exists = await fs.access(indexPath).then(() => true).catch(() => false);
+    const exists = await fs
+      .access(indexPath)
+      .then(() => true)
+      .catch(() => false);
     expect(exists).toBe(false);
   });
 });
@@ -720,8 +727,8 @@ describe("Concurrency", () => {
         createTestCritiqueData({
           sessionId,
           id: `C-${sessionId}-${String(i + 1).padStart(3, "0")}`,
-        })
-      )
+        }),
+      ),
     );
 
     await Promise.all(critiques.map((c) => storage.saveCritique(c)));

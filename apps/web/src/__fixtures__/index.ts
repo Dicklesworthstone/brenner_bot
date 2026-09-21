@@ -35,29 +35,29 @@
 // ============================================================================
 
 export {
+  comprehensiveTranscript,
+  type DistillationDocument,
   // Types
   type DocumentSection,
-  type TranscriptDocument,
-  type DistillationDocument,
-  type QuoteBankEntry,
-  type QuoteBankDocument,
-  type MetapromptDocument,
-  // Transcript fixtures
-  minimalTranscript,
-  comprehensiveTranscript,
   emptyTranscript,
-  // Distillation fixtures
-  opusDistillation,
-  gptDistillation,
   geminiDistillation,
-  // Quote bank fixtures
-  quoteBankFixture,
+  gptDistillation,
+  type MetapromptDocument,
   // Metaprompt fixtures
   metapromptFixture,
-  // Raw markdown (for parser testing)
-  rawTranscriptMarkdown,
+  // Transcript fixtures
+  minimalTranscript,
+  // Distillation fixtures
+  opusDistillation,
+  type QuoteBankDocument,
+  type QuoteBankEntry,
+  // Quote bank fixtures
+  quoteBankFixture,
   rawMultiQuoteMarkdown,
   rawNoSectionsMarkdown,
+  // Raw markdown (for parser testing)
+  rawTranscriptMarkdown,
+  type TranscriptDocument,
 } from "./documents";
 
 // ============================================================================
@@ -65,33 +65,33 @@ export {
 // ============================================================================
 
 export {
+  // Session fixtures
+  activeSessionFixture,
+  cancelledSessionFixture,
+  completedSessionFixture,
+  draftArtifactFixture,
+  emptyArtifactFixture,
+  errorSessionFixture,
+  pendingSessionFixture,
+  type Session,
+  type SessionExcerpt,
+  type SessionParticipant,
   // Types
   type SessionStatus,
-  type SessionParticipant,
-  type SessionExcerpt,
-  type Session,
-  // Research thread
-  sampleResearchThread,
-  // Hypothesis fixtures
-  sampleHypotheses,
-  // Test fixtures
-  sampleTests,
   // Assumption fixtures
   sampleAssumptions,
   // Critique fixtures
   sampleCritiques,
+  // Hypothesis fixtures
+  sampleHypotheses,
   // Prediction fixtures
   samplePredictions,
+  // Research thread
+  sampleResearchThread,
+  // Test fixtures
+  sampleTests,
   // Complete artifact fixtures
   validArtifactFixture,
-  draftArtifactFixture,
-  emptyArtifactFixture,
-  // Session fixtures
-  activeSessionFixture,
-  completedSessionFixture,
-  errorSessionFixture,
-  pendingSessionFixture,
-  cancelledSessionFixture,
 } from "./sessions";
 
 // ============================================================================
@@ -99,28 +99,28 @@ export {
 // ============================================================================
 
 export {
-  // Types
-  type UserRole,
-  type User,
-  type UserPreferences,
   type AuthSession,
-  type CloudflareAccessPayload,
+  adminAuthSessionFixture,
+  adminUserFixture,
   // User fixtures
   authenticatedUserFixture,
-  adminUserFixture,
-  observerUserFixture,
-  guestUserFixture,
-  minimalUserFixture,
-  // Auth session fixtures
-  validAuthSessionFixture,
+  type CloudflareAccessPayload,
   expiredAuthSessionFixture,
-  adminAuthSessionFixture,
-  // Cloudflare Access fixtures
-  validCloudflarePayloadFixture,
   expiredCloudflarePayloadFixture,
+  guestUserFixture,
   invalidAudienceCloudflarePayloadFixture,
+  minimalUserFixture,
+  observerUserFixture,
   // Permission matrix
   permissionMatrixFixture,
+  type User,
+  type UserPreferences,
+  // Types
+  type UserRole,
+  // Auth session fixtures
+  validAuthSessionFixture,
+  // Cloudflare Access fixtures
+  validCloudflarePayloadFixture,
 } from "./users";
 
 // ============================================================================
@@ -128,24 +128,19 @@ export {
 // ============================================================================
 
 export {
+  type AgentMailInbox,
   // Types
   type AgentMailMessage,
-  type AgentMailInbox,
   type AgentMailThread,
   type AgentProfile,
-  type JsonRpcResponse,
-  type JsonRpcError,
+  agentListFixture,
   // Agent Mail success fixtures
   agentMailInboxFixture,
-  emptyInboxFixture,
   agentMailThreadFixture,
-  agentProfileFixture,
-  agentListFixture,
   // Agent Mail error fixtures
   agentNotFoundErrorFixture,
-  projectNotFoundErrorFixture,
-  fileReservationConflictErrorFixture,
-  rateLimitErrorFixture,
+  agentProfileFixture,
+  emptyInboxFixture,
   // HTTP error fixtures
   error400Fixture,
   error401Fixture,
@@ -158,11 +153,16 @@ export {
   error502Fixture,
   error503Fixture,
   error504Fixture,
+  fileReservationConflictErrorFixture,
+  type JsonRpcError,
+  type JsonRpcResponse,
+  jsonRpcErrorFixture,
+  jsonRpcMethodNotFoundFixture,
+  jsonRpcParseErrorFixture,
   // JSON-RPC fixtures
   jsonRpcSuccessFixture,
-  jsonRpcErrorFixture,
-  jsonRpcParseErrorFixture,
-  jsonRpcMethodNotFoundFixture,
+  projectNotFoundErrorFixture,
+  rateLimitErrorFixture,
 } from "./api";
 
 // ============================================================================
@@ -170,32 +170,32 @@ export {
 // ============================================================================
 
 export {
-  // Utilities
-  generateId,
-  resetIdCounter,
-  generateTimestamp,
-  // Document factories
-  createTranscriptDocument,
-  createDistillationDocument,
-  // Session factories
-  createSession,
-  createParticipant,
-  createExcerpt,
-  // Artifact factories
-  createArtifactMetadata,
-  createHypothesis,
-  createTest,
-  createAssumption,
-  createCritique,
-  createPrediction,
-  createResearchThread,
-  createArtifact,
-  createValidArtifact,
-  // User factories
-  createUser,
-  createAuthSession,
+  createAgentMailInbox,
   // Agent Mail factories
   createAgentMailMessage,
-  createAgentMailInbox,
   createAgentProfile,
+  createArtifact,
+  // Artifact factories
+  createArtifactMetadata,
+  createAssumption,
+  createAuthSession,
+  createCritique,
+  createDistillationDocument,
+  createExcerpt,
+  createHypothesis,
+  createParticipant,
+  createPrediction,
+  createResearchThread,
+  // Session factories
+  createSession,
+  createTest,
+  // Document factories
+  createTranscriptDocument,
+  // User factories
+  createUser,
+  createValidArtifact,
+  // Utilities
+  generateId,
+  generateTimestamp,
+  resetIdCounter,
 } from "./factories";

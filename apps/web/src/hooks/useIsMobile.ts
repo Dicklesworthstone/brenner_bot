@@ -26,9 +26,7 @@ function checkUserAgent(): boolean {
   if (typeof navigator === "undefined") return false;
 
   const ua = navigator.userAgent.toLowerCase();
-  return /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini|mobile/i.test(
-    ua
-  );
+  return /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini|mobile/i.test(ua);
 }
 
 /**
@@ -54,8 +52,7 @@ export interface UseIsMobileOptions {
 }
 
 export function useIsMobile(options: UseIsMobileOptions = {}): boolean {
-  const { breakpoint = MOBILE_BREAKPOINT, includeTouchDevices = false } =
-    options;
+  const { breakpoint = MOBILE_BREAKPOINT, includeTouchDevices = false } = options;
 
   // Initial state: use user agent for SSR-safe guess
   const [isMobile, setIsMobile] = React.useState(() => {
@@ -98,9 +95,7 @@ export function useIsMobile(options: UseIsMobileOptions = {}): boolean {
  * Simple hook that just checks viewport width.
  * Use this when you only care about screen size, not device type.
  */
-export function useIsSmallScreen(
-  breakpoint: number = MOBILE_BREAKPOINT
-): boolean {
+export function useIsSmallScreen(breakpoint: number = MOBILE_BREAKPOINT): boolean {
   const [isSmall, setIsSmall] = React.useState(() => {
     if (typeof window === "undefined") return false;
     return window.innerWidth < breakpoint;

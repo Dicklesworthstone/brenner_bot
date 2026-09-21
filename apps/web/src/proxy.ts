@@ -86,7 +86,8 @@ export function proxy(request: NextRequest) {
 
     // Check 2: Cloudflare Access headers (only when explicitly trusted) OR shared secret
     const authorized =
-      (shouldTrustCloudflareAccessHeaders() && hasCloudflareAccessHeaders(request)) || hasValidLabSecret(request);
+      (shouldTrustCloudflareAccessHeaders() && hasCloudflareAccessHeaders(request)) ||
+      hasValidLabSecret(request);
     if (!authorized) {
       // Fail closed without revealing which auth layer is missing
       return new NextResponse("Not found", { status: 404 });

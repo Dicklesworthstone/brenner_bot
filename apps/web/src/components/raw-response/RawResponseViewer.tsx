@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect, useMemo, useRef, type ReactNode } from "react";
-import { SectionReference } from "@/components/section-reference";
+import { type ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import { JargonText } from "@/components/jargon-text";
+import { SectionReference } from "@/components/section-reference";
 
 // ============================================================================
 // TYPES
@@ -85,7 +85,15 @@ function ClaudeIcon({ className = "size-5" }: { className?: string }) {
 
 function GeminiIcon({ className = "size-5" }: { className?: string }) {
   return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg
+      className={className}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
       <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
     </svg>
   );
@@ -93,31 +101,67 @@ function GeminiIcon({ className = "size-5" }: { className?: string }) {
 
 function ClockIcon({ className = "size-4" }: { className?: string }) {
   return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+    <svg
+      className={className}
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+      strokeWidth={2}
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"
+      />
     </svg>
   );
 }
 
 function DocumentIcon({ className = "size-4" }: { className?: string }) {
   return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+    <svg
+      className={className}
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+      strokeWidth={2}
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"
+      />
     </svg>
   );
 }
 
 function ListIcon({ className = "size-4" }: { className?: string }) {
   return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zM3.75 12h.007v.008H3.75V12zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm-.375 5.25h.007v.008H3.75v-.008zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
+    <svg
+      className={className}
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+      strokeWidth={2}
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zM3.75 12h.007v.008H3.75V12zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm-.375 5.25h.007v.008H3.75v-.008zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z"
+      />
     </svg>
   );
 }
 
 function ChevronUpIcon({ className = "size-4" }: { className?: string }) {
   return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+    <svg
+      className={className}
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+      strokeWidth={2}
+    >
       <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 15.75l7.5-7.5 7.5 7.5" />
     </svg>
   );
@@ -161,7 +205,7 @@ function renderInlineMarkdown(text: string): ReactNode {
       parts.push(
         <strong key={key++} className="font-semibold text-foreground">
           {renderInlineMarkdown(boldMatch[1])}
-        </strong>
+        </strong>,
       );
       remaining = remaining.slice(boldMatch[0].length);
       continue;
@@ -173,7 +217,7 @@ function renderInlineMarkdown(text: string): ReactNode {
       parts.push(
         <em key={key++} className="italic text-foreground/90">
           {renderInlineMarkdown(italicMatch[1])}
-        </em>
+        </em>,
       );
       remaining = remaining.slice(italicMatch[0].length);
       continue;
@@ -183,9 +227,12 @@ function renderInlineMarkdown(text: string): ReactNode {
     const codeMatch = remaining.match(/^`([^`]+?)`/);
     if (codeMatch) {
       parts.push(
-        <code key={key++} className="px-1.5 py-0.5 rounded-md bg-muted font-mono text-[0.9em] text-foreground/95">
+        <code
+          key={key++}
+          className="px-1.5 py-0.5 rounded-md bg-muted font-mono text-[0.9em] text-foreground/95"
+        >
           {codeMatch[1]}
-        </code>
+        </code>,
       );
       remaining = remaining.slice(codeMatch[0].length);
       continue;
@@ -211,7 +258,7 @@ function renderInlineMarkdown(text: string): ReactNode {
           rel={normalized.external ? "noopener noreferrer" : undefined}
         >
           <JargonText>{linkMatch[1]}</JargonText>
-        </a>
+        </a>,
       );
       remaining = remaining.slice(linkMatch[0].length);
       continue;
@@ -220,12 +267,7 @@ function renderInlineMarkdown(text: string): ReactNode {
     // Section reference: §42
     const sectionRefMatch = remaining.match(/^§(\d+)/);
     if (sectionRefMatch) {
-      parts.push(
-        <SectionReference
-          key={key++}
-          sectionNumber={parseInt(sectionRefMatch[1], 10)}
-        />
-      );
+      parts.push(<SectionReference key={key++} sectionNumber={parseInt(sectionRefMatch[1], 10)} />);
       remaining = remaining.slice(sectionRefMatch[0].length);
       continue;
     }
@@ -395,7 +437,11 @@ function ContentBlockRenderer({ block }: { block: ContentBlock }) {
         6: "text-sm font-semibold mt-4 mb-1.5",
       };
       const sizeClass = sizeClasses[level] || sizeClasses[2];
-      const id = block.text?.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || undefined;
+      const id =
+        block.text
+          ?.toLowerCase()
+          .replace(/[^a-z0-9]+/g, "-")
+          .replace(/^-|-$/g, "") || undefined;
       return (
         <Tag id={id} className={`${sizeClass} text-foreground scroll-mt-24`}>
           {renderInlineMarkdown(block.text || "")}
@@ -483,14 +529,22 @@ function Hero({ data }: HeroProps) {
   const Icon = config.icon;
 
   return (
-    <div className={`relative overflow-hidden rounded-2xl sm:rounded-3xl border ${config.borderColor} bg-gradient-to-br ${config.gradientFrom} ${config.gradientTo} to-transparent mb-8 sm:mb-10 lg:mb-12`}>
+    <div
+      className={`relative overflow-hidden rounded-2xl sm:rounded-3xl border ${config.borderColor} bg-gradient-to-br ${config.gradientFrom} ${config.gradientTo} to-transparent mb-8 sm:mb-10 lg:mb-12`}
+    >
       {/* Decorative orbs */}
-      <div className={`absolute -top-20 -right-20 w-64 h-64 ${config.bgColor} rounded-full blur-3xl opacity-50`} />
-      <div className={`absolute -bottom-20 -left-20 w-48 h-48 ${config.bgColor} rounded-full blur-3xl opacity-30`} />
+      <div
+        className={`absolute -top-20 -right-20 w-64 h-64 ${config.bgColor} rounded-full blur-3xl opacity-50`}
+      />
+      <div
+        className={`absolute -bottom-20 -left-20 w-48 h-48 ${config.bgColor} rounded-full blur-3xl opacity-30`}
+      />
 
       <div className="relative px-5 py-8 sm:px-8 sm:py-10 lg:px-10 lg:py-12">
         {/* Model badge */}
-        <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full ${config.bgColor} border ${config.borderColor} ${config.color} text-sm font-medium mb-5`}>
+        <div
+          className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full ${config.bgColor} border ${config.borderColor} ${config.color} text-sm font-medium mb-5`}
+        >
           <Icon className="size-4" />
           <span>{config.name}</span>
           <span className="mx-1 text-current/30">•</span>
@@ -696,7 +750,7 @@ export function RawResponseViewer({ data }: RawResponseViewerProps) {
           }
         });
       },
-      { rootMargin: "-20% 0px -70% 0px" }
+      { rootMargin: "-20% 0px -70% 0px" },
     );
 
     const headings = contentRef.current?.querySelectorAll("h1, h2, h3");
@@ -745,20 +799,22 @@ export function RawResponseViewer({ data }: RawResponseViewerProps) {
  * Strip inline markdown formatting for clean plaintext display (e.g., TOC titles).
  */
 function stripInlineMarkdownForTOC(text: string): string {
-  return text
-    // Remove bold: **text** or __text__
-    .replace(/\*\*(.+?)\*\*/g, "$1")
-    .replace(/__(.+?)__/g, "$1")
-    // Remove italic: *text* or _text_
-    .replace(/(?<!\*)\*([^*\n]+?)\*(?!\*)/g, "$1")
-    .replace(/(?<!_)_([^_\n]+?)_(?!_)/g, "$1")
-    // Remove inline code: `text`
-    .replace(/`([^`]+?)`/g, "$1")
-    // Convert links [text](url) to just text
-    .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1")
-    // Clean up any double spaces
-    .replace(/\s+/g, " ")
-    .trim();
+  return (
+    text
+      // Remove bold: **text** or __text__
+      .replace(/\*\*(.+?)\*\*/g, "$1")
+      .replace(/__(.+?)__/g, "$1")
+      // Remove italic: *text* or _text_
+      .replace(/(?<!\*)\*([^*\n]+?)\*(?!\*)/g, "$1")
+      .replace(/(?<!_)_([^_\n]+?)_(?!_)/g, "$1")
+      // Remove inline code: `text`
+      .replace(/`([^`]+?)`/g, "$1")
+      // Convert links [text](url) to just text
+      .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1")
+      // Clean up any double spaces
+      .replace(/\s+/g, " ")
+      .trim()
+  );
 }
 
 export function parseRawResponse(content: string, docId: string): RawResponseData {
@@ -801,7 +857,10 @@ export function parseRawResponse(content: string, docId: string): RawResponseDat
     const rawTitle = match[2];
     // Strip markdown formatting for clean TOC display
     const titleText = stripInlineMarkdownForTOC(rawTitle);
-    const id = titleText.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+    const id = titleText
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-|-$/g, "");
     sections.push({ id, level, title: titleText, content: "" });
   }
 

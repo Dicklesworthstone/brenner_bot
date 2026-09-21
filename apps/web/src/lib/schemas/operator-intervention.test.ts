@@ -7,17 +7,17 @@
 
 import { describe, expect, test } from "vitest";
 import {
-  OperatorInterventionSchema,
-  InterventionSummarySchema,
+  aggregateInterventions,
+  createEmptyInterventionSummary,
   createInterventionId,
   determineInterventionSeverity,
-  createEmptyInterventionSummary,
-  aggregateInterventions,
-  validateIntervention,
+  type InterventionSeverity,
+  InterventionSummarySchema,
+  type InterventionType,
   isCleanSession,
   type OperatorIntervention,
-  type InterventionType,
-  type InterventionSeverity,
+  OperatorInterventionSchema,
+  validateIntervention,
 } from "./operator-intervention";
 
 // ============================================================================
@@ -25,7 +25,7 @@ import {
 // ============================================================================
 
 function makeValidIntervention(
-  overrides: Partial<OperatorIntervention> = {}
+  overrides: Partial<OperatorIntervention> = {},
 ): OperatorIntervention {
   return {
     id: "INT-RS20251230-001",
@@ -183,15 +183,15 @@ describe("determineInterventionSeverity", () => {
   });
 
   test("hypothesis edit is major", () => {
-    expect(
-      determineInterventionSeverity("artifact_edit", { item_type: "hypothesis" })
-    ).toBe("major");
+    expect(determineInterventionSeverity("artifact_edit", { item_type: "hypothesis" })).toBe(
+      "major",
+    );
   });
 
   test("hypothesis injection is major", () => {
-    expect(
-      determineInterventionSeverity("delta_injection", { item_type: "hypothesis" })
-    ).toBe("major");
+    expect(determineInterventionSeverity("delta_injection", { item_type: "hypothesis" })).toBe(
+      "major",
+    );
   });
 
   test("delta_exclusion is moderate", () => {
@@ -199,9 +199,7 @@ describe("determineInterventionSeverity", () => {
   });
 
   test("artifact_edit with item_type is moderate", () => {
-    expect(
-      determineInterventionSeverity("artifact_edit", { item_type: "test" })
-    ).toBe("moderate");
+    expect(determineInterventionSeverity("artifact_edit", { item_type: "test" })).toBe("moderate");
   });
 
   test("artifact_edit without item_type is minor", () => {

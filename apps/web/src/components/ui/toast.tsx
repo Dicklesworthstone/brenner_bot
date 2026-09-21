@@ -18,13 +18,21 @@ const XIcon = () => (
 
 const InfoIcon = () => (
   <svg className="size-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z" />
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z"
+    />
   </svg>
 );
 
 const WarningIcon = () => (
   <svg className="size-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"
+    />
   </svg>
 );
 
@@ -69,22 +77,14 @@ export function useToast() {
     toast: context.addToast,
     success: (title: string, message?: string) =>
       context.addToast({ type: "success", title, message }),
-    error: (title: string, message?: string) =>
-      context.addToast({ type: "error", title, message }),
-    info: (title: string, message?: string) =>
-      context.addToast({ type: "info", title, message }),
+    error: (title: string, message?: string) => context.addToast({ type: "error", title, message }),
+    info: (title: string, message?: string) => context.addToast({ type: "info", title, message }),
     warning: (title: string, message?: string) =>
       context.addToast({ type: "warning", title, message }),
   };
 }
 
-function ToastItem({
-  toast,
-  onRemove,
-}: {
-  toast: Toast;
-  onRemove: () => void;
-}) {
+function ToastItem({ toast, onRemove }: { toast: Toast; onRemove: () => void }) {
   const [exiting, setExiting] = React.useState(false);
 
   React.useEffect(() => {
@@ -117,28 +117,21 @@ function ToastItem({
 
   return (
     <div
-      className={cn(
-        "toast relative",
-        `toast-${toast.type}`,
-        exiting && "toast-exit"
-      )}
+      className={cn("toast relative", `toast-${toast.type}`, exiting && "toast-exit")}
       role="alert"
     >
       <span className="toast-icon">{icons[toast.type]}</span>
       <div className="toast-content">
         <div className="toast-title">{toast.title}</div>
-        {toast.message && (
-          <div className="toast-message">{toast.message}</div>
-        )}
+        {toast.message && <div className="toast-message">{toast.message}</div>}
       </div>
-      <button
-        onClick={handleClose}
-        className="toast-close"
-        aria-label="Close notification"
-      >
+      <button onClick={handleClose} className="toast-close" aria-label="Close notification">
         <CloseIcon />
       </button>
-      <div className="toast-progress" style={{ animationDuration: `${toast.duration ?? 5000}ms` }} />
+      <div
+        className="toast-progress"
+        style={{ animationDuration: `${toast.duration ?? 5000}ms` }}
+      />
     </div>
   );
 }
@@ -165,11 +158,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
       {children}
       <div className="toast-container">
         {toasts.map((toast) => (
-          <ToastItem
-            key={toast.id}
-            toast={toast}
-            onRemove={() => removeToast(toast.id)}
-          />
+          <ToastItem key={toast.id} toast={toast} onRemove={() => removeToast(toast.id)} />
         ))}
       </div>
     </ToastContext.Provider>
@@ -207,11 +196,7 @@ export function Toaster() {
   return (
     <div className="toast-container">
       {toasts.map((toast) => (
-        <ToastItem
-          key={toast.id}
-          toast={toast}
-          onRemove={() => removeToast(toast.id)}
-        />
+        <ToastItem key={toast.id} toast={toast} onRemove={() => removeToast(toast.id)} />
       ))}
     </div>
   );

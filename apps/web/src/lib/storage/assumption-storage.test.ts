@@ -1,19 +1,16 @@
-import { describe, test, expect, beforeEach, afterEach } from "vitest";
 import { randomUUID } from "node:crypto";
 import { promises as fs } from "fs";
-import { join } from "path";
 import { tmpdir } from "os";
-import {
-  AssumptionStorage,
-  type SessionAssumptionFile,
-} from "./assumption-storage";
+import { join } from "path";
+import { afterEach, beforeEach, describe, expect, test } from "vitest";
 import {
   type Assumption,
   type AssumptionLoad,
-  type ScaleCalculation,
   createAssumption,
   createScaleAssumption,
+  type ScaleCalculation,
 } from "../schemas/assumption";
+import { AssumptionStorage, type SessionAssumptionFile } from "./assumption-storage";
 
 /**
  * Tests for AssumptionStorage
@@ -51,15 +48,17 @@ function createTestCalculation(): ScaleCalculation {
   };
 }
 
-function createTestAssumption(overrides: Partial<{
-  id: string;
-  statement: string;
-  type: "background" | "methodological" | "boundary" | "scale_physics";
-  status: "unchecked" | "challenged" | "verified" | "falsified";
-  sessionId: string;
-  load: AssumptionLoad;
-  calculation?: ScaleCalculation;
-}> = {}): Assumption {
+function createTestAssumption(
+  overrides: Partial<{
+    id: string;
+    statement: string;
+    type: "background" | "methodological" | "boundary" | "scale_physics";
+    status: "unchecked" | "challenged" | "verified" | "falsified";
+    sessionId: string;
+    load: AssumptionLoad;
+    calculation?: ScaleCalculation;
+  }> = {},
+): Assumption {
   const defaults = {
     id: "A-TEST-001",
     statement: "This is a test assumption statement",
@@ -134,9 +133,10 @@ describe("AssumptionStorage", () => {
 
       await storage.saveSessionAssumptions("TEST", [assumption]);
 
-      const exists = await fs.access(
-        join(testDir, ".research", "assumptions", "TEST-assumptions.json")
-      ).then(() => true).catch(() => false);
+      const exists = await fs
+        .access(join(testDir, ".research", "assumptions", "TEST-assumptions.json"))
+        .then(() => true)
+        .catch(() => false);
       expect(exists).toBe(true);
     });
 
@@ -250,7 +250,10 @@ describe("AssumptionStorage", () => {
       await storage.rebuildIndex();
 
       const indexPath = join(testDir, ".research", "assumption-index.json");
-      const exists = await fs.access(indexPath).then(() => true).catch(() => false);
+      const exists = await fs
+        .access(indexPath)
+        .then(() => true)
+        .catch(() => false);
       expect(exists).toBe(true);
     });
 
@@ -506,9 +509,7 @@ describe("AssumptionStorage", () => {
   describe("bulk operations", () => {
     test("getAllAssumptions returns all assumptions across sessions", async () => {
       const storage = new AssumptionStorage({ baseDir: testDir, autoRebuildIndex: false });
-      const session1 = [
-        createTestAssumption({ id: "A-SESSION1-001", sessionId: "SESSION1" }),
-      ];
+      const session1 = [createTestAssumption({ id: "A-SESSION1-001", sessionId: "SESSION1" })];
       const session2 = [
         createTestAssumption({ id: "A-SESSION2-001", sessionId: "SESSION2" }),
         createTestAssumption({ id: "A-SESSION2-002", sessionId: "SESSION2" }),
@@ -572,9 +573,7 @@ describe("AssumptionStorage", () => {
 
     test("getAssumptionById finds simple ID across multiple sessions", async () => {
       const storage = new AssumptionStorage({ baseDir: testDir, autoRebuildIndex: false });
-      const session1Assumptions = [
-        createTestAssumption({ id: "A1", sessionId: "SESSION1" }),
-      ];
+      const session1Assumptions = [createTestAssumption({ id: "A1", sessionId: "SESSION1" })];
       const session2Assumptions = [
         createTestAssumption({ id: "A2", sessionId: "SESSION2" }),
         createTestAssumption({ id: "A3", sessionId: "SESSION2" }),
@@ -681,7 +680,10 @@ describe("AssumptionStorage", () => {
       // Session ID should be sanitized in filename
       const sanitizedId = sessionId.replace(/[^a-zA-Z0-9_.-]/g, "_");
       const filePath = join(testDir, ".research", "assumptions", `${sanitizedId}-assumptions.json`);
-      const exists = await fs.access(filePath).then(() => true).catch(() => false);
+      const exists = await fs
+        .access(filePath)
+        .then(() => true)
+        .catch(() => false);
       expect(exists).toBe(true);
     });
 
@@ -693,7 +695,10 @@ describe("AssumptionStorage", () => {
       await storage.saveSessionAssumptions(sessionId, [assumption]);
 
       const filePath = join(testDir, ".research", "assumptions", `${sessionId}-assumptions.json`);
-      const exists = await fs.access(filePath).then(() => true).catch(() => false);
+      const exists = await fs
+        .access(filePath)
+        .then(() => true)
+        .catch(() => false);
       expect(exists).toBe(true);
     });
 
@@ -783,7 +788,7 @@ describe("AssumptionStorage", () => {
           sessionId,
           id: `A-${sessionId}-${String(i + 1).padStart(3, "0")}`,
           statement: `Assumption ${i + 1}`,
-        })
+        }),
       );
 
       const storage = new AssumptionStorage({ baseDir: testDir, autoRebuildIndex: false });

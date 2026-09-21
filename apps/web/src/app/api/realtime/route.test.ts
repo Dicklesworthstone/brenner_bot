@@ -1,5 +1,5 @@
-import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import type { NextRequest } from "next/server";
+import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { AgentMailTestServer, setupAgentMailTestEnv, teardownAgentMailTestEnv } from "@/test-utils";
 import { GET } from "./route";
 
@@ -16,7 +16,7 @@ vi.mock("@/lib/auth", () => ({
 async function readSseEvent(
   response: Response,
   eventName: string,
-  timeoutMs = 2000
+  timeoutMs = 2000,
 ): Promise<{ id: number | null; event: string; data: string | null }> {
   const reader = response.body?.getReader();
   if (!reader) throw new Error("Missing SSE response body reader");
@@ -152,7 +152,7 @@ describe("GET /api/realtime", () => {
         threadId,
         cursor: "0",
         lastEventId: "2",
-      })
+      }),
     );
 
     expect(response.status).toBe(200);
@@ -172,7 +172,7 @@ describe("GET /api/realtime", () => {
       createRealtimeRequest({
         threadId,
         cursor: "0",
-      })
+      }),
     );
 
     expect(response.status).toBe(200);

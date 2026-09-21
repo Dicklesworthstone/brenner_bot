@@ -158,7 +158,9 @@ function coerceItem(raw: unknown): TestQueueItem | null {
   if (typeof r.hypothesisId !== "string") return null;
 
   const assumptionIds = Array.isArray(r.assumptionIds)
-    ? r.assumptionIds.filter((entry): entry is string => typeof entry === "string" && entry.length > 0)
+    ? r.assumptionIds.filter(
+        (entry): entry is string => typeof entry === "string" && entry.length > 0,
+      )
     : [];
 
   if (!r.test || typeof r.test !== "object") return null;
@@ -414,7 +416,7 @@ export function addManualQueueItem(args: {
 export function updateQueueItem(
   sessionId: string,
   itemId: string,
-  patch: Partial<Omit<TestQueueItem, "id" | "sessionId" | "addedAt" | "source">>
+  patch: Partial<Omit<TestQueueItem, "id" | "sessionId" | "addedAt" | "source">>,
 ): TestQueueItem[] {
   const items = loadTestQueue(sessionId);
 

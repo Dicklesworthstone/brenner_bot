@@ -17,16 +17,12 @@
  * @module components/brenner-loop/evidence/ConfidenceChart
  */
 
+import { AnimatePresence, motion } from "framer-motion";
+import { Target, TrendingDown, TrendingUp } from "lucide-react";
 import * as React from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import {
-  TrendingUp,
-  TrendingDown,
-  Target,
-} from "lucide-react";
-import { cn } from "@/lib/utils";
-import type { EvidenceEntry, EvidenceResult } from "@/lib/brenner-loop/evidence";
 import { formatConfidence } from "@/lib/brenner-loop/confidence";
+import type { EvidenceEntry, EvidenceResult } from "@/lib/brenner-loop/evidence";
+import { cn } from "@/lib/utils";
 
 // ============================================================================
 // Types
@@ -133,13 +129,7 @@ function YAxis({ height }: { height: number }) {
 /**
  * Confidence band highlighting regions
  */
-function ConfidenceBands({
-  width,
-  height,
-}: {
-  width: number;
-  height: number;
-}) {
+function ConfidenceBands({ width, height }: { width: number; height: number }) {
   const chartHeight = height - CHART_PADDING.top - CHART_PADDING.bottom;
   const chartWidth = width - CHART_PADDING.left - CHART_PADDING.right;
 
@@ -178,11 +168,7 @@ function ConfidenceBands({
 /**
  * The confidence line connecting points
  */
-function ConfidenceLine({
-  points,
-}: {
-  points: DataPoint[];
-}) {
+function ConfidenceLine({ points }: { points: DataPoint[] }) {
   if (points.length < 2) return null;
 
   const pathData = points
@@ -260,20 +246,15 @@ function DataPointMarker({
 /**
  * Tooltip showing point details
  */
-function PointTooltip({
-  point,
-  chartHeight,
-}: {
-  point: DataPoint;
-  chartHeight: number;
-}) {
+function PointTooltip({ point, chartHeight }: { point: DataPoint; chartHeight: number }) {
   const isAbove = point.y > chartHeight / 2;
   const tooltipY = isAbove ? point.y - 50 : point.y + 15;
 
   // Determine label text - "Initial" for the first point, otherwise capitalize result
-  const labelText = point.result === "initial"
-    ? "Initial"
-    : point.result.charAt(0).toUpperCase() + point.result.slice(1);
+  const labelText =
+    point.result === "initial"
+      ? "Initial"
+      : point.result.charAt(0).toUpperCase() + point.result.slice(1);
 
   return (
     <motion.g
@@ -347,7 +328,7 @@ function ChartSummary({
             "flex items-center gap-1",
             delta > 0 && "text-green-500",
             delta < 0 && "text-red-500",
-            delta === 0 && "text-muted-foreground"
+            delta === 0 && "text-muted-foreground",
           )}
         >
           {delta > 0 ? (
@@ -365,11 +346,15 @@ function ChartSummary({
       <div className="flex items-center gap-3">
         <div className="flex items-center gap-1">
           <div className="size-2 rounded-full bg-green-500" />
-          <span>{supports} {supports === 1 ? "support" : "supports"}</span>
+          <span>
+            {supports} {supports === 1 ? "support" : "supports"}
+          </span>
         </div>
         <div className="flex items-center gap-1">
           <div className="size-2 rounded-full bg-red-500" />
-          <span>{challenges} {challenges === 1 ? "challenge" : "challenges"}</span>
+          <span>
+            {challenges} {challenges === 1 ? "challenge" : "challenges"}
+          </span>
         </div>
       </div>
     </div>
@@ -435,7 +420,7 @@ export function ConfidenceChart({
     }
 
     const sorted = [...entries].sort(
-      (a, b) => new Date(a.recordedAt).getTime() - new Date(b.recordedAt).getTime()
+      (a, b) => new Date(a.recordedAt).getTime() - new Date(b.recordedAt).getTime(),
     );
 
     // Determine initial confidence
@@ -460,11 +445,8 @@ export function ConfidenceChart({
 
     // Entry points
     sorted.forEach((entry, index) => {
-      const x =
-        CHART_PADDING.left +
-        ((index + 1) / sorted.length) * chartWidth;
-      const y =
-        height - CHART_PADDING.bottom - (entry.confidenceAfter / 100) * chartHeight;
+      const x = CHART_PADDING.left + ((index + 1) / sorted.length) * chartWidth;
+      const y = height - CHART_PADDING.bottom - (entry.confidenceAfter / 100) * chartHeight;
 
       dataPoints.push({
         x,
@@ -520,11 +502,7 @@ export function ConfidenceChart({
               key={index}
               point={point}
               isHovered={hoveredIndex === index}
-              onClick={
-                point.entry && onPointClick
-                  ? () => onPointClick(point.entry!)
-                  : undefined
-              }
+              onClick={point.entry && onPointClick ? () => onPointClick(point.entry!) : undefined}
               onHover={(hovered) => setHoveredIndex(hovered ? index : null)}
             />
           ))}
@@ -532,11 +510,7 @@ export function ConfidenceChart({
           {/* Tooltip for hovered point */}
           <AnimatePresence>
             {hoveredIndex !== null && points[hoveredIndex] && (
-              <PointTooltip
-                key="tooltip"
-                point={points[hoveredIndex]}
-                chartHeight={height}
-              />
+              <PointTooltip key="tooltip" point={points[hoveredIndex]} chartHeight={height} />
             )}
           </AnimatePresence>
 

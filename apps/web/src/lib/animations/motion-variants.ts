@@ -8,7 +8,7 @@
  * @see brenner_bot-f8vs.9 (Animation & Scroll Effects System)
  */
 
-import type { Variants, Transition, TargetAndTransition } from "framer-motion";
+import type { TargetAndTransition, Transition, Variants } from "framer-motion";
 
 // ============================================================================
 // TIMING CONSTANTS
@@ -514,15 +514,16 @@ export function withDelay<T extends Variants>(variants: T, delayMs: number): T {
             ...v,
             transition: {
               ...(typeof v.transition === "object" ? v.transition : {}),
-              delay: ((typeof v.transition === "object" && v.transition && "delay" in v.transition
-                ? (v.transition.delay as number)
-                : 0) + delay),
+              delay:
+                (typeof v.transition === "object" && v.transition && "delay" in v.transition
+                  ? (v.transition.delay as number)
+                  : 0) + delay,
             },
           },
         ];
       }
       return [key, value];
-    })
+    }),
   ) as T;
 }
 

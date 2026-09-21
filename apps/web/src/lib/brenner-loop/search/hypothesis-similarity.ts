@@ -13,9 +13,9 @@
  * @module brenner-loop/search/hypothesis-similarity
  */
 
-import { embedText, cosineSimilarity, EMBEDDING_DIMENSION } from "./embeddings";
-import type { HypothesisCard } from "../hypothesis";
 import type { Hypothesis } from "../../schemas/hypothesis";
+import type { HypothesisCard } from "../hypothesis";
+import { cosineSimilarity, EMBEDDING_DIMENSION, embedText } from "./embeddings";
 
 // ============================================================================
 // Types
@@ -156,10 +156,7 @@ export function embedHypothesis(hypothesis: IndexedHypothesis): number[] {
  * Handles both fresh HypothesisCard objects (where createdAt is a Date)
  * and deserialized objects from JSON (where createdAt is an ISO string).
  */
-export function cardToIndexed(
-  card: HypothesisCard,
-  sessionId?: string
-): IndexedHypothesis {
+export function cardToIndexed(card: HypothesisCard, sessionId?: string): IndexedHypothesis {
   // Handle both Date objects and ISO strings (from JSON deserialization)
   let createdAtStr: string | undefined;
   if (card.createdAt instanceof Date) {
@@ -188,10 +185,7 @@ export function cardToIndexed(
  * Compute domain overlap between two hypotheses.
  * Uses Jaccard similarity for set overlap.
  */
-export function domainSimilarity(
-  domains1: string[],
-  domains2: string[]
-): number {
+export function domainSimilarity(domains1: string[], domains2: string[]): number {
   if (domains1.length === 0 && domains2.length === 0) {
     return 1.0; // Both empty = same (generic)
   }
@@ -235,26 +229,17 @@ const DEFAULT_CONFIG: Required<SimilaritySearchConfig> = {
 export function computeSimilarity(
   query: IndexedHypothesis,
   candidate: IndexedHypothesis,
-  config: SimilaritySearchConfig = {}
+  config: SimilaritySearchConfig = {},
 ): SimilarityMatch {
   const cfg = { ...DEFAULT_CONFIG, ...config };
 
   // Compute individual similarities
   const queryStatementEmbed = embedText(query.statement, EMBEDDING_DIMENSION);
-  const candidateStatementEmbed = embedText(
-    candidate.statement,
-    EMBEDDING_DIMENSION
-  );
-  const statementSim = cosineSimilarity(
-    queryStatementEmbed,
-    candidateStatementEmbed
-  );
+  const candidateStatementEmbed = embedText(candidate.statement, EMBEDDING_DIMENSION);
+  const statementSim = cosineSimilarity(queryStatementEmbed, candidateStatementEmbed);
 
   const queryMechEmbed = embedText(query.mechanism || "", EMBEDDING_DIMENSION);
-  const candidateMechEmbed = embedText(
-    candidate.mechanism || "",
-    EMBEDDING_DIMENSION
-  );
+  const candidateMechEmbed = embedText(candidate.mechanism || "", EMBEDDING_DIMENSION);
   const mechanismSim =
     query.mechanism && candidate.mechanism
       ? cosineSimilarity(queryMechEmbed, candidateMechEmbed)
@@ -316,7 +301,7 @@ export function computeSimilarity(
 export function findSimilarHypotheses(
   query: IndexedHypothesis,
   candidates: IndexedHypothesis[],
-  config: SimilaritySearchConfig = {}
+  config: SimilaritySearchConfig = {},
 ): SimilarityMatch[] {
   const cfg = { ...DEFAULT_CONFIG, ...config };
 
@@ -337,9 +322,7 @@ export function findSimilarHypotheses(
   }
 
   // Compute similarities
-  const matches = filtered.map((candidate) =>
-    computeSimilarity(query, candidate, cfg)
-  );
+  const matches = filtered.map((candidate) => computeSimilarity(query, candidate, cfg));
 
   // Filter by minimum score and sort
   return matches
@@ -359,7 +342,7 @@ export function findSimilarHypotheses(
 export function searchHypothesesByText(
   queryText: string,
   candidates: IndexedHypothesis[],
-  config: SimilaritySearchConfig = {}
+  config: SimilaritySearchConfig = {},
 ): SimilarityMatch[] {
   const cfg = { ...DEFAULT_CONFIG, ...config };
 
@@ -395,7 +378,7 @@ export function searchHypothesesByText(
  */
 export function clusterSimilarHypotheses(
   hypotheses: IndexedHypothesis[],
-  threshold: number = 0.5
+  threshold: number = 0.5,
 ): IndexedHypothesis[][] {
   if (hypotheses.length === 0) return [];
 
@@ -440,7 +423,7 @@ export function clusterSimilarHypotheses(
  */
 export function findDuplicates(
   hypotheses: IndexedHypothesis[],
-  threshold: number = 0.8
+  threshold: number = 0.8,
 ): Array<{ pair: [IndexedHypothesis, IndexedHypothesis]; score: number }> {
   const duplicates: Array<{
     pair: [IndexedHypothesis, IndexedHypothesis];
@@ -501,10 +484,7 @@ export function getSimilarityStats(hypotheses: IndexedHypothesis[]): {
   return {
     totalHypotheses: hypotheses.length,
     clusterCount: clusters.length,
-    averageClusterSize:
-      clusters.length > 0
-        ? hypotheses.length / clusters.length
-        : 0,
+    averageClusterSize: clusters.length > 0 ? hypotheses.length / clusters.length : 0,
     potentialDuplicates: duplicates.length,
     domainDistribution,
   };
@@ -548,8 +528,6 @@ export function storageToIndexed(hypothesis: Hypothesis): IndexedHypothesis {
 /**
  * Convert multiple storage hypotheses to IndexedHypothesis format.
  */
-export function storageToIndexedBatch(
-  hypotheses: Hypothesis[]
-): IndexedHypothesis[] {
+export function storageToIndexedBatch(hypotheses: Hypothesis[]): IndexedHypothesis[] {
   return hypotheses.map(storageToIndexed);
 }

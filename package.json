@@ -1,7 +1,9 @@
 {
   "name": "brenner-bot-monorepo",
   "private": true,
-  "workspaces": ["apps/*"],
+  "workspaces": [
+    "apps/*"
+  ],
   "dependencies": {
     "next": "16.1.1"
   }

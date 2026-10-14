@@ -42,6 +42,15 @@ import {
 } from "@/lib/brenner-loop/search/quote-matcher";
 import { isDemoThreadId, normalizeThreadId } from "@/lib/demo-mode";
 import type { Quote } from "@/lib/quotebank-parser";
+import {
+  aggregateInterventions,
+  createInterventionId,
+  determineInterventionSeverity,
+  type InterventionType,
+  isCleanSession,
+  type OperatorIntervention,
+  validateIntervention,
+} from "@/lib/schemas/operator-intervention";
 import { cn } from "@/lib/utils";
 
 // ============================================================================
@@ -793,10 +802,84 @@ function OperatorsPageContent({ threadId }: { threadId: string }) {
     });
   };
 
+  const interventionSessionId = React.useMemo(
+    () => safeSessionId.replace(/[^A-Za-z0-9.-]/g, "-").replace(/^-+|-+$/g, "") || "SESSION",
+    [safeSessionId],
+  );
+
+  const [interventions, setInterventions] = React.useState<OperatorIntervention[]>(() => {
+    const initialTarget = {
+      item_id: `A-${interventionSessionId}-001`,
+      item_type: "assumption" as const,
+      artifact_version: 1,
+    };
+    const initialSeverity = determineInterventionSeverity("artifact_edit", initialTarget);
+    const parsed = validateIntervention({
+      id: createInterventionId(interventionSessionId, 1),
+      session_id: interventionSessionId,
+      timestamp: new Date().toISOString(),
+      operator_id: "human",
+      type: "artifact_edit",
+      severity: initialSeverity,
+      target: initialTarget,
+      rationale:
+        "Refined baseline scale assumption wording before applying Level Split operator.",
+      reversible: true,
+      tags: ["operators-workspace", "audit"],
+    });
+    return parsed.valid ? [parsed.data] : [];
+  });
+
+  const interventionSummary = React.useMemo(
+    () => aggregateInterventions(interventions),
+    [interventions],
+  );
+  const cleanSession = React.useMemo(
+    () => isCleanSession(interventionSummary),
+    [interventionSummary],
+  );
+
+  const recordOperatorIntervention = React.useCallback(
+    (
+      type: InterventionType,
+      itemType: "assumption" | "hypothesis" | "test",
+      rationale: string,
+    ) => {
+      setInterventions((prev) => {
+        const seq = prev.length + 1;
+        const target = {
+          item_id: `${itemType.charAt(0).toUpperCase()}-${interventionSessionId}-${seq.toString().padStart(3, "0")}`,
+          item_type: itemType,
+          artifact_version: seq,
+        };
+        const severity = determineInterventionSeverity(type, target);
+        const validated = validateIntervention({
+          id: createInterventionId(interventionSessionId, seq),
+          session_id: interventionSessionId,
+          timestamp: new Date().toISOString(),
+          operator_id: "human",
+          type,
+          severity,
+          target,
+          rationale,
+          reversible: true,
+          tags: [activeOperator],
+        });
+        return validated.valid ? [...prev, validated.data] : prev;
+      });
+    },
+    [interventionSessionId, activeOperator],
+  );
+
   const handleComplete = () => {
     const nextCompleted = new Set([...completedOperators, activeOperator]);
     setCompletedOperators(nextCompleted);
     void persistWorkspaceSnapshot(nextCompleted, operatorValues, activeOperator);
+    recordOperatorIntervention(
+      "artifact_edit",
+      "test",
+      `Completed ${currentOperator?.name ?? activeOperator} operator application and updated discriminative test constraints.`,
+    );
 
     // Move to next incomplete operator
     const currentIndex = OPERATORS.findIndex((op) => op.id === activeOperator);
@@ -1086,6 +1169,123 @@ function OperatorsPageContent({ threadId }: { threadId: string }) {
           </Card>
         </motion.div>
       )}
+
+      {/* Operator Intervention Audit Trail */}
+      <Card data-testid="operator-intervention-audit">
+        <CardHeader>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <CardTitle className="text-lg">
+                Operator Intervention Audit Trail
+              </CardTitle>
+              <CardDescription>
+                Reproducible lab-notebook log of human operator edits and protocol overrides
+                (preventing Occam&apos;s Broom).
+              </CardDescription>
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <span
+                data-testid="clean-session-badge"
+                className={cn(
+                  "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-mono font-medium border",
+                  cleanSession
+                    ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30"
+                    : "bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/30",
+                )}
+              >
+                {cleanSession
+                  ? "Clean Session (No Major Overrides)"
+                  : "Major Override Recorded"}
+              </span>
+              <Button
+                size="sm"
+                variant="outline"
+                data-testid="log-major-override-btn"
+                onClick={() =>
+                  recordOperatorIntervention(
+                    "decision_override",
+                    "hypothesis",
+                    "Operator manually overrode hypothesis priority to force third-alternative exclusion test.",
+                  )
+                }
+              >
+                Log Decision Override
+              </Button>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 text-xs">
+            <div className="rounded-lg border border-border bg-muted/20 p-2.5">
+              <div className="text-muted-foreground">Total Logged</div>
+              <div
+                data-testid="intervention-total-count"
+                className="text-base font-bold font-mono text-foreground"
+              >
+                {interventionSummary.total_count}
+              </div>
+            </div>
+            <div className="rounded-lg border border-border bg-muted/20 p-2.5">
+              <div className="text-muted-foreground">Minor</div>
+              <div className="text-base font-bold font-mono text-foreground">
+                {interventionSummary.by_severity.minor}
+              </div>
+            </div>
+            <div className="rounded-lg border border-border bg-muted/20 p-2.5">
+              <div className="text-muted-foreground">Moderate</div>
+              <div className="text-base font-bold font-mono text-foreground">
+                {interventionSummary.by_severity.moderate}
+              </div>
+            </div>
+            <div className="rounded-lg border border-border bg-muted/20 p-2.5">
+              <div className="text-muted-foreground">Major</div>
+              <div
+                data-testid="intervention-major-count"
+                className="text-base font-bold font-mono text-foreground"
+              >
+                {interventionSummary.by_severity.major}
+              </div>
+            </div>
+            <div className="rounded-lg border border-border bg-muted/20 p-2.5">
+              <div className="text-muted-foreground">Critical</div>
+              <div className="text-base font-bold font-mono text-foreground">
+                {interventionSummary.by_severity.critical}
+              </div>
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            {interventions.map((entry) => (
+              <div
+                key={entry.id}
+                data-testid={`intervention-entry-${entry.id}`}
+                className="rounded-lg border border-border bg-card p-3 flex flex-wrap items-start justify-between gap-2 text-xs"
+              >
+                <div className="space-y-1">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="font-mono font-bold text-primary">{entry.id}</span>
+                    <span className="px-1.5 py-0.5 rounded bg-muted font-mono uppercase text-[10px]">
+                      {entry.type}
+                    </span>
+                    <span className="px-1.5 py-0.5 rounded bg-muted font-mono uppercase text-[10px]">
+                      {entry.severity}
+                    </span>
+                    {entry.target.item_id && (
+                      <span className="font-mono text-muted-foreground">
+                        Target: {entry.target.item_id}
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-foreground">{entry.rationale}</p>
+                </div>
+                <span className="font-mono text-[11px] text-muted-foreground">
+                  by {entry.operator_id}
+                </span>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }

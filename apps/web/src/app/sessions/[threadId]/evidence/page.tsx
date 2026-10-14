@@ -6,6 +6,19 @@ import Link from "next/link";
 import { DemoFeaturePreview } from "@/components/sessions/DemoFeaturePreview";
 import { checkOrchestrationAuth, isLabModeEnabled } from "@/lib/auth";
 import { isDemoThreadId } from "@/lib/demo-mode";
+import {
+  type Anomaly,
+  canSpawnHypothesis,
+  createExperimentalAnomaly,
+  createLiteratureAnomaly,
+  deferAnomaly,
+  generateAnomalyId,
+  linkSpawnedHypothesis,
+  markParadigmShifting,
+  reactivateAnomaly,
+  resolveAnomaly,
+  validateQuarantineDiscipline,
+} from "@/lib/schemas/anomaly";
 
 export const metadata: Metadata = {
   title: "Evidence Pack",
@@ -194,6 +207,116 @@ function validateEvidencePack(data: unknown): EvidencePack {
   }
 
   return data as EvidencePack;
+}
+
+export function normalizeAnomalyHypothesisId(rawId: string, safeSessionId: string): string {
+  const validPattern = /^H-[A-Za-z0-9][\w-]*-\d{3}$/;
+  if (validPattern.test(rawId)) return rawId;
+  const digitsMatch = rawId.match(/(\d+)$/);
+  const seq = digitsMatch ? digitsMatch[1].padStart(3, "0") : "001";
+  return `H-${safeSessionId}-${seq}`;
+}
+
+export function deriveAnomaliesFromEvidencePack(
+  threadId: string,
+  evidencePack: EvidencePack | null,
+): Anomaly[] {
+  const safeSessionId = threadId.replace(/[^A-Za-z0-9-]/g, "-").replace(/^-+|-+$/g, "") || "SESSION";
+  const anomalies: Anomaly[] = [];
+  const existingIds: string[] = [];
+
+  if (evidencePack && evidencePack.records.length > 0) {
+    for (const record of evidencePack.records) {
+      if (!record.refutes || record.refutes.length === 0) continue;
+      const id = generateAnomalyId(safeSessionId, existingIds);
+      existingIds.push(id);
+
+      const conflictsWithHypotheses = record.refutes.map((h) =>
+        normalizeAnomalyHypothesisId(h, safeSessionId),
+      );
+      const rawObservation =
+        record.key_findings[0] ??
+        `${record.title}: ${record.relevance}`;
+      const observation =
+        rawObservation.length >= 20
+          ? rawObservation
+          : `${rawObservation} — conflicts with ${record.refutes.join(", ")}`;
+      const conflictDescription = `Evidence record ${record.id} (${record.title}) refutes ${record.refutes.join(", ")}: ${record.relevance}`;
+
+      if (record.type === "paper" || record.type === "preprint") {
+        anomalies.push(
+          createLiteratureAnomaly({
+            id,
+            observation,
+            citation: `${record.title} (${record.source})`,
+            conflictsWithHypotheses,
+            conflictDescription,
+            sessionId: safeSessionId,
+            recordedBy: record.imported_by,
+          }),
+        );
+      } else {
+        anomalies.push(
+          createExperimentalAnomaly({
+            id,
+            observation,
+            testReference: `${record.id} (${record.source})`,
+            conflictsWithHypotheses,
+            conflictDescription,
+            sessionId: safeSessionId,
+            recordedBy: record.imported_by,
+          }),
+        );
+      }
+    }
+  }
+
+  if (anomalies.length === 0) {
+    const id = generateAnomalyId(safeSessionId, existingIds);
+    anomalies.push(
+      createExperimentalAnomaly({
+        id,
+        observation:
+          "Unexpected baseline residual persists across controlled exclusions, challenging single-pathway assumptions.",
+        testReference: `EV-${safeSessionId}-001`,
+        conflictsWithHypotheses: [`H-${safeSessionId}-001`],
+        conflictDescription:
+          "Baseline residual contradicts primary hypothesis prediction under standard potency controls.",
+        sessionId: safeSessionId,
+        recordedBy: "BrennerBot Quarantine Monitor",
+      }),
+    );
+  }
+
+  return anomalies;
+}
+
+export function evaluateAnomalyQuarantineLifecycle(anomaly: Anomaly, safeSessionId = "SESSION") {
+  const deferred = deferAnomaly(
+    anomaly,
+    "Park until primary potency control and scale check are completed.",
+  );
+  const reactivated = reactivateAnomaly(deferred);
+  const paradigmShifting = markParadigmShifting(
+    reactivated,
+    "Persistent residual across orthogonal assays requires third-alternative framing.",
+  );
+  const spawnedId = `H-${safeSessionId}-003`;
+  const withSpawned = linkSpawnedHypothesis(paradigmShifting, spawnedId);
+  const resolved = resolveAnomaly(withSpawned, spawnedId, {
+    notes: "Explained by spawned third-alternative hypothesis.",
+  });
+
+  return {
+    initialDiscipline: validateQuarantineDiscipline(anomaly),
+    initialSpawnCheck: canSpawnHypothesis(anomaly),
+    deferred,
+    reactivated,
+    paradigmShifting,
+    withSpawned,
+    resolved,
+    resolvedSpawnCheck: canSpawnHypothesis(resolved),
+  };
 }
 
 const EVIDENCE_TYPE_LABELS: Record<EvidenceType, string> = {
@@ -448,6 +571,97 @@ function EvidenceRecordCard({ record }: { record: EvidenceRecord }) {
   );
 }
 
+// ----- Anomaly Quarantine Section -----
+
+export function AnomalyQuarantineSection({
+  threadId,
+  anomalies,
+}: {
+  threadId: string;
+  anomalies: Anomaly[];
+}) {
+  const safeSessionId = threadId.replace(/[^A-Za-z0-9-]/g, "-").replace(/^-+|-+$/g, "") || "SESSION";
+
+  return (
+    <section
+      data-testid="anomaly-quarantine-panel"
+      className="rounded-xl border border-amber-500/25 bg-amber-500/5 p-5 space-y-4 animate-fade-in-up stagger-3"
+    >
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h2 className="text-base font-semibold tracking-tight text-foreground">
+            Anomaly Quarantine Register (§103 / §147)
+          </h2>
+          <p className="text-xs text-muted-foreground">
+            Track observations that conflict with current hypotheses without sweeping them under
+            Occam&apos;s broom or prematurely abandoning coherent frameworks.
+          </p>
+        </div>
+        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-mono font-medium bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30">
+          {anomalies.length} Quarantined Anomal{anomalies.length === 1 ? "y" : "ies"}
+        </span>
+      </div>
+
+      <div className="space-y-3">
+        {anomalies.map((anomaly) => {
+          const lifecycle = evaluateAnomalyQuarantineLifecycle(anomaly, safeSessionId);
+          return (
+            <div
+              key={anomaly.id}
+              data-testid={`anomaly-card-${anomaly.id}`}
+              className="rounded-lg border border-border bg-card p-4 space-y-2.5"
+            >
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <span className="font-mono text-xs font-bold text-primary">{anomaly.id}</span>
+                  <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-mono uppercase bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/20">
+                    {anomaly.quarantineStatus}
+                  </span>
+                  <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-mono bg-muted text-muted-foreground border border-border">
+                    Source: {anomaly.source.type}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-mono text-muted-foreground">
+                    Discipline Score: {lifecycle.initialDiscipline.score}/3
+                  </span>
+                  {lifecycle.initialSpawnCheck.canSpawn && (
+                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                      Can Spawn 3rd Alternative
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              <p className="text-sm text-foreground">{anomaly.observation}</p>
+
+              <div className="text-xs text-muted-foreground space-y-1">
+                <div>
+                  <span className="font-medium text-foreground/80">Conflicts With:</span>{" "}
+                  <span className="font-mono">
+                    {anomaly.conflictsWith.hypotheses.join(", ") || "Unbound"}
+                  </span>{" "}
+                  &mdash; {anomaly.conflictsWith.description}
+                </div>
+                <div>
+                  <span className="font-medium text-foreground/80">Paradox Grounding:</span>{" "}
+                  {lifecycle.initialSpawnCheck.reason} (Transition paths:{" "}
+                  <span className="font-mono">
+                    {lifecycle.deferred.quarantineStatus} &rarr;{" "}
+                    {lifecycle.paradigmShifting.quarantineStatus} &rarr;{" "}
+                    {lifecycle.resolved.quarantineStatus}
+                  </span>
+                  )
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
 // ----- Main Page -----
 
 export default async function EvidencePackPage({
@@ -503,6 +717,7 @@ export default async function EvidencePackPage({
   }
 
   const now = new Date().toISOString();
+  const sessionAnomalies = deriveAnomaliesFromEvidencePack(threadId, evidencePack);
 
   return (
     <div className="max-w-4xl mx-auto space-y-8">
@@ -646,6 +861,8 @@ export default async function EvidencePackPage({
           </section>
         </>
       )}
+
+      <AnomalyQuarantineSection threadId={threadId} anomalies={sessionAnomalies} />
     </div>
   );
 }

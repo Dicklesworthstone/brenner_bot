@@ -59,5 +59,20 @@ describe("OperatorsPage", () => {
       const updated = await sessionStorage.load("SESSION-OPS-1");
       expect(updated?.operatorApplications.levelSplit.length).toBe(1);
     });
+
+    // Verify Operator Intervention Audit Trail recorded the operator application and remains a Clean Session
+    expect(screen.getByTestId("operator-intervention-audit")).toBeDefined();
+    expect(screen.getByTestId("clean-session-badge")).toHaveTextContent(
+      "Clean Session (No Major Overrides)",
+    );
+    expect(screen.getByTestId("intervention-total-count")).toHaveTextContent("2");
+
+    // Log a major decision override and verify clean-session status updates
+    fireEvent.click(screen.getByTestId("log-major-override-btn"));
+    expect(screen.getByTestId("clean-session-badge")).toHaveTextContent(
+      "Major Override Recorded",
+    );
+    expect(screen.getByTestId("intervention-major-count")).toHaveTextContent("1");
+    expect(screen.getByTestId("intervention-total-count")).toHaveTextContent("3");
   });
 });

@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it } from "vitest";
 import {
   createHypothesisCard,
@@ -61,5 +61,20 @@ describe("PersonalAnalyticsPage", () => {
     expect(screen.getByText(/Calibration Bias Assessment/i)).toBeInTheDocument();
     expect(screen.getByTestId("analytics-lifecycle-funnel")).toBeInTheDocument();
     expect(screen.getByText(/Hypothesis Lifecycle Funnel/i)).toBeInTheDocument();
+
+    // Verify Multi-Session Research Program Registry and lifecycle transitions
+    expect(screen.getByTestId("research-program-registry")).toBeInTheDocument();
+    const programId = "RP-PSYCHOLOGY-001";
+    expect(screen.getByTestId(`program-card-${programId}`)).toBeInTheDocument();
+    expect(screen.getByTestId(`program-status-${programId}`)).toHaveTextContent("active");
+
+    fireEvent.click(screen.getByTestId(`toggle-pause-program-${programId}`));
+    expect(screen.getByTestId(`program-status-${programId}`)).toHaveTextContent("paused");
+
+    fireEvent.click(screen.getByTestId(`toggle-pause-program-${programId}`));
+    expect(screen.getByTestId(`program-status-${programId}`)).toHaveTextContent("active");
+
+    fireEvent.click(screen.getByTestId(`complete-program-${programId}`));
+    expect(screen.getByTestId(`program-status-${programId}`)).toHaveTextContent("completed");
   });
 });

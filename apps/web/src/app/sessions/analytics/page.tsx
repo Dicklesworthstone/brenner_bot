@@ -32,12 +32,74 @@ import {
   upgradeToLifecycle,
 } from "@/lib/brenner-loop/hypothesis-lifecycle";
 import { OPERATOR_METADATA, type OperatorType } from "@/lib/brenner-loop/operators";
+import {
+  addSessionToProgram,
+  completeProgram,
+  createResearchProgram,
+  generateProgramId,
+  isValidSessionId,
+  pauseProgram,
+  type ResearchProgram,
+  resumeProgram,
+} from "@/lib/schemas/research-program";
 import { cn } from "@/lib/utils";
 
 interface StructuralPatternCheckCount {
   name: string;
   description: string;
   matchCount: number;
+}
+
+function normalizeProgramSessionId(rawId: string): string {
+  const cleaned = rawId.replace(/[^A-Za-z0-9_-]/g, "-").replace(/^-+|-+$/g, "") || "SESSION";
+  return isValidSessionId(cleaned) ? cleaned : `RS-${cleaned}`;
+}
+
+function buildResearchProgramsFromSessions(sessions: Session[]): ResearchProgram[] {
+  const existingIds: string[] = [];
+  const programs: ResearchProgram[] = [];
+  const byDomain = new Map<string, Session[]>();
+
+  for (const session of sessions) {
+    const domain = session.domain?.trim() || "General Research";
+    const list = byDomain.get(domain) ?? [];
+    list.push(session);
+    byDomain.set(domain, list);
+  }
+
+  for (const [domain, domainSessions] of byDomain.entries()) {
+    const id = generateProgramId(domain, existingIds);
+    existingIds.push(id);
+    let program = createResearchProgram({
+      id,
+      name: `${domain} Research Program`,
+      description: `Multi-session Brenner Loop research program aggregating ${domainSessions.length} session(s) in ${domain}.`,
+      sessions: [],
+      notes: "Auto-grouped from local session storage.",
+    });
+    for (const s of domainSessions) {
+      const normalizedId = normalizeProgramSessionId(s.id);
+      if (!program.sessions.includes(normalizedId)) {
+        program = addSessionToProgram(program, normalizedId);
+      }
+    }
+    programs.push(program);
+  }
+
+  if (programs.length === 0) {
+    const id = generateProgramId("CORE-METHODOLOGY", existingIds);
+    programs.push(
+      createResearchProgram({
+        id,
+        name: "Core Brenner Methodology Program",
+        description:
+          "Default multi-session research program tracking hypothesis funnels and discriminative tests.",
+        sessions: ["RS-DEFAULT-001"],
+      }),
+    );
+  }
+
+  return programs;
 }
 
 function buildLifecycleHypothesesFromSessions(sessions: Session[]): HypothesisWithLifecycle[] {
@@ -196,6 +258,7 @@ function OperatorRow({
 }
 
 export default function PersonalAnalyticsPage() {
+  const [researchPrograms, setResearchPrograms] = React.useState<ResearchProgram[]>([]);
   const [state, setState] = React.useState<
     | { status: "loading" }
     | {
@@ -230,7 +293,9 @@ export default function PersonalAnalyticsPage() {
         const lifecycleStats = calculateLifecycleStats(
           buildLifecycleHypothesesFromSessions(sessions),
         );
+        const programs = buildResearchProgramsFromSessions(sessions);
         if (!cancelled) {
+          setResearchPrograms(programs);
           setState({
             status: "ready",
             analytics,
@@ -252,6 +317,31 @@ export default function PersonalAnalyticsPage() {
       cancelled = true;
     };
   }, []);
+
+  const handleTogglePauseProgram = (programId: string) => {
+    setResearchPrograms((prev) =>
+      prev.map((prog) => {
+        if (prog.id !== programId) return prog;
+        if (prog.status === "active") {
+          return pauseProgram(prog, "Paused from analytics dashboard for control review.");
+        }
+        if (prog.status === "paused") {
+          return resumeProgram(prog);
+        }
+        return prog;
+      }),
+    );
+  };
+
+  const handleCompleteProgram = (programId: string) => {
+    setResearchPrograms((prev) =>
+      prev.map((prog) =>
+        prog.id === programId && (prog.status === "active" || prog.status === "paused")
+          ? completeProgram(prog, "All discriminative tests and syntheses completed.")
+          : prog,
+      ),
+    );
+  };
 
   if (state.status === "error") {
     return (
@@ -780,6 +870,80 @@ export default function PersonalAnalyticsPage() {
                 >
                   {a.unlocked ? "Unlocked" : "Locked"}
                 </Badge>
+              </div>
+            </div>
+          ))}
+        </CardContent>
+      </Card>
+
+      {/* Multi-Session Research Program Registry */}
+      <Card data-testid="research-program-registry">
+        <CardHeader className="space-y-1">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <CardTitle className="text-base">
+              Multi-Session Research Program Registry
+            </CardTitle>
+            <Badge variant="outline" className="font-mono text-xs">
+              {researchPrograms.length} Program{researchPrograms.length === 1 ? "" : "s"}
+            </Badge>
+          </div>
+          <p className="text-sm text-muted-foreground">
+            Aggregate related Brenner Loop sessions into longitudinal research programs with
+            lifecycle state tracking.
+          </p>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          {researchPrograms.map((program) => (
+            <div
+              key={program.id}
+              data-testid={`program-card-${program.id}`}
+              className="rounded-xl border border-border bg-card p-4 space-y-2.5 text-xs"
+            >
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="font-mono font-bold text-primary">{program.id}</span>
+                  <span className="text-sm font-semibold text-foreground">{program.name}</span>
+                  <Badge
+                    variant="outline"
+                    data-testid={`program-status-${program.id}`}
+                    className="font-mono uppercase text-[10px]"
+                  >
+                    {program.status}
+                  </Badge>
+                </div>
+                <div className="flex flex-wrap items-center gap-1.5">
+                  {program.status !== "completed" && program.status !== "abandoned" && (
+                    <>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="h-7 text-xs"
+                        data-testid={`toggle-pause-program-${program.id}`}
+                        onClick={() => handleTogglePauseProgram(program.id)}
+                      >
+                        {program.status === "paused" ? "Resume Program" : "Pause Program"}
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="default"
+                        className="h-7 text-xs"
+                        data-testid={`complete-program-${program.id}`}
+                        onClick={() => handleCompleteProgram(program.id)}
+                      >
+                        Complete Program
+                      </Button>
+                    </>
+                  )}
+                </div>
+              </div>
+              <p className="text-muted-foreground">{program.description}</p>
+              <div className="flex flex-wrap items-center gap-1.5 pt-1">
+                <span className="text-muted-foreground font-medium">Linked Sessions:</span>
+                {program.sessions.map((sid) => (
+                  <Badge key={sid} variant="secondary" className="font-mono text-[10px]">
+                    {sid}
+                  </Badge>
+                ))}
               </div>
             </div>
           ))}

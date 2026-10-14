@@ -66,5 +66,23 @@ describe("AgentsPage", () => {
     fireEvent.click(concludeBtn);
 
     expect(await screen.findByTestId("debate-conclusion-card")).toBeInTheDocument();
+
+    // Verify Adversarial Critique Ledger (§229) and lifecycle transitions
+    expect(screen.getByTestId("adversarial-critique-ledger")).toBeInTheDocument();
+    expect(screen.getByTestId("unaddressed-critiques-badge")).toHaveTextContent(
+      "1 Unaddressed Hypothesis Attack",
+    );
+
+    const critiqueId1 = "C-SESSION-AGENTS-1-001";
+    expect(screen.getByTestId(`critique-status-${critiqueId1}`)).toHaveTextContent("active");
+
+    fireEvent.click(screen.getByTestId(`accept-critique-${critiqueId1}`));
+    expect(screen.getByTestId(`critique-status-${critiqueId1}`)).toHaveTextContent("accepted");
+    expect(screen.getByTestId("unaddressed-critiques-badge")).toHaveTextContent(
+      "0 Unaddressed Hypothesis Attacks",
+    );
+
+    fireEvent.click(screen.getByTestId(`reopen-critique-${critiqueId1}`));
+    expect(screen.getByTestId(`critique-status-${critiqueId1}`)).toHaveTextContent("active");
   });
 });

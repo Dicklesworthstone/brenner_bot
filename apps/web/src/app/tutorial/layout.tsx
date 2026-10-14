@@ -17,6 +17,14 @@ import { usePathname, useRouter } from "next/navigation";
 import * as React from "react";
 import { SidebarProgress } from "@/components/tutorial";
 import { TutorialProvider, useTutorialOptional } from "@/lib/tutorial-context";
+import {
+  AGENT_ASSISTED_PATH,
+  getAllAgentAssistedSteps,
+  getAllMultiAgentSteps,
+  getAllQuickStartSteps,
+  MULTI_AGENT_COCKPIT_PATH,
+  QUICK_START_PATH,
+} from "@/lib/tutorial-data";
 import type { TutorialPathId, TutorialStepMeta } from "@/lib/tutorial-types";
 import { cn } from "@/lib/utils";
 
@@ -65,10 +73,10 @@ const XIcon = ({ className }: { className?: string }) => (
 );
 
 // ============================================================================
-// Path Configuration
+// Path Configuration (derived from centralized @/lib/tutorial-data)
 // ============================================================================
 
-interface PathConfig {
+export interface PathConfig {
   id: TutorialPathId;
   title: string;
   shortTitle: string;
@@ -76,254 +84,65 @@ interface PathConfig {
   accent: string;
 }
 
-const PATH_CONFIGS: Record<string, PathConfig> = {
+export const PATH_CONFIGS: Record<string, PathConfig> = {
   "quick-start": {
-    id: "quick-start",
-    title: "Quick Start",
+    id: QUICK_START_PATH.id as TutorialPathId,
+    title: QUICK_START_PATH.title,
     shortTitle: "Quick Start",
     accent: "oklch(0.72 0.19 145)",
-    steps: [
-      // Step 1: Mobile-friendly (reading/understanding)
-      {
-        id: "qs-1",
-        stepNumber: 1,
-        title: "What Is This?",
-        estimatedTime: "~3 min",
+    steps: getAllQuickStartSteps().map((step) => {
+      const requiresDesktop = step.stepNumber >= 2 && step.stepNumber <= 6;
+      return {
+        id: step.id,
+        stepNumber: step.stepNumber,
+        title: step.title,
+        estimatedTime: step.estimatedTime,
         completed: false,
-      },
-      // Step 2-6: Desktop required (terminal commands)
-      {
-        id: "qs-2",
-        stepNumber: 2,
-        title: "Prerequisites",
-        estimatedTime: "~2 min",
-        completed: false,
-        requiresDesktop: true,
-        mobileAlternative: "Review the prerequisites to prepare your desktop",
-      },
-      {
-        id: "qs-3",
-        stepNumber: 3,
-        title: "Clone & Install",
-        estimatedTime: "~5 min",
-        completed: false,
-        requiresDesktop: true,
-        mobileAlternative: "Run git clone and bun install on your desktop",
-      },
-      {
-        id: "qs-4",
-        stepNumber: 4,
-        title: "Search the Corpus",
-        estimatedTime: "~5 min",
-        completed: false,
-        requiresDesktop: true,
-        mobileAlternative: "Run brenner search commands in your terminal",
-      },
-      {
-        id: "qs-5",
-        stepNumber: 5,
-        title: "Build an Excerpt",
-        estimatedTime: "~5 min",
-        completed: false,
-        requiresDesktop: true,
-        mobileAlternative: "Create an excerpt file using the CLI",
-      },
-      {
-        id: "qs-6",
-        stepNumber: 6,
-        title: "Your First Session",
-        estimatedTime: "~8 min",
-        completed: false,
-        requiresDesktop: true,
-        mobileAlternative: "Run your first brenner session in the terminal",
-      },
-      // Step 7: Mobile-friendly (reading output)
-      {
-        id: "qs-7",
-        stepNumber: 7,
-        title: "Understand the Output",
-        estimatedTime: "~5 min",
-        completed: false,
-      },
-    ],
+        ...(requiresDesktop
+          ? {
+              requiresDesktop: true,
+              mobileAlternative: step.whatYouDo[0] ?? `Complete ${step.title} on your desktop`,
+            }
+          : {}),
+      };
+    }),
   },
   "agent-assisted": {
-    id: "agent-assisted",
+    id: AGENT_ASSISTED_PATH.id as TutorialPathId,
     title: "Agent-Assisted Research",
-    shortTitle: "Agent-Assisted",
+    shortTitle: AGENT_ASSISTED_PATH.title,
     accent: "oklch(0.65 0.2 250)",
-    steps: [
-      // Step 1: Mobile-friendly (reading/understanding)
-      {
-        id: "aa-1",
-        stepNumber: 1,
-        title: "Why Agent-Assisted?",
-        estimatedTime: "~3 min",
+    steps: getAllAgentAssistedSteps().map((step) => {
+      const requiresDesktop = step.stepNumber >= 2 && step.stepNumber <= 7;
+      return {
+        id: step.id,
+        stepNumber: step.stepNumber,
+        title: step.title,
+        estimatedTime: step.estimatedTime,
         completed: false,
-      },
-      // Steps 2-7: Desktop required (agent execution)
-      {
-        id: "aa-2",
-        stepNumber: 2,
-        title: "Prerequisites",
-        estimatedTime: "~5 min",
-        completed: false,
-        requiresDesktop: true,
-        mobileAlternative: "Ensure Claude Code or Codex CLI is installed",
-      },
-      {
-        id: "aa-3",
-        stepNumber: 3,
-        title: "Clone into Agent Context",
-        estimatedTime: "~5 min",
-        completed: false,
-        requiresDesktop: true,
-        mobileAlternative: "Clone the repo within your AI agent session",
-      },
-      {
-        id: "aa-4",
-        stepNumber: 4,
-        title: "Agent Studies the System",
-        estimatedTime: "~10 min",
-        completed: false,
-        requiresDesktop: true,
-        mobileAlternative: "Have your agent explore the codebase",
-      },
-      {
-        id: "aa-5",
-        stepNumber: 5,
-        title: "Define Your Research Problem",
-        estimatedTime: "~5 min",
-        completed: false,
-        requiresDesktop: true,
-        mobileAlternative: "Provide your hypothesis to the agent",
-      },
-      {
-        id: "aa-6",
-        stepNumber: 6,
-        title: "Agent Builds the Inputs",
-        estimatedTime: "~10 min",
-        completed: false,
-        requiresDesktop: true,
-        mobileAlternative: "Agent creates excerpts and session config",
-      },
-      {
-        id: "aa-7",
-        stepNumber: 7,
-        title: "Agent Runs the Brenner Loop",
-        estimatedTime: "~10 min",
-        completed: false,
-        requiresDesktop: true,
-        mobileAlternative: "Agent executes the protocol loop",
-      },
-      // Step 8: Mobile-friendly (human review)
-      {
-        id: "aa-8",
-        stepNumber: 8,
-        title: "Human Review",
-        estimatedTime: "~5 min",
-        completed: false,
-      },
-    ],
+        ...(requiresDesktop
+          ? {
+              requiresDesktop: true,
+              mobileAlternative: step.whatYouDo[0] ?? `Complete ${step.title} on your desktop`,
+            }
+          : {}),
+      };
+    }),
   },
   "multi-agent": {
-    id: "multi-agent-cockpit",
-    title: "Multi-Agent Cockpit",
+    id: MULTI_AGENT_COCKPIT_PATH.id as TutorialPathId,
+    title: MULTI_AGENT_COCKPIT_PATH.title,
     shortTitle: "Multi-Agent",
     accent: "oklch(0.7 0.15 30)",
-    steps: [
-      // All multi-agent steps require desktop (infrastructure setup)
-      {
-        id: "ma-1",
-        stepNumber: 1,
-        title: "Cockpit Overview",
-        estimatedTime: "~5 min",
-        completed: false,
-        requiresDesktop: true,
-        mobileAlternative: "Understand the multi-agent architecture",
-      },
-      {
-        id: "ma-2",
-        stepNumber: 2,
-        title: "Agent Mail Setup",
-        estimatedTime: "~10 min",
-        completed: false,
-        requiresDesktop: true,
-        mobileAlternative: "Configure Agent Mail MCP server",
-      },
-      {
-        id: "ma-3",
-        stepNumber: 3,
-        title: "Register Agents",
-        estimatedTime: "~10 min",
-        completed: false,
-        requiresDesktop: true,
-        mobileAlternative: "Register agents with the mail system",
-      },
-      {
-        id: "ma-4",
-        stepNumber: 4,
-        title: "Define Roles",
-        estimatedTime: "~10 min",
-        completed: false,
-        requiresDesktop: true,
-        mobileAlternative: "Assign roles to each agent",
-      },
-      {
-        id: "ma-5",
-        stepNumber: 5,
-        title: "Coordinate Research",
-        estimatedTime: "~15 min",
-        completed: false,
-        requiresDesktop: true,
-        mobileAlternative: "Orchestrate agent collaboration",
-      },
-      {
-        id: "ma-6",
-        stepNumber: 6,
-        title: "Handle Disagreements",
-        estimatedTime: "~10 min",
-        completed: false,
-        requiresDesktop: true,
-        mobileAlternative: "Resolve agent conflicts",
-      },
-      {
-        id: "ma-7",
-        stepNumber: 7,
-        title: "Synthesize Results",
-        estimatedTime: "~10 min",
-        completed: false,
-        requiresDesktop: true,
-        mobileAlternative: "Combine agent outputs",
-      },
-      {
-        id: "ma-8",
-        stepNumber: 8,
-        title: "File Reservations",
-        estimatedTime: "~5 min",
-        completed: false,
-        requiresDesktop: true,
-        mobileAlternative: "Manage file locks between agents",
-      },
-      {
-        id: "ma-9",
-        stepNumber: 9,
-        title: "Best Practices",
-        estimatedTime: "~5 min",
-        completed: false,
-        requiresDesktop: true,
-        mobileAlternative: "Learn multi-agent best practices",
-      },
-      {
-        id: "ma-10",
-        stepNumber: 10,
-        title: "Advanced Patterns",
-        estimatedTime: "~10 min",
-        completed: false,
-        requiresDesktop: true,
-        mobileAlternative: "Explore advanced orchestration",
-      },
-    ],
+    steps: getAllMultiAgentSteps().map((step) => ({
+      id: step.id,
+      stepNumber: step.stepNumber,
+      title: step.title,
+      estimatedTime: step.estimatedTime,
+      completed: false,
+      requiresDesktop: true,
+      mobileAlternative: step.whatYouDo[0] ?? `Complete ${step.title} on your desktop`,
+    })),
   },
 };
 

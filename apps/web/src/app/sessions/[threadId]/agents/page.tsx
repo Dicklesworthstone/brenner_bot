@@ -70,6 +70,21 @@ import {
   validateRoster,
   validateRosterCoverage,
 } from "@/lib/roster";
+import {
+  acceptCritique,
+  addressCritique,
+  countUnaddressedCritiques,
+  type Critique,
+  createFramingCritique,
+  createHypothesisCritique,
+  createTestCritique,
+  dismissCritique,
+  evaluateKillJustification,
+  evaluateThirdAlternative,
+  generateCritiqueId,
+  reopenCritique,
+  requiresResponse,
+} from "@/lib/schemas/critique";
 import { cn } from "@/lib/utils";
 
 // ============================================================================
@@ -1324,6 +1339,127 @@ function AgentsPageContent({ threadId }: { threadId: string }) {
     setDebate((prev) => concludeDebate(prev));
   };
 
+  // Adversarial Critique Registry (§229) state & handlers
+  const critiqueSessionId = React.useMemo(
+    () => safeSessionId.replace(/[^A-Za-z0-9.-]/g, "-").replace(/^-+|-+$/g, "") || "SESSION",
+    [safeSessionId],
+  );
+
+  const [critiques, setCritiques] = React.useState<Critique[]>(() => {
+    const existingIds: string[] = [];
+    const id1 = generateCritiqueId(critiqueSessionId, existingIds);
+    existingIds.push(id1);
+    const id2 = generateCritiqueId(critiqueSessionId, existingIds);
+    existingIds.push(id2);
+    const id3 = generateCritiqueId(critiqueSessionId, existingIds);
+    existingIds.push(id3);
+
+    return [
+      createHypothesisCritique({
+        id: id1,
+        hypothesisId: `H-${critiqueSessionId}-001`,
+        attack:
+          "Observational correlation between exposure and outcome fails to rule out reverse causation from baseline homeostatic dysregulation.",
+        evidenceToConfirm:
+          "Pre-exposure longitudinal baseline trajectory showing outcome divergence prior to exposure onset.",
+        severity: "critical",
+        sessionId: critiqueSessionId,
+        raisedBy: "Devil's Advocate",
+        anchors: ["§103", "§229"],
+        proposedAlternative: {
+          description:
+            "Latent homeostatic stress drives both compensatory exposure behavior and downstream phenotype expression.",
+          mechanism: "Autonomic stress-axis activation preceding behavioral exposure",
+          testable: true,
+          predictions: [
+            "Elevated baseline cortisol/HRV precedes exposure onset in longitudinal cohort",
+          ],
+        },
+      }),
+      createTestCritique({
+        id: id2,
+        testId: "T1",
+        attack:
+          "Acute 48-hour perturbation window is shorter than receptor turnover half-life and cannot detect chronic adaptation.",
+        evidenceToConfirm:
+          "Time-series assay showing receptor half-life exceeds 72 hours under control conditions.",
+        severity: "serious",
+        sessionId: critiqueSessionId,
+        raisedBy: "Experiment Designer",
+      }),
+      createFramingCritique({
+        id: id3,
+        attack:
+          "Framing treats program instruction and biochemical execution as a single level instead of splitting message from machine.",
+        evidenceToConfirm:
+          "Isomorphic phenotype under orthogonal biochemical substrates when regulatory topology is preserved.",
+        severity: "moderate",
+        sessionId: critiqueSessionId,
+        raisedBy: "Brenner Channeler",
+        anchors: ["§58"],
+      }),
+    ];
+  });
+
+  const unaddressedHypothesisCritiqueCount = React.useMemo(
+    () => countUnaddressedCritiques(critiques, "hypothesis"),
+    [critiques],
+  );
+
+  const handleAcceptCritique = (critiqueId: string) => {
+    setCritiques((prev) =>
+      prev.map((c) =>
+        c.id === critiqueId && c.status === "active"
+          ? acceptCritique(
+              c,
+              "modified",
+              "Accepted adversarial critique and narrowed hypothesis scope to exclude baseline reverse-causation regime.",
+              "Operator",
+            )
+          : c,
+      ),
+    );
+  };
+
+  const handleAddressCritique = (critiqueId: string) => {
+    setCritiques((prev) =>
+      prev.map((c) =>
+        c.id === critiqueId && c.status === "active"
+          ? addressCritique(c, {
+              text: "Designed longitudinal washout + potency control test T2 to isolate chronic receptor turnover.",
+              respondedBy: "Operator",
+              actionTaken: "new_test",
+              newTestId: "T2",
+            })
+          : c,
+      ),
+    );
+  };
+
+  const handleDismissCritique = (critiqueId: string) => {
+    setCritiques((prev) =>
+      prev.map((c) =>
+        c.id === critiqueId && c.status === "active"
+          ? dismissCritique(
+              c,
+              "Prior calibration run already verified substrate independence across both assay levels.",
+              "Operator",
+            )
+          : c,
+      ),
+    );
+  };
+
+  const handleReopenCritique = (critiqueId: string) => {
+    setCritiques((prev) =>
+      prev.map((c) =>
+        c.id === critiqueId && c.status !== "active"
+          ? reopenCritique(c, "Reopened for post-synthesis verification.")
+          : c,
+      ),
+    );
+  };
+
   return (
     <TooltipProvider>
       <div className="max-w-6xl mx-auto space-y-8">
@@ -1782,6 +1918,159 @@ function AgentsPageContent({ threadId }: { threadId: string }) {
                 </pre>
               </details>
             )}
+          </CardContent>
+        </Card>
+
+        {/* Adversarial Critique Registry (§229) */}
+        <Card data-testid="adversarial-critique-ledger" className="border-red-500/20">
+          <CardHeader>
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <CardTitle className="text-lg">
+                  Adversarial Critique Ledger (§229)
+                </CardTitle>
+                <CardDescription>
+                  Formal tribunal critiques evaluated for Theory Kill Justification (0–3) and Real
+                  Third Alternative (0–3) rigor.
+                </CardDescription>
+              </div>
+              <div className="flex flex-wrap items-center gap-2">
+                <Badge variant="outline" className="font-mono text-xs">
+                  {critiques.length} Total Critiques
+                </Badge>
+                <Badge
+                  variant={unaddressedHypothesisCritiqueCount > 0 ? "destructive" : "secondary"}
+                  className="font-mono text-xs"
+                  data-testid="unaddressed-critiques-badge"
+                >
+                  {unaddressedHypothesisCritiqueCount} Unaddressed Hypothesis Attack
+                  {unaddressedHypothesisCritiqueCount === 1 ? "" : "s"}
+                </Badge>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {critiques.map((critique) => {
+              const killEval = evaluateKillJustification(critique);
+              const altEval = evaluateThirdAlternative(critique);
+              const mustRespond = requiresResponse(critique);
+
+              return (
+                <div
+                  key={critique.id}
+                  data-testid={`critique-card-${critique.id}`}
+                  className="rounded-xl border border-border bg-card p-4 space-y-2.5 text-xs"
+                >
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="font-mono font-bold text-primary">{critique.id}</span>
+                      <Badge variant="outline" className="font-mono uppercase text-[10px]">
+                        {critique.targetType}
+                        {critique.targetId ? ` • ${critique.targetId}` : ""}
+                      </Badge>
+                      <Badge
+                        variant={
+                          critique.severity === "critical" || critique.severity === "serious"
+                            ? "destructive"
+                            : "secondary"
+                        }
+                        className="font-mono uppercase text-[10px]"
+                      >
+                        {critique.severity}
+                      </Badge>
+                      <Badge
+                        variant="outline"
+                        data-testid={`critique-status-${critique.id}`}
+                        className="font-mono uppercase text-[10px]"
+                      >
+                        {critique.status}
+                      </Badge>
+                      {mustRespond && (
+                        <Badge variant="destructive" className="text-[10px]">
+                          Response Required
+                        </Badge>
+                      )}
+                    </div>
+                    <div className="flex flex-wrap items-center gap-2 text-muted-foreground font-mono">
+                      <span>Kill Score: {killEval.score}/3</span>
+                      <span>•</span>
+                      <span>3rd Alt Score: {altEval.score}/3</span>
+                    </div>
+                  </div>
+
+                  <p className="text-sm text-foreground font-medium">{critique.attack}</p>
+
+                  <div className="text-muted-foreground space-y-1">
+                    <div>
+                      <strong className="text-foreground/80">Falsifying Evidence:</strong>{" "}
+                      {critique.evidenceToConfirm}
+                    </div>
+                    {critique.proposedAlternative && (
+                      <div>
+                        <strong className="text-foreground/80">Proposed 3rd Alternative:</strong>{" "}
+                        {critique.proposedAlternative.description}
+                      </div>
+                    )}
+                    {critique.response && (
+                      <div className="rounded border border-primary/20 bg-primary/5 px-2.5 py-1.5 text-foreground">
+                        <strong>Response ({critique.response.actionTaken ?? "recorded"}):</strong>{" "}
+                        {critique.response.text}
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="flex flex-wrap items-center justify-between gap-2 pt-1 border-t border-border/60">
+                    <span className="text-[11px] text-muted-foreground">
+                      Raised by <strong className="text-foreground">{critique.raisedBy}</strong>
+                      {critique.anchors?.length ? ` (${critique.anchors.join(", ")})` : ""}
+                    </span>
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      {critique.status === "active" ? (
+                        <>
+                          <Button
+                            size="sm"
+                            variant="default"
+                            className="h-7 text-xs"
+                            data-testid={`accept-critique-${critique.id}`}
+                            onClick={() => handleAcceptCritique(critique.id)}
+                          >
+                            Accept &amp; Modify
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="h-7 text-xs"
+                            data-testid={`address-critique-${critique.id}`}
+                            onClick={() => handleAddressCritique(critique.id)}
+                          >
+                            Address with New Test
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="h-7 text-xs"
+                            data-testid={`dismiss-critique-${critique.id}`}
+                            onClick={() => handleDismissCritique(critique.id)}
+                          >
+                            Dismiss
+                          </Button>
+                        </>
+                      ) : (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="h-7 text-xs"
+                          data-testid={`reopen-critique-${critique.id}`}
+                          onClick={() => handleReopenCritique(critique.id)}
+                        >
+                          Reopen Critique
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
           </CardContent>
         </Card>
       </div>

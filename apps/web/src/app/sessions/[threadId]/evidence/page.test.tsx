@@ -6,7 +6,14 @@
  * indirectly through E2E tests.
  */
 
+import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
+import {
+  AnomalyQuarantineSection,
+  deriveAnomaliesFromEvidencePack,
+  evaluateAnomalyQuarantineLifecycle,
+  normalizeAnomalyHypothesisId,
+} from "./page";
 
 // ----- Types (matching the page types) -----
 
@@ -696,6 +703,42 @@ describe("Evidence page component rendering logic", () => {
         (e) => `${minimalValidRecord.id}#${e.anchor}`,
       );
       expect(citations).toEqual([]);
+    });
+  });
+
+  describe("Anomaly Quarantine Register integration (§103 / §147)", () => {
+    it("normalizes short hypothesis IDs to session-scoped H-SESSION-NNN format", () => {
+      expect(normalizeAnomalyHypothesisId("H-002", "TEST-001")).toBe("H-TEST-001-002");
+      expect(normalizeAnomalyHypothesisId("H-TEST-001-005", "TEST-001")).toBe("H-TEST-001-005");
+    });
+
+    it("derives quarantined anomalies from refuting evidence records and evaluates lifecycle transitions", () => {
+      const anomalies = deriveAnomaliesFromEvidencePack("TEST-001", validEvidencePack);
+      expect(anomalies).toHaveLength(1);
+      const firstAnomaly = anomalies[0];
+      expect(firstAnomaly).toBeDefined();
+      if (!firstAnomaly) return;
+      expect(firstAnomaly.id).toBe("X-TEST-001-001");
+      expect(firstAnomaly.conflictsWith.hypotheses).toEqual(["H-TEST-001-002"]);
+
+      const lifecycle = evaluateAnomalyQuarantineLifecycle(firstAnomaly, "TEST-001");
+      expect(lifecycle.initialDiscipline.score).toBeGreaterThanOrEqual(2);
+      expect(lifecycle.initialSpawnCheck.canSpawn).toBe(true);
+      expect(lifecycle.deferred.quarantineStatus).toBe("deferred");
+      expect(lifecycle.reactivated.quarantineStatus).toBe("active");
+      expect(lifecycle.paradigmShifting.quarantineStatus).toBe("paradigm_shifting");
+      expect(lifecycle.resolved.quarantineStatus).toBe("resolved");
+      expect(lifecycle.resolved.resolvedBy).toBe("H-TEST-001-003");
+    });
+
+    it("renders AnomalyQuarantineSection with discipline score and third-alternative badge", () => {
+      const anomalies = deriveAnomaliesFromEvidencePack("TEST-001", validEvidencePack);
+      render(<AnomalyQuarantineSection threadId="TEST-001" anomalies={anomalies} />);
+
+      expect(screen.getByTestId("anomaly-quarantine-panel")).toBeDefined();
+      expect(screen.getByText(/Anomaly Quarantine Register/i)).toBeDefined();
+      expect(screen.getByTestId("anomaly-card-X-TEST-001-001")).toBeDefined();
+      expect(screen.getByText(/Can Spawn 3rd Alternative/i)).toBeDefined();
     });
   });
 });

@@ -11,6 +11,8 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
+import { PATH_CONFIGS } from "@/app/tutorial/layout";
+import TutorialPage, { tutorialPaths } from "@/app/tutorial/page";
 import type { TutorialPath } from "@/lib/tutorial-types";
 import { TutorialPathCard, TutorialPathGrid } from "./TutorialPathCard";
 
@@ -266,5 +268,19 @@ describe("TutorialPathGrid", () => {
     const { container } = render(<TutorialPathGrid paths={paths} pathStatus={pathStatus} />);
     expect(container.querySelector(".border-accent\\/30")).toBeInTheDocument();
     window.localStorage.removeItem("brenner-tutorial-quick-start-progress");
+  });
+
+  it("derives tutorialPaths and PATH_CONFIGS from centralized tutorial-data and renders curriculum blueprint", () => {
+    expect(tutorialPaths.map((p) => p.totalSteps)).toEqual([7, 8, 10]);
+    expect(PATH_CONFIGS["quick-start"]?.steps).toHaveLength(7);
+    expect(PATH_CONFIGS["agent-assisted"]?.steps).toHaveLength(8);
+    expect(PATH_CONFIGS["multi-agent"]?.steps).toHaveLength(10);
+    expect(PATH_CONFIGS["multi-agent"]?.steps[0]?.id).toBe("mac-1");
+
+    render(<TutorialPage />);
+    expect(screen.getByTestId("tutorial-curriculum-blueprint")).toBeInTheDocument();
+    expect(
+      screen.getByText(/What You Build: Compiled Artifact & Review Rubric/i),
+    ).toBeInTheDocument();
   });
 });

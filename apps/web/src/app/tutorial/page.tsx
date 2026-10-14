@@ -3,6 +3,16 @@ import Link from "next/link";
 import { type PathStatus, TutorialPathGrid } from "@/components/tutorial/TutorialPathCard";
 import { HeroBackground } from "@/components/ui/animated-element";
 import { CollapsibleCard } from "@/components/ui/collapsible";
+import {
+  AGENT_ASSISTED_PATH,
+  ARTIFACT_SECTIONS,
+  getAllAgentAssistedSteps,
+  getAllMultiAgentSteps,
+  getAllQuickStartSteps,
+  MULTI_AGENT_COCKPIT_PATH,
+  QUICK_START_PATH,
+  REVIEW_CHECKLIST_GROUPS,
+} from "@/lib/tutorial-data";
 import type { TutorialPath } from "@/lib/tutorial-types";
 
 export const metadata: Metadata = {
@@ -12,48 +22,52 @@ export const metadata: Metadata = {
 };
 
 // ============================================================================
-// Path Definitions
+// Path Definitions (derived from centralized @/lib/tutorial-data)
 // ============================================================================
 
-const tutorialPaths: TutorialPath[] = [
+const quickStartSteps = getAllQuickStartSteps();
+const agentAssistedSteps = getAllAgentAssistedSteps();
+const multiAgentSteps = getAllMultiAgentSteps();
+
+export const tutorialPaths: TutorialPath[] = [
   {
-    id: "quick-start",
-    title: "Quick Start",
+    id: QUICK_START_PATH.id,
+    title: QUICK_START_PATH.title,
     description:
       "Apply the Brenner method to your research question in 30 minutes. No special setup required — just your browser and curiosity.",
-    estimatedDuration: "~30 min",
-    difficulty: "beginner",
+    estimatedDuration: QUICK_START_PATH.estimatedDuration,
+    difficulty: QUICK_START_PATH.difficulty,
     audience: "Curious researchers, first-timers",
     prerequisites: ["git", "terminal basics", "bun"],
-    totalSteps: 7,
-    available: true,
-    href: "/tutorial/quick-start",
+    totalSteps: quickStartSteps.length,
+    available: QUICK_START_PATH.available,
+    href: QUICK_START_PATH.href,
   },
   {
-    id: "agent-assisted",
+    id: AGENT_ASSISTED_PATH.id,
     title: "Agent-Assisted Research",
     description:
       "Install the /brennerbot-with-ntm skill via jsm and let your AI coding agent run the 10-phase Brenner Loop alongside you.",
-    estimatedDuration: "~45 min",
-    difficulty: "intermediate",
+    estimatedDuration: AGENT_ASSISTED_PATH.estimatedDuration,
+    difficulty: AGENT_ASSISTED_PATH.difficulty,
     audience: "Power users with Claude Code or Codex",
     prerequisites: ["Claude Max or GPT Pro subscription", "jsm (optional)"],
-    totalSteps: 8,
-    available: true,
-    href: "/tutorial/agent-assisted",
+    totalSteps: agentAssistedSteps.length,
+    available: AGENT_ASSISTED_PATH.available,
+    href: AGENT_ASSISTED_PATH.href,
   },
   {
-    id: "multi-agent-cockpit",
-    title: "Multi-Agent Cockpit",
+    id: MULTI_AGENT_COCKPIT_PATH.id,
+    title: MULTI_AGENT_COCKPIT_PATH.title,
     description:
       "Orchestrate a research group with Claude, Codex, and Gemini working in parallel via ntm (Named Tmux Manager), /brennerbot-with-ntm pipelines, and Agent Mail.",
-    estimatedDuration: "~2 hours",
-    difficulty: "advanced",
+    estimatedDuration: MULTI_AGENT_COCKPIT_PATH.estimatedDuration ?? "~2 hours",
+    difficulty: MULTI_AGENT_COCKPIT_PATH.difficulty,
     audience: "Advanced practitioners",
     prerequisites: ["All three CLI agents", "ntm + /brennerbot-with-ntm", "Agent Mail"],
-    totalSteps: 10,
-    available: true,
-    href: "/tutorial/multi-agent",
+    totalSteps: multiAgentSteps.length,
+    available: MULTI_AGENT_COCKPIT_PATH.available ?? true,
+    href: MULTI_AGENT_COCKPIT_PATH.href ?? "/tutorial/multi-agent",
   },
 ];
 
@@ -214,6 +228,37 @@ export default function TutorialPage() {
               <div className="text-zinc-400">$ ntm spawn brenner-rs --cc=2 --cod=1 --gmi=1</div>
             </div>
           </div>
+        </div>
+      </section>
+
+      {/* Curriculum & Deliverable Blueprint */}
+      <section
+        data-testid="tutorial-curriculum-blueprint"
+        className="max-w-4xl mx-auto space-y-6 px-4 sm:px-0"
+      >
+        <div className="text-center space-y-2">
+          <h2 className="text-xl sm:text-2xl font-semibold tracking-tight">
+            What You Build: Compiled Artifact &amp; Review Rubric
+          </h2>
+          <p className="text-sm text-muted-foreground max-w-2xl mx-auto">
+            Every tutorial path culminates in a structured Brenner research artifact verified
+            against {REVIEW_CHECKLIST_GROUPS.length} rubric domains.
+          </p>
+        </div>
+
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {ARTIFACT_SECTIONS.map((sec) => (
+            <div
+              key={sec.name}
+              className="rounded-xl border border-border bg-card p-4 space-y-1.5"
+            >
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-sm font-semibold text-foreground">{sec.name}</span>
+                <span className="text-xs font-mono text-primary">{sec.operator}</span>
+              </div>
+              <p className="text-xs text-muted-foreground">{sec.description}</p>
+            </div>
+          ))}
         </div>
       </section>
 

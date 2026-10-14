@@ -30,8 +30,25 @@ import {
 import * as React from "react";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { useTutorialAnalytics } from "@/hooks/useTutorialAnalytics";
+import type { TutorialStep as AnalyticsTutorialStep } from "@/lib/analytics";
 import type { TroubleshootingItem, TutorialStep as TutorialStepType } from "@/lib/tutorial-types";
 import { cn } from "@/lib/utils";
+import { MobileDesktopGate } from "./MobileDesktopGate";
+
+const ANALYTICS_STEP_NAMES: AnalyticsTutorialStep[] = [
+  "welcome",
+  "what_is_brenner",
+  "two_axioms",
+  "operators_intro",
+  "level_split",
+  "exclusion_test",
+  "object_transpose",
+  "scale_check",
+  "practice_session",
+  "next_steps",
+  "complete",
+];
 
 // ============================================================================
 // Types
@@ -331,6 +348,26 @@ export function TutorialStep({
 }: TutorialStepProps) {
   const [isHoveringBack, setIsHoveringBack] = React.useState(false);
   const [isHoveringNext, setIsHoveringNext] = React.useState(false);
+  const { trackStepView, trackStepComplete } = useTutorialAnalytics({
+    trackDropoffOnUnmount: false,
+  });
+
+  const analyticsStepName =
+    ANALYTICS_STEP_NAMES[
+      Math.min(Math.max(step.stepNumber - 1, 0), ANALYTICS_STEP_NAMES.length - 1)
+    ] ?? "welcome";
+
+  React.useEffect(() => {
+    trackStepView(step.stepNumber, analyticsStepName);
+  }, [step.stepNumber, analyticsStepName, trackStepView]);
+
+  const handleNextClick = () => {
+    trackStepComplete(step.stepNumber, analyticsStepName, {
+      stepId: step.id,
+      pathId: step.pathId,
+    });
+    onNext?.();
+  };
 
   return (
     <motion.div
@@ -414,10 +451,12 @@ export function TutorialStep({
         <ActionChecklist items={step.whatYouDo} />
       </motion.div>
 
-      {/* Main content */}
-      <motion.div variants={itemVariants} className="prose prose-sm dark:prose-invert max-w-none">
-        {children}
-      </motion.div>
+      {/* Main content (gated on mobile if requiresDesktop is true) */}
+      <MobileDesktopGate step={{ ...step, completed: false }}>
+        <motion.div variants={itemVariants} className="prose prose-sm dark:prose-invert max-w-none">
+          {children}
+        </motion.div>
+      </MobileDesktopGate>
 
       {/* More details (if provided) */}
       {step.moreDetails && (
@@ -475,7 +514,7 @@ export function TutorialStep({
           whileTap={{ scale: 0.98 }}
         >
           <Button
-            onClick={onNext}
+            onClick={handleNextClick}
             disabled={disableNext || !onNext}
             className={cn(
               "relative min-w-[130px] min-h-[44px] group rounded-xl overflow-hidden",

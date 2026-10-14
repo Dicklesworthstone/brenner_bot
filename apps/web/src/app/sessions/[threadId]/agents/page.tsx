@@ -36,10 +36,30 @@ import {
   type TribunalAgentRole,
 } from "@/lib/brenner-loop/agents";
 import {
+  type AgentDebate,
+  addRound,
+  addUserInjection,
+  buildDebateFollowUpPrompt,
+  buildDebateOpeningPrompt,
+  concludeDebate,
+  createDebate,
+  DEBATE_FORMAT_CONFIGS,
+  type DebateFormat,
+  getDebateStatus,
+} from "@/lib/brenner-loop/agents/debate";
+import {
   type SynthesisResult,
   synthesizeResponses,
 } from "@/lib/brenner-loop/agents/synthesis";
+import { useAgentDispatch } from "@/hooks/useAgentDispatch";
 import { isDemoThreadId, normalizeThreadId } from "@/lib/demo-mode";
+import {
+  applyPreset,
+  DEFAULT_3_AGENT_PRESET,
+  formatRosterAsMarkdown,
+  validateRoster,
+  validateRosterCoverage,
+} from "@/lib/roster";
 import { cn } from "@/lib/utils";
 
 // ============================================================================
@@ -1166,6 +1186,103 @@ function AgentsPageContent({ threadId }: { threadId: string }) {
     setSynthesisResult(result);
   };
 
+  // Agent Mail dispatch hook
+  const dispatchController = useAgentDispatch({
+    projectKey: "/data/projects/brenner_bot",
+    senderName: "TribunalOperator",
+    autoStartPolling: false,
+  });
+
+  // Protocol Roster state & validation
+  const rosterAudit = React.useMemo(() => {
+    const recipientAgents = ["Codex-GPT5", "Claude-Opus45", "Gemini-3-Pro"];
+    const roster = applyPreset(DEFAULT_3_AGENT_PRESET, recipientAgents);
+    const validation = validateRoster(roster);
+    const coverage = validateRosterCoverage(roster, recipientAgents);
+    const markdown = formatRosterAsMarkdown(roster);
+    return {
+      roster,
+      validation,
+      coverage,
+      markdown,
+    };
+  }, []);
+
+  // Multi-Round Adversarial Debate state
+  const [debateFormat, setDebateFormat] = React.useState<DebateFormat>("oxford_style");
+  const [debate, setDebate] = React.useState<AgentDebate>(() =>
+    createDebate({
+      sessionId: safeSessionId,
+      hypothesis: primaryHypothesis,
+      format: "oxford_style",
+    }),
+  );
+  const [userInjectionText, setUserInjectionText] = React.useState("");
+
+  React.useEffect(() => {
+    setDebate((prev) =>
+      prev.rounds.length === 0
+        ? createDebate({
+            sessionId: safeSessionId,
+            hypothesis: primaryHypothesis,
+            format: debateFormat,
+          })
+        : prev,
+    );
+  }, [safeSessionId, primaryHypothesis, debateFormat]);
+
+  const debateStatus = React.useMemo(() => getDebateStatus(debate), [debate]);
+
+  const nextDebatePromptPreview = React.useMemo(() => {
+    const speaker = debateStatus.currentSpeaker;
+    if (!speaker) return null;
+    return debate.rounds.length === 0
+      ? buildDebateOpeningPrompt(debate, speaker)
+      : buildDebateFollowUpPrompt(debate, speaker, debate.rounds);
+  }, [debate, debateStatus.currentSpeaker]);
+
+  const handleSelectDebateFormat = (nextFormat: DebateFormat) => {
+    setDebateFormat(nextFormat);
+    setDebate(
+      createDebate({
+        sessionId: safeSessionId,
+        hypothesis: primaryHypothesis,
+        format: nextFormat,
+      }),
+    );
+  };
+
+  const handleAdvanceDebateRound = () => {
+    const speaker = debateStatus.currentSpeaker;
+    if (!speaker) return;
+
+    const roundNumber = debate.rounds.length + 1;
+    const roleArguments: Record<TribunalAgentRole, string> = {
+      experiment_designer: `Round ${roundNumber} Proposition: We propose a 2x2 factorial intervention isolating the causal pathway of "${primaryHypothesis.statement.slice(0, 70)}...". Crucial potency controls verify assay sensitivity prior to readout.`,
+      devils_advocate: `Round ${roundNumber} Opposition: However, this design fails to rule out reverse causation and baseline sleep confounding. We challenge the assumption that short-term intervention captures chronic homeostatic adaptation.`,
+      statistician: `Round ${roundNumber} Quantitative Check: We agree that baseline confounding is a valid point, but argue that longitudinal mixed-effects modeling with random slopes and n=120 per arm resolves the power objection.`,
+      brenner_channeler: `Round ${roundNumber} Methodological Probe: Have you applied the Level Split operator? You are conflating acute receptor signaling with multi-week behavioral phenotype.`,
+      synthesis: `Round ${roundNumber} Synthesis: Consolidating consensus points and remaining discriminative tests across the tribunal.`,
+    };
+
+    const next = addRound(debate, {
+      speaker,
+      content: roleArguments[speaker],
+      replyingTo: debate.rounds.length > 0 ? debate.rounds.length : undefined,
+    });
+    setDebate(next);
+  };
+
+  const handleInjectUserChallenge = () => {
+    if (!userInjectionText.trim()) return;
+    setDebate((prev) => addUserInjection(prev, userInjectionText.trim(), "all"));
+    setUserInjectionText("");
+  };
+
+  const handleConcludeDebate = () => {
+    setDebate((prev) => concludeDebate(prev));
+  };
+
   return (
     <TooltipProvider>
       <div className="max-w-6xl mx-auto space-y-8">
@@ -1198,7 +1315,7 @@ function AgentsPageContent({ threadId }: { threadId: string }) {
         <motion.header
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="flex items-start justify-between gap-4"
+          className="flex flex-wrap items-start justify-between gap-4"
         >
           <div className="flex items-start gap-4">
             <div className="flex items-center justify-center size-14 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 text-primary shadow-lg shadow-primary/10">
@@ -1212,10 +1329,28 @@ function AgentsPageContent({ threadId }: { threadId: string }) {
             </div>
           </div>
 
-          <Button onClick={invokeAllAgents} className="gap-2" disabled={!allowMockInvoke}>
-            <PlayIcon className="size-4" />
-            Invoke All Agents
-          </Button>
+          <div className="flex flex-wrap items-center gap-2">
+            <Badge variant="outline" className="font-mono text-xs">
+              Dispatch: {dispatchController.state}
+            </Badge>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() =>
+                void dispatchController.startDispatch(primaryHypothesis, safeSessionId)
+              }
+              disabled={
+                dispatchController.state === "checking" ||
+                dispatchController.state === "dispatching"
+              }
+            >
+              Dispatch via Agent Mail
+            </Button>
+            <Button onClick={invokeAllAgents} className="gap-2" disabled={!allowMockInvoke}>
+              <PlayIcon className="size-4" />
+              Invoke All Agents
+            </Button>
+          </div>
         </motion.header>
 
         {/* Main Content */}
@@ -1245,7 +1380,7 @@ function AgentsPageContent({ threadId }: { threadId: string }) {
           </div>
 
           {/* Synthesis Sidebar */}
-          <div>
+          <div className="space-y-6">
             <motion.div
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
@@ -1258,8 +1393,202 @@ function AgentsPageContent({ threadId }: { threadId: string }) {
                 onGenerateSynthesis={handleGenerateSynthesis}
               />
             </motion.div>
+
+            {/* Protocol Roster Validation Panel */}
+            <Card data-testid="agent-roster-panel">
+              <CardHeader className="pb-3">
+                <div className="flex items-center justify-between gap-2">
+                  <CardTitle className="text-base">Protocol Roster</CardTitle>
+                  <Badge
+                    variant={
+                      rosterAudit.validation.valid && rosterAudit.coverage.valid
+                        ? "secondary"
+                        : "destructive"
+                    }
+                    className="font-mono text-xs"
+                  >
+                    {rosterAudit.validation.valid && rosterAudit.coverage.valid
+                      ? "3/3 Roles Verified"
+                      : "Roster Error"}
+                  </Badge>
+                </div>
+                <CardDescription className="text-xs">
+                  {rosterAudit.roster.name} ({rosterAudit.roster.mode})
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-3 text-xs">
+                <div className="space-y-1.5">
+                  {rosterAudit.roster.entries.map((entry) => (
+                    <div
+                      key={entry.agentName}
+                      className="flex items-center justify-between gap-2 rounded-lg border border-border bg-muted/20 px-2.5 py-1.5"
+                    >
+                      <span className="font-mono font-medium text-foreground">
+                        {entry.agentName}
+                      </span>
+                      <span className="text-muted-foreground">
+                        {entry.role} • {entry.model}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+                <details className="rounded-lg border border-border bg-muted/10 p-2">
+                  <summary className="cursor-pointer font-medium text-muted-foreground">
+                    Kickoff Roster Markdown
+                  </summary>
+                  <pre className="mt-2 whitespace-pre-wrap font-mono text-[11px] text-muted-foreground">
+                    {rosterAudit.markdown}
+                  </pre>
+                </details>
+              </CardContent>
+            </Card>
           </div>
         </div>
+
+        {/* Multi-Round Adversarial Debate Arena */}
+        <Card data-testid="agent-debate-arena" className="border-primary/20">
+          <CardHeader>
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <CardTitle className="text-lg">
+                  Multi-Round Adversarial Debate Arena
+                </CardTitle>
+                <CardDescription>
+                  {DEBATE_FORMAT_CONFIGS[debate.format].description} • Topic: {debate.topic}
+                </CardDescription>
+              </div>
+              <div className="flex flex-wrap items-center gap-2">
+                {(Object.keys(DEBATE_FORMAT_CONFIGS) as DebateFormat[]).map((fmt) => (
+                  <Button
+                    key={fmt}
+                    size="sm"
+                    variant={debate.format === fmt ? "default" : "outline"}
+                    onClick={() => handleSelectDebateFormat(fmt)}
+                  >
+                    {DEBATE_FORMAT_CONFIGS[fmt].name}
+                  </Button>
+                ))}
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-muted/20 p-3 text-xs">
+              <div className="flex flex-wrap items-center gap-3">
+                <Badge variant="outline" className="font-mono">
+                  Status: {debate.status}
+                </Badge>
+                <span>
+                  Rounds:{" "}
+                  <strong className="text-foreground">
+                    {debateStatus.roundsCompleted}/{debateStatus.maxRounds}
+                  </strong>
+                </span>
+                {debateStatus.currentSpeaker && (
+                  <span>
+                    Next Speaker:{" "}
+                    <strong className="font-mono text-primary">
+                      {debateStatus.currentSpeaker}
+                    </strong>
+                  </span>
+                )}
+              </div>
+              <div className="flex flex-wrap items-center gap-2">
+                <Button
+                  size="sm"
+                  onClick={handleAdvanceDebateRound}
+                  disabled={!debateStatus.currentSpeaker || debate.status === "concluded"}
+                >
+                  Advance Debate Round
+                </Button>
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  onClick={handleConcludeDebate}
+                  disabled={debate.rounds.length === 0 || debate.status === "concluded"}
+                >
+                  Conclude Debate
+                </Button>
+              </div>
+            </div>
+
+            {debate.rounds.length > 0 && (
+              <div className="space-y-2">
+                {debate.rounds.map((round) => (
+                  <div
+                    key={round.number}
+                    className="rounded-xl border border-border bg-card p-3 space-y-1 text-sm"
+                  >
+                    <div className="flex items-center justify-between text-xs text-muted-foreground">
+                      <span className="font-mono font-semibold text-foreground">
+                        Round {round.number} • {round.speaker}
+                      </span>
+                      <span>{new Date(round.recordedAt).toLocaleTimeString()}</span>
+                    </div>
+                    <p className="text-foreground">{round.content}</p>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {debate.userInjections.length > 0 && (
+              <div className="space-y-1.5">
+                {debate.userInjections.map((inj, idx) => (
+                  <div
+                    key={`${inj.injectedAt}-${idx}`}
+                    className="rounded-lg border border-amber-500/30 bg-amber-500/5 px-3 py-2 text-xs"
+                  >
+                    <span className="font-semibold text-amber-600 dark:text-amber-400">
+                      Operator Challenge (after Round {inj.afterRound}):
+                    </span>{" "}
+                    {inj.content}
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <div className="flex flex-col sm:flex-row gap-2">
+              <Textarea
+                value={userInjectionText}
+                onChange={(e) => setUserInjectionText(e.target.value)}
+                placeholder="Inject an operator question or methodological challenge into the debate..."
+                className="min-h-[60px] text-xs"
+              />
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleInjectUserChallenge}
+                disabled={!userInjectionText.trim()}
+                className="shrink-0 self-end"
+              >
+                Inject Challenge
+              </Button>
+            </div>
+
+            {debate.conclusion && (
+              <div
+                data-testid="debate-conclusion-card"
+                className="rounded-xl border border-primary/30 bg-primary/5 p-4 space-y-2 text-xs"
+              >
+                <div className="font-semibold text-sm text-foreground">
+                  Debate Conclusion &amp; Key Insight
+                </div>
+                <p className="text-foreground font-medium">{debate.conclusion.keyInsight}</p>
+                <p className="text-muted-foreground">{debate.conclusion.summary}</p>
+              </div>
+            )}
+
+            {nextDebatePromptPreview && (
+              <details className="rounded-lg border border-border bg-muted/10 p-2.5 text-xs">
+                <summary className="cursor-pointer font-medium text-muted-foreground">
+                  Preview Next Speaker Prompt ({debateStatus.currentSpeaker})
+                </summary>
+                <pre className="mt-2 max-h-48 overflow-auto whitespace-pre-wrap font-mono text-[11px] text-muted-foreground">
+                  {nextDebatePromptPreview}
+                </pre>
+              </details>
+            )}
+          </CardContent>
+        </Card>
       </div>
     </TooltipProvider>
   );

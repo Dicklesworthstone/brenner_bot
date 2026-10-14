@@ -56,6 +56,14 @@ import {
   HYPOTHESIS_TEMPLATES,
   type HypothesisTemplate,
 } from "@/lib/brenner-loop/hypothesis-templates";
+import {
+  aggregateRobustness,
+  computeRobustness,
+  formatRobustnessScore,
+  ROBUSTNESS_LABELS,
+  type RobustnessEvidenceInput,
+  summarizeRobustness,
+} from "@/lib/brenner-loop/robustness";
 import { type EmbeddingEntry, loadEmbeddings } from "@/lib/brenner-loop/search/embeddings";
 import {
   cardToIndexed,
@@ -583,6 +591,9 @@ function HypothesisPageContent({ threadId }: { threadId: string }) {
     [],
   );
 
+  // Evidence entries for robustness calculation
+  const [sessionEvidence, setSessionEvidence] = React.useState<RobustnessEvidenceInput[]>([]);
+
   // Evolution timeline events
   const [evolutionEvents, setEvolutionEvents] = React.useState<EvolutionEvent[]>([
     {
@@ -669,6 +680,10 @@ function HypothesisPageContent({ threadId }: { threadId: string }) {
               nextArena = addCompetitor(nextArena, compCard, "user_added");
             }
             setArena(nextArena);
+          }
+
+          if (Array.isArray(loaded.evidenceLedger)) {
+            setSessionEvidence(loaded.evidenceLedger);
           }
         }
 
@@ -768,6 +783,21 @@ function HypothesisPageContent({ threadId }: { threadId: string }) {
 
     return { matches, duplicates, stats };
   }, [hypothesis, competitorHypothesis, graveyardEntries, crossSessionHypotheses, safeSessionId]);
+
+  const robustnessOverview = React.useMemo(() => {
+    const primary = computeRobustness(hypothesis, sessionEvidence);
+    const competitor = computeRobustness(competitorHypothesis, sessionEvidence);
+    const aggregate = aggregateRobustness([primary, competitor]);
+    const labelInfo = ROBUSTNESS_LABELS[primary.interpretation];
+    return {
+      primary,
+      competitor,
+      aggregate,
+      labelInfo,
+      formattedScore: formatRobustnessScore(primary),
+      summaryText: summarizeRobustness(primary),
+    };
+  }, [hypothesis, competitorHypothesis, sessionEvidence]);
 
   const persistHypothesisToSession = React.useCallback(
     async (nextPrimary: HypothesisCard, nextCompetitor?: HypothesisCard) => {
@@ -1692,6 +1722,47 @@ function HypothesisPageContent({ threadId }: { threadId: string }) {
                     Based on {evolutionEvents.filter((e) => e.type === "evidence").length} evidence
                     entries
                   </p>
+                </CardContent>
+              </Card>
+            </motion.div>
+
+            {/* Robustness & Structural Rigor Card */}
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.22 }}
+            >
+              <Card data-testid="hypothesis-robustness-card">
+                <CardHeader className="pb-2">
+                  <div className="flex items-center justify-between gap-2">
+                    <CardTitle className="text-lg">Robustness &amp; Rigor</CardTitle>
+                    <Badge variant="outline" className="font-mono text-xs">
+                      {robustnessOverview.formattedScore}
+                    </Badge>
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-3 text-xs">
+                  <p className="text-muted-foreground">{robustnessOverview.primary.explanation}</p>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="rounded-lg border border-border bg-muted/20 p-2.5">
+                      <div className="text-muted-foreground">Falsifiability</div>
+                      <div className="font-semibold text-sm text-foreground">
+                        {robustnessOverview.primary.components.falsifiabilityScore}/100
+                      </div>
+                    </div>
+                    <div className="rounded-lg border border-border bg-muted/20 p-2.5">
+                      <div className="text-muted-foreground">Specificity</div>
+                      <div className="font-semibold text-sm text-foreground">
+                        {robustnessOverview.primary.components.specificityScore}/100
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex flex-wrap items-center justify-between gap-2 pt-1 border-t border-border/60 text-muted-foreground">
+                    <span>{robustnessOverview.summaryText}</span>
+                    <span className="font-mono">
+                      Arena avg: {robustnessOverview.aggregate.averageScore}/100
+                    </span>
+                  </div>
                 </CardContent>
               </Card>
             </motion.div>

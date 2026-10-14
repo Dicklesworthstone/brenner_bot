@@ -17,6 +17,8 @@ describe("TestQueuePage integration", () => {
     expect(
       await screen.findByText(/Evidence & Simulation Workbench/i),
     ).toBeInTheDocument();
+    expect(screen.getByTestId("test-binding-preview")).toBeInTheDocument();
+    expect(screen.getByText(/Suggested Action: validate/i)).toBeInTheDocument();
 
     // Enter statement & mechanism and generate exclusion tests
     const statementInput = screen.getByLabelText(/Hypothesis Statement/i);

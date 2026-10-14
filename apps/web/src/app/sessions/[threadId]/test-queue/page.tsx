@@ -71,6 +71,10 @@ import {
   updateQueueItem,
 } from "@/lib/brenner-loop/test-queue";
 import { isDemoThreadId } from "@/lib/demo-mode";
+import type { Hypothesis } from "@/lib/schemas/hypothesis";
+import type { Prediction } from "@/lib/schemas/prediction";
+import { categorizePredictions, processTestExecution } from "@/lib/schemas/test-binding";
+import type { TestRecord } from "@/lib/schemas/test-record";
 import { cn } from "@/lib/utils";
 
 // ============================================================================//
@@ -381,6 +385,159 @@ function TestQueuePageContent({ threadId }: { threadId: string }) {
 
   const stats = React.useMemo(() => getTestQueueStats(items), [items]);
   const grouped = React.useMemo(() => groupByPriority(items), [items]);
+
+  const testBindingPreview = React.useMemo(() => {
+    const nowIso = new Date().toISOString();
+    const safeSess = hypothesisSessionId || "SESSION";
+    const hPrimaryId = `H-${safeSess}-001`;
+    const hAltId = `H-${safeSess}-002`;
+    const predId = `P-${safeSess}-001`;
+    const testId = `T-${safeSess}-001`;
+
+    const primaryHypRecord: Hypothesis = {
+      id: hPrimaryId,
+      statement: currentHypothesis.statement,
+      mechanism: currentHypothesis.mechanism,
+      origin: "proposed",
+      category: "mechanistic",
+      confidence: currentHypothesis.confidence >= 70 ? "high" : "medium",
+      sessionId: safeSess,
+      state: "active",
+      isInference: false,
+      unresolvedCritiqueCount: 0,
+      createdAt: nowIso,
+      updatedAt: nowIso,
+    };
+
+    const altHypRecord: Hypothesis = {
+      id: hAltId,
+      statement: `Alternative / Null to ${currentHypothesis.statement.slice(0, 60)}`,
+      mechanism: "Observed variation is driven by an upstream confounder or baseline noise.",
+      origin: "third_alternative",
+      category: "third_alternative",
+      confidence: "medium",
+      sessionId: safeSess,
+      state: "active",
+      isInference: true,
+      unresolvedCritiqueCount: 0,
+      createdAt: nowIso,
+      updatedAt: nowIso,
+    };
+
+    const leadQueueItem = items[0];
+    const predTrueText =
+      leadQueueItem?.predictionIfTrue ||
+      currentHypothesis.predictionsIfTrue[0] ||
+      "Effect detected in target outcome";
+    const predFalseText =
+      leadQueueItem?.predictionIfFalse ||
+      currentHypothesis.predictionsIfFalse[0] ||
+      "No effect observed in target outcome";
+
+    const predictionRecord: Prediction = {
+      id: predId,
+      name: leadQueueItem?.test.name ?? "Primary Discriminative Prediction",
+      condition:
+        leadQueueItem?.test.description ??
+        "Under controlled intervention targeting the proposed causal mechanism",
+      hypothesisPredictions: [
+        {
+          hypothesisId: hPrimaryId,
+          prediction: `Positive effect observed: ${predTrueText}`,
+        },
+        {
+          hypothesisId: hAltId,
+          prediction: `No effect observed: ${predFalseText}`,
+        },
+      ],
+      isDiscriminative: true,
+      discriminativePower: 3,
+      sessionId: safeSess,
+      status: "untested",
+      isInference: false,
+      createdAt: nowIso,
+      updatedAt: nowIso,
+    };
+
+    const testRecord: TestRecord = {
+      id: testId,
+      name: leadQueueItem?.test.name ?? "Primary Exclusion Test",
+      procedure:
+        leadQueueItem?.test.description ??
+        "Execute pre-registered discriminative intervention with positive potency control.",
+      discriminates: [hPrimaryId, hAltId],
+      expectedOutcomes: [
+        {
+          hypothesisId: hPrimaryId,
+          outcome: `Positive effect observed: ${predTrueText}`,
+          resultType: "positive",
+        },
+        {
+          hypothesisId: hAltId,
+          outcome: `No effect observed: ${predFalseText}`,
+          resultType: "negative",
+        },
+      ],
+      addressesPredictions: [predId],
+      potencyCheck: {
+        positiveControl: "Positive control confirms assay sensitivity and intervention delivery.",
+        score: 2,
+      },
+      evidencePerWeekScore: {
+        likelihoodRatio: 3,
+        cost: 2,
+        speed: 2,
+        ambiguity: 3,
+      },
+      feasibility: {
+        requirements: "Standard session experimental protocol",
+        difficulty: "moderate",
+      },
+      designedInSession: safeSess,
+      status: "ready",
+      createdAt: nowIso,
+      updatedAt: nowIso,
+    };
+
+    const latestEvidence = evidenceEntries[evidenceEntries.length - 1];
+    const observedResult =
+      latestEvidence?.result === "challenges"
+        ? `No effect observed: ${latestEvidence.observation}`
+        : `Positive effect observed: ${latestEvidence?.observation ?? predTrueText}`;
+
+    const categorized = categorizePredictions(observedResult, [predictionRecord], hPrimaryId);
+
+    const executionOutcome = processTestExecution(
+      {
+        testId,
+        result: observedResult,
+        matchedPredictions: categorized.matched.length > 0 ? categorized.matched : [predId],
+        violatedPredictions: categorized.violated,
+        confidence: "high",
+        potencyCheckPassed: true,
+        executedBy: "local-operator",
+      },
+      testRecord,
+      [predictionRecord],
+      [primaryHypRecord, altHypRecord],
+      {
+        autoApply: false,
+        sessionId: safeSess,
+      },
+    );
+
+    const primarySuggestion = executionOutcome.suggestResult?.suggestions.find(
+      (s) => s.hypothesisId === hPrimaryId,
+    );
+
+    return {
+      categorized,
+      executionOutcome,
+      primarySuggestion,
+      testName: testRecord.name,
+      hasRecordedEvidence: Boolean(latestEvidence),
+    };
+  }, [hypothesisSessionId, currentHypothesis, items, evidenceEntries]);
 
   const canGenerate =
     statement.trim().length >= 10 &&
@@ -975,6 +1132,39 @@ function TestQueuePageContent({ threadId }: { threadId: string }) {
           <Badge variant="outline" className="font-mono">
             Confidence: {currentHypothesis.confidence}%
           </Badge>
+        </div>
+
+        <div
+          data-testid="test-binding-preview"
+          className="rounded-xl border border-border bg-muted/20 p-4 space-y-2"
+        >
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                Test → Hypothesis Lifecycle Binding (§229)
+              </span>
+              <Badge variant="outline" className="font-mono text-xs">
+                {testBindingPreview.hasRecordedEvidence ? "Live Evidence" : "Pre-Execution Preview"}
+              </Badge>
+            </div>
+            {testBindingPreview.primarySuggestion && (
+              <Badge
+                variant={
+                  testBindingPreview.primarySuggestion.suggestedAction === "kill"
+                    ? "destructive"
+                    : "secondary"
+                }
+                className="font-mono text-xs uppercase"
+              >
+                Suggested Action: {testBindingPreview.primarySuggestion.suggestedAction}
+              </Badge>
+            )}
+          </div>
+          <p className="text-xs text-muted-foreground">
+            <span className="font-medium text-foreground">{testBindingPreview.testName}:</span>{" "}
+            {testBindingPreview.primarySuggestion?.reason ??
+              "Pre-registered predictions bound to primary and third-alternative hypotheses with potency check validation."}
+          </p>
         </div>
 
         <Card>

@@ -44,5 +44,19 @@ describe("AgentsPage", () => {
     await waitFor(() => {
       expect(screen.getByText(/Synthesized Action Plan/i)).toBeDefined();
     });
+
+    // Verify Protocol Roster validation panel and Multi-Round Debate Arena
+    expect(screen.getByTestId("agent-roster-panel")).toBeInTheDocument();
+    expect(screen.getByText(/3\/3 Roles Verified/i)).toBeInTheDocument();
+    expect(screen.getByTestId("agent-debate-arena")).toBeInTheDocument();
+
+    // Advance a debate round and conclude debate
+    const advanceBtn = screen.getByRole("button", { name: /Advance Debate Round/i });
+    fireEvent.click(advanceBtn);
+
+    const concludeBtn = screen.getByRole("button", { name: /Conclude Debate/i });
+    fireEvent.click(concludeBtn);
+
+    expect(await screen.findByTestId("debate-conclusion-card")).toBeInTheDocument();
   });
 });

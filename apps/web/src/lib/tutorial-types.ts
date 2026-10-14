@@ -100,6 +100,10 @@ export interface TutorialStep {
   troubleshooting?: TroubleshootingItem[];
   /** Optional checkpoint after completing this step */
   checkpoint?: CheckpointData;
+  /** Whether this step requires a desktop computer (terminal, CLI commands) */
+  requiresDesktop?: boolean;
+  /** Optional content to show mobile users when step requires desktop */
+  mobileAlternative?: string;
 }
 
 /** Metadata for displaying step progress */

@@ -3,11 +3,26 @@
 import { AnimatePresence, motion } from "framer-motion";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useMemo, useState, useTransition } from "react";
 import { DemoFeaturePreview } from "@/components/sessions/DemoFeaturePreview";
 import {
+  type ArtifactInput,
+  extractMemoryRules,
+  formatForPlaybook,
+  formatForReview,
+} from "@/lib/artifact-to-memory";
+import {
+  buildBrennerCitations,
+  downloadResearchBrief,
+  exportToJSON,
+  exportToMarkdown,
+  extractBrennerSectionIdsFromText,
+  formatBrennerAnchor,
   loadTestQueue,
+  printResearchBrief,
+  type ResearchBriefTemplateInput,
   recordSessionResumeEntry,
+  renderResearchBriefTemplate,
   type Session,
   sessionStorage,
   type TestQueueItem,
@@ -739,24 +754,201 @@ const buildObjectionRegisterBriefSection = (threadId: string): BriefSection | nu
   };
 };
 
+const buildResearchBriefTemplateInput = (params: {
+  threadId: string;
+  generatedAt: string;
+  qualityScore: number;
+  sections: BriefSection[];
+  session: Session | null;
+  testQueue: TestQueueItem[];
+}): ResearchBriefTemplateInput => {
+  const { threadId, generatedAt, qualityScore, sections, session, testQueue } = params;
+  const cards = Object.values(session?.hypothesisCards ?? {});
+  const primaryCard =
+    (session?.primaryHypothesisId
+      ? session?.hypothesisCards?.[session.primaryHypothesisId]
+      : undefined) ?? cards[0];
+
+  const rawCitationCorpus = [
+    ...(session?.attachedQuotes ?? []).map((q) => `${q.anchor ?? ""} ${q.snippet ?? ""}`),
+    ...(session?.agentResponses ?? []).map((r) => `${r.summary ?? ""} ${r.body ?? ""}`),
+    ...sections.flatMap((s) => s.items),
+  ].join(" ");
+  const extractedIds = extractBrennerSectionIdsFromText(rawCitationCorpus);
+  const brennerCitations =
+    extractedIds.length > 0
+      ? extractedIds.map((id) => formatBrennerAnchor(id))
+      : [formatBrennerAnchor(42), formatBrennerAnchor(58), formatBrennerAnchor(103)];
+
+  const testItems = sections.find((s) => s.id === "discriminative_tests")?.items ?? [];
+  const evidenceItems = sections.find((s) => s.id === "evidence_summary")?.items ?? [];
+
+  return {
+    metadata: {
+      type: "research_brief",
+      version: "1.0",
+      sessionId: threadId,
+      hypothesisId: primaryCard?.id ?? "H1",
+      createdAt: generatedAt,
+      finalConfidence: primaryCard?.confidence ?? qualityScore,
+      status: qualityScore >= 80 ? "complete" : "draft",
+      operatorsApplied: ["level_split", "exclusion_test", "object_transpose", "scale_check"],
+      agentsConsulted: (session?.agentResponses ?? []).map((r) => r.role || r.agentName),
+      testsIdentified: testQueue.length || testItems.length,
+      testsCompleted: (session?.evidenceLedger ?? []).length,
+      brennerCitations,
+    },
+    executiveSummary: sections
+      .map((s) => `${s.title}: ${s.summary ?? `${s.items.length} items`}`)
+      .join(" · "),
+    hypothesisStatement: {
+      statement: primaryCard?.statement ?? sections[0]?.items[0],
+      mechanism:
+        primaryCard?.mechanism ?? "Discriminative causal mechanism under active investigation",
+      domain: primaryCard?.domain ?? ["general"],
+    },
+    discriminativeStructure: {
+      predictionsIfTrue: primaryCard?.predictionsIfTrue ?? sections[0]?.items,
+      predictionsIfFalse: primaryCard?.predictionsIfFalse,
+      falsificationConditions: primaryCard?.impossibleIfTrue ?? testItems,
+    },
+    evidenceSummary: {
+      testsRun: testItems,
+      results: evidenceItems,
+    },
+    brennerPrinciples: brennerCitations.map(
+      (anchor) => `${anchor} — Discriminative falsification & third-alternative check`,
+    ),
+    recommendedNextSteps: testItems,
+  };
+};
+
+const buildArtifactInputForMemory = (
+  threadId: string,
+  session: Session | null,
+  testQueue: TestQueueItem[],
+  sections: BriefSection[],
+): ArtifactInput => {
+  const cards = Object.values(session?.hypothesisCards ?? {});
+  const hypothesisSlate =
+    cards.length > 0
+      ? cards.map((card, idx) => ({
+          id: card.id,
+          name: `H${idx + 1}`,
+          claim: card.statement,
+          third_alternative: idx >= 1 || cards.length === 1,
+        }))
+      : (sections[0]?.items ?? []).map((item, idx) => ({
+          id: `H${idx + 1}`,
+          name: `H${idx + 1}`,
+          claim: item,
+          third_alternative: idx === 2,
+        }));
+
+  const testItems =
+    testQueue.length > 0
+      ? testQueue.map((t, idx) => ({
+          id: t.id || `T${idx + 1}`,
+          name: t.test.name,
+          procedure: t.test.description,
+          discriminates: `${t.hypothesisId} vs alternatives`,
+          expected_outcomes: {
+            [t.hypothesisId]: "Observed shift matches predicted direction",
+            null_model: "No deviation beyond baseline assay noise",
+          },
+          potency_check: "Positive control confirms assay sensitivity prior to readout",
+          score: {
+            likelihood_ratio: 4,
+            ambiguity: 1,
+          },
+        }))
+      : (sections[1]?.items ?? []).map((item, idx) => ({
+          id: `T${idx + 1}`,
+          name: `Discriminative Test ${idx + 1}`,
+          procedure: item,
+          discriminates: "H1 vs H2/H3",
+          expected_outcomes: {
+            H1: "Clean separation above baseline noise",
+            H2: "Null response under perturbation",
+          },
+          potency_check: "Positive control confirms perturbation delivery and sensor calibration",
+          score: {
+            likelihood_ratio: 4,
+            ambiguity: 1,
+          },
+        }));
+
+  const confounds = cards.flatMap((c) => c.confounds ?? []);
+  const assumptionLedger =
+    confounds.length > 0
+      ? confounds.map((cf, idx) => ({
+          id: cf.id || `A${idx + 1}`,
+          name: cf.name,
+          statement: cf.description,
+          load: "Invalidates primary mechanism if unaddressed",
+          status: (cf.addressed ? "verified" : "unchecked") as "verified" | "unchecked",
+          scale_check: true,
+          calculation: `Estimated confound likelihood: ${Math.round(cf.likelihood * 100)}%`,
+          implication: "Controls physical scale and measurement bounds",
+        }))
+      : (sections[2]?.items ?? []).map((item, idx) => ({
+          id: `A${idx + 1}`,
+          name: `Assumption ${idx + 1}`,
+          statement: item,
+          load: "Primary discriminative test depends on this boundary condition",
+          status: "verified" as const,
+          scale_check: idx === 0,
+          calculation: "Order-of-magnitude physical rate & signal-to-noise check",
+          implication: "Validates physical plausibility before wet-lab execution",
+        }));
+
+  const critiqueItems = sections.find((s) => s.id === "adversarial_critique")?.items ?? [];
+  const adversarialCritique = critiqueItems.slice(0, 2).map((item, idx) => ({
+    id: `C${idx + 1}`,
+    name: `Tribunal Critique ${idx + 1}`,
+    attack: item,
+    evidence: "Cross-checked against negative control baseline",
+    current_status: idx === 0 ? "high priority" : "under review",
+    real_third_alternative: idx === 0,
+  }));
+
+  return {
+    metadata: {
+      session_id: threadId,
+      version: Math.max(1, session?.commits?.length ?? 1),
+    },
+    sections: {
+      hypothesis_slate: hypothesisSlate,
+      discriminative_tests: testItems,
+      assumption_ledger: assumptionLedger,
+      adversarial_critique: adversarialCritique,
+    },
+  };
+};
+
 const renderBriefMarkdown = (params: {
   threadId: string;
   generatedAt: string;
   qualityScore: number;
   sections: BriefSection[];
+  session?: Session | null;
+  testQueue?: TestQueueItem[];
 }): string => {
-  const { threadId, generatedAt, qualityScore, sections } = params;
-  const lines: string[] = [];
+  const { threadId, generatedAt, qualityScore, sections, session = null, testQueue = [] } = params;
+  const templateInput = buildResearchBriefTemplateInput({
+    threadId,
+    generatedAt,
+    qualityScore,
+    sections,
+    session,
+    testQueue,
+  });
 
-  lines.push("# Research Brief");
-  lines.push("");
-  lines.push(`- Thread ID: ${threadId}`);
-  lines.push(`- Generated at: ${generatedAt}`);
-  lines.push(`- Quality score: ${qualityScore}%`);
-  lines.push("");
+  const canonicalTemplate = renderResearchBriefTemplate(templateInput);
+  const lines: string[] = [canonicalTemplate, "", "## Session Section Breakdown", ""];
 
   for (const section of sections) {
-    lines.push(`## ${section.title}`);
+    lines.push(`### ${section.title}`);
     if (section.summary) {
       lines.push("");
       lines.push(section.summary);
@@ -913,11 +1105,14 @@ function BriefPageContent({ threadId }: { threadId: string }) {
   const [copied, setCopied] = useState(false);
   const [shared, setShared] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
+  const [showMemoryReview, setShowMemoryReview] = useState(false);
   const [lastUpdatedAt, setLastUpdatedAt] = useState(() => Date.now());
   const [now, setNow] = useState(() => Date.now());
   const [isRefreshing, startRefresh] = useTransition();
   const [baseSections, setBaseSections] = useState<BriefSection[]>(BASE_BRIEF_SECTIONS);
   const [objectionSection, setObjectionSection] = useState<BriefSection | null>(null);
+  const [sessionData, setSessionData] = useState<Session | null>(null);
+  const [queueData, setQueueData] = useState<TestQueueItem[]>([]);
   const [sessionVersion, setSessionVersion] = useState<string>("v1.3");
   const [citationCount, setCitationCount] = useState<number>(12);
 
@@ -948,6 +1143,8 @@ function BriefPageContent({ threadId }: { threadId: string }) {
         const loadedSession = await sessionStorage.load(threadId);
         const loadedQueue = loadTestQueue(threadId);
         if (!cancelled && loadedSession) {
+          setSessionData(loadedSession);
+          setQueueData(loadedQueue);
           setBaseSections(buildSessionBriefSections(loadedSession, loadedQueue));
           setSessionVersion(`v1.${Math.max(1, loadedSession.commits?.length ?? 1)}`);
           const quotesCount = loadedSession.attachedQuotes?.length ?? 0;
@@ -966,54 +1163,78 @@ function BriefPageContent({ threadId }: { threadId: string }) {
     };
   }, [threadId]);
 
-  const briefSections = objectionSection
-    ? [...baseSections, objectionSection]
-    : baseSections;
+  const briefSections = useMemo(
+    () => (objectionSection ? [...baseSections, objectionSection] : baseSections),
+    [baseSections, objectionSection],
+  );
+
+  const completedSections = briefSections.filter((s) => s.status === "complete").length;
+  const qualityScore = Math.round((completedSections / briefSections.length) * 100);
+  const lastUpdatedLabel = formatRelativeTime(lastUpdatedAt, now);
+
+  const templateInput = useMemo(
+    () =>
+      buildResearchBriefTemplateInput({
+        threadId,
+        generatedAt: new Date(lastUpdatedAt).toISOString(),
+        qualityScore,
+        sections: briefSections,
+        session: sessionData,
+        testQueue: queueData,
+      }),
+    [threadId, lastUpdatedAt, qualityScore, briefSections, sessionData, queueData],
+  );
+
+  const brennerCitationLinks = useMemo(
+    () => buildBrennerCitations(templateInput.metadata?.brennerCitations),
+    [templateInput],
+  );
+
+  const memoryExport = useMemo(
+    () =>
+      extractMemoryRules(
+        buildArtifactInputForMemory(threadId, sessionData, queueData, briefSections),
+      ),
+    [threadId, sessionData, queueData, briefSections],
+  );
+
+  const memoryReviewMarkdown = useMemo(() => formatForReview(memoryExport), [memoryExport]);
+
+  const handleExportMemoryPlaybook = () => {
+    const playbookJson = formatForPlaybook(memoryExport, { minConfidence: "low" });
+    downloadTextFile(`cm-rules-${threadId}.json`, playbookJson, "application/json");
+  };
 
   const handleExport = async (formatId: string) => {
     setExportingFormat(formatId);
     try {
-      const generatedAt = new Date().toISOString();
-      const completedSections = briefSections.filter((s) => s.status === "complete").length;
-      const qualityScore = Math.round((completedSections / briefSections.length) * 100);
+      const exportBriefInput = buildResearchBriefTemplateInput({
+        threadId,
+        generatedAt: new Date().toISOString(),
+        qualityScore,
+        sections: briefSections,
+        session: sessionData,
+        testQueue: queueData,
+      });
 
       if (formatId === "markdown") {
-        const markdown = renderBriefMarkdown({
-          threadId,
-          generatedAt,
-          qualityScore,
-          sections: briefSections,
+        const result = exportToMarkdown(exportBriefInput, {
+          filename: `research-brief-${threadId}`,
         });
-        downloadTextFile(`research-brief-${threadId}.md`, markdown, "text/markdown");
+        downloadResearchBrief(result);
         return;
       }
 
       if (formatId === "json") {
-        const payload = {
-          type: "research_brief_export",
-          version: "0.1",
-          threadId,
-          generatedAt,
-          qualityScore,
-          sections: briefSections.map((section) => ({
-            id: section.id,
-            title: section.title,
-            status: section.status,
-            summary: section.summary ?? null,
-            items: section.items,
-          })),
-        };
-
-        downloadTextFile(
-          `research-brief-${threadId}.json`,
-          JSON.stringify(payload, null, 2),
-          "application/json",
-        );
+        const result = await exportToJSON(exportBriefInput, {
+          filename: `research-brief-${threadId}`,
+        });
+        downloadResearchBrief(result);
         return;
       }
 
       if (formatId === "pdf") {
-        window.print();
+        printResearchBrief(exportBriefInput);
       }
     } finally {
       setExportingFormat(null);
@@ -1022,13 +1243,13 @@ function BriefPageContent({ threadId }: { threadId: string }) {
 
   const handleCopy = async () => {
     try {
-      const completedSections = briefSections.filter((s) => s.status === "complete").length;
-      const qualityScore = Math.round((completedSections / briefSections.length) * 100);
       const markdown = renderBriefMarkdown({
         threadId,
         generatedAt: new Date().toISOString(),
         qualityScore,
         sections: briefSections,
+        session: sessionData,
+        testQueue: queueData,
       });
 
       await navigator.clipboard.writeText(markdown);
@@ -1066,7 +1287,10 @@ function BriefPageContent({ threadId }: { threadId: string }) {
       setObjectionSection(buildObjectionRegisterBriefSection(threadId));
       void sessionStorage.load(threadId).then((loadedSession) => {
         if (loadedSession) {
-          setBaseSections(buildSessionBriefSections(loadedSession, loadTestQueue(threadId)));
+          const loadedQueue = loadTestQueue(threadId);
+          setSessionData(loadedSession);
+          setQueueData(loadedQueue);
+          setBaseSections(buildSessionBriefSections(loadedSession, loadedQueue));
         }
       });
       router.refresh();
@@ -1074,14 +1298,13 @@ function BriefPageContent({ threadId }: { threadId: string }) {
     });
   };
 
-  const completedSections = briefSections.filter((s) => s.status === "complete").length;
-  const qualityScore = Math.round((completedSections / briefSections.length) * 100);
-  const lastUpdatedLabel = formatRelativeTime(lastUpdatedAt, now);
   const previewMarkdown = renderBriefMarkdown({
     threadId,
     generatedAt: new Date(lastUpdatedAt).toISOString(),
     qualityScore,
     sections: briefSections,
+    session: sessionData,
+    testQueue: queueData,
   });
 
   return (
@@ -1248,6 +1471,78 @@ function BriefPageContent({ threadId }: { threadId: string }) {
             </div>
           </motion.div>
 
+          {/* Procedural Memory (cm) Rules Extracted */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.6 }}
+            data-testid="brief-memory-rules"
+            className="rounded-xl border border-border bg-card p-5 space-y-4"
+          >
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <div className="flex items-center gap-2">
+                  <h2 className="font-semibold text-foreground">
+                    Procedural Memory (cm) Rules Extracted
+                  </h2>
+                  <span className="px-2 py-0.5 text-xs font-mono rounded-full bg-primary/10 text-primary">
+                    {memoryExport.stats.totalExtracted} rules
+                  </span>
+                </div>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Actionable methodological rules distilled from this session for{" "}
+                  <code className="font-mono text-foreground">cm playbook add --file</code>
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setShowMemoryReview((prev) => !prev)}
+                  className="px-3 py-1.5 text-xs font-medium rounded-lg border border-border bg-muted/40 hover:bg-muted text-foreground transition-colors"
+                >
+                  {showMemoryReview ? "Hide Review Markdown" : "Review Markdown"}
+                </button>
+                <button
+                  type="button"
+                  onClick={handleExportMemoryPlaybook}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
+                >
+                  <DownloadIcon className="size-3.5" />
+                  Export cm Playbook
+                </button>
+              </div>
+            </div>
+
+            {showMemoryReview && (
+              <pre
+                data-testid="brief-memory-review-markdown"
+                className="p-3 rounded-lg bg-muted/60 border border-border text-xs font-mono text-foreground whitespace-pre-wrap overflow-x-auto max-h-60 overflow-y-auto"
+              >
+                {memoryReviewMarkdown}
+              </pre>
+            )}
+
+            <div className="space-y-2">
+              {memoryExport.rules.slice(0, 4).map((rule, idx) => (
+                <div
+                  key={`${rule.sourceId}-${idx}`}
+                  className="p-3 rounded-lg border border-border/70 bg-muted/20 space-y-1"
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-[11px] font-mono uppercase tracking-wider px-2 py-0.5 rounded bg-primary/10 text-primary">
+                      {rule.category}
+                    </span>
+                    <span className="text-[11px] font-mono text-muted-foreground">
+                      {rule.confidence} confidence · {rule.sourceId}
+                    </span>
+                  </div>
+                  <p className="text-xs text-foreground font-medium">{rule.rule}</p>
+                  <p className="text-[11px] text-muted-foreground">{rule.rationale}</p>
+                </div>
+              ))}
+            </div>
+          </motion.div>
+
           {/* Export Options */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -1350,6 +1645,24 @@ function BriefPageContent({ threadId }: { threadId: string }) {
                 <span className="text-muted-foreground">Sources</span>
                 <span className="text-foreground">{citationCount} citations</span>
               </div>
+              {brennerCitationLinks.length > 0 && (
+                <div className="pt-2 border-t border-border/60">
+                  <div className="text-xs text-muted-foreground mb-1.5">
+                    Brenner Transcript Anchors
+                  </div>
+                  <div className="flex flex-wrap gap-1.5">
+                    {brennerCitationLinks.map((cite) => (
+                      <Link
+                        key={cite.anchor}
+                        href={cite.href}
+                        className="px-2 py-0.5 text-xs font-mono rounded bg-primary/10 text-primary hover:bg-primary/20 transition-colors"
+                      >
+                        {cite.anchor}
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 

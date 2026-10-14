@@ -25,6 +25,7 @@ describe("OperatorsPage", () => {
 
     expect(screen.getByRole("heading", { name: "Operators" })).toBeDefined();
     expect(screen.getAllByText("Level Split").length).toBeGreaterThan(0);
+    expect(screen.getByText("Decompose the CAUSE")).toBeDefined();
 
     // Switch to Guided Interactive Wizard
     const wizardBtn = screen.getByRole("button", { name: "Guided Interactive Wizard" });

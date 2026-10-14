@@ -52,8 +52,19 @@ import {
   type FalsifiedHypothesis,
   generateGraveyardId,
 } from "@/lib/brenner-loop/graveyard";
-import type { HypothesisTemplate } from "@/lib/brenner-loop/hypothesis-templates";
+import {
+  HYPOTHESIS_TEMPLATES,
+  type HypothesisTemplate,
+} from "@/lib/brenner-loop/hypothesis-templates";
 import { type EmbeddingEntry, loadEmbeddings } from "@/lib/brenner-loop/search/embeddings";
+import {
+  cardToIndexed,
+  findDuplicates,
+  findSimilarHypotheses,
+  getSimilarityStats,
+  type IndexedHypothesis,
+  type SimilarityMatch,
+} from "@/lib/brenner-loop/search/hypothesis-similarity";
 import {
   buildQuoteQueryText,
   filterQuoteEntriesByTags,
@@ -554,6 +565,7 @@ function HypothesisPageContent({ threadId }: { threadId: string }) {
   const [historyOpen, setHistoryOpen] = React.useState(false);
   const [arenaOpen, setArenaOpen] = React.useState(true);
   const [graveyardOpen, setGraveyardOpen] = React.useState(false);
+  const [similarityOpen, setSimilarityOpen] = React.useState(true);
   const [showTemplateSelector, setShowTemplateSelector] = React.useState(false);
   const [showFalsificationCeremony, setShowFalsificationCeremony] = React.useState(false);
   const [showAddCompetitorForm, setShowAddCompetitorForm] = React.useState(false);
@@ -565,6 +577,11 @@ function HypothesisPageContent({ threadId }: { threadId: string }) {
 
   // Hypothesis Graveyard entries
   const [graveyardEntries, setGraveyardEntries] = React.useState<FalsifiedHypothesis[]>([]);
+
+  // Cross-session indexed hypotheses for similarity search
+  const [crossSessionHypotheses, setCrossSessionHypotheses] = React.useState<IndexedHypothesis[]>(
+    [],
+  );
 
   // Evolution timeline events
   const [evolutionEvents, setEvolutionEvents] = React.useState<EvolutionEvent[]>([
@@ -617,42 +634,58 @@ function HypothesisPageContent({ threadId }: { threadId: string }) {
     const loadPersisted = async () => {
       try {
         const loaded = await sessionStorage.load(threadId);
-        if (cancelled || !loaded) return;
+        if (!cancelled && loaded) {
+          const primaryId = loaded.primaryHypothesisId;
+          const rawPrimary =
+            (primaryId && loaded.hypothesisCards[primaryId]) ||
+            Object.values(loaded.hypothesisCards)[0];
 
-        const primaryId = loaded.primaryHypothesisId;
-        const rawPrimary =
-          (primaryId && loaded.hypothesisCards[primaryId]) ||
-          Object.values(loaded.hypothesisCards)[0];
+          if (rawPrimary) {
+            const card = normalizeDatesOnCard(rawPrimary);
+            setHypothesis(card);
+            setEditStatement(card.statement);
+            setEditMechanism(card.mechanism);
+            setEditConfidence(card.confidence);
+            setEditPredictionsIfTrue(card.predictionsIfTrue.join("\n"));
+            setEditPredictionsIfFalse(card.predictionsIfFalse.join("\n"));
+            setEditImpossibleIfTrue(card.impossibleIfTrue.join("\n"));
 
-        if (rawPrimary) {
-          const card = normalizeDatesOnCard(rawPrimary);
-          setHypothesis(card);
-          setEditStatement(card.statement);
-          setEditMechanism(card.mechanism);
-          setEditConfidence(card.confidence);
-          setEditPredictionsIfTrue(card.predictionsIfTrue.join("\n"));
-          setEditPredictionsIfFalse(card.predictionsIfFalse.join("\n"));
-          setEditImpossibleIfTrue(card.impossibleIfTrue.join("\n"));
+            const altId = loaded.alternativeHypothesisIds[0];
+            const rawAlt = altId ? loaded.hypothesisCards[altId] : undefined;
+            const compCard = rawAlt
+              ? normalizeDatesOnCard(rawAlt)
+              : buildDefaultCompetitorCard(threadId);
+            setCompetitorHypothesis(compCard);
 
-          const altId = loaded.alternativeHypothesisIds[0];
-          const rawAlt = altId ? loaded.hypothesisCards[altId] : undefined;
-          const compCard = rawAlt
-            ? normalizeDatesOnCard(rawAlt)
-            : buildDefaultCompetitorCard(threadId);
-          setCompetitorHypothesis(compCard);
-
-          let nextArena = createArena({
-            question:
-              loaded.researchQuestion ||
-              "What causal mechanism explains the observed phenomenon?",
-            domain: loaded.domain || card.domain[0] || "general",
-            sessionId: safeSessionId,
-            primaryHypothesis: card,
-          });
-          if (compCard.id !== card.id) {
-            nextArena = addCompetitor(nextArena, compCard, "user_added");
+            let nextArena = createArena({
+              question:
+                loaded.researchQuestion ||
+                "What causal mechanism explains the observed phenomenon?",
+              domain: loaded.domain || card.domain[0] || "general",
+              primaryHypothesis: card,
+              sessionId: safeSessionId,
+            });
+            if (compCard.id !== card.id) {
+              nextArena = addCompetitor(nextArena, compCard, "user_added");
+            }
+            setArena(nextArena);
           }
-          setArena(nextArena);
+        }
+
+        const summaries = await sessionStorage.list();
+        const otherSummaries = summaries.filter((s) => s.id !== threadId);
+        const otherSessions = await Promise.all(
+          otherSummaries.slice(0, 20).map((s) => sessionStorage.load(s.id)),
+        );
+        if (!cancelled) {
+          const indexedOthers: IndexedHypothesis[] = [];
+          for (const other of otherSessions) {
+            if (!other?.hypothesisCards) continue;
+            for (const c of Object.values(other.hypothesisCards)) {
+              if (c) indexedOthers.push(cardToIndexed(c, other.id));
+            }
+          }
+          setCrossSessionHypotheses(indexedOthers);
         }
       } catch {
         // Fallback to default state if storage read fails
@@ -694,6 +727,47 @@ function HypothesisPageContent({ threadId }: { threadId: string }) {
       cancelled = true;
     };
   }, [threadId, safeSessionId]);
+
+  const similarityData = React.useMemo(() => {
+    const queryIndexed = cardToIndexed(hypothesis, safeSessionId);
+    const templateCandidates: IndexedHypothesis[] = HYPOTHESIS_TEMPLATES.map((tpl) => ({
+      id: `TPL-${tpl.id}`,
+      sessionId: "template-library",
+      statement: tpl.template.statement,
+      mechanism: tpl.template.mechanism,
+      domain: tpl.domains,
+      confidence: tpl.template.suggestedConfidence,
+      version: 1,
+    }));
+
+    const graveyardCandidates = graveyardEntries.map((g) =>
+      cardToIndexed(g.hypothesis, safeSessionId),
+    );
+    const competitorCandidate = cardToIndexed(competitorHypothesis, safeSessionId);
+
+    const seenIds = new Set<string>([queryIndexed.id]);
+    const candidates: IndexedHypothesis[] = [];
+    for (const item of [
+      competitorCandidate,
+      ...graveyardCandidates,
+      ...crossSessionHypotheses,
+      ...templateCandidates,
+    ]) {
+      if (!seenIds.has(item.id)) {
+        seenIds.add(item.id);
+        candidates.push(item);
+      }
+    }
+
+    const matches: SimilarityMatch[] = findSimilarHypotheses(queryIndexed, candidates, {
+      minScore: 0.25,
+      maxResults: 5,
+    });
+    const duplicates = findDuplicates([queryIndexed, ...candidates], 0.8);
+    const stats = getSimilarityStats([queryIndexed, ...candidates]);
+
+    return { matches, duplicates, stats };
+  }, [hypothesis, competitorHypothesis, graveyardEntries, crossSessionHypotheses, safeSessionId]);
 
   const persistHypothesisToSession = React.useCallback(
     async (nextPrimary: HypothesisCard, nextCompetitor?: HypothesisCard) => {
@@ -1470,6 +1544,98 @@ function HypothesisPageContent({ threadId }: { threadId: string }) {
                   <CollapsibleContent>
                     <CardContent className="pt-0">
                       <HypothesisGraveyard entries={graveyardEntries} />
+                    </CardContent>
+                  </CollapsibleContent>
+                </Card>
+              </Collapsible>
+            </motion.div>
+
+            {/* Related & Similar Hypotheses (Semantic Search) */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.31 }}
+            >
+              <Collapsible open={similarityOpen} onOpenChange={setSimilarityOpen}>
+                <Card>
+                  <CollapsibleTrigger
+                    className="p-6 hover:bg-muted/50 transition-colors"
+                    showChevron={false}
+                  >
+                    <div className="flex items-center justify-between w-full">
+                      <span className="text-lg font-semibold flex items-center gap-2">
+                        <SparklesIcon className="size-5 text-primary" />
+                        Related &amp; Similar Hypotheses ({similarityData.matches.length})
+                      </span>
+                      <ChevronDownIcon
+                        className={cn(
+                          "size-5 text-muted-foreground transition-transform",
+                          similarityOpen && "rotate-180",
+                        )}
+                      />
+                    </div>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent>
+                    <CardContent className="pt-0 space-y-4">
+                      <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                        <Badge variant="outline">
+                          {similarityData.stats.totalHypotheses} indexed
+                        </Badge>
+                        <Badge variant="outline">
+                          {similarityData.stats.clusterCount} semantic clusters
+                        </Badge>
+                        {similarityData.duplicates.length > 0 && (
+                          <Badge variant="destructive">
+                            {similarityData.duplicates.length} potential duplicate
+                            {similarityData.duplicates.length === 1 ? "" : "s"}
+                          </Badge>
+                        )}
+                      </div>
+
+                      {similarityData.matches.length === 0 ? (
+                        <p className="text-sm text-muted-foreground">
+                          No closely matching hypotheses found above the similarity threshold.
+                        </p>
+                      ) : (
+                        <div className="space-y-3">
+                          {similarityData.matches.map((match) => (
+                            <div
+                              key={match.hypothesis.id}
+                              className="rounded-xl border border-border bg-muted/20 p-4 space-y-2"
+                            >
+                              <div className="flex flex-wrap items-center justify-between gap-2">
+                                <div className="flex items-center gap-2">
+                                  <Badge variant="secondary" className="font-mono text-xs">
+                                    {Math.round(match.score * 100)}% match
+                                  </Badge>
+                                  <span className="text-xs text-muted-foreground">
+                                    {match.reason} •{" "}
+                                    {match.hypothesis.sessionId === "template-library"
+                                      ? "Template Library"
+                                      : `Session ${match.hypothesis.sessionId.slice(0, 12)}`}
+                                  </span>
+                                </div>
+                                <div className="flex flex-wrap gap-1">
+                                  {match.hypothesis.domain.map((dom) => (
+                                    <Badge key={dom} variant="outline" className="text-[11px]">
+                                      {dom}
+                                    </Badge>
+                                  ))}
+                                </div>
+                              </div>
+                              <p className="text-sm font-medium text-foreground">
+                                {match.hypothesis.statement}
+                              </p>
+                              {match.hypothesis.mechanism && (
+                                <p className="text-xs text-muted-foreground">
+                                  <span className="font-medium text-foreground">Mechanism:</span>{" "}
+                                  {match.hypothesis.mechanism}
+                                </p>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </CardContent>
                   </CollapsibleContent>
                 </Card>

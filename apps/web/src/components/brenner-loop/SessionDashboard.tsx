@@ -60,10 +60,19 @@ import type {
   ObjectTransposeResult as UiObjectTransposeResult,
 } from "@/lib/brenner-loop/operators/object-transpose";
 import type { ScaleCheckResult as UiScaleCheckResult } from "@/lib/brenner-loop/operators/scale-check";
+import {
+  CoachContext,
+  CoachProvider,
+  type ConceptId,
+  PHASE_COACHING,
+} from "@/lib/brenner-loop/coach-context";
 import { loadTestQueue } from "@/lib/brenner-loop/test-queue";
+import { useUndoRedo } from "@/hooks/useUndoRedo";
 import { cn } from "@/lib/utils";
 import { AgentTribunalPanel } from "./agents/AgentTribunalPanel";
 import { ObjectionRegisterPanel } from "./agents/ObjectionRegisterPanel";
+import { CoachExplanation } from "./coach/CoachExplanation";
+import { HypothesisQualityChecker } from "./coach/QualityCheckpoint";
 import { CorpusSearchDialog } from "./CorpusSearch";
 import { ConfidenceChart } from "./evidence/ConfidenceChart";
 import { EvidenceRecorder } from "./evidence/EvidenceRecorder";
@@ -77,6 +86,7 @@ import { LevelSplitSession } from "./operators/LevelSplitSession";
 import { ObjectTransposeSession } from "./operators/ObjectTransposeSession";
 import { ScaleCheckSession } from "./operators/ScaleCheckSession";
 import { PhaseTimeline } from "./PhaseTimeline";
+import { UndoRedoControls } from "./UndoRedoControls";
 
 // ============================================================================
 // Icons
@@ -854,6 +864,8 @@ function PhaseContent({ phase, className }: PhaseContentProps) {
     [advancePhase, updateHypothesis],
   );
 
+  const phaseCoaching = PHASE_COACHING[phase];
+
   return (
     <Card className={cn("flex-1", className)}>
       <CardHeader>
@@ -868,6 +880,30 @@ function PhaseContent({ phase, className }: PhaseContentProps) {
         </div>
       </CardHeader>
       <CardContent>
+        {phaseCoaching && (
+          <EnsureCoachProvider>
+            <div className="mb-4 space-y-4">
+              <CoachExplanation
+                conceptId={`phase_${phase}` as ConceptId}
+                title={phaseCoaching.title}
+                brief={phaseCoaching.brief}
+                full={phaseCoaching.full}
+                keyPoints={phaseCoaching.keyPoints}
+                brennerQuote={phaseCoaching.brennerQuote}
+                example={phaseCoaching.examples.general}
+              />
+              {(phase === "intake" || phase === "sharpening" || phase === "revision") &&
+                primaryHypothesis && (
+                  <HypothesisQualityChecker
+                    statement={primaryHypothesis.statement}
+                    mechanism={primaryHypothesis.mechanism}
+                    predictions={primaryHypothesis.predictionsIfTrue}
+                    falsificationConditions={primaryHypothesis.impossibleIfTrue}
+                  />
+                )}
+            </div>
+          </EnsureCoachProvider>
+        )}
         {phase === "intake" && session ? (
           <HypothesisIntake
             sessionId={session.id}
@@ -1086,6 +1122,12 @@ async function exportSessionToFile(session: Session, format: "json" | "markdown"
   }
 }
 
+function EnsureCoachProvider({ children }: { children: React.ReactNode }) {
+  const existing = React.useContext(CoachContext);
+  if (existing) return <>{children}</>;
+  return <CoachProvider>{children}</CoachProvider>;
+}
+
 // ============================================================================
 // SessionDashboard Component
 // ============================================================================
@@ -1116,6 +1158,7 @@ export function SessionDashboard({
     isDirty,
     saveState,
     saveSession,
+    updateHypothesis,
   } = useSession();
   const exportOperation = useAsyncOperation();
   const [isCorpusSearchOpen, setIsCorpusSearchOpen] = React.useState(false);
@@ -1127,6 +1170,50 @@ export function SessionDashboard({
 
   // usePhaseNavigation provides navigation actions that persist to storage
   const { prev, next, canPrev, canNext, goTo } = usePhaseNavigation();
+
+  const undoRedo = useUndoRedo({
+    sessionId: session?.id ?? "default",
+    enableShortcuts: true,
+  });
+
+  const handleUndo = React.useCallback(() => {
+    if (!session) return;
+    const restored = undoRedo.performUndo(session);
+    if (!restored) return;
+    if (restored.phase !== session.phase) {
+      goTo(restored.phase);
+    }
+    const restoredPrimary =
+      restored.primaryHypothesisId && restored.hypothesisCards?.[restored.primaryHypothesisId];
+    if (restoredPrimary && updateHypothesis) {
+      updateHypothesis(restoredPrimary);
+    }
+  }, [goTo, session, undoRedo, updateHypothesis]);
+
+  const handleRedo = React.useCallback(() => {
+    if (!session) return;
+    const restored = undoRedo.performRedo(session);
+    if (!restored) return;
+    if (restored.phase !== session.phase) {
+      goTo(restored.phase);
+    }
+    const restoredPrimary =
+      restored.primaryHypothesisId && restored.hypothesisCards?.[restored.primaryHypothesisId];
+    if (restoredPrimary && updateHypothesis) {
+      updateHypothesis(restoredPrimary);
+    }
+  }, [goTo, session, undoRedo, updateHypothesis]);
+
+  React.useEffect(() => {
+    const onUndoEvent = () => handleUndo();
+    const onRedoEvent = () => handleRedo();
+    document.addEventListener("brenner:undo", onUndoEvent);
+    document.addEventListener("brenner:redo", onRedoEvent);
+    return () => {
+      document.removeEventListener("brenner:undo", onUndoEvent);
+      document.removeEventListener("brenner:redo", onRedoEvent);
+    };
+  }, [handleRedo, handleUndo]);
 
   const handleExport = React.useCallback(
     async (format: "json" | "markdown") => {
@@ -1334,6 +1421,9 @@ export function SessionDashboard({
   }
 
   const handlePhaseClick = (phase: SessionPhase) => {
+    if (phase !== session.phase) {
+      undoRedo.transitionPhase(session, session.phase, phase);
+    }
     // Use navigation's goTo which handles persistence
     goTo(phase);
   };
@@ -1441,6 +1531,16 @@ export function SessionDashboard({
         </div>
         <div className="flex flex-col items-start sm:items-end gap-2">
           <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+            <UndoRedoControls
+              canUndo={undoRedo.canUndo}
+              canRedo={undoRedo.canRedo}
+              nextUndoDescription={undoRedo.nextUndoDescription}
+              nextRedoDescription={undoRedo.nextRedoDescription}
+              recentHistory={undoRedo.recentHistory}
+              onUndo={handleUndo}
+              onRedo={handleRedo}
+              compact
+            />
             {/* Shortcuts button - icon only on mobile */}
             <Button
               variant="outline"

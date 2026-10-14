@@ -13,8 +13,90 @@ import {
   type Session,
   sessionStorage,
 } from "@/lib/brenner-loop";
+import {
+  type CalibrationMetrics,
+  calculateCalibrationMetrics,
+  type PredictionRecord,
+} from "@/lib/brenner-loop/calibration";
+import {
+  computeFailureAnalytics,
+  type FailureAnalytics,
+  STRUCTURAL_PATTERNS,
+} from "@/lib/brenner-loop/failure-analytics";
 import { OPERATOR_METADATA, type OperatorType } from "@/lib/brenner-loop/operators";
 import { cn } from "@/lib/utils";
+
+interface StructuralPatternCheckCount {
+  name: string;
+  description: string;
+  matchCount: number;
+}
+
+function buildPredictionRecordsFromSessions(sessions: Session[]): PredictionRecord[] {
+  const records: PredictionRecord[] = [];
+
+  for (const session of sessions) {
+    const cards = Object.values(session.hypothesisCards ?? {});
+    const primary =
+      (session.primaryHypothesisId && session.hypothesisCards?.[session.primaryHypothesisId]) ||
+      cards[0];
+
+    for (const entry of session.evidenceLedger ?? []) {
+      if (entry.result !== "supports" && entry.result !== "challenges") continue;
+      records.push({
+        id: `PRED-EV-${entry.id}`,
+        hypothesisId: entry.matchedHypothesisId ?? primary?.id ?? "H1",
+        sessionId: session.id,
+        prediction: entry.observation || `Test ${entry.testId}`,
+        statedConfidence: primary?.confidence ?? 50,
+        outcome: entry.result === "supports" ? "correct" : "incorrect",
+        domain: primary?.domain?.[0] ?? session.domain,
+        predictedAt: session.createdAt,
+        resolvedAt: entry.recordedAt,
+      });
+    }
+
+    for (const card of cards) {
+      if (!card) continue;
+      const isFalsified =
+        card.confidence < 20 || session.archivedHypothesisIds?.includes(card.id);
+      const isValidated = session.phase === "complete" && card.confidence >= 80;
+      if (isFalsified || isValidated) {
+        records.push({
+          id: `PRED-HYP-${session.id}-${card.id}`,
+          hypothesisId: card.id,
+          sessionId: session.id,
+          prediction: card.statement,
+          statedConfidence: card.confidence,
+          outcome: isValidated ? "correct" : "incorrect",
+          domain: card.domain?.[0] ?? session.domain,
+          predictedAt: session.createdAt,
+          resolvedAt: session.updatedAt,
+        });
+      }
+    }
+  }
+
+  return records;
+}
+
+function computeAllStructuralPatternCounts(sessions: Session[]): StructuralPatternCheckCount[] {
+  return STRUCTURAL_PATTERNS.map((pattern) => {
+    let matchCount = 0;
+    for (const session of sessions) {
+      for (const card of Object.values(session.hypothesisCards ?? {})) {
+        if (card && pattern.detector(card)) {
+          matchCount++;
+        }
+      }
+    }
+    return {
+      name: pattern.name,
+      description: pattern.description,
+      matchCount,
+    };
+  });
+}
 
 function formatPercent(value: number): string {
   if (!Number.isFinite(value)) return "0%";
@@ -86,7 +168,13 @@ function OperatorRow({
 export default function PersonalAnalyticsPage() {
   const [state, setState] = React.useState<
     | { status: "loading" }
-    | { status: "ready"; analytics: PersonalAnalytics }
+    | {
+        status: "ready";
+        analytics: PersonalAnalytics;
+        failureAnalytics: FailureAnalytics;
+        calibration: CalibrationMetrics;
+        structuralCounts: StructuralPatternCheckCount[];
+      }
     | { status: "error"; message: string }
   >({ status: "loading" });
 
@@ -104,7 +192,19 @@ export default function PersonalAnalyticsPage() {
         const objectionStats = loadObjectionStatsFromStorage(threadIds);
 
         const analytics = computePersonalAnalytics({ sessions, objectionStats });
-        if (!cancelled) setState({ status: "ready", analytics });
+        const failureAnalytics = computeFailureAnalytics({ sessions });
+        const predictionRecords = buildPredictionRecordsFromSessions(sessions);
+        const calibration = calculateCalibrationMetrics(predictionRecords);
+        const structuralCounts = computeAllStructuralPatternCounts(sessions);
+        if (!cancelled) {
+          setState({
+            status: "ready",
+            analytics,
+            failureAnalytics,
+            calibration,
+            structuralCounts,
+          });
+        }
       } catch (err) {
         const message = err instanceof Error ? err.message : String(err);
         if (!cancelled) setState({ status: "error", message });
@@ -435,6 +535,122 @@ export default function PersonalAnalyticsPage() {
                 <div className="text-xs text-muted-foreground">Objections you incorporated</div>
               </div>
               <div className="text-xl font-semibold">{analytics.objectionsAccepted}</div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Failure Mode Analytics & Confidence Calibration */}
+      <div className="grid gap-6 lg:grid-cols-2">
+        <Card>
+          <CardHeader className="space-y-1">
+            <CardTitle className="text-base">
+              Failure Mode &amp; Structural Pattern Analytics
+            </CardTitle>
+            <p className="text-sm text-muted-foreground">
+              Structural vulnerabilities and domain failure patterns across{" "}
+              <span className="font-mono">{state.failureAnalytics.hypothesesAnalyzed}</span>{" "}
+              analyzed hypotheses.
+            </p>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center justify-between gap-3 p-3 rounded-lg bg-muted/30 border border-border">
+              <div>
+                <div className="text-sm font-medium">Overall Hypothesis Failure Rate</div>
+                <div className="text-xs text-muted-foreground">
+                  Archived or confidence &lt; 20%
+                </div>
+              </div>
+              <div className="text-xl font-semibold font-mono">
+                {formatPercent(state.failureAnalytics.overallFailureRate)}
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                Structural Vulnerability Scan
+              </div>
+              <div className="space-y-1.5">
+                {state.structuralCounts.slice(0, 5).map((pattern) => (
+                  <div
+                    key={pattern.name}
+                    className="flex items-center justify-between gap-2 text-xs rounded-md border border-border/60 bg-background/50 px-3 py-2"
+                  >
+                    <div>
+                      <div className="font-medium text-foreground">{pattern.name}</div>
+                      <div className="text-muted-foreground">{pattern.description}</div>
+                    </div>
+                    <Badge
+                      variant={pattern.matchCount > 0 ? "secondary" : "outline"}
+                      className="font-mono shrink-0"
+                    >
+                      {pattern.matchCount} match{pattern.matchCount === 1 ? "" : "es"}
+                    </Badge>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {state.failureAnalytics.insights.length > 0 && (
+              <div className="rounded-lg border border-amber-500/30 bg-amber-500/5 p-3 space-y-1.5">
+                <div className="text-xs font-semibold uppercase tracking-wide text-amber-600 dark:text-amber-400">
+                  Failure Pattern Insights
+                </div>
+                {state.failureAnalytics.insights.slice(0, 3).map((ins) => (
+                  <p key={ins.id} className="text-xs text-foreground">
+                    • {ins.message} <span className="text-muted-foreground">({ins.suggestion})</span>
+                  </p>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="space-y-1">
+            <CardTitle className="text-base">Confidence Calibration &amp; Brier Score</CardTitle>
+            <p className="text-sm text-muted-foreground">
+              Measures how closely your stated confidence matches empirical outcomes.
+            </p>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-3 gap-3">
+              <div className="p-3 rounded-lg bg-muted/30 border border-border text-center">
+                <div className="text-xl font-semibold font-mono">
+                  {state.calibration.brierScore.toFixed(3)}
+                </div>
+                <div className="text-xs text-muted-foreground mt-1">Brier Score</div>
+              </div>
+              <div className="p-3 rounded-lg bg-muted/30 border border-border text-center">
+                <div className="text-xl font-semibold font-mono">
+                  {formatPercent(state.calibration.calibrationError)}
+                </div>
+                <div className="text-xs text-muted-foreground mt-1">Calib. Error (ECE)</div>
+              </div>
+              <div className="p-3 rounded-lg bg-muted/30 border border-border text-center">
+                <div className="text-xl font-semibold font-mono">
+                  {Math.round(state.calibration.sharpness)}
+                </div>
+                <div className="text-xs text-muted-foreground mt-1">Sharpness (σ)</div>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between gap-3 p-3 rounded-lg bg-muted/30 border border-border">
+              <div>
+                <div className="text-sm font-medium">Calibration Bias Assessment</div>
+                <div className="text-xs text-muted-foreground">
+                  Based on {state.calibration.totalPredictions} resolved prediction
+                  {state.calibration.totalPredictions === 1 ? "" : "s"}
+                </div>
+              </div>
+              <Badge variant="outline" className="capitalize">
+                {state.calibration.biasAssessment.replace("_", " ")}
+              </Badge>
+            </div>
+
+            <div className="text-xs text-muted-foreground">
+              Brier Score ranges from 0.000 (perfect calibration) to 1.000. Record test outcomes in
+              the Evidence Ledger to refine your calibration curve.
             </div>
           </CardContent>
         </Card>

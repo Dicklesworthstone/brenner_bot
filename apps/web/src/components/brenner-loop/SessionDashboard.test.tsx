@@ -264,4 +264,14 @@ describe("SessionDashboard PhaseContent rendering", () => {
 
     expect(screen.getByTestId("hypothesis-revision-editor")).toBeInTheDocument();
   });
+
+  it("renders CoachExplanation and HypothesisQualityChecker during intake phase", async () => {
+    mocks.phase = "intake";
+
+    const { SessionDashboard } = await import("./SessionDashboard");
+    render(<SessionDashboard />);
+
+    expect(screen.getByText("COACH: Hypothesis Intake")).toBeInTheDocument();
+    expect(screen.getByText("Hypothesis Quality Check")).toBeInTheDocument();
+  });
 });

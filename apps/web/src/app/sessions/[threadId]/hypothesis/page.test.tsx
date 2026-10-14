@@ -27,6 +27,8 @@ describe("HypothesisPage integration", () => {
       await screen.findByText(/Competing Hypotheses Arena & Comparison Matrix/i),
     ).toBeInTheDocument();
     expect(screen.getAllByText(/Compare Hypotheses/i).length).toBeGreaterThan(0);
+    expect(screen.getByText(/Related & Similar Hypotheses/i)).toBeInTheDocument();
+    expect(screen.getByText(/semantic clusters/i)).toBeInTheDocument();
 
     // Edit and save hypothesis statement
     const editBtn = screen.getByRole("button", { name: /^Edit$/i });

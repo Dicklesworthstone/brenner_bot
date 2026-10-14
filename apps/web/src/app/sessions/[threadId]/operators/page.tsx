@@ -18,7 +18,9 @@ import { BrennerQuoteSidebar } from "@/components/brenner-loop/operators/Brenner
 import { ExclusionTestSession } from "@/components/brenner-loop/operators/ExclusionTestSession";
 import { LevelSplitSession } from "@/components/brenner-loop/operators/LevelSplitSession";
 import { ObjectTransposeSession } from "@/components/brenner-loop/operators/ObjectTransposeSession";
+import { OperatorTip } from "@/components/brenner-loop/operators/OperatorTip";
 import { ScaleCheckSession } from "@/components/brenner-loop/operators/ScaleCheckSession";
+import type { OperatorType } from "@/lib/brenner-loop/operators/framework";
 import { DemoFeaturePreview } from "@/components/sessions/DemoFeaturePreview";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -111,6 +113,13 @@ const OPERATOR_QUOTE_TAG: Record<string, string> = {
   exclusion_test: "exclusion-test",
   object_transpose: "object-transpose",
   scale_check: "scale-check",
+};
+
+const OPERATOR_PRIMARY_STEP_ID: Record<OperatorType, string> = {
+  level_split: "identify-x-levels",
+  exclusion_test: "generate-tests",
+  object_transpose: "generate-alternatives",
+  scale_check: "quantify-effect",
 };
 
 // ============================================================================
@@ -956,7 +965,16 @@ function OperatorsPageContent({ threadId }: { threadId: string }) {
 
         {/* Workspace */}
         <Card className="xl:col-span-6">
-          <CardContent className="p-6">
+          <CardContent className="p-6 space-y-5">
+            {OPERATOR_PRIMARY_STEP_ID[activeOperator as OperatorType] && (
+              <OperatorTip
+                operatorType={activeOperator as OperatorType}
+                stepId={OPERATOR_PRIMARY_STEP_ID[activeOperator as OperatorType]}
+                variant="card"
+                showExample
+                showAntiPattern
+              />
+            )}
             {workspaceMode === "guided" ? (
               <div className="space-y-4">
                 {activeOperator === "level_split" && (

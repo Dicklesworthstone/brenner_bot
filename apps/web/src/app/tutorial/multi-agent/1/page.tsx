@@ -23,8 +23,11 @@ const troubleshooting: TroubleshootingItem[] = [
     problem: "ntm: command not found",
     symptoms: ["Terminal shows 'command not found' after running ntm"],
     solution:
-      "Make sure ntm is installed and in your PATH. Restart your terminal after installation.",
-    commands: ["cargo install ntm", "# Or download binary from releases"],
+      "Make sure ntm is installed via the official installer or go install, and ~/.local/bin (or ~/go/bin) is in your PATH.",
+    commands: [
+      "curl -fsSL https://raw.githubusercontent.com/Dicklesworthstone/ntm/main/install.sh | bash",
+      "go install github.com/Dicklesworthstone/ntm/cmd/ntm@latest",
+    ],
   },
   {
     problem: "Agent Mail server won't start",
@@ -45,15 +48,15 @@ const stepData: TutorialStepType = {
   id: "mac-1",
   pathId: "multi-agent-cockpit",
   stepNumber: 1,
-  title: "Install Infrastructure",
+  title: "Install Infrastructure & Skill",
   estimatedTime: "~15 min",
   whatYouLearn: [
-    "How to orchestrate multiple terminal sessions with ntm",
-    "The Agent Mail message-passing architecture",
-    "Setting up the brenner CLI for session management",
+    "How to orchestrate multiple terminal sessions with ntm (Named Tmux Manager)",
+    "How to install the /brennerbot-with-ntm skill via jeffreys-skills.md (jsm)",
+    "The Agent Mail message-passing architecture and brenner CLI",
   ],
   whatYouDo: [
-    "Install ntm (Named Tmux Manager)",
+    "Install ntm (Named Tmux Manager) and jsm (/brennerbot-with-ntm skill)",
     "Set up and start Agent Mail server",
     "Install and verify the brenner CLI",
   ],
@@ -85,90 +88,108 @@ export default function MultiAgentStep1() {
     >
       <section className="space-y-8">
         {/* Introduction */}
-        <div className="p-6 rounded-2xl bg-gradient-to-br from-destructive/5 via-destructive/10 to-accent/5 border border-destructive/20">
+        <div className="p-6 rounded-2xl bg-gradient-to-br from-primary/5 via-primary/10 to-accent/5 border border-primary/20">
           <h2 className="text-xl font-semibold mb-4">The Multi-Agent Stack</h2>
           <p className="text-muted-foreground leading-relaxed mb-4">
-            Running three AI agents in parallel requires coordination infrastructure. You&apos;ll
-            set up:
+            Running AI research agents in parallel requires a high-velocity coordination stack.
+            You&apos;ll set up:
           </p>
           <ul className="space-y-2 text-muted-foreground">
             <li className="flex items-start gap-3">
-              <span className="flex items-center justify-center size-6 rounded-full bg-destructive/10 text-destructive text-xs font-bold shrink-0 mt-0.5">
+              <span className="flex items-center justify-center size-6 rounded-full bg-primary/15 text-primary text-xs font-bold shrink-0 mt-0.5">
                 1
               </span>
               <span>
-                <strong className="text-foreground">ntm</strong> — Named Tmux Manager for running
-                agents in persistent terminal sessions
+                <strong className="text-foreground">ntm + /brennerbot-with-ntm</strong> — Named Tmux
+                Manager (`Dicklesworthstone/ntm`) for multi-agent pane spawning, YAML pipelines, and
+                robot-mode monitoring, paired with the `/brennerbot-with-ntm` skill via{" "}
+                <code className="font-mono text-foreground">jsm</code>
               </span>
             </li>
             <li className="flex items-start gap-3">
-              <span className="flex items-center justify-center size-6 rounded-full bg-destructive/10 text-destructive text-xs font-bold shrink-0 mt-0.5">
+              <span className="flex items-center justify-center size-6 rounded-full bg-primary/15 text-primary text-xs font-bold shrink-0 mt-0.5">
                 2
               </span>
               <span>
                 <strong className="text-foreground">Agent Mail</strong> — Message-passing server for
-                agent coordination
+                durable thread coordination and inbox/outbox management
               </span>
             </li>
             <li className="flex items-start gap-3">
-              <span className="flex items-center justify-center size-6 rounded-full bg-destructive/10 text-destructive text-xs font-bold shrink-0 mt-0.5">
+              <span className="flex items-center justify-center size-6 rounded-full bg-primary/15 text-primary text-xs font-bold shrink-0 mt-0.5">
                 3
               </span>
               <span>
-                <strong className="text-foreground">brenner CLI</strong> — Session management and
-                artifact compilation
+                <strong className="text-foreground">brenner CLI</strong> — Corpus search, excerpt
+                building, session compilation, and 7-dimension scoring
               </span>
             </li>
           </ul>
         </div>
 
-        {/* ntm Installation */}
+        {/* ntm + jsm Installation */}
         <div className="space-y-4">
           <h2 className="text-lg font-semibold flex items-center gap-2">
-            <span className="flex items-center justify-center size-7 rounded-lg bg-destructive/10 text-destructive text-sm font-bold">
+            <span className="flex items-center justify-center size-7 rounded-lg bg-primary/15 text-primary text-sm font-bold">
               1
             </span>
-            Install ntm (Named Tmux Manager)
+            Install ntm &amp; the /brennerbot-with-ntm Skill
           </h2>
           <p className="text-sm text-muted-foreground">
-            ntm lets you create named tmux sessions and panes. Each AI agent will run in its own
-            pane, allowing you to monitor all three simultaneously.
+            <strong>ntm</strong> (Named Tmux Manager) is a Go-based multi-agent control plane that
+            spawns Claude Code (<code className="font-mono">--cc</code>), Codex CLI (
+            <code className="font-mono">--cod</code>), Gemini CLI (
+            <code className="font-mono">--gmi</code>), and Antigravity (
+            <code className="font-mono">--agy</code>) panes, executes declarative YAML pipelines,
+            and exposes <code className="font-mono">--robot-*</code> telemetry flags.
           </p>
 
           <div className="p-4 rounded-xl border border-border bg-card/50 space-y-3">
-            <p className="text-sm font-medium">Install via Cargo (Rust):</p>
-            <TutorialCodeBlock code="cargo install ntm" language="bash" title="Terminal" />
-            <p className="text-xs text-muted-foreground">
-              Don&apos;t have Rust? Install with:{" "}
-              <code className="px-1.5 py-0.5 rounded bg-muted">
-                curl --proto &apos;=https&apos; --tlsv1.2 -sSf https://sh.rustup.rs | sh
-              </code>
-            </p>
-          </div>
-
-          <div className="p-4 rounded-xl border border-border bg-card/50 space-y-3">
-            <p className="text-sm font-medium">Or download pre-built binary:</p>
+            <p className="text-sm font-medium">Install ntm (One-liner or Go toolchain):</p>
             <TutorialCodeBlock
-              code={`# Visit releases page and download for your platform
-# https://github.com/Dicklesworthstone/ntm/releases
+              code={`# Install ntm via official release installer
+curl -fsSL https://raw.githubusercontent.com/Dicklesworthstone/ntm/main/install.sh | bash
 
-# Example for Linux x64:
-wget https://github.com/Dicklesworthstone/ntm/releases/latest/download/ntm-linux-x64
-chmod +x ntm-linux-x64
-sudo mv ntm-linux-x64 /usr/local/bin/ntm`}
+# Or build from source with Go:
+go install github.com/Dicklesworthstone/ntm/cmd/ntm@latest`}
               language="bash"
               title="Terminal"
             />
           </div>
 
+          <div className="p-4 rounded-xl border border-primary/25 bg-primary/[0.03] space-y-3">
+            <p className="text-sm font-medium">
+              Install <code className="font-mono text-primary">/brennerbot-with-ntm</code> via{" "}
+              <code className="font-mono text-primary">jeffreys-skills.md (jsm)</code>:
+            </p>
+            <TutorialCodeBlock
+              code={`# Install the jsm skill manager
+curl -fsSL https://raw.githubusercontent.com/Dicklesworthstone/jeffreys-skills.md/main/install.sh | bash
+
+# Install the /brennerbot-with-ntm skill into Claude Code & Codex CLI
+jsm install brennerbot-with-ntm`}
+              language="bash"
+              title="Terminal"
+            />
+            <p className="text-xs text-muted-foreground">
+              This equips your orchestrator agent with the 10-phase Brenner Loop, 15+1 cognitive
+              operators, 6 execution modes, and 6 ready-to-run NTM YAML pipelines.
+            </p>
+          </div>
+
           <p className="text-sm text-muted-foreground">Verify installation:</p>
-          <TutorialCodeBlock code="ntm --version" language="bash" title="Terminal" />
+          <TutorialCodeBlock
+            code={`ntm --version
+ntm --robot-terse`}
+            language="bash"
+            title="Terminal"
+          />
         </div>
 
         {/* Agent Mail Installation */}
         <div className="space-y-4">
           <h2 className="text-lg font-semibold flex items-center gap-2">
-            <span className="flex items-center justify-center size-7 rounded-lg bg-destructive/10 text-destructive text-sm font-bold">
+            <span className="flex items-center justify-center size-7 rounded-lg bg-primary/15 text-primary text-sm font-bold">
               2
             </span>
             Set Up Agent Mail
@@ -180,14 +201,11 @@ sudo mv ntm-linux-x64 /usr/local/bin/ntm`}
 
           <TutorialCodeBlock
             code={`# Clone the Agent Mail repository
-git clone https://github.com/Dicklesworthstone/mcp-agent-mail.git
-cd mcp-agent-mail
+git clone https://github.com/Dicklesworthstone/mcp_agent_mail.git
+cd mcp_agent_mail
 
-# Install dependencies
-bun install
-
-# Start the server
-bun run start`}
+# Start the server with token auth
+bash scripts/run_server_with_token.sh`}
             language="bash"
             title="Terminal"
           />
@@ -196,8 +214,8 @@ bun run start`}
             In a <strong>new terminal</strong>, verify the server is running:
           </p>
           <TutorialCodeBlock
-            code={`curl http://127.0.0.1:8765/mcp/health
-# Expected: {"status":"ok","version":"..."}`}
+            code={`curl http://127.0.0.1:8765/health
+# Expected: {"status":"ok",...}`}
             language="bash"
             title="Terminal"
           />
@@ -212,7 +230,7 @@ bun run start`}
         {/* brenner CLI Installation */}
         <div className="space-y-4">
           <h2 className="text-lg font-semibold flex items-center gap-2">
-            <span className="flex items-center justify-center size-7 rounded-lg bg-destructive/10 text-destructive text-sm font-bold">
+            <span className="flex items-center justify-center size-7 rounded-lg bg-primary/15 text-primary text-sm font-bold">
               3
             </span>
             Install the brenner CLI
@@ -227,7 +245,7 @@ bun run start`}
 git clone https://github.com/Dicklesworthstone/brenner_bot.git
 cd brenner_bot
 
-# Run the installer
+# Run the installer (or compile with bun build --compile ./brenner.ts --outfile brenner)
 ./install.sh`}
             language="bash"
             title="Terminal"
@@ -266,11 +284,12 @@ brenner doctor`}
             Run these commands to confirm all infrastructure is ready:
           </p>
           <TutorialCodeBlock
-            code={`# Check ntm
+            code={`# Check ntm & skill manager
 ntm --version
+jsm list
 
 # Check Agent Mail health
-curl http://127.0.0.1:8765/mcp/health
+curl http://127.0.0.1:8765/health
 
 # Check brenner CLI
 brenner --version

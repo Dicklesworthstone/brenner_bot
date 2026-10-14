@@ -43,6 +43,7 @@ Deployed on Vercel with Cloudflare DNS at **`brennerbot.org`**.
 - [The Core Insight: Why Brenner?](#the-core-insight-why-brenner)
 - [What's here](#whats-here)
 - [Quick Install](#quick-install)
+- [The `/brennerbot-with-ntm` Skill & Modern `ntm` Control Plane](#the-brennerbot-with-ntm-skill--modern-ntm-control-plane)
 - [What this is ultimately for](#what-this-is-ultimately-for)
 - [How the system works](#how-the-system-works)
 - [How to use this repo](#how-to-use-this-repo)
@@ -244,6 +245,65 @@ After installation, here's the minimal workflow to run a Brenner session:
 - "Missing --question" → The `--question` flag is required for `session start`
 - "Missing --sender" → Add `--sender GreenCastle` or set `AGENT_NAME=GreenCastle`
 - "Agent Mail not available" → Ensure Agent Mail server is running on localhost:8765
+
+---
+
+## The `/brennerbot-with-ntm` Skill & Modern `ntm` Control Plane
+
+The fastest way to run BrennerBot workflows inside **Claude Code**, **Codex CLI**, or **Gemini CLI** is via the **`/brennerbot-with-ntm`** skill, distributed through **[`jeffreys-skills.md` (`jsm`)](https://github.com/Dicklesworthstone/jeffreys-skills.md)** and orchestrated by **[`ntm` (Named Tmux Manager)](https://github.com/Dicklesworthstone/ntm)**.
+
+### 1. Install `ntm` and `/brennerbot-with-ntm` via `jsm`
+
+```bash
+# Install ntm (Named Tmux Manager — Go multi-agent control plane)
+curl -fsSL https://raw.githubusercontent.com/Dicklesworthstone/ntm/main/install.sh | bash
+
+# Install jeffreys-skills.md CLI (jsm) and the /brennerbot-with-ntm skill
+curl -fsSL https://raw.githubusercontent.com/Dicklesworthstone/jeffreys-skills.md/main/install.sh | bash
+jsm install brennerbot-with-ntm
+```
+
+### 2. What `/brennerbot-with-ntm` Adds
+
+- **The Mandatory 10-Phase Brenner Loop**:
+  `0. PREFLIGHT` → `1. DECONSTRUCT (⊘ ≡ 𝓛)` → `2. HYPOTHESIZE (◊ ⟂ ⊞ ∿)` → `3. TEST (✂ ⌂ ↑ 🔧 ⊙)` → `4. CRITIQUE (🤝 ΔE †)` → `5. SYNTHESIZE (≡ ⊘)` → `6. SCORE` → `7. DELIVER` → `8. PERSIST` → `9. HANDOFF` → `10. DRIFT (⤴)`
+- **All 15+1 Cognitive Operators**:
+  `◊` Prioritize, `⊘` Level-Split, `𝓛` Recode, `≡` Invariant-Extract, `✂` Exclusion-Test, `⟂` Object-Transpose, `↑` Amplify, `⌂` Materialize, `🔧` DIY-Bricolage, `⊞` Cross-Domain, `🤝` Dialectical, `ΔE` Exception-Quarantine, `†` Theory-Kill, `∿` Out-of-Phase, `⊙` Have-A-Look (HAL), and `⤴` Escape.
+- **6 Execution Modes**:
+  `Full Multi-Agent` (`ntm` + Agent Mail), `Quick Mode` (30-min single sprint), `Adversarial` (red-team existing work), `Literature Grounded` (corpus-first), `Experiment Design` (decision-experiment matrix), and `Synthesis` (reconcile multi-round threads).
+- **6 Declarative `ntm` YAML Pipelines**:
+  - `.ntm/pipelines/brenner-Standard.yaml` (full 10-phase multi-agent loop)
+  - `.ntm/pipelines/brenner-Quick.yaml` (single-round hypothesis + exclusion test sprint)
+  - `.ntm/pipelines/brenner-Adversarial.yaml` (parallel scale-check, confound hunt, and 3rd-alternative injection)
+  - `.ntm/pipelines/brenner-Literature.yaml` (transcript `§n` extraction + quote bank synthesis)
+  - `.ntm/pipelines/brenner-Design.yaml` (Decision Experiment Matrix with potency controls)
+  - `.ntm/pipelines/brenner-Synthesis.yaml` (delta merge + 7-dimension scorecard + research memo)
+- **Two-Axis Epistemic Tracking & Opportunity Matrix**:
+  - Tracks every hypothesis by `Status` (`PROPOSED | ACTIVE | UNDER_ATTACK | ASSUMPTION-HEAVY | SURVIVED_ATTACK | KILLED | DORMANT`) × `Maturity` (`SPECULATION | DESIGNED | TESTABLE | TESTED | VALIDATED`).
+  - Ranks candidates by `Opportunity Score = (Impact × Tractability × Surprise) / (LogCost × Risk)` with a hard gate at `Score >= 2.0`.
+
+### 3. Modern `ntm` Robot-Flag Orchestration
+
+```bash
+# Spawn a multi-agent research cockpit (2 Claude, 1 Codex, 1 Gemini, 1 Antigravity)
+export SESSION_ID="RS-$(date +%Y%m%d)-cell-fate"
+ntm spawn "$SESSION_ID" --cc=2 --cod=1 --gmi=1 --agy=1
+
+# Run the declarative 10-phase Standard pipeline
+ntm pipeline run .ntm/pipelines/brenner-Standard.yaml \
+  --session="$SESSION_ID" \
+  --var session_id="$SESSION_ID" \
+  --var question="How do cells determine positional identity?"
+
+# Event-driven monitoring and causality tracing (no manual polling)
+ntm --robot-snapshot --session="$SESSION_ID"
+ntm --robot-attention --session="$SESSION_ID"
+ntm --robot-wait --session="$SESSION_ID" --condition=all_idle
+ntm --robot-causality --session="$SESSION_ID"
+
+# Save a reproducible checkpoint before theory-kill or synthesis
+ntm checkpoint save "$SESSION_ID" -m "Pre-synthesis slate"
+```
 
 ---
 

@@ -33,11 +33,11 @@ const tutorialPaths: TutorialPath[] = [
     id: "agent-assisted",
     title: "Agent-Assisted Research",
     description:
-      "Let your AI coding agent learn and apply the methodology alongside you. The highest-leverage path for power users.",
+      "Install the /brennerbot-with-ntm skill via jsm and let your AI coding agent run the 10-phase Brenner Loop alongside you.",
     estimatedDuration: "~45 min",
     difficulty: "intermediate",
     audience: "Power users with Claude Code or Codex",
-    prerequisites: ["Claude Max or GPT Pro subscription"],
+    prerequisites: ["Claude Max or GPT Pro subscription", "jsm (optional)"],
     totalSteps: 8,
     available: true,
     href: "/tutorial/agent-assisted",
@@ -46,11 +46,11 @@ const tutorialPaths: TutorialPath[] = [
     id: "multi-agent-cockpit",
     title: "Multi-Agent Cockpit",
     description:
-      "Orchestrate a research group with Claude, GPT, and Gemini working in parallel via Agent Mail. Full infrastructure setup.",
+      "Orchestrate a research group with Claude, Codex, and Gemini working in parallel via ntm (Named Tmux Manager), /brennerbot-with-ntm pipelines, and Agent Mail.",
     estimatedDuration: "~2 hours",
     difficulty: "advanced",
     audience: "Advanced practitioners",
-    prerequisites: ["All three CLI agents", "ntm", "Agent Mail"],
+    prerequisites: ["All three CLI agents", "ntm + /brennerbot-with-ntm", "Agent Mail"],
     totalSteps: 10,
     available: true,
     href: "/tutorial/multi-agent",
@@ -77,7 +77,12 @@ const faqItems: FAQItem[] = [
   {
     question: "Which path is right for me?",
     answer:
-      "Start with Quick Start if you're new. It requires no special setup and gives you a taste of the methodology. Move to Agent-Assisted if you already use Claude Code or Codex — it's the highest-leverage path. Only choose Multi-Agent if you're ready to run persistent infrastructure.",
+      "Start with Quick Start if you're new. It requires no special setup and gives you a taste of the methodology. Move to Agent-Assisted if you already use Claude Code or Codex — installing /brennerbot-with-ntm via jsm makes it the highest-leverage single-agent path. Choose Multi-Agent Cockpit when you want parallel Claude + Codex + Gemini sessions orchestrated via ntm and Agent Mail.",
+  },
+  {
+    question: "What is /brennerbot-with-ntm and how do I install it?",
+    answer:
+      "The /brennerbot-with-ntm skill (installed via jeffreys-skills.md / jsm) packages the mandatory 10-phase Brenner Loop, all 15+1 cognitive operators, 6 execution modes, and 6 declarative ntm YAML pipelines so your coding agents can execute the method automatically.",
   },
   {
     question: "What if I get stuck?",
@@ -133,7 +138,7 @@ export default function TutorialPage() {
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
               <span className="relative inline-flex rounded-full size-2 bg-primary"></span>
             </span>
-            Interactive Tutorial
+            Interactive Tutorial • Powered by /brennerbot-with-ntm &amp; ntm
           </div>
 
           <h1 className="text-3xl sm:text-4xl lg:text-6xl font-bold tracking-tight animate-fade-in-up stagger-1">
@@ -183,6 +188,33 @@ export default function TutorialPage() {
           pathStatus={defaultPathStatus}
           recommendedPathId="quick-start"
         />
+
+        {/* Fast-Track /brennerbot-with-ntm Callout */}
+        <div className="max-w-4xl mx-auto mt-6 rounded-2xl border border-primary/25 bg-gradient-to-br from-primary/[0.06] via-card to-accent/[0.04] p-5 sm:p-6">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="space-y-1.5">
+              <div className="inline-flex items-center gap-2 text-xs font-mono font-semibold text-primary">
+                <span>⚡ FAST-TRACK SKILL</span>
+                <span>•</span>
+                <span>jeffreys-skills.md + ntm</span>
+              </div>
+              <h3 className="text-base sm:text-lg font-bold text-foreground">
+                Using Claude Code or Codex? Install{" "}
+                <code className="font-mono text-primary">/brennerbot-with-ntm</code>
+              </h3>
+              <p className="text-xs sm:text-sm text-muted-foreground max-w-2xl leading-relaxed">
+                Install the skill via <code className="font-mono text-foreground">jsm</code> and pair
+                it with <code className="font-mono text-foreground">ntm</code> (Named Tmux Manager)
+                to run the 10-phase Brenner Loop, 15+1 operators, and 6 YAML pipelines directly from
+                your terminal.
+              </p>
+            </div>
+            <div className="rounded-xl bg-zinc-950 border border-zinc-800 px-4 py-3 font-mono text-xs text-emerald-400 shrink-0">
+              <div>$ jsm install brennerbot-with-ntm</div>
+              <div className="text-zinc-400">$ ntm spawn brenner-rs --cc=2 --cod=1 --gmi=1</div>
+            </div>
+          </div>
+        </div>
       </section>
 
       {/* FAQ Section */}

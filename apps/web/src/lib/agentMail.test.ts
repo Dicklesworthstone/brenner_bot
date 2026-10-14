@@ -47,13 +47,18 @@ function withEnv(overrides: Record<string, string | undefined>, fn: () => void) 
  */
 async function isAgentMailAvailable(baseUrl: string = "http://127.0.0.1:8765"): Promise<boolean> {
   try {
+    const token = (process.env.AGENT_MAIL_BEARER_TOKEN ?? process.env.AGENT_MAIL_TOKEN)?.trim();
+    const headers: Record<string, string> = { "Content-Type": "application/json" };
+    if (token) {
+      headers.Authorization = token.toLowerCase().startsWith("bearer ") ? token : `Bearer ${token}`;
+    }
     const response = await fetch(`${baseUrl}/mcp/`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers,
       body: JSON.stringify({ jsonrpc: "2.0", id: "health", method: "ping", params: {} }),
       signal: AbortSignal.timeout(1000),
     });
-    return response.ok || response.status < 500;
+    return response.ok;
   } catch {
     return false;
   }

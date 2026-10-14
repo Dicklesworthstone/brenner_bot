@@ -56,20 +56,22 @@ export const MAC_STEP_1: MultiAgentStepData = {
   id: "mac-1",
   pathId: "multi-agent-cockpit",
   stepNumber: 1,
-  title: "Install Infrastructure",
+  title: "Install Infrastructure & Skill",
   estimatedTime: "~15 min",
   whatYouLearn: [
-    "How to orchestrate multiple terminal sessions",
+    "How to orchestrate multiple terminal sessions with ntm",
+    "Installing /brennerbot-with-ntm via jeffreys-skills.md (jsm)",
     "The Agent Mail message-passing architecture",
   ],
   whatYouDo: [
-    "Install ntm (Named Tmux Manager)",
+    "Install ntm (Named Tmux Manager) and jsm (/brennerbot-with-ntm skill)",
     "Install and start Agent Mail",
     "Install the brenner CLI",
     "Verify all tools with `brenner doctor`",
   ],
   cliCommands: [
-    "cargo install ntm",
+    "curl -fsSL https://raw.githubusercontent.com/Dicklesworthstone/ntm/main/install.sh | bash",
+    "jsm install brennerbot-with-ntm",
     "cd /path/to/mcp_agent_mail && bash scripts/run_server_with_token.sh",
     "bun build --compile ./brenner.ts --outfile brenner",
     "./brenner doctor",
@@ -143,18 +145,19 @@ export const MAC_STEP_5: MultiAgentStepData = {
   title: "Launch the Session",
   estimatedTime: "~5 min",
   whatYouLearn: [
-    "The session start workflow",
+    "The session start & NTM YAML pipeline workflow",
     "How Agent Mail threads work",
     "Role-separated vs unified kickoff modes",
   ],
   whatYouDo: [
-    "Create an ntm session with agent panes",
-    "Send role-separated kickoff messages",
+    "Spawn an ntm session with Claude, Codex, Gemini, and Antigravity panes",
+    "Send role-separated kickoff messages or run an NTM pipeline",
     "Verify messages are delivered",
   ],
   cliCommands: [
     'export THREAD_ID="RS-$(date +%Y%m%d)-your-topic"',
-    "ntm new $THREAD_ID --layout=3-agent",
+    "ntm spawn $THREAD_ID --cc=2 --cod=1 --gmi=1 --agy=1",
+    'ntm pipeline run .ntm/pipelines/brenner-Standard.yaml --session=$THREAD_ID --var question="Your research question"',
     './brenner session start --project-key "$PWD" --thread-id $THREAD_ID --sender GreenCastle --to BlueLake,PurpleMountain,GreenValley --role-map "BlueLake=hypothesis_generator,PurpleMountain=test_designer,GreenValley=adversarial_critic" --excerpt-file excerpt.md --question "Your research question"',
   ],
 };
@@ -166,18 +169,20 @@ export const MAC_STEP_6: MultiAgentStepData = {
   title: "Monitor Agent Collaboration",
   estimatedTime: "~30 min",
   whatYouLearn: [
-    "Reading multi-agent conversation flows",
+    "Event-driven monitoring with NTM robot flags",
     "When and how to intervene as operator",
     "Delta format and structured output",
   ],
   whatYouDo: [
-    "Watch agents produce deltas in tmux panes",
+    "Monitor agents via ntm --robot-snapshot and --robot-attention",
     "Check session status periodically",
     "Intervene if agents stall or produce invalid output",
   ],
   cliCommands: [
+    "ntm --robot-snapshot --session=$THREAD_ID",
+    "ntm --robot-wait --session=$THREAD_ID --condition=all_idle",
     './brenner session status --project-key "$PWD" --thread-id $THREAD_ID --watch',
-    "ntm broadcast $THREAD_ID 'Please check your Agent Mail inbox'",
+    "ntm send $THREAD_ID --all 'Please check your Agent Mail inbox'",
   ],
 };
 
@@ -274,10 +279,10 @@ export const MAC_STEP_10: MultiAgentStepData = {
 export const MAC_CODE_BLOCKS: Record<string, CodeBlockData> = {
   installNtm: {
     id: "install-ntm",
-    code: "cargo install ntm\nntm --version",
+    code: "curl -fsSL https://raw.githubusercontent.com/Dicklesworthstone/ntm/main/install.sh | bash\njsm install brennerbot-with-ntm\nntm --version",
     language: "bash",
-    title: "Install ntm",
-    description: "Named Tmux Manager for multi-agent orchestration.",
+    title: "Install ntm & /brennerbot-with-ntm",
+    description: "Named Tmux Manager and the /brennerbot-with-ntm skill for multi-agent orchestration.",
   },
   startAgentMail: {
     id: "start-agent-mail",
@@ -302,7 +307,7 @@ export const MAC_CODE_BLOCKS: Record<string, CodeBlockData> = {
   },
   sessionStart: {
     id: "session-start",
-    code: 'export THREAD_ID="RS-$(date +%Y%m%d)-cell-fate"\nntm new $THREAD_ID --layout=3-agent\n\n./brenner session start \\\n  --project-key "$PWD" \\\n  --thread-id $THREAD_ID \\\n  --sender GreenCastle \\\n  --to BlueLake,PurpleMountain,GreenValley \\\n  --role-map "BlueLake=hypothesis_generator,PurpleMountain=test_designer,GreenValley=adversarial_critic" \\\n  --excerpt-file excerpt.md \\\n  --question "How do cells determine their position?"',
+    code: 'export THREAD_ID="RS-$(date +%Y%m%d)-cell-fate"\nntm spawn $THREAD_ID --cc=2 --cod=1 --gmi=1 --agy=1\n\n./brenner session start \\\n  --project-key "$PWD" \\\n  --thread-id $THREAD_ID \\\n  --sender GreenCastle \\\n  --to BlueLake,PurpleMountain,GreenValley \\\n  --role-map "BlueLake=hypothesis_generator,PurpleMountain=test_designer,GreenValley=adversarial_critic" \\\n  --excerpt-file excerpt.md \\\n  --question "How do cells determine their position?"',
     language: "bash",
     title: "Launch session",
     description: "Spawn agents and send role-separated kickoffs.",
@@ -351,10 +356,10 @@ export const MAC_CODE_BLOCKS: Record<string, CodeBlockData> = {
 export const MAC_TROUBLESHOOTING: Record<string, TroubleshootingItem[]> = {
   step1: [
     {
-      problem: "ntm not found after cargo install",
+      problem: "ntm not found after installation",
       symptoms: ["command not found: ntm"],
-      solution: 'Add ~/.cargo/bin to your PATH: export PATH="$HOME/.cargo/bin:$PATH"',
-      commands: ['export PATH="$HOME/.cargo/bin:$PATH"', "ntm --version"],
+      solution: 'Add ~/.local/bin (or ~/go/bin) to your PATH: export PATH="$HOME/.local/bin:$HOME/go/bin:$PATH"',
+      commands: ['export PATH="$HOME/.local/bin:$HOME/go/bin:$PATH"', "ntm --version"],
     },
     {
       problem: "Agent Mail won't start",

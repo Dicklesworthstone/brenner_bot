@@ -190,7 +190,13 @@ export default function RootLayout({
                     </div>
 
                     <div className="flex flex-col gap-4 sm:items-end">
-                      <div className="flex items-center gap-6 text-sm">
+                      <div className="flex flex-wrap items-center gap-5 text-sm">
+                        <Link
+                          href="/tutorial"
+                          className="text-muted-foreground hover:text-foreground transition-colors link-underline"
+                        >
+                          Tutorials
+                        </Link>
                         <a
                           href="https://github.com/Dicklesworthstone/brenner_bot"
                           target="_blank"
@@ -198,6 +204,22 @@ export default function RootLayout({
                           className="text-muted-foreground hover:text-foreground transition-colors link-underline"
                         >
                           GitHub
+                        </a>
+                        <a
+                          href="https://github.com/Dicklesworthstone/ntm"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-muted-foreground hover:text-foreground transition-colors link-underline"
+                        >
+                          ntm (Named Tmux Manager)
+                        </a>
+                        <a
+                          href="https://github.com/Dicklesworthstone/jeffreys-skills.md"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-muted-foreground hover:text-foreground transition-colors link-underline"
+                        >
+                          jeffreys-skills.md
                         </a>
                         <a
                           href="https://github.com/Dicklesworthstone/mcp_agent_mail"
@@ -209,7 +231,9 @@ export default function RootLayout({
                         </a>
                       </div>
                       <p className="text-xs text-muted-foreground/60">
-                        Built with Next.js + Bun. Coordinated via Agent Mail.
+                        Built with Next.js 16 + Bun. Orchestrated via{" "}
+                        <code className="font-mono text-foreground/80">/brennerbot-with-ntm</code>,{" "}
+                        <code className="font-mono text-foreground/80">ntm</code>, and Agent Mail.
                       </p>
                     </div>
                   </div>

@@ -41,5 +41,11 @@ beads.right.meta.json
 # Local history backups
 .br_history/
 
-# bv (beads viewer) lock file
+# bv (beads viewer) and br lock/temp/recovery files
 .bv.lock
+.write.lock
+*.lock
+*.tmp
+.br_recovery/
+.br-wal-index-*/
+

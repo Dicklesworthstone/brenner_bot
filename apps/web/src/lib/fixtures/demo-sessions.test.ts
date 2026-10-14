@@ -5,9 +5,6 @@
 import { describe, expect, it } from "vitest";
 import {
   DEMO_SESSIONS,
-  type DemoMessage,
-  type DemoSession,
-  type DemoThreadSummary,
   getDemoSession,
   getDemoThreadMessages,
   getDemoThreadSummaries,

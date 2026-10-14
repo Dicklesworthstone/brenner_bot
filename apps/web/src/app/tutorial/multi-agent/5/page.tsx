@@ -89,13 +89,14 @@ export default function MultiAgentStep5() {
         {/* Step 1: Create Session */}
         <div className="space-y-4">
           <h2 className="text-lg font-semibold flex items-center gap-2">
-            <span className="flex items-center justify-center size-7 rounded-lg bg-destructive/10 text-destructive text-sm font-bold">
+            <span className="flex items-center justify-center size-7 rounded-lg bg-primary/15 text-primary text-sm font-bold">
               1
             </span>
-            Set Session Variables
+            Spawn Your NTM Session &amp; Set Variables
           </h2>
           <p className="text-sm text-muted-foreground">
-            First, define your session ID. Use a consistent naming convention to track sessions.
+            First, define your session ID and spawn the multi-agent panes using{" "}
+            <code className="font-mono text-foreground">ntm spawn</code>.
           </p>
 
           <TutorialCodeBlock
@@ -103,8 +104,11 @@ export default function MultiAgentStep5() {
 export SESSION_ID="RS-$(date +%Y%m%d)-cell-fate"
 export PROJECT_KEY="$(pwd)"
 
-echo "Session: $SESSION_ID"
-echo "Project: $PROJECT_KEY"`}
+# Spawn Claude Code (2), Codex (1), Gemini (1), and Antigravity (1) panes
+ntm spawn "$SESSION_ID" --cc=2 --cod=1 --gmi=1 --agy=1
+
+# Verify pane health via robot snapshot
+ntm --robot-snapshot --session="$SESSION_ID"`}
             language="bash"
             title="Terminal"
           />
@@ -113,24 +117,31 @@ echo "Project: $PROJECT_KEY"`}
         {/* Step 2: The Big Command */}
         <div className="space-y-4">
           <h2 className="text-lg font-semibold flex items-center gap-2">
-            <span className="flex items-center justify-center size-7 rounded-lg bg-destructive/10 text-destructive text-sm font-bold">
+            <span className="flex items-center justify-center size-7 rounded-lg bg-primary/15 text-primary text-sm font-bold">
               2
             </span>
-            Launch the Session
+            Launch via Brenner CLI or NTM Pipeline
           </h2>
           <p className="text-sm text-muted-foreground">
-            This is the main command that initializes everything:
+            You can launch role-separated kickoffs directly with <code className="font-mono">brenner session start</code> or run a declarative <code className="font-mono">ntm pipeline</code> from <code className="font-mono">/brennerbot-with-ntm</code>:
           </p>
 
           <TutorialCodeBlock
-            code={`brenner session start \\
+            code={`# Option A: Launch via brenner CLI + Agent Mail
+brenner session start \\
   --project-key "$PROJECT_KEY" \\
   --thread-id "$SESSION_ID" \\
   --sender Orchestrator \\
   --to BlueLake,PurpleMountain,GreenValley \\
   --role-map "BlueLake=hypothesis_generator,PurpleMountain=test_designer,GreenValley=adversarial_critic" \\
   --kickoff-file sessions/$SESSION_ID/kickoff.md \\
-  --excerpt-file excerpt.md`}
+  --excerpt-file excerpt.md
+
+# Option B: Run the automated 10-phase NTM YAML pipeline
+ntm pipeline run .ntm/pipelines/brenner-Standard.yaml \\
+  --session="$SESSION_ID" \\
+  --var session_id="$SESSION_ID" \\
+  --var question="How do cells determine their position?"`}
             language="bash"
             title="Terminal"
           />
@@ -169,7 +180,7 @@ echo "Project: $PROJECT_KEY"`}
         {/* Step 3: Verify Messages */}
         <div className="space-y-4">
           <h2 className="text-lg font-semibold flex items-center gap-2">
-            <span className="flex items-center justify-center size-7 rounded-lg bg-destructive/10 text-destructive text-sm font-bold">
+            <span className="flex items-center justify-center size-7 rounded-lg bg-primary/15 text-primary text-sm font-bold">
               3
             </span>
             Verify Messages Were Sent

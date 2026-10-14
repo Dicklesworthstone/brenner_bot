@@ -38,3 +38,5 @@ a.out
 Thumbs.db
 .vercel
 .env*.local
+# br doctor per-run artifacts
+.doctor/

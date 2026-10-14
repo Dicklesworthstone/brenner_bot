@@ -64,7 +64,7 @@ const SessionsIcon = () => (
     <path
       strokeLinecap="round"
       strokeLinejoin="round"
-      d="M9.75 3.104v5.714a2.25 2.25 0 01-.659 1.591L5 14.5M9.75 3.104c-.251.023-.501.05-.75.082m.75-.082a24.301 24.301 0 014.5 0m0 0v5.714c0 .597.237 1.17.659 1.591L19.8 15.3M14.25 3.104c.251.023.501.05.75.082M19.8 15.3l-1.57.393A9.065 9.065 0 0112 15a9.065 9.065 0 00-6.23.693L5 14.5m14.8.8l1.402 5.07a1.125 1.125 0 01-1.135 1.416H3.933a1.125 1.125 0 01-1.135-1.416L5 14.5"
+      d="M6.75 7.5l3 2.25-3 2.25m4.5 0h3m-9 8.25h13.5A2.25 2.25 0 0021 18V6a2.25 2.25 0 00-2.25-2.25H5.25A2.25 2.25 0 003 6v12a2.25 2.25 0 002.25 2.25z"
     />
   </svg>
 );
@@ -236,7 +236,10 @@ export function BottomNav({ className }: { className?: string }) {
 
   return (
     <nav ref={containerRef} className={cn("bottom-nav lg:hidden", className)}>
-      <div ref={navRef} className="relative flex items-center justify-around h-16">
+      <div
+        ref={navRef}
+        className="relative flex items-center justify-between sm:justify-around h-16 overflow-x-auto px-1"
+      >
         {/* Sliding indicator */}
         {activeIndex >= 0 && (
           <motion.div
@@ -262,7 +265,7 @@ export function BottomNav({ className }: { className?: string }) {
               key={item.href}
               href={item.href}
               data-nav-item
-              className="bottom-nav-item touch-target"
+              className="bottom-nav-item touch-target flex-1"
               data-active={isActive}
             >
               <motion.div
@@ -274,7 +277,9 @@ export function BottomNav({ className }: { className?: string }) {
               >
                 {item.icon}
               </motion.div>
-              <span className="text-xs">{item.label}</span>
+              <span className="text-[10px] sm:text-xs leading-tight truncate max-w-[54px] sm:max-w-none">
+                {item.label}
+              </span>
             </Link>
           );
         })}

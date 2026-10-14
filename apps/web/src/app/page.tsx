@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { NtmSkillShowcase } from "@/components/home/ntm-skill-showcase";
 import { StatsSection } from "@/components/home/stats-section";
 import { Jargon } from "@/components/jargon";
 import { WhatIsThis } from "@/components/onboarding/WhatIsThis";
@@ -499,12 +500,18 @@ const coreOperators = [
 ];
 
 const extendedOperators = [
-  { symbol: "↑", name: "Amplify", description: "Use selection, dominance, regime switches" },
-  { symbol: "◊", name: "Paradox-hunt", description: "Use contradictions as beacons" },
-  { symbol: "⊕", name: "Cross-domain", description: "Import tools from other fields" },
-  { symbol: "∿", name: "Dephase", description: "Work out of phase with fashion" },
-  { symbol: "†", name: "Theory-kill", description: "Drop hypotheses when the world says no" },
-  { symbol: "⌂", name: "Materialize", description: "What would I see if this were true?" },
+  { symbol: "◊", name: "Paradox-Hunt", description: "Use contradictions and anomalies as beacons" },
+  { symbol: "𝓛", name: "Recode", description: "Change representation to expose hidden invariants" },
+  { symbol: "≡", name: "Invariant-Extract", description: "Find what survives across transformations" },
+  { symbol: "↑", name: "Amplify", description: "Use selection, dominance, and regime switches" },
+  { symbol: "⌂", name: "Materialize", description: "Compile theory into a concrete decision procedure" },
+  { symbol: "🔧", name: "DIY-Bricolage", description: "Build the minimal instrument yourself now" },
+  { symbol: "🤝", name: "Adversarial-Collab", description: "Cross-family debate before consensus" },
+  { symbol: "ΔE", name: "Exception-Quarantine", description: "Isolate anomalies without ad-hoc patching" },
+  { symbol: "†", name: "Theory-Kill", description: "Drop hypotheses immediately when falsified" },
+  { symbol: "∿", name: "Dephase", description: "Work out of phase with prevailing fashion" },
+  { symbol: "⊙", name: "Self-Reflect", description: "Audit methodology drift and cognitive bias" },
+  { symbol: "⤴", name: "Quickie-Pilot", description: "Run a cheap 10-minute probe before full test" },
 ];
 
 const plainEnglishSteps = [
@@ -527,7 +534,7 @@ export default function Home() {
   const labModeEnabled = labModeValue === "1" || labModeValue === "true";
 
   return (
-    <div className="space-y-12 sm:space-y-16 lg:space-y-24 pb-[calc(6rem+env(safe-area-inset-bottom))] sm:pb-0">
+    <div className="space-y-12 sm:space-y-16 lg:space-y-24 pb-[calc(8.5rem+env(safe-area-inset-bottom))] sm:pb-0">
       {/* Hero Section */}
       <HeroBackground
         showOrbs
@@ -539,12 +546,21 @@ export default function Home() {
         <div className="py-10 sm:py-12 lg:py-20 px-4 sm:px-6">
           <div className="grid gap-8 lg:grid-cols-[1.05fr_0.95fr] lg:items-center">
             <div className="space-y-6 text-center lg:text-left">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs sm:text-sm font-medium animate-fade-in">
-                <span className="relative flex size-2">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
-                  <span className="relative inline-flex rounded-full size-2 bg-primary"></span>
-                </span>
-                BrennerBot Lab Mode
+              <div className="flex flex-wrap items-center justify-center lg:justify-start gap-2">
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs sm:text-sm font-medium animate-fade-in">
+                  <span className="relative flex size-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+                    <span className="relative inline-flex rounded-full size-2 bg-primary"></span>
+                  </span>
+                  BrennerBot Lab Mode
+                </div>
+                <a
+                  href="#brennerbot-with-ntm"
+                  className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-primary/30 bg-background/80 text-xs sm:text-sm font-mono font-medium text-foreground hover:border-primary transition-colors"
+                >
+                  <span className="text-primary font-bold">/brennerbot-with-ntm</span>
+                  <span className="text-muted-foreground">+ NTM</span>
+                </a>
               </div>
 
               <div className="space-y-3">
@@ -558,37 +574,62 @@ export default function Home() {
               </div>
 
               <p className="max-w-2xl mx-auto lg:mx-0 text-base sm:text-lg lg:text-xl text-muted-foreground leading-relaxed animate-fade-in-up stagger-2">
-                Coordinate Claude, GPT, and Gemini in structured debates. Run 11-phase research
-                sessions that produce hypothesis slates, discriminative tests, and evidence trails.
-                Prevent hindsight bias, unfalsifiable claims, and sloppy reasoning in one command.
+                Coordinate Claude, GPT, and Gemini in structured debates via{" "}
+                <strong className="text-foreground">NTM</strong> and{" "}
+                <strong className="text-foreground">Agent Mail</strong>. Run 10-phase falsification
+                loops with the <code className="font-mono text-sm text-primary">/brennerbot-with-ntm</code>{" "}
+                skill that produce hypothesis slates, discriminative tests, and auditable evidence
+                trails.
               </p>
 
-              <div className="grid gap-4 sm:gap-5 sm:grid-cols-[1.1fr_0.9fr] items-start">
+              <div className="grid gap-4 sm:gap-5 sm:grid-cols-[1.15fr_0.85fr] items-start text-left">
                 <div
                   id="install"
-                  className="rounded-2xl border border-border/70 bg-background/80 px-4 py-4 sm:px-5 sm:py-5 shadow-sm"
+                  className="rounded-2xl border border-border/70 bg-background/85 px-4 py-4 sm:px-5 sm:py-5 shadow-sm space-y-3"
                 >
-                  <div className="flex items-center justify-between text-xs uppercase tracking-[0.2em] text-muted-foreground">
-                    <span>Quick Install</span>
-                    <CopyButton
-                      text="curl -fsSL https://brennerbot.org/install.sh | bash"
-                      variant="ghost"
-                      size="sm"
-                      label="Copy install command"
-                      showPreview={false}
-                    />
+                  <div>
+                    <div className="flex items-center justify-between text-xs uppercase tracking-[0.2em] text-muted-foreground">
+                      <span>1. CLI Quick Install</span>
+                      <CopyButton
+                        text="curl -fsSL https://brennerbot.org/install.sh | bash"
+                        variant="ghost"
+                        size="sm"
+                        label="Copy CLI install command"
+                        showPreview={false}
+                      />
+                    </div>
+                    <code className="mt-2 block rounded-xl bg-muted/60 px-3 py-2 text-xs font-mono text-foreground overflow-x-auto">
+                      curl -fsSL https://brennerbot.org/install.sh | bash
+                    </code>
                   </div>
-                  <code className="mt-3 block rounded-xl bg-muted/60 px-3 py-2 text-xs sm:text-sm font-mono text-foreground">
-                    curl -fsSL https://brennerbot.org/install.sh | bash
-                  </code>
-                  <p className="mt-2 text-xs text-muted-foreground">
-                    Options: <span className="text-foreground">--easy-mode</span>,{" "}
-                    <span className="text-foreground">--verify</span>,{" "}
-                    <span className="text-foreground">--system</span>
-                  </p>
+
+                  <div className="pt-2 border-t border-border/60">
+                    <div className="flex items-center justify-between text-xs uppercase tracking-[0.2em] text-primary">
+                      <span>2. Skill + NTM Swarm (jsm)</span>
+                      <CopyButton
+                        text="jsm install brennerbot-with-ntm ntm vibing-with-ntm agent-mail"
+                        variant="ghost"
+                        size="sm"
+                        label="Copy jsm skill install command"
+                        showPreview={false}
+                      />
+                    </div>
+                    <code className="mt-2 block rounded-xl bg-zinc-950 px-3 py-2 text-xs font-mono text-zinc-100 overflow-x-auto">
+                      jsm install brennerbot-with-ntm ntm vibing-with-ntm agent-mail
+                    </code>
+                    <p className="mt-1.5 text-[11px] text-muted-foreground">
+                      Powered by{" "}
+                      <a
+                        href="#brennerbot-with-ntm"
+                        className="text-primary font-medium hover:underline"
+                      >
+                        jeffreys-skills.md &amp; Dicklesworthstone/ntm
+                      </a>
+                    </p>
+                  </div>
                 </div>
 
-                <div className="flex flex-col gap-3">
+                <div className="flex flex-col gap-2.5">
                   <Link
                     href="/tutorial"
                     className="group inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-primary text-primary-foreground font-medium shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 hover:-translate-y-0.5 transition-all active:scale-[0.98] touch-manipulation"
@@ -596,26 +637,35 @@ export default function Home() {
                     Get Started
                     <ArrowRightIcon />
                   </Link>
-                  <Link
-                    href="/method"
-                    className="group inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl border border-border bg-card text-foreground font-medium shadow-sm hover:shadow-md hover:border-primary/30 hover:-translate-y-0.5 transition-all active:scale-[0.98] touch-manipulation"
+                  <a
+                    href="#brennerbot-with-ntm"
+                    className="group inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl border border-primary/30 bg-primary/5 text-foreground font-medium shadow-sm hover:shadow-md hover:border-primary/60 hover:-translate-y-0.5 transition-all active:scale-[0.98] touch-manipulation"
                   >
-                    Read the Method
+                    Explore /brennerbot-with-ntm
                     <ArrowRightIcon />
-                  </Link>
-                  <Link
-                    href="/distillations"
-                    className="group inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl border border-border bg-card text-foreground font-medium shadow-sm hover:shadow-md hover:border-primary/30 hover:-translate-y-0.5 transition-all active:scale-[0.98] touch-manipulation"
-                  >
-                    View Distillations
-                    <ArrowRightIcon />
-                  </Link>
+                  </a>
+                  <div className="grid grid-cols-2 gap-2.5">
+                    <Link
+                      href="/method"
+                      className="group inline-flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl border border-border bg-card text-foreground text-sm font-medium shadow-sm hover:shadow-md hover:border-primary/30 hover:-translate-y-0.5 transition-all active:scale-[0.98] touch-manipulation"
+                    >
+                      Read the Method
+                      <ArrowRightIcon />
+                    </Link>
+                    <Link
+                      href="/distillations"
+                      className="group inline-flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl border border-border bg-card text-foreground text-sm font-medium shadow-sm hover:shadow-md hover:border-primary/30 hover:-translate-y-0.5 transition-all active:scale-[0.98] touch-manipulation"
+                    >
+                      View Distillations
+                      <ArrowRightIcon />
+                    </Link>
+                  </div>
                   <div className="flex flex-wrap items-center justify-center lg:justify-start gap-2 text-[11px] uppercase tracking-wide text-muted-foreground">
                     <span className="rounded-full border border-border/70 bg-background px-3 py-1">
                       Locked predictions
                     </span>
                     <span className="rounded-full border border-border/70 bg-background px-3 py-1">
-                      Structured debates
+                      NTM Swarm Pipelines
                     </span>
                     <span className="rounded-full border border-border/70 bg-background px-3 py-1">
                       Auditable artifacts
@@ -628,39 +678,40 @@ export default function Home() {
             <div className="relative">
               <div className="absolute -top-6 -left-4 size-20 rounded-full bg-primary/20 blur-2xl" />
               <div className="absolute -bottom-8 right-2 size-24 rounded-full bg-accent/20 blur-2xl" />
-              <div className="relative rounded-3xl border border-border/70 bg-card/80 p-5 sm:p-6 shadow-lg">
+              <div className="relative rounded-3xl border border-border/70 bg-card/85 p-5 sm:p-6 shadow-lg">
                 <div className="flex items-center justify-between text-xs uppercase tracking-[0.2em] text-muted-foreground">
-                  <span>Agent Constellation</span>
-                  <span>11-phase loop</span>
+                  <span>NTM Agent Constellation</span>
+                  <span className="text-primary font-mono">10-phase loop</span>
                 </div>
                 <div className="mt-5 space-y-4">
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between rounded-2xl border border-border/70 bg-background px-4 py-3 text-sm font-medium">
-                      <span className="text-foreground">Hypothesis Generator</span>
-                      <span className="text-muted-foreground">GPT</span>
+                  <div className="space-y-2.5">
+                    <div className="flex items-center justify-between rounded-2xl border border-border/70 bg-background px-4 py-2.5 text-sm font-medium">
+                      <span className="text-foreground">Proposer &amp; Investigator</span>
+                      <span className="font-mono text-xs text-muted-foreground">Claude + Codex</span>
                     </div>
-                    <div className="flex items-center justify-between rounded-2xl border border-border/70 bg-background px-4 py-3 text-sm font-medium">
-                      <span className="text-foreground">Test Designer</span>
-                      <span className="text-muted-foreground">Claude</span>
+                    <div className="flex items-center justify-between rounded-2xl border border-border/70 bg-background px-4 py-2.5 text-sm font-medium">
+                      <span className="text-foreground">Devil&apos;s-Advocate Critic</span>
+                      <span className="font-mono text-xs text-muted-foreground">Gemini + Codex</span>
                     </div>
-                    <div className="flex items-center justify-between rounded-2xl border border-border/70 bg-background px-4 py-3 text-sm font-medium">
-                      <span className="text-foreground">Adversarial Critic</span>
-                      <span className="text-muted-foreground">Gemini</span>
+                    <div className="flex items-center justify-between rounded-2xl border border-border/70 bg-background px-4 py-2.5 text-sm font-medium">
+                      <span className="text-foreground">Synthesizer &amp; Adjudicator</span>
+                      <span className="font-mono text-xs text-muted-foreground">Claude + AGY</span>
                     </div>
                   </div>
                   <div className="flex items-center justify-center">
                     <FlowArrowIcon />
                   </div>
-                  <div className="rounded-2xl border border-border/70 bg-gradient-to-br from-primary/10 via-background to-accent/10 px-4 py-4">
+                  <div className="rounded-2xl border border-border/70 bg-gradient-to-br from-primary/10 via-background to-accent/10 px-4 py-3.5">
                     <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
-                      Unified Artifact
+                      Triangulated Artifacts
                     </p>
-                    <p className="mt-2 text-sm text-foreground">
-                      Hypothesis slate / Discriminative tests / Evidence ledger
+                    <p className="mt-1.5 text-sm text-foreground font-medium">
+                      by_cc.md + by_cod.md + by_agy.md &rarr; disagreement_register.md &rarr;
+                      meta_synthesis.md
                     </p>
                   </div>
-                  <div className="rounded-2xl border border-border/70 bg-muted/40 px-4 py-3 text-xs text-muted-foreground">
-                    Threaded Agent Mail → deterministic merge → human approval gate
+                  <div className="rounded-2xl border border-border/70 bg-muted/40 px-4 py-2.5 text-xs font-mono text-muted-foreground">
+                    ntm pipeline run brennerbot-squad.yaml &rarr; HANDBACK.md
                   </div>
                 </div>
               </div>
@@ -671,6 +722,9 @@ export default function Home() {
 
       {/* What Is This? - First-time visitor onboarding */}
       <WhatIsThis className="px-4 sm:px-0" />
+
+      {/* /brennerbot-with-ntm + NTM + jeffreys-skills.md Interactive Showcase */}
+      <NtmSkillShowcase />
 
       {/* Tutorial CTA - Primary discovery mechanism for tutorials */}
       <section className="px-4 sm:px-0 animate-fade-in-up">
@@ -1593,7 +1647,9 @@ brenner session compile --thread-id RS-20260105`}</code>
             <summary className="flex items-center justify-between p-4 sm:p-5 cursor-pointer list-none">
               <div className="flex items-center gap-3">
                 <span className="text-sm font-semibold text-foreground">Extended Operators</span>
-                <span className="text-xs text-muted-foreground">6 more patterns</span>
+                <span className="text-xs text-muted-foreground">
+                  12 more cognitive &amp; epistemic patterns
+                </span>
               </div>
               <span className="text-muted-foreground group-open:rotate-180 transition-transform">
                 <svg
@@ -1716,11 +1772,11 @@ const result = brennerPipeline(hypothesis, context);`}</code>
         </blockquote>
       </section>
 
-      {/* Mobile Sticky CTA */}
-      <div className="sm:hidden fixed bottom-[calc(1rem+env(safe-area-inset-bottom))] left-4 right-4 z-40">
+      {/* Mobile Sticky CTA - positioned cleanly above the 64px BottomNav */}
+      <div className="sm:hidden fixed bottom-[calc(4.75rem+env(safe-area-inset-bottom))] left-4 right-4 z-40">
         <Link
           href="/tutorial"
-          className="group inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-primary px-6 py-4 text-base font-semibold text-primary-foreground shadow-lg shadow-primary/25 transition-all active:scale-[0.99] touch-manipulation"
+          className="group inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-primary px-6 py-3.5 text-sm font-semibold text-primary-foreground shadow-lg shadow-primary/25 transition-all active:scale-[0.99] touch-manipulation"
         >
           Start the Tutorial
           <ArrowRightIcon />

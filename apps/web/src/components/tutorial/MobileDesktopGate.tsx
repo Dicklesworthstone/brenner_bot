@@ -17,7 +17,6 @@ import { motion } from "framer-motion";
 import { Bookmark, BookOpen, ChevronRight, ExternalLink, Monitor } from "lucide-react";
 import Link from "next/link";
 import * as React from "react";
-import { Button } from "@/components/ui/button";
 import { useIsMobile } from "@/hooks/useIsMobile";
 import type { TutorialStepMeta } from "@/lib/tutorial-types";
 import { cn } from "@/lib/utils";
@@ -136,7 +135,13 @@ export function MobileDesktopGate({
             {/* Option 1: Read through */}
             {showContentOnMobile && (
               <button
-                onClick={() => setShowContent((v) => !v)}
+                onClick={() => {
+                  setShowContent((v) => {
+                    const next = !v;
+                    if (next) onContinue?.();
+                    return next;
+                  });
+                }}
                 className="flex items-center gap-3 p-3 rounded-xl border border-border bg-card/50 hover:bg-muted/50 transition-colors text-left"
               >
                 <div className="flex items-center justify-center size-9 rounded-lg bg-muted">

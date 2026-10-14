@@ -10,7 +10,6 @@ import {
   getConfoundTemplates,
   getSupportedDomains,
   PSYCHOLOGY_CONFOUNDS,
-  type ResearchDomain,
 } from "./confound-detection";
 import type { HypothesisCard } from "./hypothesis";
 import { createHypothesisCard, generateHypothesisCardId } from "./hypothesis";

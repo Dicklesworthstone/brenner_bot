@@ -12,7 +12,6 @@ import {
   getTemplatesByDomain,
   getTemplatesByTag,
   HYPOTHESIS_TEMPLATES,
-  type HypothesisTemplate,
   searchTemplates,
   TEMPLATE_BY_ID,
   TEMPLATE_CATEGORIES,
@@ -128,7 +127,7 @@ describe("TEMPLATE_CATEGORIES", () => {
       }
     }
 
-    for (const [templateId, count] of templateIdCounts) {
+    for (const count of templateIdCounts.values()) {
       expect(count).toBe(1);
     }
   });
@@ -454,7 +453,7 @@ describe("Domain Coverage", () => {
       cs: ["computer_science"],
     };
 
-    for (const [_category, domains] of Object.entries(categoryDomains)) {
+    for (const domains of Object.values(categoryDomains)) {
       const hasFeatured = featured.some((t) => t.domains.some((d) => domains.includes(d)));
       expect(hasFeatured).toBe(true);
     }

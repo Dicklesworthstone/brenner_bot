@@ -5,12 +5,10 @@ import {
   assessPredictionBoldness,
   calculateScoreDelta,
   createArena,
-  createArenaHypothesis,
   generateArenaId,
   generateArenaTestId,
   generateTestResultId,
   isHypothesisArena,
-  recordTestResult,
 } from "./hypothesis-arena";
 
 const MOCK_HYPOTHESIS = createHypothesisCard({

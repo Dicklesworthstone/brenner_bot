@@ -9,7 +9,6 @@ import {
   findRelevantQuotes,
   getOperatorQuotes,
   OPERATOR_QUOTE_KEYWORDS,
-  type RankedQuote,
 } from "./quote-matcher";
 
 describe("quote-matcher", () => {

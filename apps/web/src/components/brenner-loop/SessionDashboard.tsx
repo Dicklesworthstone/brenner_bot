@@ -628,7 +628,7 @@ function HypothesisEditorPanel({
     setFalsifiers(joinLines(hypothesis?.impossibleIfTrue));
     setAssumptions(joinLines(hypothesis?.assumptions));
     setConfidence(hypothesis?.confidence ?? 0);
-  }, [hypothesis?.id, mode]);
+  }, [hypothesis, mode]);
 
   const handleSave = React.useCallback(() => {
     onSave({

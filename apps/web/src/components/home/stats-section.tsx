@@ -5,7 +5,7 @@ import { AnimatedCounter } from "@/components/ui/animated-counter";
 const stats = [
   { value: 236, label: "Interview Segments", suffix: "" },
   { value: 3, label: "Model Distillations", suffix: "" },
-  { value: 12, label: "Operator Types", suffix: "+" },
+  { value: 15, label: "Operator Types", suffix: "+" },
   { value: 40, label: "Words of Wisdom", suffix: "k+" },
 ];
 

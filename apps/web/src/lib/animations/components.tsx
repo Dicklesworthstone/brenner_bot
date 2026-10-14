@@ -25,9 +25,7 @@ import {
   scaleIn,
   slideInLeft,
   slideInRight,
-  staggerNormal,
   transitions,
-  viewport,
 } from "./motion-variants";
 
 // ============================================================================

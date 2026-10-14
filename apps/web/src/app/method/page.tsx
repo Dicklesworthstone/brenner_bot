@@ -200,6 +200,129 @@ export default function MethodPage() {
         </div>
       </section>
 
+      {/* Complete 15+1 Cognitive Operator Algebra */}
+      <section className="space-y-6 animate-fade-in-up">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="space-y-1">
+            <span className="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full bg-primary/10 text-primary text-xs font-mono font-semibold">
+              /brennerbot-with-ntm Operator Calculus
+            </span>
+            <h2 className="text-xl font-semibold">The 15+1 Cognitive Operator Algebra</h2>
+          </div>
+          <Link
+            href="/operators"
+            className="group inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:underline"
+          >
+            Explore Operator Library
+            <ArrowRightIcon />
+          </Link>
+        </div>
+        <p className="text-muted-foreground max-w-3xl text-sm leading-relaxed">
+          Beyond the 5 high-level loop stages above, the{" "}
+          <code className="font-mono text-foreground">/brennerbot-with-ntm</code> skill formalizes
+          Sydney Brenner&apos;s recurring problem-solving moves into 15 composable operators plus{" "}
+          <code className="font-mono text-foreground">⤴ ESCAPE</code>. Every phase of the 10-phase
+          loop invokes a deliberate composition of these operators.
+        </p>
+
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          {[
+            { symbol: "◊", code: "PRIO", name: "Prioritize", desc: "Rank problems by InfoGain / Cost ratio" },
+            { symbol: "⊘", code: "SPLIT", name: "Level-Split", desc: "Separate program (message) from interpreter (machine)" },
+            { symbol: "𝓛", code: "RECODE", name: "Recode", desc: "Reduce dimensionality (3D anatomy → 1D sequence)" },
+            { symbol: "≡", code: "INV", name: "Invariant-Extract", desc: "Find structural constraints independent of mechanism" },
+            { symbol: "✂", code: "EXC", name: "Exclusion-Test", desc: "Design tests for forbidden patterns (infinite Bayes factor)" },
+            { symbol: "⟂", code: "ALT", name: "Object-Transpose", desc: "Switch organism/substrate or add the 3rd alternative" },
+            { symbol: "↑", code: "AMP", name: "Amplify", desc: "Use exponential biology (phage, selection) for readout" },
+            { symbol: "⌂", code: "MAT", name: "Materialize", desc: "Compile theory into a concrete Decision Experiment" },
+            { symbol: "🔧", code: "DIY", name: "DIY-Bricolage", desc: "Build cheap, fast tools from existing parts" },
+            { symbol: "⊞", code: "CROSS", name: "Cross-Domain", desc: "Import cognitive frames from outside the field" },
+            { symbol: "🤝", code: "DIAL", name: "Dialectical", desc: "Pair generators with adversarial critics" },
+            { symbol: "ΔE", code: "EXC-E", name: "Exception-Quarantine", desc: "Isolate anomalies explicitly without sweeping under the rug" },
+            { symbol: "†", code: "KILL", name: "Theory-Kill", desc: "Execute falsified hypotheses immediately without mercy" },
+            { symbol: "∿", code: "PHASE", name: "Out-of-Phase", desc: "Work ½ wavelength ahead or behind fashion" },
+            { symbol: "⊙", code: "HAL", name: "Have-A-Look", desc: "Observe directly before doing elaborate indirect inference" },
+            { symbol: "⤴", code: "ESC", name: "Escape", desc: "Open a fresh angle when a field becomes overcrowded" },
+          ].map((op) => (
+            <div
+              key={op.symbol}
+              className="rounded-xl border border-border bg-card/70 p-3.5 hover:border-primary/30 transition-colors"
+            >
+              <div className="flex items-center justify-between gap-2 mb-1.5">
+                <div className="flex items-center gap-2">
+                  <span className="inline-flex items-center justify-center size-7 rounded-lg bg-primary/10 text-primary font-mono font-bold text-sm">
+                    {op.symbol}
+                  </span>
+                  <span className="font-semibold text-sm text-foreground">{op.name}</span>
+                </div>
+                <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-muted text-muted-foreground">
+                  {op.code}
+                </span>
+              </div>
+              <p className="text-xs text-muted-foreground leading-relaxed">{op.desc}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* The One Rule & Two-Axis Epistemic Tracking */}
+      <section className="grid gap-6 lg:grid-cols-2 animate-fade-in-up">
+        <div className="rounded-2xl border border-primary/25 bg-gradient-to-br from-primary/[0.06] via-card to-transparent p-6 space-y-4">
+          <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-primary/15 text-primary text-xs font-mono font-semibold">
+            THE ONE RULE • Objective Function
+          </div>
+          <h3 className="text-lg font-bold text-foreground">
+            Maximize Information Gain per Unit Cost
+          </h3>
+          <div className="rounded-xl bg-zinc-950 border border-zinc-800 p-4 font-mono text-xs sm:text-sm text-emerald-400 overflow-x-auto">
+            <code>Maximize [ Σ_i P(H_i) × InfoGain(T_j | H_i) / Cost(T_j) ]</code>
+          </div>
+          <p className="text-sm text-muted-foreground leading-relaxed">
+            Every operator in the Brenner algebra modifies a term in this equation:{" "}
+            <strong className="text-foreground">✂ Exclusion-Test</strong> pushes{" "}
+            <code className="font-mono">InfoGain → ∞</code>,{" "}
+            <strong className="text-foreground">⟂ Object-Transpose</strong> and{" "}
+            <strong className="text-foreground">🔧 DIY</strong> slash{" "}
+            <code className="font-mono">Cost(T_j)</code> by orders of magnitude, and{" "}
+            <strong className="text-foreground">⊘ Level-Split</strong> keeps{" "}
+            <code className="font-mono">H_i</code> well-posed.
+          </p>
+        </div>
+
+        <div className="rounded-2xl border border-border bg-card p-6 space-y-4">
+          <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-accent/15 text-accent text-xs font-mono font-semibold">
+            EPISTEMIC HYGIENE • Two-Axis Badge
+          </div>
+          <h3 className="text-lg font-bold text-foreground">
+            Status × Maturity + Opportunity Matrix
+          </h3>
+          <p className="text-sm text-muted-foreground leading-relaxed">
+            Every hypothesis in a <code className="font-mono text-foreground">/brennerbot-with-ntm</code>{" "}
+            ledger carries a two-axis epistemic badge so speculation is never conflated with
+            validated findings:
+          </p>
+          <div className="space-y-2 font-mono text-xs">
+            <div className="p-2.5 rounded-lg bg-muted/60 border border-border">
+              <span className="text-primary font-semibold">Status:</span>{" "}
+              <span className="text-muted-foreground">
+                PROPOSED | ACTIVE | UNDER_ATTACK | ASSUMPTION-HEAVY | SURVIVED_ATTACK | KILLED |
+                DORMANT
+              </span>
+            </div>
+            <div className="p-2.5 rounded-lg bg-muted/60 border border-border">
+              <span className="text-accent font-semibold">Maturity:</span>{" "}
+              <span className="text-muted-foreground">
+                SPECULATION | DESIGNED | TESTABLE | TESTED | VALIDATED
+              </span>
+            </div>
+            <div className="p-2.5 rounded-lg bg-emerald-500/10 border border-emerald-500/25 text-emerald-600 dark:text-emerald-400">
+              <strong>Opportunity Gate:</strong> Score = (Impact × Tractability × Surprise) /
+              (LogCost × Risk) ≥ 2.0
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Core Principles */}
       <section className="space-y-6 animate-fade-in-up">
         <h2 className="text-xl font-semibold">Core Principles</h2>
@@ -254,7 +377,7 @@ export default function MethodPage() {
       <section className="space-y-4 animate-fade-in-up">
         <h2 className="text-xl font-semibold">Go Deeper</h2>
 
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid gap-4 sm:grid-cols-3">
           <Link
             href="/corpus"
             className="group rounded-xl border border-border bg-card p-5 transition-all hover:shadow-md hover:border-primary/30 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.99] touch-manipulation"
@@ -327,6 +450,34 @@ export default function MethodPage() {
             </div>
           </Link>
         </div>
+      </section>
+
+      {/* Operationalized in /brennerbot-with-ntm & NTM */}
+      <section className="rounded-2xl border border-primary/30 bg-gradient-to-br from-primary/[0.06] via-card to-accent/[0.05] p-6 space-y-4 animate-fade-in-up">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <span className="inline-flex items-center justify-center px-2.5 py-0.5 rounded-md text-xs font-mono font-bold bg-primary/15 text-primary border border-primary/30">
+              LIVE IN /brennerbot-with-ntm
+            </span>
+            <h3 className="font-semibold text-foreground">
+              Run the 10-Phase Protocol with NTM &amp; jeffreys-skills.md
+            </h3>
+          </div>
+          <Link
+            href="/tutorial/multi-agent"
+            className="group inline-flex items-center gap-1.5 text-xs sm:text-sm font-medium text-primary hover:underline"
+          >
+            Multi-Agent Cockpit Guide
+            <ArrowRightIcon />
+          </Link>
+        </div>
+        <p className="text-sm text-muted-foreground leading-relaxed">
+          Install the <code className="font-mono text-foreground">/brennerbot-with-ntm</code> skill
+          via <code className="font-mono text-foreground">jsm install brennerbot-with-ntm</code> and
+          orchestrate Claude Code, Codex CLI, and Gemini CLI panes via{" "}
+          <code className="font-mono text-foreground">ntm</code> (Named Tmux Manager). Includes 6
+          declarative YAML pipelines and 7-dimension rubric gates.
+        </p>
       </section>
 
       {/* Planned Features */}

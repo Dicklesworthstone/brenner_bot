@@ -11,12 +11,10 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   // Components
   AnimateOnScroll,
-  blurIn,
   buttonHover,
   buttonTap,
   cardHover,
   EASING,
-  fadeIn,
   fadeUp,
   InteractiveButton,
   InteractiveCard,
@@ -25,8 +23,6 @@ import {
   popIn,
   StaggerChildren,
   scaleIn,
-  slideInLeft,
-  slideInRight,
   staggerContainer,
   // Variants
   TIMING,

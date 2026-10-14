@@ -82,7 +82,7 @@ describe("artifact-merge repro: anchor regex", () => {
       { id: "C2", name: "C2", attack: "A", evidence: "E", current_status: "S" },
     ];
 
-    const report = lintArtifact(artifact);
+    lintArtifact(artifact);
 
     // Check for WP-P02 on RT (Research Thread).
     // Wait, lintArtifact checks hypotheses for WP-P02.

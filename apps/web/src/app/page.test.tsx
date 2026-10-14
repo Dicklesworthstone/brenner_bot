@@ -283,5 +283,14 @@ describe("Home Page", () => {
         expect(link).toHaveAttribute("href");
       });
     });
+
+    it("renders the QualityAssuranceSection with 52 rules and guardrails comparison", () => {
+      render(<Home />);
+
+      expect(screen.getByText(/Linter Categories/i)).toBeInTheDocument();
+      expect(screen.getByText(/52 rules/i)).toBeInTheDocument();
+      expect(screen.getByText(/Without Guardrails vs\. With BrennerBot/i)).toBeInTheDocument();
+    });
   });
 });
+

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { GetStartedSection } from "@/components/home/get-started-section";
 import { NtmSkillShowcase } from "@/components/home/ntm-skill-showcase";
+import { QualityAssuranceSection } from "@/components/home/quality-assurance-section";
 import { StatsSection } from "@/components/home/stats-section";
 import { TechnicalArchitectureSection } from "@/components/home/technical-architecture-section";
 import { Jargon } from "@/components/jargon";
@@ -62,16 +63,6 @@ const ArrowRightIcon = () => (
   </svg>
 );
 
-const AcademicCapIcon = () => (
-  <svg className="size-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      d="M4.26 10.147a60.436 60.436 0 00-.491 6.347A48.627 48.627 0 0112 20.904a48.627 48.627 0 018.232-4.41 60.46 60.46 0 00-.491-6.347m-15.482 0a50.57 50.57 0 00-2.658-.813A59.905 59.905 0 0112 3.493a59.902 59.902 0 0110.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.697 50.697 0 0112 13.489a50.702 50.702 0 017.74-3.342M6.75 15a.75.75 0 100-1.5.75.75 0 000 1.5zm0 0v-3.675A55.378 55.378 0 0112 8.443m-7.007 11.55A5.981 5.981 0 006.75 15.75v-1.5"
-    />
-  </svg>
-);
-
 const LightbulbIcon = () => (
   <svg className="size-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
     <path
@@ -88,16 +79,6 @@ const ShieldIcon = () => (
       strokeLinecap="round"
       strokeLinejoin="round"
       d="M12 3.75l7.5 3v5.57c0 4.418-3.24 8.415-7.5 9.93-4.26-1.515-7.5-5.512-7.5-9.93V6.75l7.5-3z"
-    />
-  </svg>
-);
-
-const LockIcon = () => (
-  <svg className="size-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      d="M16.5 10.5V8.25a4.5 4.5 0 00-9 0v2.25m-1.5 0h12a1.5 1.5 0 011.5 1.5v7.5a1.5 1.5 0 01-1.5 1.5h-12a1.5 1.5 0 01-1.5-1.5v-7.5a1.5 1.5 0 011.5-1.5z"
     />
   </svg>
 );
@@ -123,23 +104,22 @@ const SearchIcon = () => (
   </svg>
 );
 
-const ChecklistIcon = () => (
-  <svg className="size-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M9 6.75h9M9 12h9M9 17.25h9" />
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      d="M4.5 6.75l1.5 1.5 2.5-2.5M4.5 12l1.5 1.5 2.5-2.5M4.5 17.25l1.5 1.5 2.5-2.5"
-    />
-  </svg>
-);
-
 const AlertIcon = () => (
   <svg className="size-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
     <path
       strokeLinecap="round"
       strokeLinejoin="round"
       d="M12 9v4m0 4h.01M10.29 3.86l-8 13.86a1.5 1.5 0 001.3 2.28h16.82a1.5 1.5 0 001.3-2.28l-8-13.86a1.5 1.5 0 00-2.62 0z"
+    />
+  </svg>
+);
+
+const AcademicCapIcon = () => (
+  <svg className="size-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M4.26 10.147a60.436 60.436 0 00-.491 6.347A48.627 48.627 0 0112 20.904a48.627 48.627 0 018.232-4.41 60.46 60.46 0 00-.491-6.347m-15.482 0a50.57 50.57 0 00-2.658-.813A59.905 59.905 0 0112 3.493a59.902 59.902 0 0110.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.697 50.697 0 0112 13.489a50.702 50.702 0 017.74-3.342M6.75 15a.75.75 0 100-1.5.75.75 0 000 1.5zm0 0v-3.675A55.378 55.378 0 0112 8.443m-7.007 11.55A5.981 5.981 0 006.75 15.75v-1.5"
     />
   </svg>
 );
@@ -312,82 +292,6 @@ const workflowCallouts = [
   {
     title: "Error Recovery",
     description: "Graceful checkpoints when things go wrong.",
-  },
-];
-
-const hygieneFeatures = [
-  {
-    title: "Coach Mode",
-    description: "Guided checkpoints, inline explanations, and Brenner quotes as you work.",
-    highlights: ["Beginner → Expert", "Contextual feedback"],
-    icon: <AcademicCapIcon />,
-    accent: "text-emerald-600",
-  },
-  {
-    title: "Prediction Lock",
-    description: "Lock outcomes before results arrive to eliminate hindsight bias.",
-    highlights: ["Immutable predictions", "Audit trail"],
-    icon: <LockIcon />,
-    accent: "text-primary",
-  },
-  {
-    title: "Calibration Tracking",
-    description: "Brier score, overconfidence bias, and domain-level accuracy trends.",
-    highlights: ["Confidence scorecard", "Bias alerts"],
-    icon: <GaugeIcon />,
-    accent: "text-sky-600",
-  },
-  {
-    title: "Confound Detection",
-    description: "Domain-specific confounds flagged with targeted prompting questions.",
-    highlights: ["8 research domains", "Automatic prompts"],
-    icon: <SearchIcon />,
-    accent: "text-amber-600",
-  },
-  {
-    title: "Artifact Linting",
-    description: "50+ rules enforcing third alternatives, potency controls, and citation hygiene.",
-    highlights: ["Structural checks", "Citation validation"],
-    icon: <ChecklistIcon />,
-    accent: "text-purple-600",
-  },
-];
-
-const predictionLockSteps = [
-  "Design test",
-  "Enter predictions",
-  "Lock outcomes",
-  "Run experiment",
-  "Compare results",
-];
-
-const confoundDomains = [
-  "Psychology",
-  "Epidemiology",
-  "Economics",
-  "Biology",
-  "Sociology",
-  "Neuroscience",
-  "Computer Science",
-  "General",
-];
-
-const hygieneComparisonRows = [
-  {
-    without: "Predictions revised after results are known",
-    with: "Predictions locked before execution",
-  },
-  {
-    without: "Confounds discovered in peer review",
-    with: "Confounds flagged during design",
-  },
-  {
-    without: "Vague hypotheses survive unchanged",
-    with: "Unfalsifiable language is blocked",
-  },
-  {
-    without: "Overconfidence goes untracked",
-    with: "Calibration metrics stay visible",
   },
 ];
 
@@ -1166,190 +1070,8 @@ brenner session compile --thread-id RS-20260105`}</code>
         </div>
       </section>
 
-      {/* Research Hygiene Section */}
-      <section className="relative overflow-hidden rounded-2xl sm:rounded-3xl border border-border/60 bg-gradient-to-br from-foreground/5 via-background to-muted/40 p-6 sm:p-10 lg:p-12 shadow-lg">
-        <div className="absolute top-0 left-0 -mt-8 -ml-10 size-40 sm:size-56 bg-emerald-500/10 rounded-full blur-3xl" />
-        <div className="absolute bottom-0 right-0 -mb-10 -mr-12 size-36 sm:size-48 bg-primary/10 rounded-full blur-3xl" />
-
-        <div className="relative space-y-8 sm:space-y-10">
-          <div className="text-center space-y-3">
-            <p className="text-xs sm:text-sm uppercase tracking-[0.3em] text-muted-foreground">
-              Research Hygiene
-            </p>
-            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-semibold tracking-tight">
-              Built-In Guardrails for Rigorous Science
-            </h2>
-            <p className="text-sm sm:text-base text-muted-foreground max-w-2xl mx-auto">
-              The system blocks common failure modes: hindsight bias, unfalsifiable hypotheses,
-              ignored confounds, and overconfidence. Rigor is enforced before you waste a week.
-            </p>
-          </div>
-
-          <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
-            <div className="grid gap-4 sm:grid-cols-2">
-              {hygieneFeatures.map((feature) => (
-                <div
-                  key={feature.title}
-                  className="rounded-2xl border border-border/70 bg-background/80 p-5 shadow-sm"
-                >
-                  <div className="flex items-center gap-3">
-                    <div
-                      className={`flex size-11 items-center justify-center rounded-xl bg-muted ${feature.accent}`}
-                    >
-                      {feature.icon}
-                    </div>
-                    <div>
-                      <h3 className="text-base font-semibold text-foreground">{feature.title}</h3>
-                      <p className="text-xs text-muted-foreground">{feature.description}</p>
-                    </div>
-                  </div>
-                  <div className="mt-4 flex flex-wrap gap-2">
-                    {feature.highlights.map((item) => (
-                      <span
-                        key={item}
-                        className="inline-flex items-center rounded-full border border-border/70 bg-card px-3 py-1 text-[11px] text-muted-foreground"
-                      >
-                        {item}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <div className="space-y-4">
-              <div className="rounded-2xl border border-border/70 bg-background/80 p-5 shadow-sm">
-                <div className="flex items-center justify-between">
-                  <h4 className="text-base font-semibold text-foreground">
-                    Prediction Lock Timeline
-                  </h4>
-                  <span className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
-                    No hindsight
-                  </span>
-                </div>
-                <div className="mt-4 space-y-3">
-                  {predictionLockSteps.map((step, index) => (
-                    <div key={step} className="flex items-center gap-3">
-                      <div
-                        className={`flex size-8 items-center justify-center rounded-full border text-xs font-semibold ${
-                          index === 2
-                            ? "border-primary/40 bg-primary text-primary-foreground"
-                            : "border-border/70 bg-muted text-muted-foreground"
-                        }`}
-                      >
-                        {index + 1}
-                      </div>
-                      <p className="text-sm text-foreground">{step}</p>
-                      {index === 2 && (
-                        <span className="ml-auto text-[11px] uppercase tracking-[0.2em] text-primary">
-                          Locked
-                        </span>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="rounded-2xl border border-border/70 bg-background/80 p-5 shadow-sm">
-                <div className="flex items-center justify-between">
-                  <h4 className="text-base font-semibold text-foreground">Confound Detection</h4>
-                  <span className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
-                    8 domains
-                  </span>
-                </div>
-                <div className="mt-4 flex flex-wrap gap-2">
-                  {confoundDomains.map((domain) => (
-                    <span
-                      key={domain}
-                      className="inline-flex items-center rounded-full border border-border/70 bg-card px-3 py-1 text-[11px] text-muted-foreground"
-                    >
-                      {domain}
-                    </span>
-                  ))}
-                </div>
-                <div className="mt-4 space-y-2 text-xs text-muted-foreground">
-                  <div className="rounded-lg border border-border/70 bg-background px-3 py-2">
-                    Selection bias detected - how will you ensure random sampling?
-                  </div>
-                  <div className="rounded-lg border border-border/70 bg-background px-3 py-2">
-                    Reverse causation possible - can you establish temporal order?
-                  </div>
-                </div>
-              </div>
-
-              <div className="rounded-2xl border border-border/70 bg-background/80 p-5 shadow-sm">
-                <div className="flex items-center justify-between">
-                  <h4 className="text-base font-semibold text-foreground">Calibration + Linting</h4>
-                  <span className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
-                    Scorecard
-                  </span>
-                </div>
-                <div className="mt-4 space-y-3">
-                  <div className="space-y-2">
-                    <p className="text-xs text-muted-foreground">
-                      Calibration curve (last 10 tests)
-                    </p>
-                    <div className="flex items-end gap-1 h-14">
-                      {[40, 55, 62, 70, 78, 66, 74, 81, 88, 92].map((value, index) => (
-                        <div
-                          key={`${value}-${index}`}
-                          className="flex-1 rounded-sm bg-primary/30"
-                          style={{ height: `${value}%` }}
-                        />
-                      ))}
-                    </div>
-                  </div>
-                  <div className="rounded-lg border border-border/70 bg-card px-3 py-2 text-xs text-muted-foreground space-y-1">
-                    <div className="flex items-center justify-between">
-                      <span>Third alternative present</span>
-                      <span className="text-success font-medium">Pass</span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span>Potency control defined</span>
-                      <span className="text-success font-medium">Pass</span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span>Citation anchors</span>
-                      <span className="text-amber-600 font-medium">Review</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="rounded-2xl border border-border/70 bg-background/80 overflow-hidden">
-            <div className="grid gap-0 md:grid-cols-2">
-              <div className="p-4 sm:p-5 bg-muted/40">
-                <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
-                  Without Guardrails
-                </p>
-                <div className="mt-3 space-y-3 text-sm text-muted-foreground">
-                  {hygieneComparisonRows.map((row) => (
-                    <div key={row.without} className="flex items-start gap-2">
-                      <span className="mt-1 size-2 rounded-full bg-muted-foreground/40" />
-                      <span>{row.without}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-              <div className="p-4 sm:p-5 bg-primary/5">
-                <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
-                  With BrennerBot
-                </p>
-                <div className="mt-3 space-y-3 text-sm text-foreground">
-                  {hygieneComparisonRows.map((row) => (
-                    <div key={row.with} className="flex items-start gap-2">
-                      <span className="mt-1 size-2 rounded-full bg-primary" />
-                      <span>{row.with}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+      {/* Quality Assurance & Research Hygiene Section */}
+      <QualityAssuranceSection />
 
       {/* Discovery & Intelligence Section */}
       <section className="relative overflow-hidden rounded-2xl sm:rounded-3xl border border-border/60 bg-gradient-to-br from-primary/5 via-background to-emerald-500/5 p-6 sm:p-10 lg:p-12 shadow-lg">

@@ -3,6 +3,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { CrosswalkTable } from "@/components/distillation/CrosswalkTable";
 import { Jargon } from "@/components/jargon";
+import { ModelBadge, ThreeModelComparison } from "@/components/ui/comparison-view";
 import { readCorpusDoc } from "@/lib/corpus";
 
 export const metadata: Metadata = {
@@ -76,6 +77,7 @@ interface Distillation {
   keyInsight: string;
   readTime: string;
   excerpt?: string;
+  paragraphs?: string[];
   wordCount?: number;
 }
 
@@ -165,6 +167,28 @@ function getExcerpt(content: string, maxLength: number = 300): string {
   return stripInlineMarkdown(content.slice(0, maxLength)) + "…";
 }
 
+function getComparisonParagraphs(content: string, maxParagraphs: number = 4): string[] {
+  const lines = content.split("\n");
+  let startIdx = 0;
+  if (lines[0]?.trim() === "---") {
+    for (let i = 1; i < lines.length; i++) {
+      if (lines[i]?.trim() === "---") {
+        startIdx = i + 1;
+        break;
+      }
+    }
+  }
+
+  const out: string[] = [];
+  for (let i = startIdx; i < lines.length && out.length < maxParagraphs; i++) {
+    const line = lines[i]?.trim() || "";
+    if (line && !line.startsWith("#") && !line.match(/^[-*_]{3,}$/) && line.length > 60) {
+      out.push(stripInlineMarkdown(line));
+    }
+  }
+  return out;
+}
+
 function getWordCount(content: string): number {
   return content.split(/\s+/).filter(Boolean).length;
 }
@@ -228,6 +252,7 @@ export default async function DistillationsPage() {
         return {
           ...d,
           excerpt: getExcerpt(content, 250),
+          paragraphs: getComparisonParagraphs(content, 4),
           wordCount: getWordCount(content),
         };
       } catch {
@@ -235,6 +260,10 @@ export default async function DistillationsPage() {
       }
     }),
   );
+
+  const opusDistillation = distillationsWithContent.find((d) => d.color === "opus");
+  const gptDistillation = distillationsWithContent.find((d) => d.color === "gpt");
+  const geminiDistillation = distillationsWithContent.find((d) => d.color === "gemini");
 
   return (
     <div className="space-y-12">
@@ -277,11 +306,10 @@ export default async function DistillationsPage() {
                 <div className="relative p-6 flex flex-col h-full">
                   {/* Model Badge */}
                   <div className="flex items-center justify-between mb-4">
-                    <span
-                      className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition-transform duration-200 group-hover:scale-105 ${colors.badge}`}
-                    >
-                      {d.modelShort}
-                    </span>
+                    <ModelBadge
+                      model={d.color}
+                      className="transition-transform duration-200 group-hover:scale-105"
+                    />
                     <div className="flex items-center gap-3 text-xs text-muted-foreground">
                       <span className="flex items-center gap-1">
                         <ClockIcon />
@@ -315,7 +343,7 @@ export default async function DistillationsPage() {
                       <path
                         strokeLinecap="round"
                         strokeLinejoin="round"
-                        d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
+                        d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
                       />
                     </svg>
                     {d.keyInsight}
@@ -369,6 +397,57 @@ export default async function DistillationsPage() {
             </li>
           ))}
         </ul>
+      </section>
+
+      {/* Side-by-Side Synchronized Comparison */}
+      <section className="space-y-4 animate-fade-in-up" data-testid="three-model-comparison">
+        <div>
+          <h2 className="text-lg font-semibold text-foreground">
+            Side-by-Side Distillation Excerpts
+          </h2>
+          <p className="text-sm text-muted-foreground">
+            Synchronized multi-model view comparing opening arguments and analytical lenses across
+            Opus 4.5, GPT-5.2, and Gemini 3.
+          </p>
+        </div>
+        <ThreeModelComparison
+          opus={
+            <div className="space-y-3">
+              {(opusDistillation?.paragraphs?.length
+                ? opusDistillation.paragraphs
+                : [opusDistillation?.description ?? ""]
+              ).map((p, idx) => (
+                <p key={idx} className="text-sm text-muted-foreground leading-relaxed">
+                  {p}
+                </p>
+              ))}
+            </div>
+          }
+          gpt={
+            <div className="space-y-3">
+              {(gptDistillation?.paragraphs?.length
+                ? gptDistillation.paragraphs
+                : [gptDistillation?.description ?? ""]
+              ).map((p, idx) => (
+                <p key={idx} className="text-sm text-muted-foreground leading-relaxed">
+                  {p}
+                </p>
+              ))}
+            </div>
+          }
+          gemini={
+            <div className="space-y-3">
+              {(geminiDistillation?.paragraphs?.length
+                ? geminiDistillation.paragraphs
+                : [geminiDistillation?.description ?? ""]
+              ).map((p, idx) => (
+                <p key={idx} className="text-sm text-muted-foreground leading-relaxed">
+                  {p}
+                </p>
+              ))}
+            </div>
+          }
+        />
       </section>
 
       {/* Crosswalk Comparison Table */}

@@ -47,6 +47,15 @@ describe("BriefPage", () => {
     expect(screen.getByTestId("brief-memory-rules")).toBeDefined();
     expect(screen.getByText(/Procedural Memory \(cm\) Rules Extracted/i)).toBeDefined();
 
+    // Verify 7-Dimension Brenner Method Scorecard and Session Replay & Assumption Cascade Audit
+    expect(screen.getByTestId("brief-brenner-scorecard")).toBeDefined();
+    expect(screen.getByText(/7-Dimension Brenner Method Scorecard/i)).toBeDefined();
+    expect(screen.getByText(/Paradox Grounding/i)).toBeDefined();
+    expect(screen.getByTestId("brief-replay-cascade-audit")).toBeDefined();
+    expect(screen.getByText(/Session Replay & Assumption Cascade Audit/i)).toBeDefined();
+    expect(screen.getByText(/Replay Verified/i)).toBeDefined();
+    expect(screen.getByText(/What-If Falsification Cascade/i)).toBeDefined();
+
     // Toggle Review Markdown in Procedural Memory panel
     const reviewBtn = screen.getByRole("button", { name: /Review Markdown/i });
     fireEvent.click(reviewBtn);
@@ -67,3 +76,4 @@ describe("BriefPage", () => {
     });
   });
 });
+

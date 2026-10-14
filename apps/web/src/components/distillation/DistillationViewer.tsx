@@ -2,9 +2,11 @@
 
 import type { ReactNode } from "react";
 import { useEffect, useMemo, useState } from "react";
+import { useOptionalExcerptBasket } from "@/components/excerpt";
 import { JargonText } from "@/components/jargon-text";
 import { SectionReference } from "@/components/section-reference";
 import { CopyButton, ReferenceCopyButton } from "@/components/ui/copy-button";
+import { useReadingPosition } from "@/hooks/useReadingPosition";
 import { makeDistillationSectionDomId } from "@/lib/anchors";
 import type {
   DistillationContent,
@@ -566,6 +568,12 @@ interface SectionProps {
 
 function Section({ section, docId, sectionId }: SectionProps) {
   const [copied, setCopied] = useState(false);
+  const [localAdded, setLocalAdded] = useState(false);
+  const basket = useOptionalExcerptBasket();
+  const anchor = `${docId}#${sectionId}`;
+  const inBasket =
+    localAdded || Boolean(basket?.items.some((item) => item.anchor === anchor));
+
   const HeadingTag = `h${Math.min(section.level + 1, 6)}` as "h2" | "h3" | "h4" | "h5" | "h6";
   // Refined typography: tighter, more elegant heading hierarchy
   const headingClasses: Record<number, string> = {
@@ -583,19 +591,42 @@ function Section({ section, docId, sectionId }: SectionProps) {
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const handleAddToBasket = () => {
+    setLocalAdded(true);
+    const firstExcerpt =
+      section.content.find((c) => c.type === "quote" || c.type === "paragraph")?.text ??
+      section.title;
+    basket?.addItem({
+      anchor,
+      quote: firstExcerpt.slice(0, 280),
+      title: section.title,
+    });
+  };
+
   return (
     <section id={sectionId} className="scroll-mt-24 group/section">
       <div className="flex items-start gap-2">
         <HeadingTag className={`text-foreground tracking-tight ${headingClass} flex-1`}>
           {section.title}
         </HeadingTag>
-        <button
-          onClick={handleCopyLink}
-          className="opacity-0 group-hover/section:opacity-100 transition-opacity mt-2 p-1.5 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground"
-          title={copied ? "Copied!" : "Copy link to section"}
-        >
-          {copied ? <CheckIcon className="size-4" /> : <LinkIcon className="size-4" />}
-        </button>
+        <div className="flex items-center gap-1.5 mt-2">
+          <button
+            type="button"
+            data-testid={`distillation-add-basket-${sectionId}`}
+            onClick={handleAddToBasket}
+            className="opacity-100 lg:opacity-0 lg:group-hover/section:opacity-100 transition-opacity px-2 py-1 rounded-md text-xs font-medium border border-border/70 bg-background/80 hover:bg-primary/10 hover:text-primary hover:border-primary/30 text-muted-foreground"
+            title={inBasket ? "Added to Excerpt Basket" : "Add section to Excerpt Basket"}
+          >
+            {inBasket ? "✓ In Basket" : "+ Basket"}
+          </button>
+          <button
+            onClick={handleCopyLink}
+            className="opacity-0 group-hover/section:opacity-100 transition-opacity p-1.5 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground"
+            title={copied ? "Copied!" : "Copy link to section"}
+          >
+            {copied ? <CheckIcon className="size-4" /> : <LinkIcon className="size-4" />}
+          </button>
+        </div>
       </div>
 
       <div className="space-y-3">
@@ -825,6 +856,17 @@ export function DistillationViewer({ data, docId }: DistillationViewerProps) {
   // Extract TOC entries
   const tocEntries = useMemo(() => extractTocEntries(data), [data]);
 
+  // Reading position persistence
+  const {
+    position: savedPosition,
+    save: savePosition,
+    clear: clearPosition,
+    canRestore,
+    markRestored,
+  } = useReadingPosition(docId, {
+    maxSection: Math.max(0, tocEntries.length - 1),
+  });
+
   // Track scroll for progress bar and active section
   useEffect(() => {
     const handleScroll = () => {
@@ -835,23 +877,29 @@ export function DistillationViewer({ data, docId }: DistillationViewerProps) {
 
       // Find active section based on scroll position
       const sections = tocEntries
-        .map((entry) => ({ id: entry.id, el: document.getElementById(entry.id) }))
-        .filter((item): item is { id: string; el: HTMLElement } => Boolean(item.el));
+        .map((entry, idx) => ({ idx, id: entry.id, el: document.getElementById(entry.id) }))
+        .filter((item): item is { idx: number; id: string; el: HTMLElement } => Boolean(item.el));
       const viewportCenter = scrollTop + window.innerHeight * 0.3;
 
+      let matchedIndex = 0;
       for (let i = sections.length - 1; i >= 0; i--) {
         const section = sections[i];
         if (section.el.offsetTop <= viewportCenter) {
           setActiveSection(section.id);
+          matchedIndex = section.idx;
           break;
         }
+      }
+
+      if (scrollTop > 50 || matchedIndex > 0) {
+        savePosition(scrollTop, matchedIndex);
       }
     };
 
     window.addEventListener("scroll", handleScroll, { passive: true });
     handleScroll(); // Initial call
     return () => window.removeEventListener("scroll", handleScroll);
-  }, [tocEntries]);
+  }, [tocEntries, savePosition]);
 
   // Handle URL hash on mount
   useEffect(() => {
@@ -912,6 +960,50 @@ export function DistillationViewer({ data, docId }: DistillationViewerProps) {
       </div>
 
       <DistillationHero title={data.title} wordCount={data.wordCount} docId={docId} />
+
+      {canRestore &&
+        savedPosition &&
+        (savedPosition.activeSection > 0 || savedPosition.scrollOffset > 100) && (
+          <div
+            data-testid="distillation-resume-banner"
+            className="max-w-3xl mx-auto mb-6 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-primary/30 bg-primary/5 px-4 py-3 text-sm"
+          >
+            <div className="text-foreground/90">
+              <span className="font-medium">Saved reading position:</span>{" "}
+              <span className="text-muted-foreground">
+                {tocEntries[savedPosition.activeSection]?.title ??
+                  `Section ${savedPosition.activeSection + 1}`}
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                data-testid="distillation-resume-button"
+                onClick={() => {
+                  const target = tocEntries[savedPosition.activeSection];
+                  if (target) {
+                    scrollToSection(target.id);
+                  }
+                  markRestored();
+                }}
+                className="rounded-lg bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
+              >
+                Resume Reading
+              </button>
+              <button
+                type="button"
+                data-testid="distillation-clear-position"
+                onClick={() => {
+                  clearPosition();
+                  markRestored();
+                }}
+                className="rounded-lg border border-border bg-background px-2.5 py-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+              >
+                Dismiss
+              </button>
+            </div>
+          </div>
+        )}
 
       {data.parts.length > 0 ? (
         showTOC ? (

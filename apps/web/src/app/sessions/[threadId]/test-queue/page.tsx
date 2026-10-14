@@ -50,6 +50,7 @@ import {
   isEvidenceEntry,
 } from "@/lib/brenner-loop/evidence";
 import { createHypothesisCard, generateHypothesisCardId } from "@/lib/brenner-loop/hypothesis";
+import { preparePaperEvidenceData } from "@/lib/brenner-loop/literature";
 import type { ExclusionTest } from "@/lib/brenner-loop/operators/exclusion-test";
 import {
   EXCLUSION_TEST_CATEGORY_LABELS,
@@ -345,30 +346,24 @@ function TestQueuePageContent({ threadId }: { threadId: string }) {
         { discriminativePower: payload.discriminativePower },
         payload.result,
       );
+      const prepared = preparePaperEvidenceData({
+        paper: payload.paper,
+        sessionId: hypothesisSessionId,
+        hypothesisId: currentHypothesis.id,
+        result: payload.result,
+        keyFinding: payload.keyFinding,
+        interpretation: payload.interpretation,
+        discriminativePower: payload.discriminativePower,
+        confidenceBefore: currentHypothesis.confidence,
+        confidenceAfter: update.newConfidence,
+        predictionIfTrue: currentHypothesis.predictionsIfTrue[0],
+        predictionIfFalse: currentHypothesis.predictionsIfFalse[0],
+      });
       const entry: EvidenceEntry = {
         id: generateEvidenceId(hypothesisSessionId, evidenceEntries.length + 1),
         sessionId: hypothesisSessionId,
         hypothesisVersion: currentHypothesis.id,
-        test: {
-          id: `lit-${payload.paper.id}`,
-          description: `Literature: ${payload.paper.title}`,
-          type: "literature",
-          discriminativePower: payload.discriminativePower,
-        },
-        predictionIfTrue:
-          currentHypothesis.predictionsIfTrue[0] ??
-          "Literature findings align with proposed causal mechanism",
-        predictionIfFalse:
-          currentHypothesis.predictionsIfFalse[0] ??
-          "Literature findings contradict or fail to support proposed mechanism",
-        result: payload.result,
-        observation: payload.keyFinding,
-        source: payload.paper.doi
-          ? `DOI: ${payload.paper.doi}`
-          : `${payload.paper.authors.join(", ")} (${payload.paper.year ?? "n.d."})`,
-        confidenceBefore: currentHypothesis.confidence,
-        confidenceAfter: update.newConfidence,
-        interpretation: payload.interpretation,
+        ...prepared,
         recordedAt: new Date(),
       };
       void persistEvidenceEntry(entry);

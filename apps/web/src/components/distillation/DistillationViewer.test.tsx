@@ -7,7 +7,7 @@
  * Run with: cd apps/web && bun run test -- src/components/distillation/DistillationViewer.test.tsx
  */
 
-import { render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type {
   DistillationPart,
@@ -404,5 +404,26 @@ describe("DistillationViewer Accessibility", () => {
 
     const blockquotes = container.querySelectorAll("blockquote");
     expect(blockquotes.length).toBeGreaterThan(0);
+  });
+
+  it("supports adding a distillation section to the Excerpt Basket and resuming reading position", async () => {
+    const { saveReadingPosition, clearReadingPosition } = await import("@/stores/readingStore");
+    act(() => {
+      saveReadingPosition("distillation-opus-45", 320, 1);
+    });
+
+    render(<DistillationViewer data={comprehensiveDistillation} docId="distillation-opus-45" />);
+
+    expect(screen.getByTestId("distillation-resume-banner")).toBeInTheDocument();
+
+    const addButtons = screen.getAllByRole("button", { name: /\+ Basket/i });
+    expect(addButtons.length).toBeGreaterThan(0);
+    fireEvent.click(addButtons[0]);
+
+    expect(await screen.findByText(/✓ In Basket/i)).toBeInTheDocument();
+
+    act(() => {
+      clearReadingPosition("distillation-opus-45");
+    });
   });
 });

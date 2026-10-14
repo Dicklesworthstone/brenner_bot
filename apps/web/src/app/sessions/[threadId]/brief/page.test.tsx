@@ -104,6 +104,10 @@ describe("BriefPage", () => {
       const status = screen.getByTestId("brief-import-verification-status");
       expect(status.textContent).toContain("Verified brenner-research-brief-v1");
     });
+
+    // Verify LaTeX (.tex) export format is enabled and no Coming Soon placeholder remains
+    expect(screen.getByText(".tex")).toBeDefined();
+    expect(screen.queryByText(/Coming Soon/i)).toBeNull();
   });
 });
 

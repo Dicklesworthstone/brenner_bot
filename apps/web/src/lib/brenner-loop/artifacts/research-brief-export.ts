@@ -19,7 +19,7 @@ import {
 // Types
 // ============================================================================
 
-export type ResearchBriefExportFormat = "markdown" | "json" | "pdf";
+export type ResearchBriefExportFormat = "markdown" | "json" | "pdf" | "latex";
 
 export interface ResearchBriefExportOptions {
   /** File name without extension */
@@ -53,12 +53,14 @@ const MIME_TYPES: Record<ResearchBriefExportFormat, string> = {
   markdown: "text/markdown",
   json: "application/json",
   pdf: "application/pdf",
+  latex: "application/x-latex",
 };
 
 const FILE_EXTENSIONS: Record<ResearchBriefExportFormat, string> = {
   markdown: ".md",
   json: ".json",
   pdf: ".pdf",
+  latex: ".tex",
 };
 
 // ============================================================================
@@ -144,6 +146,99 @@ export async function exportToPDF(
     blob,
     filename: generateFilename(brief, "pdf", options.filename),
     mimeType: MIME_TYPES.pdf,
+  };
+}
+
+function escapeLaTeX(text: string): string {
+  return text
+    .replace(/\\/g, "\\textbackslash{}")
+    .replace(/([&%$#_{}])/g, "\\$1")
+    .replace(/~/g, "\\textasciitilde{}")
+    .replace(/\^/g, "\\textasciicircum{}")
+    .replace(/§/g, "\\S{}");
+}
+
+function renderLaTeXList(items: string[] | undefined): string {
+  if (!items || items.length === 0) {
+    return "\\emph{None recorded.}\n";
+  }
+  const rows = items.map((item) => `  \\item ${escapeLaTeX(item)}`).join("\n");
+  return `\\begin{itemize}\n${rows}\n\\end{itemize}\n`;
+}
+
+/**
+ * Export a Research Brief to LaTeX (.tex) academic format.
+ *
+ * @param brief - The Research Brief input data
+ * @param options - Export options
+ * @returns Export result with .tex blob, filename, and mime type
+ */
+export function exportToLaTeX(
+  brief: ResearchBriefTemplateInput,
+  options: ResearchBriefExportOptions = {}
+): ResearchBriefExportResult {
+  const sessionId = escapeLaTeX(brief.metadata?.sessionId || "Brenner-Loop-Session");
+  const hypothesisId = escapeLaTeX(brief.metadata?.hypothesisId || "H1");
+  const confidence =
+    typeof brief.metadata?.finalConfidence === "number"
+      ? `${brief.metadata.finalConfidence}\\%`
+      : "N/A";
+  const statement = escapeLaTeX(
+    brief.hypothesisStatement?.statement || "Primary discriminative hypothesis under evaluation."
+  );
+  const mechanism = escapeLaTeX(
+    brief.hypothesisStatement?.mechanism || "Proposed causal mechanism."
+  );
+  const summary = escapeLaTeX(
+    brief.executiveSummary || "Structured synthesis of hypotheses, discriminative tests, and evidence."
+  );
+  const citations = (brief.metadata?.brennerCitations ?? []).map(escapeLaTeX).join(", ");
+
+  const tex = [
+    "\\documentclass[11pt,a4paper]{article}",
+    "\\usepackage[utf8]{inputenc}",
+    "\\usepackage[T1]{fontenc}",
+    "\\usepackage{geometry}",
+    "\\usepackage{hyperref}",
+    "\\geometry{margin=1in}",
+    `\\title{Brenner Loop Research Brief: ${sessionId}}`,
+    `\\author{Hypothesis ${hypothesisId} (Confidence: ${confidence})}`,
+    `\\date{${escapeLaTeX(brief.metadata?.createdAt?.slice(0, 10) || new Date().toISOString().slice(0, 10))}}`,
+    "\\begin{document}",
+    "\\maketitle",
+    "",
+    "\\begin{abstract}",
+    summary,
+    "\\end{abstract}",
+    "",
+    "\\section{Hypothesis \\& Causal Mechanism}",
+    `\\textbf{Statement:} ${statement}\\\\[0.5em]`,
+    `\\textbf{Mechanism:} ${mechanism}`,
+    "",
+    "\\section{Discriminative Structure}",
+    "\\subsection{Predictions if True}",
+    renderLaTeXList(brief.discriminativeStructure?.predictionsIfTrue),
+    "\\subsection{Predictions if False}",
+    renderLaTeXList(brief.discriminativeStructure?.predictionsIfFalse),
+    "\\subsection{Falsification Conditions (Impossible if True)}",
+    renderLaTeXList(brief.discriminativeStructure?.falsificationConditions),
+    "",
+    "\\section{Evidence Summary \\& Discriminative Tests}",
+    renderLaTeXList(brief.evidenceSummary?.testsRun),
+    renderLaTeXList(brief.evidenceSummary?.results),
+    "",
+    "\\section{Recommended Next Steps}",
+    renderLaTeXList(brief.recommendedNextSteps),
+    citations ? `\\section*{Brenner Transcript Anchors}\n${citations}\n` : "",
+    "\\end{document}",
+    "",
+  ].join("\n");
+
+  const blob = new Blob([tex], { type: MIME_TYPES.latex });
+  return {
+    blob,
+    filename: generateFilename(brief, "latex", options.filename),
+    mimeType: MIME_TYPES.latex,
   };
 }
 

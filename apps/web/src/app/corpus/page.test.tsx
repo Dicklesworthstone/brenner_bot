@@ -449,4 +449,36 @@ describe("CorpusIndexPage", () => {
       expect(h2s.length).toBeGreaterThan(0);
     });
   });
+
+  describe("readingStore and full-text search integration", () => {
+    it("displays Continue Reading shelf when readingStore has saved positions and clears on click", async () => {
+      const user = userEvent.setup();
+      const { saveReadingPosition, clearReadingPosition } = await import("@/stores/readingStore");
+      saveReadingPosition("transcript", 450, 11);
+
+      render(<CorpusIndexPage />);
+
+      expect(screen.getByTestId("corpus-continue-reading")).toBeInTheDocument();
+      expect(screen.getByTestId("continue-reading-card-transcript")).toBeInTheDocument();
+      expect(screen.getByText("Section 12")).toBeInTheDocument();
+
+      await user.click(screen.getByTestId("clear-reading-pos-transcript"));
+      await waitFor(() => {
+        expect(screen.queryByTestId("continue-reading-card-transcript")).not.toBeInTheDocument();
+      });
+
+      clearReadingPosition("transcript");
+    });
+
+    it("toggles Deep Full-Text Search mode", async () => {
+      const user = userEvent.setup();
+      render(<CorpusIndexPage />);
+
+      const toggleBtn = screen.getByTestId("corpus-fulltext-toggle");
+      expect(toggleBtn).toHaveTextContent(/Enable Deep Full-Text Search/i);
+
+      await user.click(toggleBtn);
+      expect(toggleBtn).toHaveTextContent(/Deep Full-Text Search: ON/i);
+    });
+  });
 });

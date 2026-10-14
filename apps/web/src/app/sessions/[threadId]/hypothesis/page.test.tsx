@@ -33,6 +33,14 @@ describe("HypothesisPage integration", () => {
     expect(screen.getByText(/Robustness & Rigor/i)).toBeInTheDocument();
     expect(screen.getByTestId("hypothesis-confounds-card")).toBeInTheDocument();
     expect(screen.getByText(/Domain Confound Detector/i)).toBeInTheDocument();
+    expect(screen.getByTestId("hypothesis-lifecycle-panel")).toBeInTheDocument();
+    expect(screen.getByTestId("lifecycle-current-state")).toHaveTextContent("Draft");
+
+    // Trigger LOCK_PREDICTION transition -> Active, then START_TESTING -> Testing
+    fireEvent.click(screen.getByTestId("lifecycle-transition-LOCK_PREDICTION"));
+    expect(screen.getByTestId("lifecycle-current-state")).toHaveTextContent("Active");
+    fireEvent.click(screen.getByTestId("lifecycle-transition-START_TESTING"));
+    expect(screen.getByTestId("lifecycle-current-state")).toHaveTextContent("Testing");
 
     // Expand Evolution History to inspect Lineage Version Diff
     const historyTrigger = screen.getByText(/Evolution History/i);

@@ -1,10 +1,18 @@
 "use client";
 
+import { useStore } from "@tanstack/react-store";
 import Link from "next/link";
 import { type ReactNode, useCallback, useMemo, useState } from "react";
 import { Jargon } from "@/components/jargon";
 import { AnimatedElement, HeroBackground } from "@/components/ui/animated-element";
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { useCorpusSearch } from "@/hooks/queries";
+import {
+  clearReadingPosition,
+  getReadingPosition,
+  getRecentDocs,
+  readingStore,
+} from "@/stores/readingStore";
 
 // ============================================================================
 // TYPES
@@ -935,12 +943,41 @@ function CategoryPills({ activeCategory, onChange, counts }: CategoryPillsProps)
 export default function CorpusIndexPage() {
   // State
   const [searchQuery, setSearchQuery] = useState("");
+  const [fullTextMode, setFullTextMode] = useState(false);
   const [activeCategory, setActiveCategory] = useState<CategoryKey | "all">("all");
   const [expandedSections, setExpandedSections] = useState<Record<CategoryKey, boolean>>({
     primary: true,
     distillations: true,
     "raw-responses": true,
     prompts: true,
+  });
+
+  // Reading positions store subscription
+  const readingPositions = useStore(readingStore, (state) => state.positions);
+  const recentReadingItems = useMemo(() => {
+    void readingPositions;
+    const recentIds = getRecentDocs(4);
+    return recentIds
+      .map((docId) => {
+        const doc = CORPUS_DOCS.find((d) => d.id === docId);
+        const pos = getReadingPosition(docId);
+        if (!doc || !pos) return null;
+        return { doc, pos };
+      })
+      .filter(
+        (
+          item,
+        ): item is {
+          doc: CorpusDoc;
+          pos: NonNullable<ReturnType<typeof getReadingPosition>>;
+        } => item !== null,
+      );
+  }, [readingPositions]);
+
+  // Full-text corpus search via TanStack Query hook
+  const fullTextSearch = useCorpusSearch(searchQuery.trim(), {
+    limit: 6,
+    enabled: fullTextMode && searchQuery.trim().length >= 2,
   });
 
   // Filter docs based on search and category
@@ -1035,17 +1072,132 @@ export default function CorpusIndexPage() {
               resultCount={filteredDocs.length}
             />
 
-            {/* Category Pills */}
-            <div className="pt-2">
+            {/* Category Pills + Deep Search Toggle */}
+            <div className="pt-2 space-y-2">
               <CategoryPills
                 activeCategory={activeCategory}
                 onChange={setActiveCategory}
                 counts={categoryCounts}
               />
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  data-testid="corpus-fulltext-toggle"
+                  onClick={() => setFullTextMode((prev) => !prev)}
+                  className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
+                    fullTextMode
+                      ? "border-primary bg-primary/15 text-primary"
+                      : "border-border/60 bg-background/60 text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  <SearchIcon className="size-3.5" />
+                  {fullTextMode ? "Deep Full-Text Search: ON" : "Enable Deep Full-Text Search"}
+                </button>
+              </div>
             </div>
           </div>
         </AnimatedElement>
       </HeroBackground>
+
+      {/* Continue Reading Shelf (hydrated from readingStore) */}
+      {recentReadingItems.length > 0 && (
+        <section
+          data-testid="corpus-continue-reading"
+          className="rounded-2xl border border-primary/25 bg-primary/5 p-4 sm:p-5 space-y-3"
+        >
+          <div className="flex items-center justify-between gap-2">
+            <h2 className="text-sm sm:text-base font-semibold text-foreground">
+              Continue Reading
+            </h2>
+            <span className="text-xs text-muted-foreground">
+              Saved across your reading sessions
+            </span>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            {recentReadingItems.map(({ doc, pos }) => (
+              <div
+                key={doc.id}
+                data-testid={`continue-reading-card-${doc.id}`}
+                className="flex flex-col justify-between gap-2 rounded-xl border border-border bg-card p-3"
+              >
+                <div className="space-y-1">
+                  <Link
+                    href={`/corpus/${doc.id}`}
+                    className="text-sm font-semibold text-foreground hover:text-primary transition-colors line-clamp-1"
+                  >
+                    {doc.title}
+                  </Link>
+                  <p className="text-xs text-muted-foreground font-mono">
+                    Section {pos.activeSection + 1}
+                  </p>
+                </div>
+                <div className="flex items-center justify-between gap-2 pt-1">
+                  <Link
+                    href={`/corpus/${doc.id}`}
+                    className="text-xs font-medium text-primary hover:underline"
+                  >
+                    Resume →
+                  </Link>
+                  <button
+                    type="button"
+                    data-testid={`clear-reading-pos-${doc.id}`}
+                    onClick={() => clearReadingPosition(doc.id)}
+                    className="text-[11px] text-muted-foreground hover:text-foreground"
+                  >
+                    Clear
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* Full-Text Search Results (when Deep Search mode is active) */}
+      {fullTextMode && searchQuery.trim().length >= 2 && (
+        <section
+          data-testid="corpus-fulltext-results"
+          className="rounded-2xl border border-border bg-card p-4 sm:p-5 space-y-3"
+        >
+          <div className="flex items-center justify-between gap-2">
+            <h2 className="text-sm sm:text-base font-semibold text-foreground">
+              Full-Text Passage Matches
+            </h2>
+            <span className="text-xs font-mono text-muted-foreground">
+              {fullTextSearch.isFetching
+                ? "Searching corpus..."
+                : `${fullTextSearch.data?.hits.length ?? 0} passages`}
+            </span>
+          </div>
+          {fullTextSearch.data && fullTextSearch.data.hits.length > 0 ? (
+            <div className="grid gap-2.5 sm:grid-cols-2">
+              {fullTextSearch.data.hits.map((hit) => (
+                <Link
+                  key={hit.id}
+                  href={hit.url}
+                  className="rounded-xl border border-border/70 bg-muted/20 p-3 hover:border-primary/40 transition-colors space-y-1"
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-xs font-semibold text-foreground line-clamp-1">
+                      {hit.docTitle}
+                    </span>
+                    {hit.anchor && (
+                      <span className="font-mono text-[11px] text-primary">{hit.anchor}</span>
+                    )}
+                  </div>
+                  <p className="text-xs text-muted-foreground line-clamp-2">{hit.snippet}</p>
+                </Link>
+              ))}
+            </div>
+          ) : (
+            !fullTextSearch.isFetching && (
+              <p className="text-xs text-muted-foreground">
+                No full-text passage matches for &ldquo;{searchQuery.trim()}&rdquo;.
+              </p>
+            )
+          )}
+        </section>
+      )}
 
       {/* Document Categories */}
       <div className="space-y-8 sm:space-y-10 lg:space-y-12">

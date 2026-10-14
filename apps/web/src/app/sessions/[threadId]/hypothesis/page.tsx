@@ -68,6 +68,21 @@ import {
   getEvolutionStats,
 } from "@/lib/brenner-loop/hypothesis-history";
 import {
+  getAvailableTransitions,
+  getStateColors,
+  getStateDescription,
+  getStateLabel,
+  HYPOTHESIS_STATE_CONFIG,
+  type HypothesisLifecycleEvent,
+  type HypothesisState,
+  type HypothesisWithLifecycle,
+  isHypothesisState,
+  isStateDeletable,
+  isStateEditable,
+  transitionHypothesis,
+  upgradeToLifecycle,
+} from "@/lib/brenner-loop/hypothesis-lifecycle";
+import {
   HYPOTHESIS_TEMPLATES,
   type HypothesisTemplate,
 } from "@/lib/brenner-loop/hypothesis-templates";
@@ -598,6 +613,11 @@ function HypothesisPageContent({ threadId }: { threadId: string }) {
   // Cryptographic prediction locks
   const [lockedPredictions, setLockedPredictions] = React.useState<LockedPrediction[]>([]);
 
+  // Formal hypothesis lifecycle state machine tracking
+  const [lifecycleState, setLifecycleState] = React.useState<HypothesisState>("draft");
+  const [lifecycleLockedIds, setLifecycleLockedIds] = React.useState<string[]>([]);
+  const [lifecycleError, setLifecycleError] = React.useState<string | null>(null);
+
   // Hypothesis Graveyard entries
   const [graveyardEntries, setGraveyardEntries] = React.useState<FalsifiedHypothesis[]>([]);
 
@@ -733,6 +753,26 @@ function HypothesisPageContent({ threadId }: { threadId: string }) {
         }
 
         try {
+          const rawLifecycle = window.localStorage.getItem(
+            `brenner-hypothesis-lifecycle-${threadId}`,
+          );
+          if (rawLifecycle) {
+            const parsed = JSON.parse(rawLifecycle) as {
+              state?: unknown;
+              lockedPredictions?: unknown;
+            };
+            if (isHypothesisState(parsed.state)) {
+              setLifecycleState(parsed.state);
+            }
+            if (Array.isArray(parsed.lockedPredictions)) {
+              setLifecycleLockedIds(parsed.lockedPredictions.map(String));
+            }
+          }
+        } catch {
+          // Ignore malformed lifecycle storage
+        }
+
+        try {
           const rawGraveyard = window.localStorage.getItem(`brenner-graveyard-${threadId}`);
           if (rawGraveyard) {
             const parsed = JSON.parse(rawGraveyard) as FalsifiedHypothesis[];
@@ -757,6 +797,119 @@ function HypothesisPageContent({ threadId }: { threadId: string }) {
       cancelled = true;
     };
   }, [threadId, safeSessionId]);
+
+  const lifecycleHypothesis = React.useMemo<HypothesisWithLifecycle>(() => {
+    const upgraded = upgradeToLifecycle(hypothesis, lifecycleState);
+    const combinedLocks = Array.from(
+      new Set([
+        ...lifecycleLockedIds,
+        ...lockedPredictions.map((_, idx) => String(idx)),
+      ]),
+    );
+    return {
+      ...upgraded,
+      lockedPredictions: combinedLocks,
+    };
+  }, [hypothesis, lifecycleState, lifecycleLockedIds, lockedPredictions]);
+
+  const handleLifecycleTransition = React.useCallback(
+    (eventType: HypothesisLifecycleEvent["type"]) => {
+      setLifecycleError(null);
+      const totalPredictions =
+        lifecycleHypothesis.predictionsIfTrue.length +
+        lifecycleHypothesis.predictionsIfFalse.length;
+      const nextUnlockedIndex = Array.from({ length: totalPredictions }, (_, idx) => idx).find(
+        (idx) => !lifecycleHypothesis.lockedPredictions.includes(String(idx)),
+      ) ?? 0;
+
+      let event: HypothesisLifecycleEvent;
+      switch (eventType) {
+        case "LOCK_PREDICTION":
+          event = { type: "LOCK_PREDICTION", predictionIndex: nextUnlockedIndex };
+          break;
+        case "START_TESTING":
+          event = { type: "START_TESTING" };
+          break;
+        case "RECORD_SUPPORT":
+          event = {
+            type: "RECORD_SUPPORT",
+            confidence: Math.min(100, lifecycleHypothesis.confidence + 10),
+          };
+          break;
+        case "RECORD_FALSIFICATION":
+          event = {
+            type: "RECORD_FALSIFICATION",
+            reason:
+              lifecycleHypothesis.impossibleIfTrue[0] ??
+              "Falsified by decisive discriminative test",
+          };
+          break;
+        case "CREATE_SUCCESSOR":
+          event = {
+            type: "CREATE_SUCCESSOR",
+            successorId: generateHypothesisCardId(
+              safeSessionId,
+              1,
+              lifecycleHypothesis.version + 1,
+            ),
+          };
+          break;
+        case "PAUSE":
+          event = { type: "PAUSE" };
+          break;
+        case "RESUME":
+          event = { type: "RESUME" };
+          break;
+        case "REACTIVATE":
+          event = { type: "REACTIVATE" };
+          break;
+        case "ABANDON":
+          event = { type: "ABANDON", reason: "Abandoned before testing" };
+          break;
+      }
+
+      const result = transitionHypothesis(lifecycleHypothesis, event);
+      if (!result.success) {
+        setLifecycleError(result.error ?? `Cannot apply ${eventType}`);
+        return;
+      }
+
+      setLifecycleState(result.newState);
+      setLifecycleLockedIds(result.hypothesis.lockedPredictions);
+      if (result.hypothesis.confidence !== hypothesis.confidence) {
+        setHypothesis((prev) => ({
+          ...prev,
+          confidence: result.hypothesis.confidence,
+          updatedAt: new Date(),
+        }));
+      }
+      setEvolutionEvents((prev) => [
+        ...prev,
+        {
+          id: `ev-lc-${Date.now()}`,
+          type: result.newState === "active" ? "locked" : "evolved",
+          description: `Lifecycle state → ${getStateLabel(result.newState)} (${eventType})`,
+          timestamp: new Date(),
+          confidence: result.hypothesis.confidence,
+        },
+      ]);
+
+      if (typeof window !== "undefined") {
+        try {
+          window.localStorage.setItem(
+            `brenner-hypothesis-lifecycle-${threadId}`,
+            JSON.stringify({
+              state: result.newState,
+              lockedPredictions: result.hypothesis.lockedPredictions,
+            }),
+          );
+        } catch {
+          // Best-effort
+        }
+      }
+    },
+    [lifecycleHypothesis, hypothesis.confidence, safeSessionId, threadId],
+  );
 
   const similarityData = React.useMemo(() => {
     const queryIndexed = cardToIndexed(hypothesis, safeSessionId);
@@ -1864,6 +2017,104 @@ function HypothesisPageContent({ threadId }: { threadId: string }) {
                   defaultCollapsed
                 />
               </div>
+            </motion.div>
+
+            {/* Hypothesis Lifecycle State Machine Card */}
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.18 }}
+            >
+              <Card data-testid="hypothesis-lifecycle-panel">
+                <CardHeader className="pb-2">
+                  <div className="flex items-center justify-between gap-2">
+                    <CardTitle className="text-lg">Lifecycle State</CardTitle>
+                    <span
+                      data-testid="lifecycle-current-state"
+                      className={cn(
+                        "inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold",
+                        getStateColors(lifecycleHypothesis.state).bg,
+                        getStateColors(lifecycleHypothesis.state).text,
+                        getStateColors(lifecycleHypothesis.state).border,
+                      )}
+                    >
+                      {getStateLabel(lifecycleHypothesis.state)}
+                    </span>
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-3 text-xs">
+                  <p className="text-muted-foreground">
+                    {getStateDescription(lifecycleHypothesis.state)}
+                  </p>
+
+                  <div className="flex flex-wrap gap-1.5">
+                    {(Object.keys(HYPOTHESIS_STATE_CONFIG) as HypothesisState[]).map((st) => (
+                      <span
+                        key={st}
+                        className={cn(
+                          "px-2 py-0.5 rounded border text-[11px] font-mono",
+                          lifecycleHypothesis.state === st
+                            ? cn(
+                                "font-semibold",
+                                HYPOTHESIS_STATE_CONFIG[st].color.bg,
+                                HYPOTHESIS_STATE_CONFIG[st].color.text,
+                                HYPOTHESIS_STATE_CONFIG[st].color.border,
+                              )
+                            : "border-border/60 bg-muted/20 text-muted-foreground",
+                        )}
+                      >
+                        {HYPOTHESIS_STATE_CONFIG[st].label}
+                      </span>
+                    ))}
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="rounded-lg border border-border bg-muted/20 p-2">
+                      <div className="text-muted-foreground">Editability</div>
+                      <div className="font-semibold text-foreground">
+                        {isStateEditable(lifecycleHypothesis.state)
+                          ? "Freely Editable"
+                          : "Sealed / Locked"}
+                      </div>
+                    </div>
+                    <div className="rounded-lg border border-border bg-muted/20 p-2">
+                      <div className="text-muted-foreground">Deletability</div>
+                      <div className="font-semibold text-foreground">
+                        {isStateDeletable(lifecycleHypothesis.state)
+                          ? "Deletable"
+                          : "Protected"}
+                      </div>
+                    </div>
+                  </div>
+
+                  {lifecycleError && (
+                    <div className="rounded-lg border border-destructive/40 bg-destructive/10 p-2 text-destructive">
+                      {lifecycleError}
+                    </div>
+                  )}
+
+                  {getAvailableTransitions(lifecycleHypothesis).length > 0 && (
+                    <div className="pt-2 border-t border-border/60 space-y-1.5">
+                      <div className="font-medium text-foreground">Available Transitions</div>
+                      <div className="flex flex-wrap gap-1.5">
+                        {getAvailableTransitions(lifecycleHypothesis).map((transitionType) => (
+                          <Button
+                            key={transitionType}
+                            type="button"
+                            size="sm"
+                            variant="outline"
+                            data-testid={`lifecycle-transition-${transitionType}`}
+                            className="h-7 text-[11px] font-mono"
+                            onClick={() => handleLifecycleTransition(transitionType)}
+                          >
+                            {transitionType.replace(/_/g, " ")}
+                          </Button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
             </motion.div>
 
             {/* Confidence Card */}

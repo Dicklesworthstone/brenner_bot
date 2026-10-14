@@ -209,24 +209,29 @@ describe("MethodPage", () => {
     });
   });
 
-  describe("planned features section", () => {
-    it("shows PLANNED badge", () => {
+  describe("interactive workbench & crosswalk sections", () => {
+    it("shows INTERACTIVE WORKBENCH badge", () => {
       render(<MethodPage />);
 
-      expect(screen.getByText("PLANNED")).toBeInTheDocument();
+      expect(screen.getByText("INTERACTIVE WORKBENCH")).toBeInTheDocument();
     });
 
-    it("displays Coming Soon heading", () => {
+    it("displays Operator Palette & Historical Brenner Walkthroughs heading", () => {
       render(<MethodPage />);
 
-      expect(screen.getByText("Coming Soon")).toBeInTheDocument();
+      expect(
+        screen.getByText(/Operator Palette & Historical Brenner Walkthroughs/i),
+      ).toBeInTheDocument();
     });
 
-    it("lists planned features", () => {
+    it("links to the live Operator Palette and Historical Walkthroughs", () => {
       render(<MethodPage />);
 
-      expect(screen.getByText(/interactive operator palette/i)).toBeInTheDocument();
-      expect(screen.getByText(/example walkthroughs from historical/i)).toBeInTheDocument();
+      const paletteLink = screen.getByRole("link", { name: /open operator palette/i });
+      expect(paletteLink).toHaveAttribute("href", "/operators");
+
+      const walkthroughsLink = screen.getByRole("link", { name: /historical walkthroughs/i });
+      expect(walkthroughsLink).toHaveAttribute("href", "/tutorial/examples");
     });
 
     it("shows the Bayesian Crosswalk section (now implemented)", () => {

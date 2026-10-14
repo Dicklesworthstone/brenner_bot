@@ -13,7 +13,7 @@
 
 import { AnimatePresence, motion } from "framer-motion";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import * as React from "react";
 import { SidebarProgress } from "@/components/tutorial";
 import { TutorialProvider, useTutorialOptional } from "@/lib/tutorial-context";
@@ -580,6 +580,7 @@ function MobileMenu({
 
 function TutorialLayoutContent({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const router = useRouter();
   const pathConfig = useCurrentPath();
   const isStepPage = useIsStepPage();
   const tutorial = useTutorialOptional();
@@ -597,10 +598,13 @@ function TutorialLayoutContent({ children }: { children: React.ReactNode }) {
       if (tutorial) {
         tutorial.goToStep(index);
       }
-      // In the future, navigate to step page
-      // router.push(`/tutorial/${pathConfig.id}/step/${index + 1}`);
+      const match = pathname.match(/\/tutorial\/([^/]+)/);
+      const pathSegment = match?.[1];
+      if (pathSegment && PATH_CONFIGS[pathSegment]) {
+        router.push(`/tutorial/${pathSegment}/${index + 1}`);
+      }
     },
-    [tutorial],
+    [tutorial, pathname, router],
   );
 
   // Close mobile menu on route change

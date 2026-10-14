@@ -480,22 +480,64 @@ export default function MethodPage() {
         </p>
       </section>
 
-      {/* Planned Features */}
-      <section className="rounded-xl border border-border bg-muted/30 p-6 space-y-3 animate-fade-in-up">
-        <div className="flex items-center gap-2">
-          <span className="inline-flex items-center justify-center px-2 py-0.5 rounded-md text-xs font-bold bg-warning/10 text-warning border border-warning/30">
-            PLANNED
-          </span>
-          <h3 className="font-semibold">Coming Soon</h3>
+      {/* Interactive Operator Palette & Historical Walkthroughs */}
+      <section className="rounded-xl border border-primary/25 bg-gradient-to-br from-primary/5 via-background to-accent/5 p-6 space-y-4 animate-fade-in-up">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <span className="inline-flex items-center justify-center px-2 py-0.5 rounded-md text-xs font-bold bg-primary/15 text-primary border border-primary/30">
+              INTERACTIVE WORKBENCH
+            </span>
+            <h3 className="font-semibold text-foreground">
+              Operator Palette &amp; Historical Brenner Walkthroughs
+            </h3>
+          </div>
+          <div className="flex flex-wrap items-center gap-4">
+            <Link
+              href="/operators"
+              className="group inline-flex items-center gap-1.5 text-xs sm:text-sm font-medium text-primary hover:underline"
+            >
+              Open Operator Palette
+              <ArrowRightIcon />
+            </Link>
+            <Link
+              href="/tutorial/examples"
+              className="group inline-flex items-center gap-1.5 text-xs sm:text-sm font-medium text-primary hover:underline"
+            >
+              Historical Walkthroughs
+              <ArrowRightIcon />
+            </Link>
+          </div>
         </div>
         <ul className="text-sm text-muted-foreground space-y-2">
           <li className="flex items-start gap-2">
-            <span className="text-primary mt-0.5">-</span>
-            <span>Interactive operator palette for composing Brenner Loop sessions</span>
+            <span className="text-primary mt-0.5">•</span>
+            <span>
+              Browse and compose the four core operators (<strong>⊘ Level Split</strong>,{" "}
+              <strong>✘ Exclusion Test</strong>, <strong>⇄ Object Transpose</strong>,{" "}
+              <strong>⊙ Scale Check</strong>) in the{" "}
+              <Link href="/operators" className="text-foreground underline hover:text-primary">
+                Operator Palette
+              </Link>{" "}
+              or launch a guided{" "}
+              <Link href="/sessions/new" className="text-foreground underline hover:text-primary">
+                Brenner Loop Session
+              </Link>
+              .
+            </span>
           </li>
           <li className="flex items-start gap-2">
-            <span className="text-primary mt-0.5">-</span>
-            <span>Example walkthroughs from historical Brenner experiments</span>
+            <span className="text-primary mt-0.5">•</span>
+            <span>
+              Step through worked examples from historical Brenner experiments (messenger RNA,
+              triplet code frameshifts, and <em>C. elegans</em> lineage mapping) in the{" "}
+              <Link
+                href="/tutorial/examples"
+                className="text-foreground underline hover:text-primary"
+              >
+                Worked Examples Library
+              </Link>
+              .
+            </span>
           </li>
         </ul>
       </section>

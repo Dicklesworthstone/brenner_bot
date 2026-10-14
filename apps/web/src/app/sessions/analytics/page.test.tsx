@@ -59,5 +59,7 @@ describe("PersonalAnalyticsPage", () => {
     expect(screen.getByText(/Missing Falsification Criteria/i)).toBeInTheDocument();
     expect(screen.getAllByText(/Brier Score/i).length).toBeGreaterThan(0);
     expect(screen.getByText(/Calibration Bias Assessment/i)).toBeInTheDocument();
+    expect(screen.getByTestId("analytics-lifecycle-funnel")).toBeInTheDocument();
+    expect(screen.getByText(/Hypothesis Lifecycle Funnel/i)).toBeInTheDocument();
   });
 });

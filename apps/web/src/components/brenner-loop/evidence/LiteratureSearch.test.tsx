@@ -298,4 +298,39 @@ describe("LiteratureSearch", () => {
     // Should show empty state
     expect(screen.getByText("No papers yet")).toBeInTheDocument();
   });
+
+  it("executes manual search, ranks papers by relevance, and previews evidence ledger entry", async () => {
+    const user = userEvent.setup();
+    const { LiteratureSearch } = await import("./LiteratureSearch");
+    render(
+      <LiteratureSearch
+        sessionId="test-session"
+        hypothesis={createMockHypothesis()}
+        currentConfidence={50}
+      />,
+    );
+
+    const searchTab = screen.getByRole("tab", { name: /search/i });
+    await user.click(searchTab);
+
+    const input = screen.getByPlaceholderText(/Search for papers/i);
+    await user.type(input, "algorithmic feeds depression");
+
+    const searchBtn = screen.getByRole("button", { name: /^Search$/i });
+    await user.click(searchBtn);
+
+    expect(screen.getByText(/2 ranked results/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Discriminative Mechanism Analysis: algorithmic feeds depression/i),
+    ).toBeInTheDocument();
+
+    // Select a paper to record as evidence and verify preparePaperEvidenceData preview
+    const recordButtons = screen.getAllByRole("button", { name: /Record as Evidence/i });
+    await user.click(recordButtons[0]);
+
+    const supportsBtn = screen.getByRole("button", { name: /Supports hypothesis/i });
+    await user.click(supportsBtn);
+
+    expect(screen.getByTestId("paper-evidence-preview")).toBeInTheDocument();
+  });
 });

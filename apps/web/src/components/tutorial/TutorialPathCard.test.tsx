@@ -257,4 +257,14 @@ describe("TutorialPathGrid", () => {
 
     expect(container.firstChild).toHaveClass("lg:grid-cols-3");
   });
+
+  it("hydrates in_progress status from localStorage when available", () => {
+    window.localStorage.setItem(
+      "brenner-tutorial-quick-start-progress",
+      JSON.stringify({ pathId: "quick-start", currentStep: 1, completedSteps: [0] }),
+    );
+    const { container } = render(<TutorialPathGrid paths={paths} pathStatus={pathStatus} />);
+    expect(container.querySelector(".border-accent\\/30")).toBeInTheDocument();
+    window.localStorage.removeItem("brenner-tutorial-quick-start-progress");
+  });
 });

@@ -45,9 +45,17 @@ describe("AgentsPage", () => {
       expect(screen.getByText(/Synthesized Action Plan/i)).toBeDefined();
     });
 
-    // Verify Protocol Roster validation panel and Multi-Round Debate Arena
+    // Verify Protocol Roster validation panel, Persona Inspector, and Multi-Round Debate Arena
     expect(screen.getByTestId("agent-roster-panel")).toBeInTheDocument();
     expect(screen.getByText(/3\/3 Roles Verified/i)).toBeInTheDocument();
+    expect(screen.getByTestId("tribunal-persona-inspector")).toBeInTheDocument();
+    expect(screen.getByTestId("active-persona-name")).toHaveTextContent("Devil's Advocate");
+
+    // Switch persona tab to Brenner Channeler
+    fireEvent.click(screen.getByTestId("persona-tab-brenner_channeler"));
+    expect(screen.getByTestId("active-persona-name")).toHaveTextContent("Brenner Channeler");
+    expect(screen.getByTestId("persona-tone-calibration")).toBeInTheDocument();
+
     expect(screen.getByTestId("agent-debate-arena")).toBeInTheDocument();
 
     // Advance a debate round and conclude debate

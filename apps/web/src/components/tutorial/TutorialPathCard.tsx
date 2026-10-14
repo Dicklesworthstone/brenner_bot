@@ -445,6 +445,38 @@ export function TutorialPathGrid({
   prefersReducedMotion = false,
   className,
 }: TutorialPathGridProps) {
+  const [hydratedStatus, setHydratedStatus] =
+    React.useState<Record<string, PathStatus>>(pathStatus);
+
+  React.useEffect(() => {
+    const nextStatus: Record<string, PathStatus> = { ...pathStatus };
+    if (typeof window !== "undefined") {
+      for (const path of paths) {
+        const baseStatus = pathStatus[path.id] || "locked";
+        if (baseStatus !== "available") continue;
+        try {
+          const raw = window.localStorage.getItem(`brenner-tutorial-${path.id}-progress`);
+          if (!raw) continue;
+          const parsed = JSON.parse(raw) as {
+            currentStep?: number;
+            completedSteps?: number[];
+          };
+          const completedCount = Array.isArray(parsed.completedSteps)
+            ? parsed.completedSteps.length
+            : 0;
+          if (path.totalSteps > 0 && completedCount >= path.totalSteps) {
+            nextStatus[path.id] = "completed";
+          } else if (completedCount > 0 || (parsed.currentStep ?? 0) > 0) {
+            nextStatus[path.id] = "in_progress";
+          }
+        } catch {
+          // Ignore malformed localStorage entries
+        }
+      }
+    }
+    setHydratedStatus(nextStatus);
+  }, [paths, pathStatus]);
+
   return (
     <motion.div
       variants={prefersReducedMotion ? undefined : containerVariants}
@@ -460,7 +492,7 @@ export function TutorialPathGrid({
         <motion.div key={path.id} variants={prefersReducedMotion ? undefined : itemVariants}>
           <TutorialPathCard
             path={path}
-            status={pathStatus[path.id] || "locked"}
+            status={hydratedStatus[path.id] || pathStatus[path.id] || "locked"}
             recommended={path.id === recommendedPathId}
             prefersReducedMotion={prefersReducedMotion}
           />

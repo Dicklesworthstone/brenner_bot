@@ -57,7 +57,7 @@ const tutorialPaths: TutorialPath[] = [
   },
 ];
 
-// Default status for all paths (in a real app, this would come from localStorage/API)
+// Initial SSR status for all paths (TutorialPathGrid hydrates in_progress/completed from localStorage)
 const defaultPathStatus: Record<string, PathStatus> = {
   "quick-start": "available",
   "agent-assisted": "available",

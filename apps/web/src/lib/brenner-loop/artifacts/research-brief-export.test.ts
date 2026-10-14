@@ -10,6 +10,7 @@ import {
   exportToMarkdown,
   exportToJSON,
   exportToPDF,
+  exportToLaTeX,
   importResearchBrief,
   downloadResearchBrief,
 } from "./research-brief-export";
@@ -497,5 +498,21 @@ describe("round-trip export/import", () => {
     expect(imported.operatorsApplied).toHaveLength(2);
     expect(imported.agentAnalysis?.devilsAdvocate).toHaveLength(2);
     expect(imported.evidenceSummary?.confidenceTrajectory).toHaveLength(3);
+  });
+});
+
+describe("exportToLaTeX", () => {
+  test("exports valid .tex document with escaped characters and Brenner anchors", async () => {
+    const brief = createTestBrief();
+    const result = exportToLaTeX(brief, { filename: "brenner-brief" });
+
+    expect(result.filename).toBe("brenner-brief.tex");
+    expect(result.mimeType).toBe("application/x-latex");
+
+    const text = await result.blob.text();
+    expect(text).toContain("\\documentclass[11pt,a4paper]{article}");
+    expect(text).toContain("\\section{Hypothesis \\& Causal Mechanism}");
+    expect(text).toContain("Social media algorithms cause depression in teenagers");
+    expect(text).toContain("\\S{}42");
   });
 });

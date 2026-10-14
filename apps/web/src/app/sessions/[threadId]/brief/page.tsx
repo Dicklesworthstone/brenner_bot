@@ -20,6 +20,7 @@ import {
   downloadResearchBrief,
   type ExternalCitation,
   exportToJSON,
+  exportToLaTeX,
   exportToMarkdown,
   exportToPDF,
   extractBrennerSectionIdsFromText,
@@ -379,7 +380,7 @@ const EXPORT_FORMATS: ExportFormat[] = [
     ext: ".tex",
     description: "Academic paper format with citations",
     icon: <span className="text-lg font-serif italic">L</span>,
-    available: false,
+    available: true,
   },
 ];
 
@@ -1690,6 +1691,14 @@ function BriefPageContent({ threadId }: { threadId: string }) {
 
       if (formatId === "pdf") {
         printResearchBrief(exportBriefInput);
+        return;
+      }
+
+      if (formatId === "latex") {
+        const result = exportToLaTeX(exportBriefInput, {
+          filename: `research-brief-${threadId}`,
+        });
+        downloadResearchBrief(result);
       }
     } finally {
       setExportingFormat(null);

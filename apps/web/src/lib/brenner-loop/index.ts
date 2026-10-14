@@ -638,6 +638,7 @@ export type {
 export {
   downloadResearchBrief,
   exportToJSON,
+  exportToLaTeX,
   exportToMarkdown,
   exportToPDF,
   importResearchBrief,

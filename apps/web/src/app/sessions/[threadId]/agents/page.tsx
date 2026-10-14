@@ -36,6 +36,16 @@ import {
   type TribunalAgentRole,
 } from "@/lib/brenner-loop/agents";
 import {
+  AGENT_PERSONAS,
+  buildSystemPromptContext,
+  getBehaviorsByPriority,
+  getInteractionExamples,
+  getModelConfig,
+  getPersona,
+  getPersonasForTrigger,
+  type InvocationTrigger,
+} from "@/lib/brenner-loop/agents/agent-personas";
+import {
   type AgentDebate,
   addRound,
   addUserInjection,
@@ -1208,6 +1218,37 @@ function AgentsPageContent({ threadId }: { threadId: string }) {
     };
   }, []);
 
+  // Tribunal Persona Behavioral & Tone Inspector state
+  const [selectedPersonaRole, setSelectedPersonaRole] =
+    React.useState<TribunalAgentRole>("devils_advocate");
+  const [selectedTrigger, setSelectedTrigger] =
+    React.useState<InvocationTrigger>("hypothesis_submitted");
+
+  const activePersona = React.useMemo(
+    () => getPersona(selectedPersonaRole),
+    [selectedPersonaRole],
+  );
+  const prioritizedBehaviors = React.useMemo(
+    () => getBehaviorsByPriority(selectedPersonaRole),
+    [selectedPersonaRole],
+  );
+  const personaModelConfig = React.useMemo(
+    () => getModelConfig(selectedPersonaRole),
+    [selectedPersonaRole],
+  );
+  const personaInteractionExamples = React.useMemo(
+    () => getInteractionExamples(selectedPersonaRole),
+    [selectedPersonaRole],
+  );
+  const personaSystemPromptContext = React.useMemo(
+    () => buildSystemPromptContext(selectedPersonaRole),
+    [selectedPersonaRole],
+  );
+  const triggeredPersonas = React.useMemo(
+    () => getPersonasForTrigger(selectedTrigger),
+    [selectedTrigger],
+  );
+
   // Multi-Round Adversarial Debate state
   const [debateFormat, setDebateFormat] = React.useState<DebateFormat>("oxford_style");
   const [debate, setDebate] = React.useState<AgentDebate>(() =>
@@ -1438,6 +1479,160 @@ function AgentsPageContent({ threadId }: { threadId: string }) {
                   </summary>
                   <pre className="mt-2 whitespace-pre-wrap font-mono text-[11px] text-muted-foreground">
                     {rosterAudit.markdown}
+                  </pre>
+                </details>
+              </CardContent>
+            </Card>
+
+            {/* Tribunal Persona Behavioral & Tone Inspector */}
+            <Card data-testid="tribunal-persona-inspector">
+              <CardHeader className="pb-3">
+                <div className="flex items-center justify-between gap-2">
+                  <CardTitle className="text-base">Persona Behavioral &amp; Tone Inspector</CardTitle>
+                  <Badge variant="outline" className="font-mono text-[11px]">
+                    T={personaModelConfig.temperature} • {personaModelConfig.preferredTier}
+                  </Badge>
+                </div>
+                <CardDescription className="text-xs">
+                  Inspect behavioral priorities, tone calibration, and trigger activation matrix
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-3 text-xs">
+                {/* Role selector pills */}
+                <div className="flex flex-wrap gap-1.5">
+                  {Object.values(AGENT_PERSONAS).map((persona) => (
+                    <button
+                      key={persona.role}
+                      type="button"
+                      data-testid={`persona-tab-${persona.role}`}
+                      onClick={() => setSelectedPersonaRole(persona.role)}
+                      className={cn(
+                        "rounded-full border px-2.5 py-1 text-[11px] font-medium transition-colors",
+                        selectedPersonaRole === persona.role
+                          ? "border-primary bg-primary/15 text-primary"
+                          : "border-border bg-muted/20 text-muted-foreground hover:text-foreground",
+                      )}
+                    >
+                      {persona.displayName}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Active Persona Summary */}
+                <div className="rounded-lg border border-border bg-muted/20 p-2.5 space-y-1.5">
+                  <div className="flex items-center justify-between gap-2">
+                    <span
+                      className="font-semibold text-foreground"
+                      data-testid="active-persona-name"
+                    >
+                      {activePersona.displayName}
+                    </span>
+                    <span className="font-mono text-[10px] text-muted-foreground">
+                      maxTokens={personaModelConfig.maxTokens}
+                    </span>
+                  </div>
+                  <p className="italic text-muted-foreground">{activePersona.tagline}</p>
+                  <p className="text-[11px] text-foreground/90 leading-relaxed">
+                    {activePersona.corePurpose}
+                  </p>
+                </div>
+
+                {/* Tone Calibration Metrics */}
+                <div className="grid grid-cols-2 gap-2" data-testid="persona-tone-calibration">
+                  {(
+                    [
+                      ["Assertiveness", activePersona.tone.assertiveness],
+                      ["Constructive", activePersona.tone.constructiveness],
+                      ["Socratic", activePersona.tone.socraticLevel],
+                      ["Formality", activePersona.tone.formality],
+                    ] as const
+                  ).map(([label, value]) => (
+                    <div
+                      key={label}
+                      className="rounded border border-border/60 bg-background/60 px-2 py-1.5"
+                    >
+                      <div className="flex items-center justify-between text-[11px]">
+                        <span className="text-muted-foreground">{label}</span>
+                        <span className="font-mono font-medium text-foreground">
+                          {Math.round(value * 100)}%
+                        </span>
+                      </div>
+                      <div className="mt-1 h-1.5 w-full rounded-full bg-muted overflow-hidden">
+                        <div
+                          className="h-full rounded-full bg-primary"
+                          style={{ width: `${Math.round(value * 100)}%` }}
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Prioritized Behaviors */}
+                <div className="space-y-1.5">
+                  <div className="font-medium text-foreground">
+                    Priority Behaviors ({prioritizedBehaviors.length})
+                  </div>
+                  {prioritizedBehaviors.slice(0, 3).map((behavior) => (
+                    <div
+                      key={behavior.id}
+                      className="rounded border border-border/60 bg-muted/10 px-2.5 py-1.5 space-y-0.5"
+                    >
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="font-medium text-foreground">{behavior.name}</span>
+                        <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
+                          P{behavior.priority}
+                        </Badge>
+                      </div>
+                      <p className="text-[11px] text-muted-foreground">{behavior.description}</p>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Invocation Trigger Filter */}
+                <div className="space-y-1.5 pt-1 border-t border-border/60">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="font-medium text-foreground">Trigger Routing</span>
+                    <select
+                      aria-label="Invocation Trigger"
+                      data-testid="persona-trigger-select"
+                      value={selectedTrigger}
+                      onChange={(e) => setSelectedTrigger(e.target.value as InvocationTrigger)}
+                      className="rounded border border-border bg-background px-2 py-0.5 text-[11px] text-foreground"
+                    >
+                      <option value="hypothesis_submitted">hypothesis_submitted</option>
+                      <option value="evidence_challenges">evidence_challenges</option>
+                      <option value="test_designed">test_designed</option>
+                      <option value="operator_applied">operator_applied</option>
+                      <option value="tribunal_requested">tribunal_requested</option>
+                    </select>
+                  </div>
+                  <div className="flex flex-wrap gap-1" data-testid="triggered-personas-list">
+                    {triggeredPersonas.map((p) => (
+                      <Badge key={p.role} variant="outline" className="text-[10px]">
+                        {p.displayName}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+
+                {/* System Prompt Context & Example Pattern */}
+                <details className="rounded-lg border border-border bg-muted/10 p-2">
+                  <summary className="cursor-pointer font-medium text-muted-foreground">
+                    System Directives &amp; Interaction Example
+                  </summary>
+                  {personaInteractionExamples[0] && (
+                    <div className="mt-2 rounded border border-border/60 bg-background/80 p-2 space-y-1">
+                      <div className="font-mono text-[10px] text-muted-foreground">
+                        Input ({personaInteractionExamples[0].inputType}): &ldquo;
+                        {personaInteractionExamples[0].userInput}&rdquo;
+                      </div>
+                      <div className="text-[11px] text-foreground">
+                        → {personaInteractionExamples[0].agentResponses[0]}
+                      </div>
+                    </div>
+                  )}
+                  <pre className="mt-2 max-h-40 overflow-y-auto whitespace-pre-wrap font-mono text-[10px] text-muted-foreground">
+                    {personaSystemPromptContext}
                   </pre>
                 </details>
               </CardContent>

@@ -23,6 +23,14 @@ import {
   type FailureAnalytics,
   STRUCTURAL_PATTERNS,
 } from "@/lib/brenner-loop/failure-analytics";
+import {
+  calculateLifecycleStats,
+  HYPOTHESIS_STATE_CONFIG,
+  type HypothesisState,
+  type HypothesisWithLifecycle,
+  type LifecycleStats,
+  upgradeToLifecycle,
+} from "@/lib/brenner-loop/hypothesis-lifecycle";
 import { OPERATOR_METADATA, type OperatorType } from "@/lib/brenner-loop/operators";
 import { cn } from "@/lib/utils";
 
@@ -30,6 +38,28 @@ interface StructuralPatternCheckCount {
   name: string;
   description: string;
   matchCount: number;
+}
+
+function buildLifecycleHypothesesFromSessions(sessions: Session[]): HypothesisWithLifecycle[] {
+  const result: HypothesisWithLifecycle[] = [];
+  for (const session of sessions) {
+    const cards = Object.values(session.hypothesisCards ?? {});
+    for (const card of cards) {
+      if (!card) continue;
+      let inferredState: HypothesisState = "draft";
+      if (card.confidence < 20 || session.archivedHypothesisIds?.includes(card.id)) {
+        inferredState = "falsified";
+      } else if (session.phase === "complete" && card.confidence >= 80) {
+        inferredState = "supported";
+      } else if ((session.evidenceLedger?.length ?? 0) > 0) {
+        inferredState = "testing";
+      } else if (card.predictionsIfTrue.length > 0) {
+        inferredState = "active";
+      }
+      result.push(upgradeToLifecycle(card, inferredState));
+    }
+  }
+  return result;
 }
 
 function buildPredictionRecordsFromSessions(sessions: Session[]): PredictionRecord[] {
@@ -174,6 +204,7 @@ export default function PersonalAnalyticsPage() {
         failureAnalytics: FailureAnalytics;
         calibration: CalibrationMetrics;
         structuralCounts: StructuralPatternCheckCount[];
+        lifecycleStats: LifecycleStats;
       }
     | { status: "error"; message: string }
   >({ status: "loading" });
@@ -196,6 +227,9 @@ export default function PersonalAnalyticsPage() {
         const predictionRecords = buildPredictionRecordsFromSessions(sessions);
         const calibration = calculateCalibrationMetrics(predictionRecords);
         const structuralCounts = computeAllStructuralPatternCounts(sessions);
+        const lifecycleStats = calculateLifecycleStats(
+          buildLifecycleHypothesesFromSessions(sessions),
+        );
         if (!cancelled) {
           setState({
             status: "ready",
@@ -203,6 +237,7 @@ export default function PersonalAnalyticsPage() {
             failureAnalytics,
             calibration,
             structuralCounts,
+            lifecycleStats,
           });
         }
       } catch (err) {
@@ -655,6 +690,63 @@ export default function PersonalAnalyticsPage() {
           </CardContent>
         </Card>
       </div>
+
+      <Card data-testid="analytics-lifecycle-funnel">
+        <CardHeader className="space-y-1">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <CardTitle className="text-base">Hypothesis Lifecycle Funnel</CardTitle>
+            <Badge variant="outline" className="font-mono text-xs">
+              {state.lifecycleStats.totalHypotheses} total hypotheses
+            </Badge>
+          </div>
+          <p className="text-sm text-muted-foreground">
+            State distribution across the formal Brenner hypothesis lifecycle state machine.
+          </p>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2.5">
+            {(Object.keys(HYPOTHESIS_STATE_CONFIG) as HypothesisState[]).map((st) => {
+              const cfg = HYPOTHESIS_STATE_CONFIG[st];
+              const count = state.lifecycleStats.byState[st] ?? 0;
+              return (
+                <div
+                  key={st}
+                  className={cn(
+                    "rounded-lg border p-3 text-center space-y-1",
+                    count > 0
+                      ? cn(cfg.color.bg, cfg.color.border)
+                      : "border-border bg-muted/20",
+                  )}
+                >
+                  <div
+                    className={cn(
+                      "text-xl font-semibold font-mono",
+                      count > 0 ? cfg.color.text : "text-muted-foreground",
+                    )}
+                  >
+                    {count}
+                  </div>
+                  <div className="text-xs font-medium text-foreground">{cfg.label}</div>
+                </div>
+              );
+            })}
+          </div>
+          <div className="flex flex-wrap items-center justify-between gap-3 text-xs text-muted-foreground pt-2 border-t border-border/60">
+            <span>
+              Lifecycle Falsification Rate:{" "}
+              <strong className="font-mono text-foreground">
+                {formatPercent(state.lifecycleStats.falsificationRate)}
+              </strong>
+            </span>
+            <span>
+              Supersession Rate:{" "}
+              <strong className="font-mono text-foreground">
+                {formatPercent(state.lifecycleStats.supersessionRate)}
+              </strong>
+            </span>
+          </div>
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader className="space-y-1">

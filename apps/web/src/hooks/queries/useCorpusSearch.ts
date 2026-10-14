@@ -34,7 +34,9 @@
  * ```
  */
 
-import { type UseQueryOptions, useQuery } from "@tanstack/react-query";
+import { QueryClientContext, type UseQueryOptions, useQuery } from "@tanstack/react-query";
+import { useContext } from "react";
+import { getQueryClient } from "@/components/providers/QueryProvider";
 import { searchAction } from "@/lib/globalSearchAction";
 import type { GlobalSearchResult, SearchCategory } from "@/lib/globalSearchTypes";
 
@@ -96,6 +98,7 @@ export function useCorpusSearch(
   query: string,
   options?: SearchOptions & Omit<UseCorpusSearchOptions, "query" | "searchOptions">,
 ) {
+  const contextClient = useContext(QueryClientContext);
   const { limit, category, model, ...queryOptions } = options ?? {};
   // Build searchOptions without undefined values to ensure consistent cache keys
   // (e.g., {} should match {} not { limit: undefined, category: undefined, model: undefined })
@@ -108,18 +111,21 @@ export function useCorpusSearch(
   // User can only make enabled MORE restrictive, not less
   const userEnabled = queryOptions?.enabled ?? true;
 
-  return useQuery({
-    // User options first (as defaults)
-    ...queryOptions,
-    // Required settings that must not be overridden
-    queryKey: corpusSearchKeys.query(query, searchOptions as Record<string, unknown>),
-    queryFn: () => searchAction(query, searchOptions),
-    // Only run search if query is non-empty (at least 2 chars) AND user hasn't disabled
-    enabled: query.length >= 2 && userEnabled,
-    // Customizable defaults
-    staleTime: queryOptions?.staleTime ?? 2 * 60 * 1000, // 2 minutes default
-    placeholderData: queryOptions?.placeholderData ?? ((previousData) => previousData),
-  });
+  return useQuery(
+    {
+      // User options first (as defaults)
+      ...queryOptions,
+      // Required settings that must not be overridden
+      queryKey: corpusSearchKeys.query(query, searchOptions as Record<string, unknown>),
+      queryFn: () => searchAction(query, searchOptions),
+      // Only run search if query is non-empty (at least 2 chars) AND user hasn't disabled
+      enabled: query.length >= 2 && userEnabled,
+      // Customizable defaults
+      staleTime: queryOptions?.staleTime ?? 2 * 60 * 1000, // 2 minutes default
+      placeholderData: queryOptions?.placeholderData ?? ((previousData) => previousData),
+    },
+    contextClient ?? getQueryClient(),
+  );
 }
 
 /**
@@ -132,6 +138,7 @@ export function useCorpusSearch(
  * @returns Query result with isFetching for loading indicator
  */
 export function useCorpusSearchInstant(query: string, options?: SearchOptions) {
+  const contextClient = useContext(QueryClientContext);
   const { limit, category, model } = options ?? {};
   // Build searchOptions without undefined values to ensure consistent cache keys
   const searchOptions: SearchOptions = {
@@ -140,16 +147,19 @@ export function useCorpusSearchInstant(query: string, options?: SearchOptions) {
     ...(model !== undefined && { model }),
   };
 
-  return useQuery({
-    queryKey: corpusSearchKeys.query(query, searchOptions as Record<string, unknown>),
-    queryFn: () => searchAction(query, searchOptions),
-    enabled: query.length >= 2,
-    staleTime: 2 * 60 * 1000,
-    // Keep showing previous results while typing
-    placeholderData: (previousData) => previousData,
-    // Don't retry on user typos
-    retry: false,
-  });
+  return useQuery(
+    {
+      queryKey: corpusSearchKeys.query(query, searchOptions as Record<string, unknown>),
+      queryFn: () => searchAction(query, searchOptions),
+      enabled: query.length >= 2,
+      staleTime: 2 * 60 * 1000,
+      // Keep showing previous results while typing
+      placeholderData: (previousData) => previousData,
+      // Don't retry on user typos
+      retry: false,
+    },
+    contextClient ?? getQueryClient(),
+  );
 }
 
 /**

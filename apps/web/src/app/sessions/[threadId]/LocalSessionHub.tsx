@@ -3,10 +3,14 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import * as React from "react";
+import { CoachSettingsPanel } from "@/components/brenner-loop/coach/CoachSettingsPanel";
+import { ErrorBoundary } from "@/components/brenner-loop/ErrorBoundary";
+import { SessionDashboard } from "@/components/brenner-loop/SessionDashboard";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Dialog,
+  DialogBody,
   DialogContent,
   DialogDescription,
   DialogFooter,
@@ -23,10 +27,12 @@ import {
   recordSessionResumeEntry,
   SESSION_RESUME_LOCATION_LABELS,
   type Session,
+  SessionProvider,
   type SessionResumeEntry,
   type SessionResumeLocation,
   sessionStorage,
 } from "@/lib/brenner-loop";
+import { CoachProvider } from "@/lib/brenner-loop/coach-context";
 import { cn } from "@/lib/utils";
 
 export interface LocalSessionHubProps {
@@ -106,6 +112,8 @@ export function LocalSessionHub({ sessionId, className }: LocalSessionHubProps) 
   const [isExporting, setIsExporting] = React.useState(false);
   const [isDeleting, setIsDeleting] = React.useState(false);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = React.useState(false);
+  const [isCoachSettingsOpen, setIsCoachSettingsOpen] = React.useState(false);
+  const [viewMode, setViewMode] = React.useState<"overview" | "cockpit">("overview");
   const loadStartRef = React.useRef<number | null>(null);
 
   React.useEffect(() => {
@@ -225,200 +233,282 @@ export function LocalSessionHub({ sessionId, className }: LocalSessionHubProps) 
   }
 
   return (
-    <div className={cn("max-w-5xl mx-auto space-y-8", className)}>
-      <Dialog open={isDeleteConfirmOpen} onOpenChange={setIsDeleteConfirmOpen}>
-        <DialogContent size="sm" closeButtonLabel="Close delete confirmation">
-          <DialogHeader separated>
-            <DialogTitle>Delete local session?</DialogTitle>
-            <DialogDescription>
-              This removes <span className="font-mono">{session.id}</span> from your browser
-              storage. This action can’t be undone.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter
-            separated
-            className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end"
-          >
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setIsDeleteConfirmOpen(false)}
-              disabled={isDeleting}
-            >
-              Cancel
-            </Button>
-            <Button
-              type="button"
-              variant="destructive"
-              onClick={() => void confirmDelete()}
-              disabled={isDeleting}
-            >
-              {isDeleting ? "Deleting..." : "Delete"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+    <ErrorBoundary>
+      <CoachProvider>
+        <div className={cn("max-w-6xl mx-auto space-y-8", className)}>
+          <Dialog open={isDeleteConfirmOpen} onOpenChange={setIsDeleteConfirmOpen}>
+            <DialogContent size="sm" closeButtonLabel="Close delete confirmation">
+              <DialogHeader separated>
+                <DialogTitle>Delete local session?</DialogTitle>
+                <DialogDescription>
+                  This removes <span className="font-mono">{session.id}</span> from your browser
+                  storage. This action can’t be undone.
+                </DialogDescription>
+              </DialogHeader>
+              <DialogFooter
+                separated
+                className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end"
+              >
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setIsDeleteConfirmOpen(false)}
+                  disabled={isDeleting}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="button"
+                  variant="destructive"
+                  onClick={() => void confirmDelete()}
+                  disabled={isDeleting}
+                >
+                  {isDeleting ? "Deleting..." : "Delete"}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
 
-      <header className="space-y-2">
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight text-foreground">Local Session</h1>
-            <div className="mt-1 text-sm text-muted-foreground font-mono break-words">
-              {session.id}
+          <Dialog open={isCoachSettingsOpen} onOpenChange={setIsCoachSettingsOpen}>
+            <DialogContent size="lg" closeButtonLabel="Close coach settings">
+              <DialogHeader separated>
+                <DialogTitle>Brenner Coach Settings</DialogTitle>
+                <DialogDescription>
+                  Configure inline Socratic coaching, worked examples, and Corpus quote prompts.
+                </DialogDescription>
+              </DialogHeader>
+              <DialogBody>
+                <CoachSettingsPanel />
+              </DialogBody>
+            </DialogContent>
+          </Dialog>
+
+          <header className="space-y-3">
+            <div className="flex flex-wrap items-start justify-between gap-4">
+              <div>
+                <h1 className="text-2xl font-bold tracking-tight text-foreground">Local Session</h1>
+                <div className="mt-1 text-sm text-muted-foreground font-mono break-words">
+                  {session.id}
+                </div>
+              </div>
+              <div className="flex flex-wrap items-center gap-2">
+                <div className="inline-flex items-center rounded-lg border border-border bg-muted/40 p-1">
+                  <button
+                    type="button"
+                    onClick={() => setViewMode("overview")}
+                    className={cn(
+                      "px-3 py-1 text-xs font-medium rounded-md transition-colors",
+                      viewMode === "overview"
+                        ? "bg-background text-foreground shadow-sm"
+                        : "text-muted-foreground hover:text-foreground",
+                    )}
+                  >
+                    Overview & Subpages
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setViewMode("cockpit")}
+                    className={cn(
+                      "px-3 py-1 text-xs font-medium rounded-md transition-colors",
+                      viewMode === "cockpit"
+                        ? "bg-primary text-primary-foreground shadow-sm"
+                        : "text-muted-foreground hover:text-foreground",
+                    )}
+                  >
+                    Interactive Phase Cockpit
+                  </button>
+                </div>
+                <Button size="sm" onClick={() => router.push(suggestedHref)}>
+                  Resume: {SESSION_RESUME_LOCATION_LABELS[suggestedLocation] ?? suggestedLocation}
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setIsCoachSettingsOpen(true)}
+                >
+                  Coach Settings
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => void handleExport("json")}
+                  disabled={isExporting}
+                >
+                  Export JSON
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => void handleExport("markdown")}
+                  disabled={isExporting}
+                >
+                  Export Markdown
+                </Button>
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={() => setIsDeleteConfirmOpen(true)}
+                  disabled={isDeleting}
+                >
+                  {isDeleting ? "Deleting..." : "Delete"}
+                </Button>
+              </div>
             </div>
-          </div>
-          <div className="flex flex-wrap items-center gap-2">
-            <Button size="sm" onClick={() => router.push(suggestedHref)}>
-              Resume: {SESSION_RESUME_LOCATION_LABELS[suggestedLocation] ?? suggestedLocation}
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => void handleExport("json")}
-              disabled={isExporting}
+
+            <div className="text-sm text-muted-foreground">
+              <span className="font-medium text-foreground/80">Phase:</span>{" "}
+              <span className="inline-flex items-center gap-1 font-medium text-foreground">
+                {phaseSymbol && <span className="opacity-70">{phaseSymbol}</span>}
+                {getPhaseName(session.phase)}
+              </span>
+              <span className="mx-2">·</span>
+              <span className="font-medium text-foreground/80">Updated:</span>{" "}
+              {formatRelativeTime(session.updatedAt)}
+              {resumeEntry?.location &&
+                resumeEntry.location !== "overview" &&
+                resumeEntry.visitedAt && (
+                  <>
+                    <span className="mx-2">·</span>
+                    <span className="font-medium text-foreground/80">Last viewed:</span>{" "}
+                    {SESSION_RESUME_LOCATION_LABELS[resumeEntry.location] ?? resumeEntry.location}{" "}
+                    <span className="text-muted-foreground">
+                      ({formatRelativeTime(resumeEntry.visitedAt)})
+                    </span>
+                  </>
+                )}
+            </div>
+
+            {error && (
+              <div className="rounded-xl border border-warning/30 bg-warning/5 p-3 text-sm text-warning break-words">
+                {error}
+              </div>
+            )}
+          </header>
+
+          {viewMode === "cockpit" ? (
+            <SessionProvider
+              initialSessionId={session.id}
+              onSessionChange={(updated) => {
+                if (updated) setSession(updated);
+              }}
             >
-              Export JSON
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => void handleExport("markdown")}
-              disabled={isExporting}
-            >
-              Export Markdown
-            </Button>
-            <Button
-              variant="destructive"
-              size="sm"
-              onClick={() => setIsDeleteConfirmOpen(true)}
-              disabled={isDeleting}
-            >
-              {isDeleting ? "Deleting..." : "Delete"}
-            </Button>
+              <SessionDashboard />
+            </SessionProvider>
+          ) : (
+            <>
+              <Card className="border-primary/30 bg-primary/5">
+                <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div>
+                    <CardTitle className="text-base">
+                      11-Phase Interactive Brenner Loop Cockpit
+                    </CardTitle>
+                    <CardDescription>
+                      Step through Intake, Sharpening, ⊘ Level-Split, ✂ Exclusion-Test, ⟂ Object-Transpose, ⊞ Scale-Check, Tribunal Dispatch, Evidence &amp; Synthesis in one unified state machine.
+                    </CardDescription>
+                  </div>
+                  <Button size="sm" onClick={() => setViewMode("cockpit")}>
+                    Open Phase Cockpit
+                  </Button>
+                </CardHeader>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base">Hypothesis</CardTitle>
+                  <CardDescription>
+                    {primaryHypothesis
+                      ? "Primary hypothesis statement"
+                      : "No hypothesis captured yet"}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-sm text-foreground leading-relaxed">
+                    {primaryHypothesis ?? "Add one in the Hypothesis page."}
+                  </div>
+                </CardContent>
+              </Card>
+
+              <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                <Link href={`/sessions/${session.id}/hypothesis`} className="block">
+                  <Card
+                    className={cn(
+                      "h-full hover:border-primary/30 hover:bg-muted/20 transition-colors",
+                      suggestedLocation === "hypothesis" && "border-primary/40 bg-primary/5",
+                    )}
+                  >
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-sm">Hypothesis</CardTitle>
+                      <CardDescription>Refine the core hypothesis</CardDescription>
+                    </CardHeader>
+                  </Card>
+                </Link>
+
+                <Link href={`/sessions/${session.id}/operators`} className="block">
+                  <Card
+                    className={cn(
+                      "h-full hover:border-primary/30 hover:bg-muted/20 transition-colors",
+                      suggestedLocation === "operators" && "border-primary/40 bg-primary/5",
+                    )}
+                  >
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-sm">Operators</CardTitle>
+                      <CardDescription>Apply ⊘ ✂ ⟂ ⊞</CardDescription>
+                    </CardHeader>
+                  </Card>
+                </Link>
+
+                <Link href={`/sessions/${session.id}/test-queue`} className="block">
+                  <Card
+                    className={cn(
+                      "h-full hover:border-primary/30 hover:bg-muted/20 transition-colors",
+                      suggestedLocation === "test-queue" && "border-primary/40 bg-primary/5",
+                    )}
+                  >
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-sm">Test Queue</CardTitle>
+                      <CardDescription>Plan discriminative tests</CardDescription>
+                    </CardHeader>
+                  </Card>
+                </Link>
+
+                <Link href={`/sessions/${session.id}/agents`} className="block">
+                  <Card
+                    className={cn(
+                      "h-full hover:border-primary/30 hover:bg-muted/20 transition-colors",
+                      suggestedLocation === "agents" && "border-primary/40 bg-primary/5",
+                    )}
+                  >
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-sm">Agents</CardTitle>
+                      <CardDescription>Run the tribunal</CardDescription>
+                    </CardHeader>
+                  </Card>
+                </Link>
+
+                <Link href={`/sessions/${session.id}/brief`} className="block">
+                  <Card
+                    className={cn(
+                      "h-full hover:border-primary/30 hover:bg-muted/20 transition-colors",
+                      suggestedLocation === "brief" && "border-primary/40 bg-primary/5",
+                    )}
+                  >
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-sm">Brief</CardTitle>
+                      <CardDescription>Review artifacts</CardDescription>
+                    </CardHeader>
+                  </Card>
+                </Link>
+              </section>
+            </>
+          )}
+
+          <div className="pt-2">
+            <Link href="/sessions" className="text-sm text-primary hover:underline">
+              ← Back to Sessions
+            </Link>
           </div>
         </div>
-
-        <div className="text-sm text-muted-foreground">
-          <span className="font-medium text-foreground/80">Phase:</span>{" "}
-          <span className="inline-flex items-center gap-1 font-medium text-foreground">
-            {phaseSymbol && <span className="opacity-70">{phaseSymbol}</span>}
-            {getPhaseName(session.phase)}
-          </span>
-          <span className="mx-2">·</span>
-          <span className="font-medium text-foreground/80">Updated:</span>{" "}
-          {formatRelativeTime(session.updatedAt)}
-          {resumeEntry?.location &&
-            resumeEntry.location !== "overview" &&
-            resumeEntry.visitedAt && (
-              <>
-                <span className="mx-2">·</span>
-                <span className="font-medium text-foreground/80">Last viewed:</span>{" "}
-                {SESSION_RESUME_LOCATION_LABELS[resumeEntry.location] ?? resumeEntry.location}{" "}
-                <span className="text-muted-foreground">
-                  ({formatRelativeTime(resumeEntry.visitedAt)})
-                </span>
-              </>
-            )}
-        </div>
-
-        {error && (
-          <div className="rounded-xl border border-warning/30 bg-warning/5 p-3 text-sm text-warning break-words">
-            {error}
-          </div>
-        )}
-      </header>
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Hypothesis</CardTitle>
-          <CardDescription>
-            {primaryHypothesis ? "Primary hypothesis statement" : "No hypothesis captured yet"}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="text-sm text-foreground leading-relaxed">
-            {primaryHypothesis ?? "Add one in the Hypothesis page."}
-          </div>
-        </CardContent>
-      </Card>
-
-      <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-        <Link href={`/sessions/${session.id}/hypothesis`} className="block">
-          <Card
-            className={cn(
-              "h-full hover:border-primary/30 hover:bg-muted/20 transition-colors",
-              suggestedLocation === "hypothesis" && "border-primary/40 bg-primary/5",
-            )}
-          >
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm">Hypothesis</CardTitle>
-              <CardDescription>Refine the core hypothesis</CardDescription>
-            </CardHeader>
-          </Card>
-        </Link>
-
-        <Link href={`/sessions/${session.id}/operators`} className="block">
-          <Card
-            className={cn(
-              "h-full hover:border-primary/30 hover:bg-muted/20 transition-colors",
-              suggestedLocation === "operators" && "border-primary/40 bg-primary/5",
-            )}
-          >
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm">Operators</CardTitle>
-              <CardDescription>Apply ⊘ ✂ ⟂ ⊞</CardDescription>
-            </CardHeader>
-          </Card>
-        </Link>
-
-        <Link href={`/sessions/${session.id}/test-queue`} className="block">
-          <Card
-            className={cn(
-              "h-full hover:border-primary/30 hover:bg-muted/20 transition-colors",
-              suggestedLocation === "test-queue" && "border-primary/40 bg-primary/5",
-            )}
-          >
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm">Test Queue</CardTitle>
-              <CardDescription>Plan discriminative tests</CardDescription>
-            </CardHeader>
-          </Card>
-        </Link>
-
-        <Link href={`/sessions/${session.id}/agents`} className="block">
-          <Card
-            className={cn(
-              "h-full hover:border-primary/30 hover:bg-muted/20 transition-colors",
-              suggestedLocation === "agents" && "border-primary/40 bg-primary/5",
-            )}
-          >
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm">Agents</CardTitle>
-              <CardDescription>Run the tribunal</CardDescription>
-            </CardHeader>
-          </Card>
-        </Link>
-
-        <Link href={`/sessions/${session.id}/brief`} className="block">
-          <Card
-            className={cn(
-              "h-full hover:border-primary/30 hover:bg-muted/20 transition-colors",
-              suggestedLocation === "brief" && "border-primary/40 bg-primary/5",
-            )}
-          >
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm">Brief</CardTitle>
-              <CardDescription>Review artifacts</CardDescription>
-            </CardHeader>
-          </Card>
-        </Link>
-      </section>
-
-      <div className="pt-2">
-        <Link href="/sessions" className="text-sm text-primary hover:underline">
-          ← Back to Sessions
-        </Link>
-      </div>
-    </div>
+      </CoachProvider>
+    </ErrorBoundary>
   );
 }

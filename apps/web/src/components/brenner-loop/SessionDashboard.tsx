@@ -60,12 +60,16 @@ import type {
   ObjectTransposeResult as UiObjectTransposeResult,
 } from "@/lib/brenner-loop/operators/object-transpose";
 import type { ScaleCheckResult as UiScaleCheckResult } from "@/lib/brenner-loop/operators/scale-check";
+import { loadTestQueue } from "@/lib/brenner-loop/test-queue";
 import { cn } from "@/lib/utils";
 import { AgentTribunalPanel } from "./agents/AgentTribunalPanel";
 import { ObjectionRegisterPanel } from "./agents/ObjectionRegisterPanel";
 import { CorpusSearchDialog } from "./CorpusSearch";
 import { ConfidenceChart } from "./evidence/ConfidenceChart";
+import { EvidenceRecorder } from "./evidence/EvidenceRecorder";
 import { EvidenceTimeline } from "./evidence/EvidenceTimeline";
+import { LiteratureSearch } from "./evidence/LiteratureSearch";
+import { WhatIfSimulator } from "./evidence/WhatIfSimulator";
 import { HypothesisCard } from "./HypothesisCard";
 import { HypothesisIntake } from "./HypothesisIntake";
 import { ExclusionTestSession } from "./operators/ExclusionTestSession";
@@ -1007,6 +1011,30 @@ function PhaseContent({ phase, className }: PhaseContentProps) {
               initialConfidence={primaryHypothesis?.confidence ?? 0}
             />
             <EvidenceTimeline entries={evidenceEntries} />
+            {session && primaryHypothesis && (
+              <div className="space-y-6 pt-4 border-t border-border">
+                <EvidenceRecorder
+                  sessionId={session.id}
+                  hypothesisId={primaryHypothesis.id}
+                  currentConfidence={primaryHypothesis.confidence}
+                  evidenceCount={evidenceEntries.length}
+                  onRecordEvidence={(entry) => {
+                    updateHypothesis({ confidence: entry.confidenceAfter });
+                  }}
+                />
+                <WhatIfSimulator
+                  sessionId={session.id}
+                  hypothesisId={primaryHypothesis.id}
+                  currentConfidence={primaryHypothesis.confidence}
+                  tests={loadTestQueue(session.id)}
+                />
+                <LiteratureSearch
+                  sessionId={session.id}
+                  hypothesis={primaryHypothesis}
+                  currentConfidence={primaryHypothesis.confidence}
+                />
+              </div>
+            )}
           </div>
         ) : null}
 

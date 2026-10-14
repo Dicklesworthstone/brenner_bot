@@ -105,7 +105,7 @@ const userPaths = [
       "Review the compiled artifact",
     ],
     cta: "Start Researching",
-    ctaHref: "/docs/getting-started",
+    ctaHref: "/tutorial/quick-start",
   },
   {
     title: "For Developers",
@@ -135,7 +135,7 @@ const userPaths = [
       "Watch a demo session",
     ],
     cta: "Learn the Method",
-    ctaHref: "/docs/method",
+    ctaHref: "/method",
   },
 ];
 
@@ -336,7 +336,7 @@ export function GetStartedSection() {
         {/* Final CTA */}
         <div className="text-center space-y-4">
           <Link
-            href="/docs/getting-started"
+            href="/tutorial"
             className="inline-flex items-center gap-2 rounded-full bg-primary px-8 py-3 text-base font-semibold text-primary-foreground shadow-lg hover:bg-primary/90 transition-colors"
           >
             <RocketLaunchIcon />
@@ -344,7 +344,7 @@ export function GetStartedSection() {
           </Link>
           <div className="flex items-center justify-center gap-4 text-sm">
             <Link
-              href="/docs"
+              href="/corpus"
               className="text-muted-foreground hover:text-foreground transition-colors"
             >
               Read the Docs

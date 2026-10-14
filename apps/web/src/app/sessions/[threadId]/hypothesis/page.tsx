@@ -11,17 +11,48 @@
 
 import { motion } from "framer-motion";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import * as React from "react";
+import { ComparisonView } from "@/components/brenner-loop/ComparisonView";
+import {
+  FalsificationCeremony,
+  type FalsificationCeremonyResult,
+} from "@/components/brenner-loop/FalsificationCeremony";
+import { HypothesisArena as HypothesisArenaView } from "@/components/brenner-loop/HypothesisArena";
+import { HypothesisGraveyard } from "@/components/brenner-loop/HypothesisGraveyard";
+import { HypothesisTemplateSelector } from "@/components/brenner-loop/HypothesisTemplateSelector";
 import { BrennerQuoteSidebar } from "@/components/brenner-loop/operators/BrennerQuoteSidebar";
+import { PredictionLock } from "@/components/brenner-loop/PredictionLock";
 import { DemoFeaturePreview } from "@/components/sessions/DemoFeaturePreview";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { recordSessionResumeEntry } from "@/lib/brenner-loop";
+import {
+  addCompetitor,
+  createArena,
+  createHypothesisCard,
+  createSession,
+  evolveHypothesisCard,
+  generateHypothesisCardId,
+  type HypothesisArena as HypothesisArenaModel,
+  type HypothesisCard,
+  type LockedPrediction,
+  lockPrediction,
+  recordSessionResumeEntry,
+  recordTestResult,
+  sessionStorage,
+} from "@/lib/brenner-loop";
+import type { EvidenceEntry as FullEvidenceEntry } from "@/lib/brenner-loop/evidence";
+import {
+  createFalsifiedHypothesis,
+  type FalsifiedHypothesis,
+  generateGraveyardId,
+} from "@/lib/brenner-loop/graveyard";
+import type { HypothesisTemplate } from "@/lib/brenner-loop/hypothesis-templates";
 import { type EmbeddingEntry, loadEmbeddings } from "@/lib/brenner-loop/search/embeddings";
 import {
   buildQuoteQueryText,
@@ -194,6 +225,75 @@ const HYPOTHESIS_PHASE_QUOTE_TAGS = [
   "confounds",
   "bridging-levels",
 ] as const;
+
+function sanitizeSessionId(rawId: string): string {
+  const cleaned = rawId.replace(/[^A-Za-z0-9-]/g, "-").replace(/^-+|-+$/g, "");
+  return cleaned || "SESSION-DEFAULT";
+}
+
+function buildDefaultPrimaryCard(sessionId: string): HypothesisCard {
+  const safeId = sanitizeSessionId(sessionId);
+  return {
+    id: generateHypothesisCardId(safeId, 1, 3),
+    version: 3,
+    statement:
+      "Social media usage causes increased anxiety in teenagers through dopamine-driven feedback loops.",
+    mechanism:
+      "Intermittent variable reward schedules in social media notifications trigger dopamine spikes, leading to compulsive checking behavior and anxiety when separated from devices.",
+    domain: ["Psychology", "Neuroscience", "Technology"],
+    predictionsIfTrue: [
+      "Teenagers who use social media 4+ hours daily will show elevated cortisol levels",
+      "Removing social media for 2 weeks will reduce anxiety scores by 20%+",
+    ],
+    predictionsIfFalse: [
+      "No correlation between social media time and anxiety biomarkers",
+      "Anxiety levels unchanged after social media removal",
+    ],
+    impossibleIfTrue: [
+      "Heavy social media users show lower anxiety than non-users",
+      "Dopamine activity unaffected by notification sounds",
+    ],
+    confounds: [],
+    assumptions: [
+      "Salivary cortisol reliably tracks adolescent acute anxiety states",
+    ],
+    confidence: 65,
+    createdAt: new Date("2024-01-15T10:00:00Z"),
+    updatedAt: new Date("2024-01-20T16:00:00Z"),
+    sessionId: safeId,
+  };
+}
+
+function buildDefaultCompetitorCard(sessionId: string): HypothesisCard {
+  const safeId = sanitizeSessionId(sessionId);
+  return {
+    id: generateHypothesisCardId(safeId, 2, 1),
+    version: 1,
+    statement:
+      "Pre-existing sleep displacement and baseline social anxiety drive both nocturnal phone checking and elevated teen cortisol (reverse causation + third alternative).",
+    mechanism:
+      "Adolescents with pre-existing circadian phase delay and social rumination use phones during insomnia windows; sleep loss directly elevates cortisol independent of notification reward schedules.",
+    domain: ["Psychology", "Neuroscience", "Epidemiology"],
+    predictionsIfTrue: [
+      "Controlling for total sleep duration eliminates the correlation between screen time and cortisol",
+      "Disabling notifications without changing bedtime does not reduce anxiety scores",
+    ],
+    predictionsIfFalse: [
+      "Notification removal reduces anxiety even when sleep duration is held constant",
+    ],
+    impossibleIfTrue: [
+      "Adolescents with normal 8.5-hour sleep still show a 20%+ cortisol spike purely from daytime notification frequency",
+    ],
+    confounds: [],
+    assumptions: [
+      "Actigraphy accurately separates nocturnal wakefulness from daytime usage",
+    ],
+    confidence: 55,
+    createdAt: new Date("2024-01-16T12:00:00Z"),
+    updatedAt: new Date("2024-01-19T14:00:00Z"),
+    sessionId: safeId,
+  };
+}
 
 // ============================================================================
 // Confidence Bar
@@ -411,44 +511,443 @@ export default function HypothesisPage() {
   return <HypothesisPageContent threadId={threadId} />;
 }
 
+function normalizeDatesOnCard(card: HypothesisCard): HypothesisCard {
+  return {
+    ...card,
+    createdAt: card.createdAt instanceof Date ? card.createdAt : new Date(card.createdAt),
+    updatedAt: card.updatedAt instanceof Date ? card.updatedAt : new Date(card.updatedAt),
+  };
+}
+
 function HypothesisPageContent({ threadId }: { threadId: string }) {
+  const router = useRouter();
+  const safeSessionId = React.useMemo(() => sanitizeSessionId(threadId), [threadId]);
+
   React.useEffect(() => {
     recordSessionResumeEntry(threadId, "hypothesis");
   }, [threadId]);
 
+  const [hypothesis, setHypothesis] = React.useState<HypothesisCard>(() =>
+    buildDefaultPrimaryCard(threadId),
+  );
+  const [competitorHypothesis, setCompetitorHypothesis] = React.useState<HypothesisCard>(() =>
+    buildDefaultCompetitorCard(threadId),
+  );
+
+  // Editing state
   const [isEditing, setIsEditing] = React.useState(false);
+  const [editStatement, setEditStatement] = React.useState(hypothesis.statement);
+  const [editMechanism, setEditMechanism] = React.useState(hypothesis.mechanism);
+  const [editConfidence, setEditConfidence] = React.useState(hypothesis.confidence);
+  const [editPredictionsIfTrue, setEditPredictionsIfTrue] = React.useState(
+    hypothesis.predictionsIfTrue.join("\n"),
+  );
+  const [editPredictionsIfFalse, setEditPredictionsIfFalse] = React.useState(
+    hypothesis.predictionsIfFalse.join("\n"),
+  );
+  const [editImpossibleIfTrue, setEditImpossibleIfTrue] = React.useState(
+    hypothesis.impossibleIfTrue.join("\n"),
+  );
+
+  // Collapsible / view sections
   const [structureOpen, setStructureOpen] = React.useState(true);
   const [historyOpen, setHistoryOpen] = React.useState(false);
+  const [arenaOpen, setArenaOpen] = React.useState(true);
+  const [graveyardOpen, setGraveyardOpen] = React.useState(false);
+  const [showTemplateSelector, setShowTemplateSelector] = React.useState(false);
+  const [showFalsificationCeremony, setShowFalsificationCeremony] = React.useState(false);
+  const [showAddCompetitorForm, setShowAddCompetitorForm] = React.useState(false);
+  const [newCompetitorStatement, setNewCompetitorStatement] = React.useState("");
+  const [newCompetitorMechanism, setNewCompetitorMechanism] = React.useState("");
+
+  // Cryptographic prediction locks
+  const [lockedPredictions, setLockedPredictions] = React.useState<LockedPrediction[]>([]);
+
+  // Hypothesis Graveyard entries
+  const [graveyardEntries, setGraveyardEntries] = React.useState<FalsifiedHypothesis[]>([]);
+
+  // Evolution timeline events
+  const [evolutionEvents, setEvolutionEvents] = React.useState<EvolutionEvent[]>([
+    {
+      id: "ev-1",
+      type: "created",
+      description: "Hypothesis created",
+      timestamp: new Date("2024-01-15T10:00:00"),
+      confidence: 50,
+    },
+    {
+      id: "ev-2",
+      type: "edited",
+      description: "Added mechanism detail",
+      timestamp: new Date("2024-01-16T14:30:00"),
+      confidence: 55,
+    },
+    {
+      id: "ev-3",
+      type: "locked",
+      description: "Predictions locked for testing",
+      timestamp: new Date("2024-01-18T09:00:00"),
+      confidence: 55,
+    },
+    {
+      id: "ev-4",
+      type: "evidence",
+      description: "Cortisol study results added",
+      timestamp: new Date("2024-01-20T16:00:00"),
+      confidence: 65,
+    },
+  ]);
+
+  // Arena state
+  const [arena, setArena] = React.useState<HypothesisArenaModel>(() => {
+    const base = createArena({
+      question:
+        "What is the primary causal driver of elevated anxiety and cortisol in heavy adolescent social media users?",
+      domain: "Psychology",
+      sessionId: safeSessionId,
+      primaryHypothesis: buildDefaultPrimaryCard(threadId),
+    });
+    return addCompetitor(base, buildDefaultCompetitorCard(threadId), "level_split");
+  });
+
+  // Load persisted session, prediction locks, and graveyard from storage
+  React.useEffect(() => {
+    let cancelled = false;
+
+    const loadPersisted = async () => {
+      try {
+        const loaded = await sessionStorage.load(threadId);
+        if (cancelled || !loaded) return;
+
+        const primaryId = loaded.primaryHypothesisId;
+        const rawPrimary =
+          (primaryId && loaded.hypothesisCards[primaryId]) ||
+          Object.values(loaded.hypothesisCards)[0];
+
+        if (rawPrimary) {
+          const card = normalizeDatesOnCard(rawPrimary);
+          setHypothesis(card);
+          setEditStatement(card.statement);
+          setEditMechanism(card.mechanism);
+          setEditConfidence(card.confidence);
+          setEditPredictionsIfTrue(card.predictionsIfTrue.join("\n"));
+          setEditPredictionsIfFalse(card.predictionsIfFalse.join("\n"));
+          setEditImpossibleIfTrue(card.impossibleIfTrue.join("\n"));
+
+          const altId = loaded.alternativeHypothesisIds[0];
+          const rawAlt = altId ? loaded.hypothesisCards[altId] : undefined;
+          const compCard = rawAlt
+            ? normalizeDatesOnCard(rawAlt)
+            : buildDefaultCompetitorCard(threadId);
+          setCompetitorHypothesis(compCard);
+
+          let nextArena = createArena({
+            question:
+              loaded.researchQuestion ||
+              "What causal mechanism explains the observed phenomenon?",
+            domain: loaded.domain || card.domain[0] || "general",
+            sessionId: safeSessionId,
+            primaryHypothesis: card,
+          });
+          if (compCard.id !== card.id) {
+            nextArena = addCompetitor(nextArena, compCard, "user_added");
+          }
+          setArena(nextArena);
+        }
+      } catch {
+        // Fallback to default state if storage read fails
+      }
+
+      if (typeof window !== "undefined") {
+        try {
+          const rawLocks = window.localStorage.getItem(`brenner-prediction-locks-${threadId}`);
+          if (rawLocks) {
+            const parsed = JSON.parse(rawLocks) as LockedPrediction[];
+            if (Array.isArray(parsed)) setLockedPredictions(parsed);
+          }
+        } catch {
+          // Ignore malformed lock storage
+        }
+
+        try {
+          const rawGraveyard = window.localStorage.getItem(`brenner-graveyard-${threadId}`);
+          if (rawGraveyard) {
+            const parsed = JSON.parse(rawGraveyard) as FalsifiedHypothesis[];
+            if (Array.isArray(parsed)) {
+              setGraveyardEntries(
+                parsed.map((entry) => ({
+                  ...entry,
+                  falsifiedAt: new Date(entry.falsifiedAt),
+                  hypothesis: normalizeDatesOnCard(entry.hypothesis),
+                })),
+              );
+            }
+          }
+        } catch {
+          // Ignore malformed graveyard storage
+        }
+      }
+    };
+
+    void loadPersisted();
+    return () => {
+      cancelled = true;
+    };
+  }, [threadId, safeSessionId]);
+
+  const persistHypothesisToSession = React.useCallback(
+    async (nextPrimary: HypothesisCard, nextCompetitor?: HypothesisCard) => {
+      try {
+        const existing =
+          (await sessionStorage.load(threadId)) ??
+          createSession({
+            id: threadId,
+            domain: nextPrimary.domain[0] ?? "Psychology",
+            createdBy: "local-operator",
+          });
+
+        const comp = nextCompetitor ?? competitorHypothesis;
+        existing.hypothesisCards[nextPrimary.id] = nextPrimary;
+        existing.primaryHypothesisId = nextPrimary.id;
+        if (comp && comp.id !== nextPrimary.id) {
+          existing.hypothesisCards[comp.id] = comp;
+          if (!existing.alternativeHypothesisIds.includes(comp.id)) {
+            existing.alternativeHypothesisIds.push(comp.id);
+          }
+        }
+        existing.updatedAt = new Date().toISOString();
+        await sessionStorage.save(existing);
+      } catch {
+        // Best-effort persistence
+      }
+    },
+    [threadId, competitorHypothesis],
+  );
+
+  const persistLockedPredictions = React.useCallback(
+    (nextLocks: LockedPrediction[]) => {
+      setLockedPredictions(nextLocks);
+      if (typeof window !== "undefined") {
+        try {
+          window.localStorage.setItem(
+            `brenner-prediction-locks-${threadId}`,
+            JSON.stringify(nextLocks),
+          );
+        } catch {
+          // Best-effort
+        }
+      }
+    },
+    [threadId],
+  );
+
+  const handleStartEditing = () => {
+    setEditStatement(hypothesis.statement);
+    setEditMechanism(hypothesis.mechanism);
+    setEditConfidence(hypothesis.confidence);
+    setEditPredictionsIfTrue(hypothesis.predictionsIfTrue.join("\n"));
+    setEditPredictionsIfFalse(hypothesis.predictionsIfFalse.join("\n"));
+    setEditImpossibleIfTrue(hypothesis.impossibleIfTrue.join("\n"));
+    setIsEditing(true);
+  };
+
+  const handleSaveChanges = async () => {
+    const parseLines = (text: string, fallback: string[]) => {
+      const lines = text
+        .split("\n")
+        .map((line) => line.trim())
+        .filter(Boolean);
+      return lines.length > 0 ? lines : fallback;
+    };
+
+    const updated: HypothesisCard = {
+      ...hypothesis,
+      statement: editStatement.trim() || hypothesis.statement,
+      mechanism: editMechanism.trim() || hypothesis.mechanism,
+      confidence: Math.min(100, Math.max(0, Number(editConfidence) || hypothesis.confidence)),
+      predictionsIfTrue: parseLines(editPredictionsIfTrue, hypothesis.predictionsIfTrue),
+      predictionsIfFalse: parseLines(editPredictionsIfFalse, hypothesis.predictionsIfFalse),
+      impossibleIfTrue: parseLines(editImpossibleIfTrue, hypothesis.impossibleIfTrue),
+      updatedAt: new Date(),
+    };
+
+    setHypothesis(updated);
+    setIsEditing(false);
+    setEvolutionEvents((prev) => [
+      ...prev,
+      {
+        id: `ev-${Date.now()}`,
+        type: "edited",
+        description: "Updated hypothesis statement, mechanism, and discriminative predictions",
+        timestamp: new Date(),
+        confidence: updated.confidence,
+      },
+    ]);
+    await persistHypothesisToSession(updated);
+  };
+
+  const handleEvolveHypothesis = async () => {
+    const evolved = evolveHypothesisCard(
+      hypothesis,
+      {
+        statement: editStatement.trim() || hypothesis.statement,
+        mechanism: editMechanism.trim() || hypothesis.mechanism,
+        confidence: hypothesis.confidence,
+      },
+      "Manual hypothesis evolution to sharpen mechanism and discriminative power",
+      "manual",
+    );
+
+    setHypothesis(evolved);
+    setIsEditing(false);
+    setEvolutionEvents((prev) => [
+      ...prev,
+      {
+        id: `ev-${Date.now()}`,
+        type: "evolved",
+        description: `Evolved to v${evolved.version}: sharpened causal mechanism`,
+        timestamp: new Date(),
+        confidence: evolved.confidence,
+      },
+    ]);
+    await persistHypothesisToSession(evolved);
+  };
+
+  const handleLockAllPredictions = async () => {
+    const nextLocks = [...lockedPredictions];
+
+    const lockGroup = async (items: string[], type: "if_true" | "if_false" | "impossible_if_true") => {
+      for (let idx = 0; idx < items.length; idx++) {
+        const alreadyLocked = nextLocks.some(
+          (p) => p.predictionType === type && p.originalIndex === idx,
+        );
+        if (!alreadyLocked) {
+          const result = await lockPrediction(hypothesis.id, type, idx, items[idx]);
+          if (result.success && result.lockedPrediction) {
+            nextLocks.push(result.lockedPrediction);
+          }
+        }
+      }
+    };
+
+    await lockGroup(hypothesis.predictionsIfTrue, "if_true");
+    await lockGroup(hypothesis.predictionsIfFalse, "if_false");
+    await lockGroup(hypothesis.impossibleIfTrue, "impossible_if_true");
+
+    persistLockedPredictions(nextLocks);
+    setEvolutionEvents((prev) => [
+      ...prev,
+      {
+        id: `ev-${Date.now()}`,
+        type: "locked",
+        description: `Cryptographically sealed ${nextLocks.length} predictions`,
+        timestamp: new Date(),
+        confidence: hypothesis.confidence,
+      },
+    ]);
+  };
+
+  const handleApplyTemplate = async (template: HypothesisTemplate) => {
+    const nextCard = createHypothesisCard({
+      id: generateHypothesisCardId(safeSessionId, 1, hypothesis.version + 1),
+      statement: template.template.statement,
+      mechanism: template.template.mechanism,
+      domain: [...template.domains],
+      predictionsIfTrue: [...template.template.predictionsIfTrue],
+      predictionsIfFalse: [...(template.template.predictionsIfFalse ?? [])],
+      impossibleIfTrue: [...template.template.impossibleIfTrue],
+      confidence: template.template.suggestedConfidence ?? 50,
+      sessionId: safeSessionId,
+    });
+    setHypothesis(nextCard);
+    setEditStatement(nextCard.statement);
+    setEditMechanism(nextCard.mechanism);
+    setShowTemplateSelector(false);
+    await persistHypothesisToSession(nextCard);
+  };
+
+  const handleAddCompetitor = async () => {
+    if (!newCompetitorStatement.trim() || !newCompetitorMechanism.trim()) return;
+    const seq = arena.competitors.length + 1;
+    const newComp = createHypothesisCard({
+      id: generateHypothesisCardId(safeSessionId, seq, 1),
+      statement: newCompetitorStatement.trim(),
+      mechanism: newCompetitorMechanism.trim(),
+      domain: hypothesis.domain,
+      predictionsIfTrue: ["Distinct prediction under alternative mechanism"],
+      impossibleIfTrue: ["Observation that falsifies this competing alternative"],
+      confidence: 50,
+      sessionId: safeSessionId,
+    });
+    setCompetitorHypothesis(newComp);
+    setArena((prev) => addCompetitor(prev, newComp, "user_added"));
+    setNewCompetitorStatement("");
+    setNewCompetitorMechanism("");
+    setShowAddCompetitorForm(false);
+    await persistHypothesisToSession(hypothesis, newComp);
+  };
+
+  const killingBlowEvidence: FullEvidenceEntry = React.useMemo(
+    () => ({
+      id: `EV-${safeSessionId}-001`,
+      sessionId: safeSessionId,
+      hypothesisVersion: hypothesis.id,
+      test: {
+        id: "test-exclusion-001",
+        description: "Decisive exclusion test against forbidden pattern",
+        type: "mechanism_block",
+        discriminativePower: 5,
+      },
+      predictionIfTrue:
+        hypothesis.predictionsIfTrue[0] ?? "Expected primary mechanism effect",
+      predictionIfFalse:
+        hypothesis.predictionsIfFalse[0] ?? "No effect when mechanism blocked",
+      result: "challenges",
+      observation:
+        hypothesis.impossibleIfTrue[0] ??
+        "Observed forbidden pattern under controlled conditions",
+      confidenceBefore: hypothesis.confidence,
+      confidenceAfter: 5,
+      interpretation:
+        "Direct observation of the impossible-if-true condition falsifies the current causal model.",
+      recordedAt: new Date(),
+    }),
+    [safeSessionId, hypothesis],
+  );
+
+  const handleCompleteFalsification = (result: FalsificationCeremonyResult) => {
+    const gyId = generateGraveyardId(safeSessionId, graveyardEntries.length + 1);
+    const entry = createFalsifiedHypothesis({
+      id: gyId,
+      hypothesis,
+      sessionId: safeSessionId,
+      killingBlow: killingBlowEvidence,
+      deathType: result.deathType,
+      deathSummary: result.deathSummary,
+      learning: result.learning,
+      epitaph: result.epitaph,
+      brennerQuote: result.brennerQuote,
+    });
+
+    const nextEntries = [entry, ...graveyardEntries];
+    setGraveyardEntries(nextEntries);
+    if (typeof window !== "undefined") {
+      try {
+        window.localStorage.setItem(
+          `brenner-graveyard-${threadId}`,
+          JSON.stringify(nextEntries),
+        );
+      } catch {
+        // Ignore
+      }
+    }
+    setShowFalsificationCeremony(false);
+    setGraveyardOpen(true);
+  };
 
   const [quoteEntries, setQuoteEntries] = React.useState<EmbeddingEntry[] | null>(null);
   const [semanticQuotes, setSemanticQuotes] = React.useState<Quote[]>([]);
   const [quoteError, setQuoteError] = React.useState<string | null>(null);
-
-  // Mock data - in real implementation, this would come from the session context
-  const hypothesis = {
-    id: "hyp-001",
-    statement:
-      "Social media usage causes increased anxiety in teenagers through dopamine-driven feedback loops.",
-    mechanism:
-      "Intermittent variable reward schedules in social media notifications trigger dopamine spikes, leading to compulsive checking behavior and anxiety when separated from devices.",
-    confidence: 65,
-    domain: ["Psychology", "Neuroscience", "Technology"],
-    predictionsIfTrue: [
-      "Teenagers who use social media 4+ hours daily will show elevated cortisol levels",
-      "Removing social media for 2 weeks will reduce anxiety scores by 20%+",
-    ],
-    predictionsIfFalse: [
-      "No correlation between social media time and anxiety biomarkers",
-      "Anxiety levels unchanged after social media removal",
-    ],
-    impossibleIfTrue: [
-      "Heavy social media users show lower anxiety than non-users",
-      "Dopamine activity unaffected by notification sounds",
-    ],
-    version: 3,
-    createdAt: new Date("2024-01-15"),
-    updatedAt: new Date("2024-01-20"),
-  };
 
   React.useEffect(() => {
     let cancelled = false;
@@ -511,37 +1010,6 @@ function HypothesisPageContent({ threadId }: { threadId: string }) {
     return () => clearTimeout(timer);
   }, [quoteEntries, quoteQuery]);
 
-  const evolutionEvents: EvolutionEvent[] = [
-    {
-      id: "ev-1",
-      type: "created",
-      description: "Hypothesis created",
-      timestamp: new Date("2024-01-15T10:00:00"),
-      confidence: 50,
-    },
-    {
-      id: "ev-2",
-      type: "edited",
-      description: "Added mechanism detail",
-      timestamp: new Date("2024-01-16T14:30:00"),
-      confidence: 55,
-    },
-    {
-      id: "ev-3",
-      type: "locked",
-      description: "Predictions locked for testing",
-      timestamp: new Date("2024-01-18T09:00:00"),
-      confidence: 55,
-    },
-    {
-      id: "ev-4",
-      type: "evidence",
-      description: "Cortisol study results added",
-      timestamp: new Date("2024-01-20T16:00:00"),
-      confidence: 65,
-    },
-  ];
-
   return (
     <TooltipProvider>
       <div className="max-w-5xl mx-auto space-y-8">
@@ -574,7 +1042,7 @@ function HypothesisPageContent({ threadId }: { threadId: string }) {
         <motion.header
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="flex items-start justify-between gap-4"
+          className="flex flex-wrap items-start justify-between gap-4"
         >
           <div className="flex items-start gap-4">
             <div className="flex items-center justify-center size-14 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 text-primary shadow-lg shadow-primary/10">
@@ -584,36 +1052,83 @@ function HypothesisPageContent({ threadId }: { threadId: string }) {
               <div className="flex items-center gap-3 mb-1">
                 <h1 className="text-2xl font-bold tracking-tight">Hypothesis</h1>
                 <Badge variant="secondary">v{hypothesis.version}</Badge>
+                {lockedPredictions.length > 0 && (
+                  <Badge variant="default" className="text-xs">
+                    {lockedPredictions.length} Locked
+                  </Badge>
+                )}
               </div>
               <p className="text-muted-foreground">Manage and refine your research hypothesis</p>
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             {isEditing ? (
               <>
                 <Button variant="ghost" onClick={() => setIsEditing(false)}>
                   Cancel
                 </Button>
-                <Button onClick={() => setIsEditing(false)}>
+                <Button onClick={() => void handleSaveChanges()}>
                   <CheckIcon className="size-4 mr-2" />
                   Save Changes
                 </Button>
               </>
             ) : (
               <>
-                <Button variant="outline" onClick={() => setIsEditing(true)}>
+                <Button
+                  variant="outline"
+                  onClick={() => setShowTemplateSelector((prev) => !prev)}
+                >
+                  {showTemplateSelector ? "Hide Templates" : "Templates"}
+                </Button>
+                <Button variant="outline" onClick={handleStartEditing}>
                   <PencilIcon className="size-4 mr-2" />
                   Edit
                 </Button>
-                <Button variant="secondary">
+                <Button variant="secondary" onClick={() => void handleEvolveHypothesis()}>
                   <ArrowPathIcon className="size-4 mr-2" />
                   Evolve
+                </Button>
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={() => setShowFalsificationCeremony((prev) => !prev)}
+                >
+                  {showFalsificationCeremony ? "Close Ceremony" : "Falsify (†)"}
                 </Button>
               </>
             )}
           </div>
         </motion.header>
+
+        {showTemplateSelector && (
+          <Card className="border-primary/30">
+            <CardHeader>
+              <CardTitle className="text-base">Hypothesis Template Library</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <HypothesisTemplateSelector onSelect={(tpl) => void handleApplyTemplate(tpl)} />
+            </CardContent>
+          </Card>
+        )}
+
+        {showFalsificationCeremony && (
+          <Card className="border-destructive/40">
+            <CardHeader>
+              <CardTitle className="text-base">
+                † Theory-Kill &amp; Falsification Ceremony
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <FalsificationCeremony
+                hypothesis={hypothesis}
+                killingBlow={killingBlowEvidence}
+                onComplete={handleCompleteFalsification}
+                onCancel={() => setShowFalsificationCeremony(false)}
+              />
+            </CardContent>
+          </Card>
+        )}
 
         {/* Main Content Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -632,7 +1147,9 @@ function HypothesisPageContent({ threadId }: { threadId: string }) {
                 <CardContent className="pt-4">
                   {isEditing ? (
                     <Textarea
-                      defaultValue={hypothesis.statement}
+                      aria-label="Hypothesis statement"
+                      value={editStatement}
+                      onChange={(e) => setEditStatement(e.target.value)}
                       className="min-h-[100px] resize-none"
                     />
                   ) : (
@@ -658,7 +1175,9 @@ function HypothesisPageContent({ threadId }: { threadId: string }) {
                 <CardContent>
                   {isEditing ? (
                     <Textarea
-                      defaultValue={hypothesis.mechanism}
+                      aria-label="Proposed mechanism"
+                      value={editMechanism}
+                      onChange={(e) => setEditMechanism(e.target.value)}
                       className="min-h-[80px] resize-none"
                     />
                   ) : (
@@ -668,7 +1187,7 @@ function HypothesisPageContent({ threadId }: { threadId: string }) {
               </Card>
             </motion.div>
 
-            {/* Discriminative Structure */}
+            {/* Discriminative Structure & Prediction Lock */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -681,7 +1200,9 @@ function HypothesisPageContent({ threadId }: { threadId: string }) {
                     showChevron={false}
                   >
                     <div className="flex items-center justify-between w-full">
-                      <span className="text-lg font-semibold">Discriminative Structure</span>
+                      <span className="text-lg font-semibold">
+                        Discriminative Structure &amp; Cryptographic Prediction Lock
+                      </span>
                       <ChevronDownIcon
                         className={cn(
                           "size-5 text-muted-foreground transition-transform",
@@ -692,43 +1213,195 @@ function HypothesisPageContent({ threadId }: { threadId: string }) {
                   </CollapsibleTrigger>
                   <CollapsibleContent>
                     <CardContent className="space-y-6 pt-0">
-                      {/* Predictions If True */}
-                      <div className="space-y-3">
-                        <h4 className="text-sm font-medium text-foreground flex items-center gap-2">
-                          <CheckIcon className="size-4 text-green-500" />
-                          Predictions If True
-                        </h4>
-                        <div className="space-y-2">
-                          {hypothesis.predictionsIfTrue.map((pred, i) => (
-                            <PredictionItem key={i} prediction={pred} type="if_true" locked />
-                          ))}
+                      {isEditing ? (
+                        <div className="space-y-4">
+                          <div>
+                            <label className="text-xs font-medium text-foreground">
+                              Predictions If True (one per line)
+                            </label>
+                            <Textarea
+                              value={editPredictionsIfTrue}
+                              onChange={(e) => setEditPredictionsIfTrue(e.target.value)}
+                              className="mt-1 min-h-[72px]"
+                            />
+                          </div>
+                          <div>
+                            <label className="text-xs font-medium text-foreground">
+                              Predictions If False (one per line)
+                            </label>
+                            <Textarea
+                              value={editPredictionsIfFalse}
+                              onChange={(e) => setEditPredictionsIfFalse(e.target.value)}
+                              className="mt-1 min-h-[72px]"
+                            />
+                          </div>
+                          <div>
+                            <label className="text-xs font-medium text-foreground">
+                              Would Falsify / Impossible If True (one per line)
+                            </label>
+                            <Textarea
+                              value={editImpossibleIfTrue}
+                              onChange={(e) => setEditImpossibleIfTrue(e.target.value)}
+                              className="mt-1 min-h-[72px]"
+                            />
+                          </div>
                         </div>
-                      </div>
+                      ) : (
+                        <>
+                          {/* Predictions If True */}
+                          <div className="space-y-3">
+                            <h4 className="text-sm font-medium text-foreground flex items-center gap-2">
+                              <CheckIcon className="size-4 text-green-500" />
+                              Predictions If True
+                            </h4>
+                            <div className="space-y-2">
+                              {hypothesis.predictionsIfTrue.map((pred, i) => (
+                                <PredictionItem key={i} prediction={pred} type="if_true" locked />
+                              ))}
+                            </div>
+                          </div>
 
-                      {/* Predictions If False */}
-                      <div className="space-y-3">
-                        <h4 className="text-sm font-medium text-foreground flex items-center gap-2">
-                          <XMarkIcon className="size-4 text-red-500" />
-                          Predictions If False
-                        </h4>
-                        <div className="space-y-2">
-                          {hypothesis.predictionsIfFalse.map((pred, i) => (
-                            <PredictionItem key={i} prediction={pred} type="if_false" locked />
-                          ))}
-                        </div>
-                      </div>
+                          {/* Predictions If False */}
+                          <div className="space-y-3">
+                            <h4 className="text-sm font-medium text-foreground flex items-center gap-2">
+                              <XMarkIcon className="size-4 text-red-500" />
+                              Predictions If False
+                            </h4>
+                            <div className="space-y-2">
+                              {hypothesis.predictionsIfFalse.map((pred, i) => (
+                                <PredictionItem key={i} prediction={pred} type="if_false" locked />
+                              ))}
+                            </div>
+                          </div>
 
-                      {/* Falsifiers */}
-                      <div className="space-y-3">
-                        <h4 className="text-sm font-medium text-foreground flex items-center gap-2">
-                          <XMarkIcon className="size-4 text-purple-500" />
-                          Would Falsify (Impossible If True)
-                        </h4>
-                        <div className="space-y-2">
-                          {hypothesis.impossibleIfTrue.map((pred, i) => (
-                            <PredictionItem key={i} prediction={pred} type="impossible" locked />
-                          ))}
+                          {/* Falsifiers */}
+                          <div className="space-y-3">
+                            <h4 className="text-sm font-medium text-foreground flex items-center gap-2">
+                              <XMarkIcon className="size-4 text-purple-500" />
+                              Would Falsify (Impossible If True)
+                            </h4>
+                            <div className="space-y-2">
+                              {hypothesis.impossibleIfTrue.map((pred, i) => (
+                                <PredictionItem
+                                  key={i}
+                                  prediction={pred}
+                                  type="impossible"
+                                  locked
+                                />
+                              ))}
+                            </div>
+                          </div>
+
+                          <div className="pt-4 border-t border-border">
+                            <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">
+                              Interactive Prediction Lock Ledger (Anti-Rationalization Seal)
+                            </div>
+                            <PredictionLock
+                              hypothesisId={hypothesis.id}
+                              draftPredictions={{
+                                ifTrue: hypothesis.predictionsIfTrue,
+                                ifFalse: hypothesis.predictionsIfFalse,
+                                impossible: hypothesis.impossibleIfTrue,
+                              }}
+                              lockedPredictions={lockedPredictions}
+                              onPredictionLocked={(pred) =>
+                                persistLockedPredictions([...lockedPredictions, pred])
+                              }
+                              onPredictionRevealed={(pred) =>
+                                persistLockedPredictions(
+                                  lockedPredictions.map((p) => (p.id === pred.id ? pred : p)),
+                                )
+                              }
+                              onPredictionAmended={(pred) =>
+                                persistLockedPredictions(
+                                  lockedPredictions.map((p) => (p.id === pred.id ? pred : p)),
+                                )
+                              }
+                            />
+                          </div>
+                        </>
+                      )}
+                    </CardContent>
+                  </CollapsibleContent>
+                </Card>
+              </Collapsible>
+            </motion.div>
+
+            {/* Competing Hypotheses Arena & Comparison Matrix */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.22 }}
+            >
+              <Collapsible open={arenaOpen} onOpenChange={setArenaOpen}>
+                <Card>
+                  <CollapsibleTrigger
+                    className="p-6 hover:bg-muted/50 transition-colors"
+                    showChevron={false}
+                  >
+                    <div className="flex items-center justify-between w-full">
+                      <span className="text-lg font-semibold">
+                        Competing Hypotheses Arena &amp; Comparison Matrix
+                      </span>
+                      <ChevronDownIcon
+                        className={cn(
+                          "size-5 text-muted-foreground transition-transform",
+                          arenaOpen && "rotate-180",
+                        )}
+                      />
+                    </div>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent>
+                    <CardContent className="space-y-6 pt-0">
+                      <HypothesisArenaView
+                        arena={arena}
+                        onAddCompetitor={() => setShowAddCompetitorForm((prev) => !prev)}
+                        onRecordResult={(testId, hypothesisId, result) => {
+                          setArena((prev) =>
+                            recordTestResult(prev, testId, hypothesisId, result, {
+                              confidence: 0.8,
+                              boldness: "specific",
+                            }),
+                          );
+                        }}
+                      />
+
+                      {showAddCompetitorForm && (
+                        <div className="rounded-xl border border-primary/30 bg-muted/20 p-4 space-y-3">
+                          <div className="text-sm font-semibold text-foreground">
+                            Add Competing Hypothesis (Third Alternative)
+                          </div>
+                          <Input
+                            placeholder="Competing hypothesis statement..."
+                            value={newCompetitorStatement}
+                            onChange={(e) => setNewCompetitorStatement(e.target.value)}
+                          />
+                          <Input
+                            placeholder="Competing causal mechanism..."
+                            value={newCompetitorMechanism}
+                            onChange={(e) => setNewCompetitorMechanism(e.target.value)}
+                          />
+                          <div className="flex justify-end gap-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setShowAddCompetitorForm(false)}
+                            >
+                              Cancel
+                            </Button>
+                            <Button size="sm" onClick={() => void handleAddCompetitor()}>
+                              Add Competitor
+                            </Button>
+                          </div>
                         </div>
+                      )}
+
+                      <div className="pt-4 border-t border-border">
+                        <ComparisonView
+                          hypothesisA={hypothesis}
+                          hypothesisB={competitorHypothesis}
+                          arena={arena}
+                        />
                       </div>
                     </CardContent>
                   </CollapsibleContent>
@@ -764,6 +1437,39 @@ function HypothesisPageContent({ threadId }: { threadId: string }) {
                   <CollapsibleContent>
                     <CardContent className="pt-0">
                       <EvolutionTimeline events={evolutionEvents} />
+                    </CardContent>
+                  </CollapsibleContent>
+                </Card>
+              </Collapsible>
+            </motion.div>
+
+            {/* Hypothesis Graveyard */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.28 }}
+            >
+              <Collapsible open={graveyardOpen} onOpenChange={setGraveyardOpen}>
+                <Card>
+                  <CollapsibleTrigger
+                    className="p-6 hover:bg-muted/50 transition-colors"
+                    showChevron={false}
+                  >
+                    <div className="flex items-center justify-between w-full">
+                      <span className="text-lg font-semibold">
+                        † Hypothesis Graveyard ({graveyardEntries.length})
+                      </span>
+                      <ChevronDownIcon
+                        className={cn(
+                          "size-5 text-muted-foreground transition-transform",
+                          graveyardOpen && "rotate-180",
+                        )}
+                      />
+                    </div>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent>
+                    <CardContent className="pt-0">
+                      <HypothesisGraveyard entries={graveyardEntries} />
                     </CardContent>
                   </CollapsibleContent>
                 </Card>
@@ -857,15 +1563,27 @@ function HypothesisPageContent({ threadId }: { threadId: string }) {
                   <CardTitle className="text-lg">Quick Actions</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-2">
-                  <Button variant="outline" className="w-full justify-start">
+                  <Button
+                    variant="outline"
+                    className="w-full justify-start"
+                    onClick={() => void handleLockAllPredictions()}
+                  >
                     <LockClosedIcon className="size-4 mr-2" />
                     Lock All Predictions
                   </Button>
-                  <Button variant="outline" className="w-full justify-start">
+                  <Button
+                    variant="outline"
+                    className="w-full justify-start"
+                    onClick={() => void handleEvolveHypothesis()}
+                  >
                     <ArrowPathIcon className="size-4 mr-2" />
                     Create Evolution
                   </Button>
-                  <Button variant="outline" className="w-full justify-start">
+                  <Button
+                    variant="outline"
+                    className="w-full justify-start"
+                    onClick={() => router.push(`/sessions/${threadId}/agents`)}
+                  >
                     <SparklesIcon className="size-4 mr-2" />
                     Request Agent Review
                   </Button>

@@ -15,12 +15,23 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import * as React from "react";
 import { BrennerQuoteSidebar } from "@/components/brenner-loop/operators/BrennerQuoteSidebar";
+import { ExclusionTestSession } from "@/components/brenner-loop/operators/ExclusionTestSession";
+import { LevelSplitSession } from "@/components/brenner-loop/operators/LevelSplitSession";
+import { ObjectTransposeSession } from "@/components/brenner-loop/operators/ObjectTransposeSession";
+import { ScaleCheckSession } from "@/components/brenner-loop/operators/ScaleCheckSession";
 import { DemoFeaturePreview } from "@/components/sessions/DemoFeaturePreview";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { recordSessionResumeEntry } from "@/lib/brenner-loop";
+import {
+  createHypothesisCard,
+  createSession,
+  generateHypothesisCardId,
+  type HypothesisCard,
+  recordSessionResumeEntry,
+  sessionStorage,
+} from "@/lib/brenner-loop";
 import { type EmbeddingEntry, loadEmbeddings } from "@/lib/brenner-loop/search/embeddings";
 import {
   buildQuoteQueryText,
@@ -446,24 +457,264 @@ export default function OperatorsPage() {
   return <OperatorsPageContent threadId={threadId} />;
 }
 
+function sanitizeOperatorSessionId(rawId: string): string {
+  const cleaned = rawId.replace(/[^A-Za-z0-9-]/g, "-").replace(/^-+|-+$/g, "");
+  return cleaned || "SESSION-DEFAULT";
+}
+
 function OperatorsPageContent({ threadId }: { threadId: string }) {
   React.useEffect(() => {
     recordSessionResumeEntry(threadId, "operators");
   }, [threadId]);
 
+  const safeSessionId = React.useMemo(() => sanitizeOperatorSessionId(threadId), [threadId]);
+
   const [activeOperator, setActiveOperator] = React.useState<string>("level_split");
+  const [workspaceMode, setWorkspaceMode] = React.useState<"quick" | "guided">("quick");
   const [completedOperators, setCompletedOperators] = React.useState<Set<string>>(new Set());
   const [operatorValues, setOperatorValues] = React.useState<
     Record<string, Record<string, string>>
   >({});
   const [hypothesisStatement, setHypothesisStatement] = React.useState<string>("");
   const [hypothesisMechanism, setHypothesisMechanism] = React.useState<string>("");
+  const [primaryCard, setPrimaryCard] = React.useState<HypothesisCard | null>(null);
 
   const [quoteEntries, setQuoteEntries] = React.useState<EmbeddingEntry[] | null>(null);
   const [semanticQuotes, setSemanticQuotes] = React.useState<Quote[]>([]);
   const [quoteError, setQuoteError] = React.useState<string | null>(null);
 
   const currentOperator = OPERATORS.find((op) => op.id === activeOperator);
+
+  // Hydrate from sessionStorage and localStorage
+  React.useEffect(() => {
+    let cancelled = false;
+
+    const hydrate = async () => {
+      if (typeof window !== "undefined") {
+        try {
+          const raw = window.localStorage.getItem(`brenner-operators-workspace-${threadId}`);
+          if (raw) {
+            const parsed = JSON.parse(raw) as {
+              completedOperators?: string[];
+              operatorValues?: Record<string, Record<string, string>>;
+              hypothesisStatement?: string;
+              hypothesisMechanism?: string;
+            };
+            if (Array.isArray(parsed.completedOperators)) {
+              setCompletedOperators(new Set(parsed.completedOperators));
+            }
+            if (parsed.operatorValues && typeof parsed.operatorValues === "object") {
+              setOperatorValues(parsed.operatorValues);
+            }
+            if (typeof parsed.hypothesisStatement === "string") {
+              setHypothesisStatement(parsed.hypothesisStatement);
+            }
+            if (typeof parsed.hypothesisMechanism === "string") {
+              setHypothesisMechanism(parsed.hypothesisMechanism);
+            }
+          }
+        } catch {
+          // Ignore malformed workspace storage
+        }
+      }
+
+      try {
+        const loaded = await sessionStorage.load(threadId);
+        if (cancelled || !loaded) return;
+
+        const primaryId = loaded.primaryHypothesisId;
+        const primary =
+          (primaryId && loaded.hypothesisCards[primaryId]) ||
+          Object.values(loaded.hypothesisCards)[0];
+
+        if (primary) {
+          setPrimaryCard({
+            ...primary,
+            createdAt:
+              primary.createdAt instanceof Date ? primary.createdAt : new Date(primary.createdAt),
+            updatedAt:
+              primary.updatedAt instanceof Date ? primary.updatedAt : new Date(primary.updatedAt),
+          });
+          setHypothesisStatement((prev) => prev || primary.statement);
+          setHypothesisMechanism((prev) => prev || primary.mechanism);
+        }
+
+        const completedFromSession = new Set<string>();
+        if (loaded.operatorApplications?.levelSplit?.length) {
+          completedFromSession.add("level_split");
+        }
+        if (loaded.operatorApplications?.exclusionTest?.length) {
+          completedFromSession.add("exclusion_test");
+        }
+        if (loaded.operatorApplications?.objectTranspose?.length) {
+          completedFromSession.add("object_transpose");
+        }
+        if (loaded.operatorApplications?.scaleCheck?.length) {
+          completedFromSession.add("scale_check");
+        }
+        if (completedFromSession.size > 0) {
+          setCompletedOperators((prev) => new Set([...prev, ...completedFromSession]));
+        }
+      } catch {
+        // Fallback to local state
+      }
+    };
+
+    void hydrate();
+    return () => {
+      cancelled = true;
+    };
+  }, [threadId]);
+
+  const persistWorkspaceSnapshot = React.useCallback(
+    async (
+      nextCompleted: Set<string>,
+      nextValues: Record<string, Record<string, string>>,
+      completedOpId?: string,
+    ) => {
+      if (typeof window !== "undefined") {
+        try {
+          window.localStorage.setItem(
+            `brenner-operators-workspace-${threadId}`,
+            JSON.stringify({
+              completedOperators: Array.from(nextCompleted),
+              operatorValues: nextValues,
+              hypothesisStatement,
+              hypothesisMechanism,
+            }),
+          );
+        } catch {
+          // Ignore
+        }
+      }
+
+      if (!completedOpId) return;
+
+      try {
+        const existing =
+          (await sessionStorage.load(threadId)) ??
+          createSession({
+            id: threadId,
+            domain: primaryCard?.domain[0] ?? "general",
+            createdBy: "local-operator",
+          });
+
+        const appliedAt = new Date().toISOString();
+        const appliedBy = existing.createdBy || "local-operator";
+        const fields = nextValues[completedOpId] || {};
+        const hypId =
+          existing.primaryHypothesisId ||
+          primaryCard?.id ||
+          generateHypothesisCardId(safeSessionId, 1, 1);
+
+        if (completedOpId === "level_split") {
+          existing.operatorApplications.levelSplit.push({
+            appliedAt,
+            appliedBy,
+            levels: [
+              {
+                name: fields.current_level || "Primary Level",
+                description: fields.levels_identified || "Identified explanatory levels",
+                hypothesisIds: [hypId],
+                levelType: "unclear",
+              },
+            ],
+            conflationDetected: Boolean(fields.confounds?.trim()),
+            conflationDescription: fields.confounds?.trim() || undefined,
+          });
+        } else if (completedOpId === "exclusion_test") {
+          existing.operatorApplications.exclusionTest.push({
+            appliedAt,
+            appliedBy,
+            designedTests: [
+              {
+                name: fields.test_design?.slice(0, 60) || "Designed Exclusion Test",
+                procedure: fields.test_design || "Exclusion test procedure",
+                couldExclude: [hypId],
+                discriminativePower: 3,
+              },
+            ],
+            rejectedTests: [],
+            notes: fields.expected_null || undefined,
+          });
+        } else if (completedOpId === "object_transpose") {
+          existing.operatorApplications.objectTranspose.push({
+            appliedAt,
+            appliedBy,
+            originalSystem: fields.current_system || "Original experimental system",
+            alternativeSystems: [
+              {
+                name: fields.alternative_systems || "Transposed experimental system",
+                pros: [fields.tradeoffs || "Cleaner causal isolation"],
+                cons: [],
+              },
+            ],
+          });
+        } else if (completedOpId === "scale_check") {
+          existing.operatorApplications.scaleCheck.push({
+            appliedAt,
+            appliedBy,
+            calculations: [
+              {
+                name: fields.key_quantities || "Order-of-magnitude check",
+                quantities: fields.key_quantities || "",
+                result: fields.calculations || "",
+                units: "estimated",
+                implication: fields.plausibility || "Plausible within physical constraints",
+              },
+            ],
+            plausible: true,
+            ruledOutByScale: [],
+          });
+        }
+
+        existing.updatedAt = appliedAt;
+        await sessionStorage.save(existing);
+      } catch {
+        // Best-effort persistence
+      }
+    },
+    [threadId, hypothesisStatement, hypothesisMechanism, primaryCard, safeSessionId],
+  );
+
+  const activeHypothesisForGuided: HypothesisCard = React.useMemo(() => {
+    if (primaryCard) {
+      return {
+        ...primaryCard,
+        statement:
+          hypothesisStatement.trim().length >= 10
+            ? hypothesisStatement.trim()
+            : primaryCard.statement,
+        mechanism:
+          hypothesisMechanism.trim().length >= 10
+            ? hypothesisMechanism.trim()
+            : primaryCard.mechanism,
+      };
+    }
+    return createHypothesisCard({
+      id: generateHypothesisCardId(safeSessionId, 1, 1),
+      sessionId: safeSessionId,
+      statement:
+        hypothesisStatement.trim().length >= 10
+          ? hypothesisStatement.trim()
+          : "Social media usage causes increased anxiety in teenagers through dopamine-driven feedback loops.",
+      mechanism:
+        hypothesisMechanism.trim().length >= 10
+          ? hypothesisMechanism.trim()
+          : "Intermittent variable reward schedules in notifications trigger compulsive checking and acute cortisol elevation.",
+      domain: ["Psychology", "Neuroscience"],
+      predictionsIfTrue: [
+        "Removing social media for 2 weeks reduces adolescent anxiety scores by 20%+",
+      ],
+      predictionsIfFalse: [
+        "Anxiety biomarkers remain unchanged after notification removal",
+      ],
+      impossibleIfTrue: [
+        "Heavy users show lower baseline cortisol than non-users under identical sleep schedules",
+      ],
+      confidence: 65,
+    });
+  }, [primaryCard, hypothesisStatement, hypothesisMechanism, safeSessionId]);
 
   React.useEffect(() => {
     let cancelled = false;
@@ -520,22 +771,28 @@ function OperatorsPageContent({ threadId }: { threadId: string }) {
   }, [activeOperator, quoteEntries, quoteQuery]);
 
   const handleFieldChange = (fieldId: string, value: string) => {
-    setOperatorValues((prev) => ({
-      ...prev,
-      [activeOperator]: {
-        ...prev[activeOperator],
-        [fieldId]: value,
-      },
-    }));
+    setOperatorValues((prev) => {
+      const next = {
+        ...prev,
+        [activeOperator]: {
+          ...prev[activeOperator],
+          [fieldId]: value,
+        },
+      };
+      void persistWorkspaceSnapshot(completedOperators, next);
+      return next;
+    });
   };
 
   const handleComplete = () => {
-    setCompletedOperators((prev) => new Set([...prev, activeOperator]));
+    const nextCompleted = new Set([...completedOperators, activeOperator]);
+    setCompletedOperators(nextCompleted);
+    void persistWorkspaceSnapshot(nextCompleted, operatorValues, activeOperator);
 
     // Move to next incomplete operator
     const currentIndex = OPERATORS.findIndex((op) => op.id === activeOperator);
     const nextOperator = OPERATORS.find(
-      (op, i) => i > currentIndex && !completedOperators.has(op.id),
+      (op, i) => i > currentIndex && !nextCompleted.has(op.id),
     );
     if (nextOperator) {
       setActiveOperator(nextOperator.id);
@@ -575,7 +832,7 @@ function OperatorsPageContent({ threadId }: { threadId: string }) {
       <motion.header
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="flex items-start justify-between gap-4"
+        className="flex flex-wrap items-start justify-between gap-4"
       >
         <div className="flex items-start gap-4">
           <div className="flex items-center justify-center size-14 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 text-primary shadow-lg shadow-primary/10">
@@ -589,10 +846,39 @@ function OperatorsPageContent({ threadId }: { threadId: string }) {
           </div>
         </div>
 
-        <div className="text-right">
-          <div className="text-sm text-muted-foreground mb-1">Progress</div>
-          <div className="text-lg font-bold text-foreground">
-            {completedOperators.size}/{OPERATORS.length} Complete
+        <div className="flex items-center gap-4">
+          <div className="inline-flex rounded-xl border border-border bg-muted/30 p-1">
+            <button
+              type="button"
+              onClick={() => setWorkspaceMode("quick")}
+              className={cn(
+                "px-3 py-1.5 rounded-lg text-xs font-medium transition-colors",
+                workspaceMode === "quick"
+                  ? "bg-background text-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground",
+              )}
+            >
+              Quick Notes
+            </button>
+            <button
+              type="button"
+              onClick={() => setWorkspaceMode("guided")}
+              className={cn(
+                "px-3 py-1.5 rounded-lg text-xs font-medium transition-colors",
+                workspaceMode === "guided"
+                  ? "bg-background text-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground",
+              )}
+            >
+              Guided Interactive Wizard
+            </button>
+          </div>
+
+          <div className="text-right">
+            <div className="text-sm text-muted-foreground mb-1">Progress</div>
+            <div className="text-lg font-bold text-foreground">
+              {completedOperators.size}/{OPERATORS.length} Complete
+            </div>
           </div>
         </div>
       </motion.header>
@@ -671,17 +957,46 @@ function OperatorsPageContent({ threadId }: { threadId: string }) {
         {/* Workspace */}
         <Card className="xl:col-span-6">
           <CardContent className="p-6">
-            <AnimatePresence mode="wait">
-              {currentOperator && (
-                <OperatorWorkspace
-                  key={currentOperator.id}
-                  operator={currentOperator}
-                  values={operatorValues[currentOperator.id] || {}}
-                  onChange={handleFieldChange}
-                  onComplete={handleComplete}
-                />
-              )}
-            </AnimatePresence>
+            {workspaceMode === "guided" ? (
+              <div className="space-y-4">
+                {activeOperator === "level_split" && (
+                  <LevelSplitSession
+                    hypothesis={activeHypothesisForGuided}
+                    onComplete={() => handleComplete()}
+                  />
+                )}
+                {activeOperator === "exclusion_test" && (
+                  <ExclusionTestSession
+                    hypothesis={activeHypothesisForGuided}
+                    onComplete={() => handleComplete()}
+                  />
+                )}
+                {activeOperator === "object_transpose" && (
+                  <ObjectTransposeSession
+                    hypothesis={activeHypothesisForGuided}
+                    onComplete={() => handleComplete()}
+                  />
+                )}
+                {activeOperator === "scale_check" && (
+                  <ScaleCheckSession
+                    hypothesis={activeHypothesisForGuided}
+                    onComplete={() => handleComplete()}
+                  />
+                )}
+              </div>
+            ) : (
+              <AnimatePresence mode="wait">
+                {currentOperator && (
+                  <OperatorWorkspace
+                    key={currentOperator.id}
+                    operator={currentOperator}
+                    values={operatorValues[currentOperator.id] || {}}
+                    onChange={handleFieldChange}
+                    onComplete={handleComplete}
+                  />
+                )}
+              </AnimatePresence>
+            )}
           </CardContent>
         </Card>
 

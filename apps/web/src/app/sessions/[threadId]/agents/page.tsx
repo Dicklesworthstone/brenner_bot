@@ -20,8 +20,25 @@ import { DemoFeaturePreview } from "@/components/sessions/DemoFeaturePreview";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Textarea } from "@/components/ui/textarea";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { recordSessionResumeEntry } from "@/lib/brenner-loop";
+import {
+  createHypothesisCard,
+  createSession,
+  generateHypothesisCardId,
+  type HypothesisCard,
+  recordSessionResumeEntry,
+  sessionStorage,
+} from "@/lib/brenner-loop";
+import {
+  buildAgentPrompt,
+  loadPrompt,
+  type TribunalAgentRole,
+} from "@/lib/brenner-loop/agents";
+import {
+  type SynthesisResult,
+  synthesizeResponses,
+} from "@/lib/brenner-loop/agents/synthesis";
 import { isDemoThreadId, normalizeThreadId } from "@/lib/demo-mode";
 import { cn } from "@/lib/utils";
 
@@ -257,8 +274,11 @@ interface AgentCardProps {
   status: AgentStatus;
   response?: AgentResponse;
   progressStep?: number;
+  promptText?: string;
+  ntmCommand?: string;
   onInvoke?: () => void;
   onCancel?: () => void;
+  onSaveManualResponse?: (content: string) => void;
 }
 
 function AgentCard({
@@ -266,9 +286,17 @@ function AgentCard({
   status,
   response,
   progressStep = 0,
+  promptText,
+  ntmCommand,
   onInvoke,
   onCancel,
+  onSaveManualResponse,
 }: AgentCardProps) {
+  const [showPrompt, setShowPrompt] = React.useState(false);
+  const [showPasteBox, setShowPasteBox] = React.useState(false);
+  const [manualText, setManualText] = React.useState("");
+  const [copiedPrompt, setCopiedPrompt] = React.useState(false);
+
   const statusConfig = {
     idle: { label: "Ready", color: "text-muted-foreground", bg: "bg-muted" },
     thinking: { label: "Thinking...", color: "text-blue-500", bg: "bg-blue-500/10" },
@@ -277,6 +305,16 @@ function AgentCard({
   };
 
   const statusInfo = statusConfig[status];
+
+  const handleCopyPrompt = async (textToCopy: string) => {
+    try {
+      await navigator.clipboard.writeText(textToCopy);
+      setCopiedPrompt(true);
+      setTimeout(() => setCopiedPrompt(false), 1800);
+    } catch {
+      // Ignore clipboard failures
+    }
+  };
 
   return (
     <motion.div
@@ -290,7 +328,7 @@ function AgentCard({
     >
       {/* Header */}
       <div className={cn("p-4", agent.bgColor)}>
-        <div className="flex items-start justify-between">
+        <div className="flex items-start justify-between gap-3">
           <div className="flex items-center gap-3">
             {/* Avatar */}
             <div
@@ -315,23 +353,108 @@ function AgentCard({
             </div>
           </div>
 
-          {/* Status Badge */}
-          <div
-            className={cn(
-              "flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium",
-              statusInfo.bg,
-              statusInfo.color,
-            )}
-          >
-            {status === "thinking" && (
-              <div className="size-2 rounded-full bg-current animate-pulse" />
-            )}
-            {status === "responded" && <CheckIcon className="size-3" />}
-            {statusInfo.label}
+          <div className="flex flex-wrap items-center gap-2">
+            <Button
+              size="sm"
+              variant="ghost"
+              className="h-7 text-xs"
+              onClick={() => setShowPrompt((prev) => !prev)}
+            >
+              {showPrompt ? "Hide Prompt" : "NTM Prompt"}
+            </Button>
+            <Button
+              size="sm"
+              variant="ghost"
+              className="h-7 text-xs"
+              onClick={() => setShowPasteBox((prev) => !prev)}
+            >
+              {showPasteBox ? "Cancel Paste" : "Paste CLI Output"}
+            </Button>
+
+            {/* Status Badge */}
+            <div
+              className={cn(
+                "flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium",
+                statusInfo.bg,
+                statusInfo.color,
+              )}
+            >
+              {status === "thinking" && (
+                <div className="size-2 rounded-full bg-current animate-pulse" />
+              )}
+              {status === "responded" && <CheckIcon className="size-3" />}
+              {statusInfo.label}
+            </div>
           </div>
         </div>
 
         <p className="text-sm text-muted-foreground mt-3">{agent.description}</p>
+
+        {showPrompt && (
+          <div className="mt-3 rounded-lg border border-border bg-background/90 p-3 space-y-2 text-xs">
+            {ntmCommand && (
+              <div className="flex items-center justify-between gap-2 bg-muted/50 rounded p-2 font-mono">
+                <span className="truncate">{ntmCommand}</span>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="h-6 text-[11px] shrink-0"
+                  onClick={() => void handleCopyPrompt(ntmCommand)}
+                >
+                  {copiedPrompt ? "Copied" : "Copy Command"}
+                </Button>
+              </div>
+            )}
+            {promptText && (
+              <div className="space-y-1">
+                <div className="flex items-center justify-between">
+                  <span className="font-medium text-muted-foreground">
+                    Compiled Tribunal System + Hypothesis Prompt
+                  </span>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="h-6 text-[11px]"
+                    onClick={() => void handleCopyPrompt(promptText)}
+                  >
+                    Copy Full Prompt
+                  </Button>
+                </div>
+                <pre className="max-h-40 overflow-y-auto whitespace-pre-wrap rounded bg-muted/30 p-2 font-mono text-[11px]">
+                  {promptText}
+                </pre>
+              </div>
+            )}
+          </div>
+        )}
+
+        {showPasteBox && (
+          <div className="mt-3 rounded-lg border border-border bg-background/90 p-3 space-y-2">
+            <Textarea
+              placeholder={`Paste ${agent.name} response from your NTM / CLI session...`}
+              value={manualText}
+              onChange={(e) => setManualText(e.target.value)}
+              className="min-h-[90px] text-xs"
+            />
+            <div className="flex justify-end gap-2">
+              <Button size="sm" variant="outline" onClick={() => setShowPasteBox(false)}>
+                Cancel
+              </Button>
+              <Button
+                size="sm"
+                disabled={!manualText.trim()}
+                onClick={() => {
+                  if (!manualText.trim()) return;
+                  onSaveManualResponse?.(manualText.trim());
+                  setManualText("");
+                  setShowPasteBox(false);
+                }}
+              >
+                Save Agent Response
+              </Button>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Response Content */}
@@ -426,10 +549,18 @@ function AgentCard({
 interface SynthesisPanelProps {
   responses: AgentResponse[];
   disagreements: Disagreement[];
+  synthesisResult: SynthesisResult | null;
+  onGenerateSynthesis: () => void;
 }
 
-function SynthesisPanel({ responses, disagreements }: SynthesisPanelProps) {
-  const hasAllResponses = responses.length === AGENTS.length;
+function SynthesisPanel({
+  responses,
+  disagreements,
+  synthesisResult,
+  onGenerateSynthesis,
+}: SynthesisPanelProps) {
+  const hasAllResponses = responses.length >= AGENTS.length;
+  const canSynthesize = responses.length >= 1;
   const openDisagreements = disagreements.filter((d) => d.resolutionStatus === "open");
 
   return (
@@ -490,7 +621,7 @@ function SynthesisPanel({ responses, disagreements }: SynthesisPanelProps) {
         )}
 
         {/* Consensus Points */}
-        {hasAllResponses && (
+        {(hasAllResponses || synthesisResult) && (
           <div className="space-y-3">
             <h4 className="text-sm font-medium text-foreground flex items-center gap-2">
               <CheckIcon className="size-4 text-green-500" />
@@ -498,25 +629,74 @@ function SynthesisPanel({ responses, disagreements }: SynthesisPanelProps) {
             </h4>
             <div className="p-4 rounded-lg bg-green-500/5 border border-green-500/20">
               <ul className="space-y-2 text-sm text-foreground">
-                <li className="flex items-start gap-2">
-                  <CheckIcon className="size-4 text-green-500 mt-0.5 shrink-0" />
-                  Hypothesis is testable with current resources
-                </li>
-                <li className="flex items-start gap-2">
-                  <CheckIcon className="size-4 text-green-500 mt-0.5 shrink-0" />
-                  Mechanism is plausible at the proposed scale
-                </li>
-                <li className="flex items-start gap-2">
-                  <CheckIcon className="size-4 text-green-500 mt-0.5 shrink-0" />
-                  Exclusion tests have been identified
-                </li>
+                {synthesisResult && synthesisResult.consensusPoints.length > 0 ? (
+                  synthesisResult.consensusPoints.map((cp, idx) => (
+                    <li key={idx} className="flex items-start gap-2">
+                      <CheckIcon className="size-4 text-green-500 mt-0.5 shrink-0" />
+                      <span>{cp.claim}</span>
+                    </li>
+                  ))
+                ) : (
+                  <>
+                    <li className="flex items-start gap-2">
+                      <CheckIcon className="size-4 text-green-500 mt-0.5 shrink-0" />
+                      Hypothesis is testable with current resources
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <CheckIcon className="size-4 text-green-500 mt-0.5 shrink-0" />
+                      Mechanism is plausible at the proposed scale
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <CheckIcon className="size-4 text-green-500 mt-0.5 shrink-0" />
+                      Exclusion tests have been identified
+                    </li>
+                  </>
+                )}
               </ul>
             </div>
           </div>
         )}
 
+        {/* Synthesized Recommendations & Brenner Principles */}
+        {synthesisResult && (
+          <div className="space-y-4 pt-2 border-t border-border">
+            {synthesisResult.recommendations.length > 0 && (
+              <div className="space-y-2">
+                <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  Synthesized Action Plan
+                </h4>
+                <ul className="space-y-1.5 text-xs text-foreground">
+                  {synthesisResult.recommendations.map((rec, idx) => (
+                    <li key={idx} className="rounded-lg border border-border bg-muted/20 p-2">
+                      <span className="font-medium">{rec.action}</span>
+                      <span className="block text-[11px] text-muted-foreground mt-0.5">
+                        {rec.rationale} ({rec.priority})
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {synthesisResult.brennerPrinciples.length > 0 && (
+              <div className="space-y-2">
+                <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  Triggered Brenner Principles
+                </h4>
+                <ul className="space-y-1.5 text-xs text-foreground">
+                  {synthesisResult.brennerPrinciples.map((bp, idx) => (
+                    <li key={idx} className="rounded-lg border border-primary/20 bg-primary/5 p-2">
+                      <span className="font-semibold">{bp.principle}:</span> {bp.explanation}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Generate Synthesis Button */}
-        <Button className="w-full" disabled={!hasAllResponses}>
+        <Button className="w-full" disabled={!canSynthesize} onClick={onGenerateSynthesis}>
           <SparklesIcon className="size-4 mr-2" />
           Generate Full Synthesis
         </Button>
@@ -546,13 +726,46 @@ export default function AgentsPage() {
   return <AgentsPageContent threadId={threadId} />;
 }
 
+function sanitizeTribunalSessionId(rawId: string): string {
+  const cleaned = rawId.replace(/[^A-Za-z0-9-]/g, "-").replace(/^-+|-+$/g, "");
+  return cleaned || "SESSION-DEFAULT";
+}
+
+function createDefaultTribunalHypothesis(safeSessionId: string): HypothesisCard {
+  return createHypothesisCard({
+    id: generateHypothesisCardId(safeSessionId, 1, 1),
+    sessionId: safeSessionId,
+    statement:
+      "Social media usage causes increased anxiety in teenagers through dopamine-driven feedback loops.",
+    mechanism:
+      "Intermittent variable reward schedules in notifications trigger compulsive checking and acute cortisol elevation.",
+    domain: ["Psychology", "Neuroscience"],
+    predictionsIfTrue: [
+      "Removing social media for 2 weeks reduces adolescent anxiety scores by 20%+",
+    ],
+    predictionsIfFalse: ["Anxiety biomarkers remain unchanged after notification removal"],
+    impossibleIfTrue: [
+      "Heavy users show lower baseline cortisol than non-users under identical sleep schedules",
+    ],
+    confidence: 65,
+  });
+}
+
 function AgentsPageContent({ threadId }: { threadId: string }) {
   const isLiveThread = threadId.startsWith(LIVE_THREAD_PREFIX);
   const allowMockInvoke = !isLiveThread;
+  const safeSessionId = React.useMemo(() => sanitizeTribunalSessionId(threadId), [threadId]);
 
   React.useEffect(() => {
     recordSessionResumeEntry(threadId, "agents");
   }, [threadId]);
+
+  const [primaryHypothesis, setPrimaryHypothesis] = React.useState<HypothesisCard>(() =>
+    createDefaultTribunalHypothesis(safeSessionId),
+  );
+
+  const [compiledPrompts, setCompiledPrompts] = React.useState<Record<string, string>>({});
+  const [synthesisResult, setSynthesisResult] = React.useState<SynthesisResult | null>(null);
 
   const [agentStatuses, setAgentStatuses] = React.useState<Record<string, AgentStatus>>(() => ({
     devils_advocate: isLiveThread ? "idle" : "responded",
@@ -578,6 +791,116 @@ function AgentsPageContent({ threadId }: { threadId: string }) {
             ],
           },
         ],
+  );
+
+  // Hydrate hypothesis, saved responses, and compiled Tribunal prompts
+  React.useEffect(() => {
+    let cancelled = false;
+
+    const hydrate = async () => {
+      let activeCard = createDefaultTribunalHypothesis(safeSessionId);
+      let activeOperators: NonNullable<Parameters<typeof buildAgentPrompt>[2]> = {};
+      try {
+        const loaded = await sessionStorage.load(threadId);
+        if (!cancelled && loaded) {
+          activeOperators = loaded.operatorApplications ?? {};
+          const primaryId = loaded.primaryHypothesisId;
+          const card =
+            (primaryId && loaded.hypothesisCards[primaryId]) ||
+            Object.values(loaded.hypothesisCards)[0];
+          if (card) {
+            activeCard = {
+              ...card,
+              createdAt: card.createdAt instanceof Date ? card.createdAt : new Date(card.createdAt),
+              updatedAt: card.updatedAt instanceof Date ? card.updatedAt : new Date(card.updatedAt),
+            };
+            setPrimaryHypothesis(activeCard);
+          }
+        }
+      } catch {
+        // Ignore storage load error
+      }
+
+      if (typeof window !== "undefined") {
+        try {
+          const rawSaved = window.localStorage.getItem(`brenner-tribunal-responses-${threadId}`);
+          if (rawSaved) {
+            const parsed = JSON.parse(rawSaved) as Array<
+              Omit<AgentResponse, "timestamp"> & { timestamp: string }
+            >;
+            if (Array.isArray(parsed) && parsed.length > 0 && !cancelled) {
+              const hydrated = parsed.map((r) => ({
+                ...r,
+                timestamp: new Date(r.timestamp),
+              }));
+              setResponses(hydrated);
+              const nextStatuses: Record<string, AgentStatus> = {
+                devils_advocate: "idle",
+                experiment_designer: "idle",
+                statistician: "idle",
+                brenner_channeler: "idle",
+              };
+              for (const r of hydrated) {
+                nextStatuses[r.agentId] = "responded";
+              }
+              setAgentStatuses(nextStatuses);
+            }
+          }
+        } catch {
+          // Ignore malformed saved responses
+        }
+      }
+
+      const promptsMap: Record<string, string> = {};
+      for (const agent of AGENTS) {
+        try {
+          const role = agent.id as TribunalAgentRole;
+          const sysPrompt = await loadPrompt(role);
+          const contextualPrompt = buildAgentPrompt(role, activeCard, activeOperators);
+          promptsMap[agent.id] = `${sysPrompt}\n\n---\n\n${contextualPrompt}`;
+        } catch {
+          // Ignore prompt load failure
+        }
+      }
+      if (!cancelled) {
+        setCompiledPrompts(promptsMap);
+      }
+    };
+
+    void hydrate();
+    return () => {
+      cancelled = true;
+    };
+  }, [threadId, safeSessionId]);
+
+  const persistResponses = React.useCallback(
+    async (nextResponses: AgentResponse[]) => {
+      if (typeof window !== "undefined") {
+        try {
+          window.localStorage.setItem(
+            `brenner-tribunal-responses-${threadId}`,
+            JSON.stringify(nextResponses),
+          );
+        } catch {
+          // Ignore
+        }
+      }
+
+      try {
+        const existing =
+          (await sessionStorage.load(threadId)) ??
+          createSession({
+            id: threadId,
+            domain: primaryHypothesis.domain[0] ?? "Psychology",
+            createdBy: "local-operator",
+          });
+        existing.updatedAt = new Date().toISOString();
+        await sessionStorage.save(existing);
+      } catch {
+        // Ignore
+      }
+    },
+    [threadId, primaryHypothesis.domain],
   );
 
   const [disagreements] = React.useState<Disagreement[]>(() =>
@@ -724,6 +1047,24 @@ function AgentsPageContent({ threadId }: { threadId: string }) {
     };
   }, [isLiveThread, threadId]);
 
+  const handleSaveManualResponse = (agentId: string, content: string) => {
+    clearAgentTimers(agentId);
+    setAgentStatuses((prev) => ({ ...prev, [agentId]: "responded" }));
+    setResponses((prev) => {
+      const filtered = prev.filter((r) => r.agentId !== agentId);
+      const next = [
+        ...filtered,
+        {
+          agentId,
+          content,
+          timestamp: new Date(),
+        },
+      ];
+      void persistResponses(next);
+      return next;
+    });
+  };
+
   const handleInvokeAgent = (agentId: string) => {
     if (!allowMockInvoke) return;
     clearAgentTimers(agentId);
@@ -738,7 +1079,7 @@ function AgentsPageContent({ threadId }: { threadId: string }) {
             [agentId]: Math.min(index + 1, AGENT_PROGRESS_STEPS.length - 1),
           }));
         },
-        (index + 1) * 700,
+        (index + 1) * 250,
       ),
     );
 
@@ -760,6 +1101,15 @@ function AgentsPageContent({ threadId }: { threadId: string }) {
             "Pre-register the analysis plan to prevent p-hacking",
           ],
         },
+        statistician: {
+          content:
+            "To detect a 20% reduction in GAD-7 anxiety scores (Cohen's d ≈ 0.45) at α = 0.05 and 80% power with longitudinal mixed-effects modeling, n = 85 participants per arm is required after accounting for 15% attrition. We should adjust for baseline sleep duration as a time-varying covariate.",
+          timestamp: new Date(),
+          suggestions: [
+            "Use mixed-effects model with random slopes for individual baseline cortisol",
+            "Specify equivalence bounds (TOST) to make the null prediction falsifiable",
+          ],
+        },
         brenner_channeler: {
           content:
             '"Before you start, do your sums." The scale check reveals that the proposed dopamine mechanism operates on millisecond timescales, while anxiety is measured over weeks. We need to specify the bridging mechanism. Consider: what is the minimum exposure duration that could produce detectable anxiety changes?',
@@ -773,9 +1123,14 @@ function AgentsPageContent({ threadId }: { threadId: string }) {
       };
 
       if (mockResponses[agentId]) {
-        setResponses((prev) => [...prev, { agentId, ...mockResponses[agentId] }]);
+        setResponses((prev) => {
+          const filtered = prev.filter((r) => r.agentId !== agentId);
+          const next = [...filtered, { agentId, ...mockResponses[agentId] }];
+          void persistResponses(next);
+          return next;
+        });
       }
-    }, 3000);
+    }, 900);
 
     responseTimersRef.current[agentId] = responseTimer;
   };
@@ -794,6 +1149,21 @@ function AgentsPageContent({ threadId }: { threadId: string }) {
         handleInvokeAgent(agent.id);
       }
     });
+  };
+
+  const handleGenerateSynthesis = () => {
+    if (responses.length === 0) return;
+    const result = synthesizeResponses(
+      responses.map((r) => ({
+        agent: r.agentId,
+        content: [
+          r.content,
+          ...(r.suggestions ?? []).map((s) => `- Should ${s}`),
+          ...(r.disagreements ?? []).map((d) => `- However, ${d}`),
+        ].join("\n"),
+      })),
+    );
+    setSynthesisResult(result);
   };
 
   return (
@@ -864,8 +1234,11 @@ function AgentsPageContent({ threadId }: { threadId: string }) {
                   status={agentStatuses[agent.id]}
                   progressStep={agentProgress[agent.id] ?? 0}
                   response={responses.find((r) => r.agentId === agent.id)}
+                  promptText={compiledPrompts[agent.id]}
+                  ntmCommand={`ntm send ${safeSessionId} --role=${agent.id} "Run Tribunal analysis on ${primaryHypothesis.id}"`}
                   onInvoke={allowMockInvoke ? () => handleInvokeAgent(agent.id) : undefined}
                   onCancel={allowMockInvoke ? () => handleCancelAgent(agent.id) : undefined}
+                  onSaveManualResponse={(text) => handleSaveManualResponse(agent.id, text)}
                 />
               </motion.div>
             ))}
@@ -878,7 +1251,12 @@ function AgentsPageContent({ threadId }: { threadId: string }) {
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.3 }}
             >
-              <SynthesisPanel responses={responses} disagreements={disagreements} />
+              <SynthesisPanel
+                responses={responses}
+                disagreements={disagreements}
+                synthesisResult={synthesisResult}
+                onGenerateSynthesis={handleGenerateSynthesis}
+              />
             </motion.div>
           </div>
         </div>

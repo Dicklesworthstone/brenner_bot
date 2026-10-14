@@ -145,18 +145,34 @@ export async function loadPrompt(role: TribunalAgentRole): Promise<string> {
 /**
  * Fetch prompt content from the appropriate source.
  *
- * Loads role prompt blocks from the role_prompts spec if available.
- * Falls back to a placeholder containing promptPath when missing.
+ * Loads the dedicated agent markdown prompt (`prompts/<role>.md`) and, when
+ * available, any canonical role block from `specs/role_prompts_v0.1.md`.
+ * Falls back to a placeholder containing promptPath only when neither source is available.
  */
 async function fetchPromptContent(promptPath: string, role: TribunalAgentRole): Promise<string> {
-  const spec = await readRolePromptsSpecMarkdown();
-  if (spec) {
-    const { start, end } = rolePromptMarkers(role);
-    const extracted = extractBetweenMarkers(spec, start, end);
-    if (extracted) return extracted;
+  const [dedicatedPrompt, specPrompt] = await Promise.all([
+    readDedicatedPromptMarkdown(promptPath),
+    readRolePromptFromSpec(role),
+  ]);
+
+  if (dedicatedPrompt && specPrompt) {
+    return `${dedicatedPrompt}\n\n---\n\n${specPrompt}`;
+  }
+  if (dedicatedPrompt) {
+    return dedicatedPrompt;
+  }
+  if (specPrompt) {
+    return specPrompt;
   }
 
   return `[Prompt at: ${promptPath}]`;
+}
+
+async function readRolePromptFromSpec(role: TribunalAgentRole): Promise<string | null> {
+  const spec = await readRolePromptsSpecMarkdown();
+  if (!spec) return null;
+  const { start, end } = rolePromptMarkers(role);
+  return extractBetweenMarkers(spec, start, end);
 }
 
 function rolePromptMarkers(role: TribunalAgentRole): { start: string; end: string } {
@@ -180,22 +196,54 @@ function extractBetweenMarkers(
   return markdown.slice(from, end).trim();
 }
 
+function isNodeLikeRuntime(): boolean {
+  return (
+    typeof process !== "undefined" &&
+    Boolean(process.versions?.node || process.versions?.bun)
+  );
+}
+
+async function readDedicatedPromptMarkdown(promptPath: string): Promise<string | null> {
+  if (typeof window === "undefined" || isNodeLikeRuntime()) {
+    const fromFs = await readDedicatedPromptFromFilesystem(promptPath);
+    if (fromFs) return fromFs.trim();
+  }
+
+  if (typeof window !== "undefined") {
+    const fromPublic = await readMarkdownFromPublic(promptPath);
+    if (fromPublic) return fromPublic.trim();
+  }
+
+  return null;
+}
+
 async function readRolePromptsSpecMarkdown(): Promise<string | null> {
   if (rolePromptsSpecCache !== undefined) return rolePromptsSpecCache;
 
-  if (typeof window === "undefined") {
-    rolePromptsSpecCache = await readRolePromptsSpecFromFilesystem();
-    return rolePromptsSpecCache;
+  if (typeof window === "undefined" || isNodeLikeRuntime()) {
+    const fromFs = await readRolePromptsSpecFromFilesystem();
+    if (fromFs) {
+      rolePromptsSpecCache = fromFs;
+      return rolePromptsSpecCache;
+    }
   }
 
-  rolePromptsSpecCache = await readRolePromptsSpecFromPublic();
+  if (typeof window !== "undefined") {
+    const fromPublic = await readMarkdownFromPublic(ROLE_PROMPTS_SPEC_PATH);
+    if (fromPublic) {
+      rolePromptsSpecCache = fromPublic;
+      return rolePromptsSpecCache;
+    }
+  }
+
+  rolePromptsSpecCache = null;
   return rolePromptsSpecCache;
 }
 
-async function readRolePromptsSpecFromPublic(): Promise<string | null> {
+async function readMarkdownFromPublic(relativePath: string): Promise<string | null> {
   if (typeof fetch !== "function") return null;
 
-  const url = `/_corpus/${ROLE_PROMPTS_SPEC_PATH}`;
+  const url = `/_corpus/${relativePath}`;
   try {
     const response = await fetch(url);
     if (!response.ok) return null;
@@ -203,6 +251,31 @@ async function readRolePromptsSpecFromPublic(): Promise<string | null> {
   } catch {
     return null;
   }
+}
+
+async function readDedicatedPromptFromFilesystem(promptPath: string): Promise<string | null> {
+  const [{ access, readFile }, { resolve }] = await Promise.all([
+    import("node:fs/promises"),
+    import("node:path"),
+  ]);
+
+  const candidates = [
+    resolve(process.cwd(), "src/lib/brenner-loop/agents", promptPath),
+    resolve(process.cwd(), "apps/web/src/lib/brenner-loop/agents", promptPath),
+    resolve(process.cwd(), "public/_corpus", promptPath),
+    resolve(process.cwd(), "apps/web/public/_corpus", promptPath),
+  ];
+
+  for (const path of candidates) {
+    try {
+      await access(path);
+      return await readFile(path, "utf8");
+    } catch {
+      // Keep searching
+    }
+  }
+
+  return null;
 }
 
 async function readRolePromptsSpecFromFilesystem(): Promise<string | null> {

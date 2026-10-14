@@ -14,6 +14,14 @@
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import * as React from "react";
+import {
+  ConfidenceChart,
+  EvidenceRecorder,
+  EvidenceTimeline,
+  LiteratureSearch,
+  WhatIfSimulator,
+} from "@/components/brenner-loop/evidence";
+import type { RecordLiteratureEvidencePayload } from "@/components/brenner-loop/evidence/LiteratureSearch";
 import { DemoFeaturePreview } from "@/components/sessions/DemoFeaturePreview";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -27,8 +35,20 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
-import { recordSessionResumeEntry } from "@/lib/brenner-loop";
+import {
+  createSession,
+  type HypothesisCard,
+  recordSessionResumeEntry,
+  sessionStorage,
+} from "@/lib/brenner-loop";
+import { computeConfidenceUpdate } from "@/lib/brenner-loop/confidence";
+import {
+  type EvidenceEntry,
+  generateEvidenceId,
+  isEvidenceEntry,
+} from "@/lib/brenner-loop/evidence";
 import { createHypothesisCard, generateHypothesisCardId } from "@/lib/brenner-loop/hypothesis";
 import type { ExclusionTest } from "@/lib/brenner-loop/operators/exclusion-test";
 import {
@@ -162,6 +182,33 @@ function TestQueuePageContent({ threadId }: { threadId: string }) {
   const [activeHypothesisId, setActiveHypothesisId] = React.useState<string | null>(null);
   const [error, setError] = React.useState<string | null>(null);
   const [assumptionLedger, setAssumptionLedger] = React.useState<AssumptionLedgerEntry[]>([]);
+  const [activeWorkbenchTab, setActiveWorkbenchTab] = React.useState<
+    "what-if" | "record" | "literature" | "ledger"
+  >("what-if");
+
+  const [currentHypothesis, setCurrentHypothesis] = React.useState<HypothesisCard>(() =>
+    createHypothesisCard({
+      id: generateHypothesisCardId(hypothesisSessionId, 1, 1),
+      sessionId: hypothesisSessionId,
+      statement:
+        "Social media usage causes increased anxiety in teenagers through dopamine-driven feedback loops.",
+      mechanism:
+        "Intermittent variable reward schedules in notifications trigger compulsive checking and acute cortisol elevation.",
+      domain: ["Psychology", "Neuroscience"],
+      predictionsIfTrue: [
+        "Removing social media for 2 weeks reduces adolescent anxiety scores by 20%+",
+      ],
+      predictionsIfFalse: [
+        "Anxiety biomarkers remain unchanged after notification removal",
+      ],
+      impossibleIfTrue: [
+        "Heavy users show lower baseline cortisol than non-users under identical sleep schedules",
+      ],
+      confidence: 65,
+    }),
+  );
+
+  const [evidenceEntries, setEvidenceEntries] = React.useState<EvidenceEntry[]>([]);
 
   React.useEffect(() => {
     if (!queueSessionId) return;
@@ -172,6 +219,159 @@ function TestQueuePageContent({ threadId }: { threadId: string }) {
     if (!queueSessionId) return;
     setAssumptionLedger(loadAssumptionLedger(queueSessionId));
   }, [queueSessionId]);
+
+  React.useEffect(() => {
+    let cancelled = false;
+    const hydrateFromSession = async () => {
+      try {
+        const loaded = await sessionStorage.load(threadId);
+        if (cancelled || !loaded) return;
+
+        const primaryId = loaded.primaryHypothesisId;
+        const primary =
+          (primaryId && loaded.hypothesisCards[primaryId]) ||
+          Object.values(loaded.hypothesisCards)[0];
+
+        if (primary) {
+          const normalizedCard: HypothesisCard = {
+            ...primary,
+            createdAt:
+              primary.createdAt instanceof Date ? primary.createdAt : new Date(primary.createdAt),
+            updatedAt:
+              primary.updatedAt instanceof Date ? primary.updatedAt : new Date(primary.updatedAt),
+          };
+          setCurrentHypothesis(normalizedCard);
+          setActiveHypothesisId(normalizedCard.id);
+          setStatement((prev) => prev || normalizedCard.statement);
+          setMechanism((prev) => prev || normalizedCard.mechanism);
+        }
+      } catch {
+        // Fallback to local state
+      }
+
+      if (typeof window !== "undefined") {
+        try {
+          const rawLedger = window.localStorage.getItem(`brenner-evidence-ledger-${threadId}`);
+          if (rawLedger) {
+            const parsed = JSON.parse(rawLedger) as EvidenceEntry[];
+            if (Array.isArray(parsed) && parsed.length > 0) {
+              setEvidenceEntries(
+                parsed
+                  .filter(isEvidenceEntry)
+                  .map((entry) => ({
+                    ...entry,
+                    recordedAt: new Date(entry.recordedAt),
+                  })),
+              );
+            }
+          }
+        } catch {
+          // Ignore malformed ledger
+        }
+      }
+    };
+    void hydrateFromSession();
+    return () => {
+      cancelled = true;
+    };
+  }, [threadId]);
+
+  const persistEvidenceEntry = React.useCallback(
+    async (entry: EvidenceEntry) => {
+      const nextEntries = [...evidenceEntries, entry];
+      setEvidenceEntries(nextEntries);
+      setCurrentHypothesis((prev) => ({
+        ...prev,
+        confidence: entry.confidenceAfter,
+        updatedAt: new Date(),
+      }));
+
+      if (typeof window !== "undefined") {
+        try {
+          window.localStorage.setItem(
+            `brenner-evidence-ledger-${threadId}`,
+            JSON.stringify(nextEntries),
+          );
+        } catch {
+          // Ignore
+        }
+      }
+
+      try {
+        const existing =
+          (await sessionStorage.load(threadId)) ??
+          createSession({
+            id: threadId,
+            domain: currentHypothesis.domain[0] ?? "Psychology",
+            createdBy: "local-operator",
+          });
+        const updatedCard: HypothesisCard = {
+          ...currentHypothesis,
+          confidence: entry.confidenceAfter,
+          updatedAt: new Date(),
+        };
+        existing.hypothesisCards[updatedCard.id] = updatedCard;
+        existing.primaryHypothesisId = updatedCard.id;
+        existing.evidenceLedger.push({
+          id: entry.id,
+          testId: entry.test.id,
+          result: entry.result,
+          observation: entry.observation,
+          potencyCheckPassed: true,
+          matchedHypothesisId: updatedCard.id,
+          confidenceDelta: entry.confidenceAfter - entry.confidenceBefore,
+          recordedAt: entry.recordedAt.toISOString(),
+          recordedBy: entry.recordedBy ?? "local-operator",
+          notes: entry.interpretation,
+          rawDataRef: entry.source,
+        });
+        existing.updatedAt = new Date().toISOString();
+        await sessionStorage.save(existing);
+      } catch {
+        // Best-effort persistence
+      }
+    },
+    [evidenceEntries, threadId, currentHypothesis],
+  );
+
+  const handleRecordLiteratureEvidence = React.useCallback(
+    (payload: RecordLiteratureEvidencePayload) => {
+      const update = computeConfidenceUpdate(
+        currentHypothesis.confidence,
+        { discriminativePower: payload.discriminativePower },
+        payload.result,
+      );
+      const entry: EvidenceEntry = {
+        id: generateEvidenceId(hypothesisSessionId, evidenceEntries.length + 1),
+        sessionId: hypothesisSessionId,
+        hypothesisVersion: currentHypothesis.id,
+        test: {
+          id: `lit-${payload.paper.id}`,
+          description: `Literature: ${payload.paper.title}`,
+          type: "literature",
+          discriminativePower: payload.discriminativePower,
+        },
+        predictionIfTrue:
+          currentHypothesis.predictionsIfTrue[0] ??
+          "Literature findings align with proposed causal mechanism",
+        predictionIfFalse:
+          currentHypothesis.predictionsIfFalse[0] ??
+          "Literature findings contradict or fail to support proposed mechanism",
+        result: payload.result,
+        observation: payload.keyFinding,
+        source: payload.paper.doi
+          ? `DOI: ${payload.paper.doi}`
+          : `${payload.paper.authors.join(", ")} (${payload.paper.year ?? "n.d."})`,
+        confidenceBefore: currentHypothesis.confidence,
+        confidenceAfter: update.newConfidence,
+        interpretation: payload.interpretation,
+        recordedAt: new Date(),
+      };
+      void persistEvidenceEntry(entry);
+      setActiveWorkbenchTab("ledger");
+    },
+    [currentHypothesis, hypothesisSessionId, evidenceEntries.length, persistEvidenceEntry],
+  );
 
   const assumptionById = React.useMemo(() => {
     const map = new Map<string, AssumptionLedgerEntry>();
@@ -216,13 +416,14 @@ function TestQueuePageContent({ threadId }: { threadId: string }) {
         impossibleIfTrue: [
           "If a decisive falsification condition occurs, the hypothesis must be rejected or revised.",
         ],
-        confidence: 50,
+        confidence: currentHypothesis.confidence,
       });
 
       const tests = generateExclusionTests(hypothesis);
       setGeneratedTests(tests);
       setSelectedTestIds(new Set());
       setActiveHypothesisId(hypothesis.id);
+      setCurrentHypothesis(hypothesis);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to generate exclusion tests.");
     }
@@ -758,6 +959,88 @@ function TestQueuePageContent({ threadId }: { threadId: string }) {
             })}
           </div>
         )}
+      </section>
+
+      <section className="space-y-4">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h2 className="text-xl font-bold tracking-tight">
+              Evidence &amp; Simulation Workbench
+            </h2>
+            <p className="text-xs text-muted-foreground">
+              Simulate test impact, record experimental observations, import literature citations,
+              and track Bayesian confidence updates.
+            </p>
+          </div>
+          <Badge variant="outline" className="font-mono">
+            Confidence: {currentHypothesis.confidence}%
+          </Badge>
+        </div>
+
+        <Card>
+          <CardContent className="pt-6">
+            <Tabs
+              value={activeWorkbenchTab}
+              onValueChange={(val) =>
+                setActiveWorkbenchTab(
+                  val as "what-if" | "record" | "literature" | "ledger",
+                )
+              }
+            >
+              <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 mb-6">
+                <TabsTrigger value="what-if">What-If Simulator</TabsTrigger>
+                <TabsTrigger value="record">Record Evidence</TabsTrigger>
+                <TabsTrigger value="literature">Literature Search</TabsTrigger>
+                <TabsTrigger value="ledger">
+                  Evidence Ledger ({evidenceEntries.length})
+                </TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="what-if">
+                <WhatIfSimulator
+                  sessionId={hypothesisSessionId}
+                  hypothesisId={currentHypothesis.id}
+                  currentConfidence={currentHypothesis.confidence}
+                  tests={items}
+                  onRunTest={() => setActiveWorkbenchTab("record")}
+                />
+              </TabsContent>
+
+              <TabsContent value="record">
+                <EvidenceRecorder
+                  sessionId={hypothesisSessionId}
+                  hypothesisId={currentHypothesis.id}
+                  currentConfidence={currentHypothesis.confidence}
+                  predefinedTests={
+                    items.length > 0 ? items.map((item) => item.test) : generatedTests
+                  }
+                  evidenceCount={evidenceEntries.length}
+                  onRecordEvidence={(entry) => {
+                    void persistEvidenceEntry(entry);
+                    setActiveWorkbenchTab("ledger");
+                  }}
+                />
+              </TabsContent>
+
+              <TabsContent value="literature">
+                <LiteratureSearch
+                  sessionId={hypothesisSessionId}
+                  hypothesis={currentHypothesis}
+                  currentConfidence={currentHypothesis.confidence}
+                  onRecordEvidence={handleRecordLiteratureEvidence}
+                />
+              </TabsContent>
+
+              <TabsContent value="ledger" className="space-y-6">
+                <ConfidenceChart
+                  entries={evidenceEntries}
+                  initialConfidence={65}
+                />
+                <EvidenceTimeline entries={evidenceEntries} />
+              </TabsContent>
+            </Tabs>
+          </CardContent>
+        </Card>
       </section>
     </div>
   );

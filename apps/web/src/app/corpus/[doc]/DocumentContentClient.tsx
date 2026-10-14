@@ -14,6 +14,7 @@ import { MetapromptViewer } from "@/components/metaprompt/MetapromptViewer";
 import { QuoteBankViewer } from "@/components/quotebank/QuoteBankViewer";
 import { parseRawResponse, RawResponseViewer } from "@/components/raw-response/RawResponseViewer";
 import { TranscriptViewer } from "@/components/transcript/TranscriptViewer";
+import { ReadingProgressWidget } from "@/components/ui/reading-progress-widget";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useCorpusDoc } from "@/hooks/queries";
 import { parseDistillation } from "@/lib/distillation-parser";
@@ -161,38 +162,56 @@ export const DocumentContentClient = memo(function DocumentContentClient({
     return <DocumentSkeleton />;
   }
 
+  let viewer: React.ReactNode = <DocumentSkeleton />;
   switch (docType) {
     case "transcript": {
-      if (!parsedTranscript) return <DocumentSkeleton />;
-      return (
-        <TranscriptViewer
-          data={parsedTranscript}
-          estimatedReadTime={readTime}
-          wordCount={wordCount}
-        />
-      );
+      if (parsedTranscript) {
+        viewer = (
+          <TranscriptViewer
+            data={parsedTranscript}
+            estimatedReadTime={readTime}
+            wordCount={wordCount}
+          />
+        );
+      }
+      break;
     }
 
     case "distillation": {
-      if (!parsedDistillation) return <DocumentSkeleton />;
-      return <DistillationViewer data={parsedDistillation} docId={docId} />;
+      if (parsedDistillation) {
+        viewer = <DistillationViewer data={parsedDistillation} docId={docId} />;
+      }
+      break;
     }
 
     case "quote-bank": {
-      if (!parsedQuoteBank) return <DocumentSkeleton />;
-      return <QuoteBankViewer data={parsedQuoteBank} />;
+      if (parsedQuoteBank) {
+        viewer = <QuoteBankViewer data={parsedQuoteBank} />;
+      }
+      break;
     }
 
     case "metaprompt": {
-      if (!parsedMetaprompt) return <DocumentSkeleton />;
-      return <MetapromptViewer data={parsedMetaprompt} />;
+      if (parsedMetaprompt) {
+        viewer = <MetapromptViewer data={parsedMetaprompt} />;
+      }
+      break;
     }
 
     case "raw-response": {
-      if (!parsedRawResponse) return <DocumentSkeleton />;
-      return <RawResponseViewer data={parsedRawResponse} />;
+      if (parsedRawResponse) {
+        viewer = <RawResponseViewer data={parsedRawResponse} />;
+      }
+      break;
     }
   }
+
+  return (
+    <>
+      {viewer}
+      <ReadingProgressWidget />
+    </>
+  );
 });
 
 DocumentContentClient.displayName = "DocumentContentClient";

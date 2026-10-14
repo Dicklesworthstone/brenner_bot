@@ -96,32 +96,28 @@ function stripAnimationProps<T extends Record<string, unknown>>(props: T): Parti
 // This prevents elements from being stuck at initial opacity: 0
 vi.mock("framer-motion", async () => {
   const actual = await vi.importActual<typeof import("framer-motion")>("framer-motion");
+  const componentCache = new Map<string, React.FC<Record<string, unknown>>>();
+  const motionProxy = new Proxy(
+    {},
+    {
+      get(_target, prop: string) {
+        if (!componentCache.has(prop)) {
+          const Tag = prop as unknown as React.ElementType;
+          const MockMotionComponent: React.FC<Record<string, unknown>> = ({
+            children,
+            ...props
+          }) => <Tag {...stripAnimationProps(props)}>{children as React.ReactNode}</Tag>;
+          MockMotionComponent.displayName = `motion.${prop}`;
+          componentCache.set(prop, MockMotionComponent);
+        }
+        return componentCache.get(prop);
+      },
+    },
+  );
   return {
     ...actual,
     AnimatePresence: ({ children }: { children: React.ReactNode }) => children,
-    motion: {
-      div: ({ children, ...props }: React.ComponentProps<"div">) => (
-        <div {...(stripAnimationProps(props) as React.ComponentProps<"div">)}>{children}</div>
-      ),
-      section: ({ children, ...props }: React.ComponentProps<"section">) => (
-        <section {...(stripAnimationProps(props) as React.ComponentProps<"section">)}>
-          {children}
-        </section>
-      ),
-      span: ({ children, ...props }: React.ComponentProps<"span">) => (
-        <span {...(stripAnimationProps(props) as React.ComponentProps<"span">)}>{children}</span>
-      ),
-      p: ({ children, ...props }: React.ComponentProps<"p">) => (
-        <p {...(stripAnimationProps(props) as React.ComponentProps<"p">)}>{children}</p>
-      ),
-      button: ({ children, ...props }: React.ComponentProps<"button">) => (
-        <button {...(stripAnimationProps(props) as React.ComponentProps<"button">)}>
-          {children}
-        </button>
-      ),
-      a: ({ children, ...props }: React.ComponentProps<"a">) => (
-        <a {...(stripAnimationProps(props) as React.ComponentProps<"a">)}>{children}</a>
-      ),
-    },
+    motion: motionProxy,
   };
 });
+

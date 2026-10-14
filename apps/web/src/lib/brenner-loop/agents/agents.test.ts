@@ -76,20 +76,27 @@ describe("brenner-loop/agents index", () => {
     await expect(loadPrompt("nope" as never)).rejects.toThrow(/Unknown agent role/);
   });
 
-  it("loads prompt content from the role prompts spec when available", async () => {
-    // This test verifies that loadPrompt extracts content between the spec markers.
-    // The test environment reads from the filesystem, so we just verify the
-    // expected behavior: content is extracted from the spec if available.
+  it("loads prompt content from the role prompts spec and dedicated prompt files for all 5 tribunal roles", async () => {
     clearPromptCache();
-    const prompt = await loadPrompt("devils_advocate");
 
-    // If the spec is found on the filesystem with the adversarial_critic marker,
-    // we should get the extracted content. Otherwise we get the placeholder.
-    // Either way, the prompt should be non-empty and relate to the role.
-    expect(prompt.length).toBeGreaterThan(0);
+    for (const role of TRIBUNAL_ORDER) {
+      const prompt = await loadPrompt(role);
+      expect(prompt.length).toBeGreaterThan(500);
+      expect(prompt).not.toContain("[Prompt at:");
+    }
 
-    // The content should contain "ADVERSARIAL CRITIC" (from spec) or fallback path
-    expect(prompt).toMatch(/ADVERSARIAL CRITIC|adversarial|Prompt at:/i);
+    const daPrompt = await loadPrompt("devils_advocate");
+    expect(daPrompt).toMatch(/Devil's Advocate Agent/i);
+    expect(daPrompt).toMatch(/ADVERSARIAL CRITIC/i);
+
+    const statPrompt = await loadPrompt("statistician");
+    expect(statPrompt).toMatch(/# Statistician Agent/);
+
+    const channelerPrompt = await loadPrompt("brenner_channeler");
+    expect(channelerPrompt).toMatch(/# Brenner Channeler Agent/);
+
+    const synthesisPrompt = await loadPrompt("synthesis");
+    expect(synthesisPrompt).toMatch(/# Synthesis Agent/);
 
     clearPromptCache();
   });

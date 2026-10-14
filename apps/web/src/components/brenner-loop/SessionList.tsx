@@ -19,6 +19,10 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import {
   buildSessionPath,
+  createHypothesisCard,
+  createSession,
+  generateHypothesisCardId,
+  generateSessionId,
   importSession,
   listSessionResumeEntries,
   type SessionResumeEntry,
@@ -26,8 +30,12 @@ import {
   type StorageStats,
   sessionStorage,
 } from "@/lib/brenner-loop";
+import type { DomainId } from "@/lib/brenner-loop/domains";
+import { SESSION_TEMPLATES, type SessionTemplate } from "@/lib/brenner-loop/session-templates";
 import { cn } from "@/lib/utils";
+import { DomainSelector } from "./DomainSelector";
 import { SessionCard } from "./SessionCard";
+import { SessionTemplateSelector } from "./SessionTemplateSelector";
 
 // ============================================================================
 // Types
@@ -478,6 +486,17 @@ export function SessionList({ className, onSelect }: SessionListProps) {
   > | null>(null);
   const [isSearching, setIsSearching] = React.useState(false);
 
+  // New local session creator state
+  const [showNewSessionCreator, setShowNewSessionCreator] = React.useState(false);
+  const [selectedTemplate, setSelectedTemplate] = React.useState<SessionTemplate>(
+    () => SESSION_TEMPLATES[0],
+  );
+  const [selectedDomain, setSelectedDomain] = React.useState<DomainId>("psychology");
+  const [newResearchQuestion, setNewResearchQuestion] = React.useState("");
+  const [newHypothesisStatement, setNewHypothesisStatement] = React.useState("");
+  const [newHypothesisMechanism, setNewHypothesisMechanism] = React.useState("");
+  const [isCreatingSession, setIsCreatingSession] = React.useState(false);
+
   const refreshSessions = React.useCallback(async () => {
     const list = await sessionStorage.list();
     setSessions(list);
@@ -807,9 +826,76 @@ export function SessionList({ className, onSelect }: SessionListProps) {
 
   const isStorageWarning = Boolean(storageSummary && storageSummary.pct >= 0.8);
 
+  const handleCreateLocalSession = React.useCallback(async () => {
+    setIsCreatingSession(true);
+    setImportError(null);
+    try {
+      const id = generateSessionId(sessions.map((s) => s.id));
+      const session = createSession({
+        id,
+        researchQuestion: newResearchQuestion.trim() || undefined,
+        theme: selectedTemplate.name,
+        domain: selectedDomain,
+        createdBy: "local-operator",
+      });
+
+      if (newHypothesisStatement.trim()) {
+        const cardId = generateHypothesisCardId(id, 1);
+        const card = createHypothesisCard({
+          id: cardId,
+          statement: newHypothesisStatement.trim(),
+          mechanism:
+            newHypothesisMechanism.trim() ||
+            "Initial causal mechanism to be sharpened via Brenner operators",
+          domain: [selectedDomain],
+          predictionsIfTrue: [
+            "Primary discriminative prediction when mechanism is active",
+          ],
+          predictionsIfFalse: [
+            "Expected baseline outcome if alternative explanation holds",
+          ],
+          impossibleIfTrue: [
+            "Forbidden pattern that would immediately falsify this hypothesis",
+          ],
+          confidence: 50,
+          sessionId: id,
+        });
+        session.hypothesisCards[cardId] = card;
+        session.primaryHypothesisId = cardId;
+        session.phase = "sharpening";
+      }
+
+      await sessionStorage.save(session);
+      await refreshSessions();
+      setShowNewSessionCreator(false);
+      setNewResearchQuestion("");
+      setNewHypothesisStatement("");
+      setNewHypothesisMechanism("");
+      if (onSelect) {
+        onSelect(id);
+      } else {
+        router.push(`/sessions/${id}`);
+      }
+    } catch (err) {
+      setImportError(err instanceof Error ? err.message : "Failed to create local session.");
+    } finally {
+      setIsCreatingSession(false);
+    }
+  }, [
+    sessions,
+    newResearchQuestion,
+    selectedTemplate,
+    selectedDomain,
+    newHypothesisStatement,
+    newHypothesisMechanism,
+    refreshSessions,
+    onSelect,
+    router,
+  ]);
+
   return (
     <div className={cn("flex flex-col gap-4", className)}>
-      {/* Import zone */}
+      {/* Create or Import zone */}
       <div
         className={cn(
           "rounded-2xl border border-dashed border-border bg-muted/20 p-6 transition-colors",
@@ -824,12 +910,18 @@ export function SessionList({ className, onSelect }: SessionListProps) {
       >
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
           <div>
-            <h3 className="text-sm font-medium text-foreground">Import Session</h3>
+            <h3 className="text-sm font-medium text-foreground">Create or Import Local Session</h3>
             <p className="text-xs text-muted-foreground">
-              Drag a session JSON export here, or browse to upload.
+              Launch an interactive browser-persisted Brenner Loop session or drag a JSON export here.
             </p>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <Button
+              size="sm"
+              onClick={() => setShowNewSessionCreator((prev) => !prev)}
+            >
+              {showNewSessionCreator ? "Close Creator" : "+ New Local Session"}
+            </Button>
             <input
               ref={inputRef}
               type="file"
@@ -852,6 +944,109 @@ export function SessionList({ className, onSelect }: SessionListProps) {
           </div>
         )}
       </div>
+
+      {showNewSessionCreator && (
+        <Card className="border-primary/30 bg-card/95 shadow-lg">
+          <CardContent className="p-6 space-y-6">
+            <div className="flex items-start justify-between gap-4 border-b border-border pb-4">
+              <div>
+                <h3 className="text-base font-semibold text-foreground">
+                  Configure New Local Brenner Session
+                </h3>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Choose a protocol template, scientific domain, and optional starting hypothesis.
+                </p>
+              </div>
+              <span className="text-xs font-mono px-2.5 py-1 rounded-md bg-primary/10 text-primary">
+                {selectedTemplate.name} · {selectedDomain}
+              </span>
+            </div>
+
+            <div className="space-y-3">
+              <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                1. Protocol Template
+              </div>
+              <SessionTemplateSelector
+                selectedTemplateId={selectedTemplate.id}
+                onSelectTemplate={setSelectedTemplate}
+              />
+            </div>
+
+            <div className="space-y-3">
+              <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                2. Research Domain
+              </div>
+              <DomainSelector
+                selectedDomain={selectedDomain}
+                onSelect={setSelectedDomain}
+              />
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-2 pt-2 border-t border-border">
+              <div className="space-y-1.5 sm:col-span-2">
+                <label
+                  htmlFor="new-session-research-question"
+                  className="text-xs font-medium text-foreground"
+                >
+                  Research Question (optional)
+                </label>
+                <Input
+                  id="new-session-research-question"
+                  value={newResearchQuestion}
+                  onChange={(e) => setNewResearchQuestion(e.target.value)}
+                  placeholder="e.g., What determines cell fate specification in the developing neural tube?"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <label
+                  htmlFor="new-session-hypothesis-statement"
+                  className="text-xs font-medium text-foreground"
+                >
+                  Initial Hypothesis Statement (optional)
+                </label>
+                <Input
+                  id="new-session-hypothesis-statement"
+                  value={newHypothesisStatement}
+                  onChange={(e) => setNewHypothesisStatement(e.target.value)}
+                  placeholder="e.g., Morphogen gradient threshold directly triggers lineage commitment"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <label
+                  htmlFor="new-session-hypothesis-mechanism"
+                  className="text-xs font-medium text-foreground"
+                >
+                  Proposed Causal Mechanism (optional)
+                </label>
+                <Input
+                  id="new-session-hypothesis-mechanism"
+                  value={newHypothesisMechanism}
+                  onChange={(e) => setNewHypothesisMechanism(e.target.value)}
+                  placeholder="e.g., Concentration-dependent transcription factor occupancy"
+                />
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-3 pt-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowNewSessionCreator(false)}
+                disabled={isCreatingSession}
+              >
+                Cancel
+              </Button>
+              <Button
+                size="sm"
+                onClick={() => void handleCreateLocalSession()}
+                disabled={isCreatingSession}
+              >
+                {isCreatingSession ? "Creating Session..." : "Launch Local Session"}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Storage usage + lifecycle controls */}
       {storageSummary && (

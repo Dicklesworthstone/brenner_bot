@@ -5,7 +5,13 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState, useTransition } from "react";
 import { DemoFeaturePreview } from "@/components/sessions/DemoFeaturePreview";
-import { recordSessionResumeEntry } from "@/lib/brenner-loop";
+import {
+  loadTestQueue,
+  recordSessionResumeEntry,
+  type Session,
+  sessionStorage,
+  type TestQueueItem,
+} from "@/lib/brenner-loop";
 import { isDemoThreadId, normalizeThreadId } from "@/lib/demo-mode";
 
 // ============================================================================
@@ -799,6 +805,100 @@ export default function BriefPage() {
   return <BriefPageContent threadId={threadId} />;
 }
 
+const buildSessionBriefSections = (
+  session: Session | null,
+  testQueue: TestQueueItem[],
+): BriefSection[] => {
+  if (!session) return BASE_BRIEF_SECTIONS;
+
+  const cards = Object.values(session.hypothesisCards ?? {});
+  const hypothesisSection: BriefSection =
+    cards.length > 0
+      ? {
+          ...BASE_BRIEF_SECTIONS[0],
+          status: cards.length >= 2 ? "complete" : "partial",
+          items: cards.map(
+            (card, idx) =>
+              `H${idx + 1} (${card.id}): ${card.statement} [${card.confidence}% confidence]`,
+          ),
+          summary: `${cards.length} competing ${cards.length === 1 ? "hypothesis" : "hypotheses"} tracked in session`,
+        }
+      : BASE_BRIEF_SECTIONS[0];
+
+  const exclusionTests = (session.operatorApplications?.exclusionTest ?? []).flatMap(
+    (r) => r.designedTests ?? [],
+  );
+  const testItems =
+    testQueue.length > 0
+      ? testQueue.map(
+          (t) =>
+            `${t.test.name} (${t.priority.toUpperCase()}, ${t.status}) → ${t.test.description} [${t.hypothesisId}]`,
+        )
+      : exclusionTests.map((t) => `${t.name}: ${t.procedure}`);
+  const testSection: BriefSection =
+    testItems.length > 0
+      ? {
+          ...BASE_BRIEF_SECTIONS[1],
+          status:
+            testQueue.some((t) => Boolean(t.predictionsLockedAt)) || exclusionTests.length > 0
+              ? "complete"
+              : "partial",
+          items: testItems,
+          summary: `${testItems.length} discriminative ${testItems.length === 1 ? "test" : "tests"} designed for this session`,
+        }
+      : BASE_BRIEF_SECTIONS[1];
+
+  const confounds = cards.flatMap((c) => c.confounds ?? []);
+  const unaddressedConfounds = confounds.filter((c) => !c.addressed).length;
+  const assumptionSection: BriefSection =
+    confounds.length > 0
+      ? {
+          ...BASE_BRIEF_SECTIONS[2],
+          status: unaddressedConfounds === 0 ? "complete" : "partial",
+          items: confounds.map(
+            (cf, idx) =>
+              `A${idx + 1}: ${cf.name} — ${cf.description} (${Math.round(cf.likelihood * 100)}% likelihood${cf.addressed ? ", ADDRESSED" : ""})`,
+          ),
+          summary: `${confounds.length} ${confounds.length === 1 ? "assumption/confound" : "assumptions/confounds"} tracked, ${unaddressedConfounds} require validation`,
+        }
+      : BASE_BRIEF_SECTIONS[2];
+
+  const agentResponses = session.agentResponses ?? [];
+  const critiqueSection: BriefSection =
+    agentResponses.length > 0
+      ? {
+          ...BASE_BRIEF_SECTIONS[3],
+          status: "complete",
+          items: agentResponses.map(
+            (r) => `${r.agentName} (${r.role}): ${r.summary || (r.body ?? "").slice(0, 120)}`,
+          ),
+          summary: `${agentResponses.length} tribunal agent ${agentResponses.length === 1 ? "critique" : "critiques"} recorded`,
+        }
+      : BASE_BRIEF_SECTIONS[3];
+
+  const evidenceEntries = session.evidenceLedger ?? [];
+  const evidenceSection: BriefSection =
+    evidenceEntries.length > 0
+      ? {
+          ...BASE_BRIEF_SECTIONS[4],
+          status: evidenceEntries.every((e) => e.potencyCheckPassed) ? "complete" : "partial",
+          items: evidenceEntries.map(
+            (e) =>
+              `[${(e.result ?? "recorded").toUpperCase()}] ${e.observation} (Potency check: ${e.potencyCheckPassed ? "PASSED" : "PENDING"})`,
+          ),
+          summary: `${evidenceEntries.length} evidence ${evidenceEntries.length === 1 ? "entry" : "entries"} logged in ledger`,
+        }
+      : BASE_BRIEF_SECTIONS[4];
+
+  return [
+    hypothesisSection,
+    testSection,
+    assumptionSection,
+    critiqueSection,
+    evidenceSection,
+  ];
+};
+
 function BriefPageContent({ threadId }: { threadId: string }) {
   const router = useRouter();
 
@@ -811,10 +911,15 @@ function BriefPageContent({ threadId }: { threadId: string }) {
   );
   const [exportingFormat, setExportingFormat] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [shared, setShared] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
   const [lastUpdatedAt, setLastUpdatedAt] = useState(() => Date.now());
   const [now, setNow] = useState(() => Date.now());
   const [isRefreshing, startRefresh] = useTransition();
+  const [baseSections, setBaseSections] = useState<BriefSection[]>(BASE_BRIEF_SECTIONS);
   const [objectionSection, setObjectionSection] = useState<BriefSection | null>(null);
+  const [sessionVersion, setSessionVersion] = useState<string>("v1.3");
+  const [citationCount, setCitationCount] = useState<number>(12);
 
   useEffect(() => {
     const intervalId = setInterval(() => {
@@ -836,12 +941,34 @@ function BriefPageContent({ threadId }: { threadId: string }) {
   };
 
   useEffect(() => {
-    setObjectionSection(buildObjectionRegisterBriefSection(threadId));
+    let cancelled = false;
+    async function hydrateBrief() {
+      setObjectionSection(buildObjectionRegisterBriefSection(threadId));
+      try {
+        const loadedSession = await sessionStorage.load(threadId);
+        const loadedQueue = loadTestQueue(threadId);
+        if (!cancelled && loadedSession) {
+          setBaseSections(buildSessionBriefSections(loadedSession, loadedQueue));
+          setSessionVersion(`v1.${Math.max(1, loadedSession.commits?.length ?? 1)}`);
+          const quotesCount = loadedSession.attachedQuotes?.length ?? 0;
+          const evidenceCount = loadedSession.evidenceLedger?.length ?? 0;
+          if (quotesCount + evidenceCount > 0) {
+            setCitationCount(quotesCount + evidenceCount);
+          }
+        }
+      } catch {
+        // Ignore storage errors and keep fallback sections
+      }
+    }
+    void hydrateBrief();
+    return () => {
+      cancelled = true;
+    };
   }, [threadId]);
 
   const briefSections = objectionSection
-    ? [...BASE_BRIEF_SECTIONS, objectionSection]
-    : BASE_BRIEF_SECTIONS;
+    ? [...baseSections, objectionSection]
+    : baseSections;
 
   const handleExport = async (formatId: string) => {
     setExportingFormat(formatId);
@@ -913,8 +1040,35 @@ function BriefPageContent({ threadId }: { threadId: string }) {
     }
   };
 
+  const handleShare = async () => {
+    try {
+      const shareUrl =
+        typeof window !== "undefined" ? window.location.href : `/sessions/${threadId}/brief`;
+      if (typeof navigator !== "undefined" && navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(shareUrl);
+      }
+      setShared(true);
+      setTimeout(() => setShared(false), 2000);
+    } catch {
+      setShared(true);
+      setTimeout(() => setShared(false), 2000);
+    }
+  };
+
+  const handlePrint = () => {
+    if (typeof window !== "undefined" && typeof window.print === "function") {
+      window.print();
+    }
+  };
+
   const handleRefresh = () => {
     startRefresh(() => {
+      setObjectionSection(buildObjectionRegisterBriefSection(threadId));
+      void sessionStorage.load(threadId).then((loadedSession) => {
+        if (loadedSession) {
+          setBaseSections(buildSessionBriefSections(loadedSession, loadTestQueue(threadId)));
+        }
+      });
       router.refresh();
       setLastUpdatedAt(Date.now());
     });
@@ -923,6 +1077,12 @@ function BriefPageContent({ threadId }: { threadId: string }) {
   const completedSections = briefSections.filter((s) => s.status === "complete").length;
   const qualityScore = Math.round((completedSections / briefSections.length) * 100);
   const lastUpdatedLabel = formatRelativeTime(lastUpdatedAt, now);
+  const previewMarkdown = renderBriefMarkdown({
+    threadId,
+    generatedAt: new Date(lastUpdatedAt).toISOString(),
+    qualityScore,
+    sections: briefSections,
+  });
 
   return (
     <div className="max-w-6xl mx-auto">
@@ -1024,6 +1184,30 @@ function BriefPageContent({ threadId }: { threadId: string }) {
             </button>
           </motion.div>
 
+          {/* Markdown Preview Panel */}
+          {showPreview && (
+            <div
+              data-testid="brief-markdown-preview"
+              className="rounded-xl border border-primary/30 bg-card p-5 space-y-3"
+            >
+              <div className="flex items-center justify-between">
+                <h2 className="text-sm font-semibold text-foreground">
+                  Markdown Artifact Preview
+                </h2>
+                <button
+                  type="button"
+                  onClick={() => setShowPreview(false)}
+                  className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  Close Preview
+                </button>
+              </div>
+              <pre className="p-3 rounded-lg bg-muted/60 border border-border text-xs font-mono text-foreground whitespace-pre-wrap overflow-x-auto max-h-80 overflow-y-auto">
+                {previewMarkdown}
+              </pre>
+            </div>
+          )}
+
           {/* Brief Sections */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -1109,8 +1293,8 @@ function BriefPageContent({ threadId }: { threadId: string }) {
             <div className="grid grid-cols-2 gap-2">
               <QuickAction
                 icon={<EyeIcon className="size-5" />}
-                label="Preview"
-                onClick={() => {}}
+                label={showPreview ? "Hide Preview" : "Preview"}
+                onClick={() => setShowPreview((prev) => !prev)}
               />
               <QuickAction
                 icon={
@@ -1124,14 +1308,20 @@ function BriefPageContent({ threadId }: { threadId: string }) {
                 onClick={handleCopy}
               />
               <QuickAction
-                icon={<ShareIcon className="size-5" />}
-                label="Share"
-                onClick={() => {}}
+                icon={
+                  shared ? (
+                    <CheckCircleIcon className="size-5 text-emerald-500" />
+                  ) : (
+                    <ShareIcon className="size-5" />
+                  )
+                }
+                label={shared ? "Shared!" : "Share"}
+                onClick={handleShare}
               />
               <QuickAction
                 icon={<PrinterIcon className="size-5" />}
                 label="Print"
-                onClick={() => {}}
+                onClick={handlePrint}
               />
             </div>
           </div>
@@ -1150,7 +1340,7 @@ function BriefPageContent({ threadId }: { threadId: string }) {
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Version</span>
-                <span className="text-foreground font-mono">v1.3</span>
+                <span className="text-foreground font-mono">{sessionVersion}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Word Count</span>
@@ -1158,7 +1348,7 @@ function BriefPageContent({ threadId }: { threadId: string }) {
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Sources</span>
-                <span className="text-foreground">12 citations</span>
+                <span className="text-foreground">{citationCount} citations</span>
               </div>
             </div>
           </div>

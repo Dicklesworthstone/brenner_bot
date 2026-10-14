@@ -1,6 +1,8 @@
 import Link from "next/link";
+import { GetStartedSection } from "@/components/home/get-started-section";
 import { NtmSkillShowcase } from "@/components/home/ntm-skill-showcase";
 import { StatsSection } from "@/components/home/stats-section";
+import { TechnicalArchitectureSection } from "@/components/home/technical-architecture-section";
 import { Jargon } from "@/components/jargon";
 import { WhatIsThis } from "@/components/onboarding/WhatIsThis";
 import { HeroBackground } from "@/components/ui/animated-element";
@@ -1748,6 +1750,9 @@ const result = brennerPipeline(hypothesis, context);`}</code>
         </section>
       )}
 
+      {/* Technical Architecture Section */}
+      <TechnicalArchitectureSection />
+
       {/* Stats/Info Section */}
       <StatsSection />
 
@@ -1771,6 +1776,9 @@ const result = brennerPipeline(hypothesis, context);`}</code>
           </footer>
         </blockquote>
       </section>
+
+      {/* Get Started & Conversion Section */}
+      <GetStartedSection />
 
       {/* Mobile Sticky CTA - positioned cleanly above the 64px BottomNav */}
       <div className="sm:hidden fixed bottom-[calc(4.75rem+env(safe-area-inset-bottom))] left-4 right-4 z-40">

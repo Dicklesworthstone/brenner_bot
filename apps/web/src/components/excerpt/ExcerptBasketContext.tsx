@@ -193,6 +193,10 @@ export function useExcerptBasket() {
   return context;
 }
 
+export function useOptionalExcerptBasket() {
+  return React.useContext(BasketContext);
+}
+
 // ============================================================================
 // Trigger
 // ============================================================================

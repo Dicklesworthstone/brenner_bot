@@ -48,10 +48,25 @@ import {
 } from "@/lib/brenner-loop";
 import type { EvidenceEntry as FullEvidenceEntry } from "@/lib/brenner-loop/evidence";
 import {
+  detectConfounds,
+  getConfoundQuestions,
+  getSupportedDomains,
+  type ResearchDomain,
+} from "@/lib/brenner-loop/confound-detection";
+import {
   createFalsifiedHypothesis,
   type FalsifiedHypothesis,
   generateGraveyardId,
 } from "@/lib/brenner-loop/graveyard";
+import {
+  addRootHypothesis,
+  createHistoryStore,
+  diffHypotheses,
+  EVOLUTION_TRIGGER_LABELS,
+  evolveHypothesis,
+  generateEvolutionGraph,
+  getEvolutionStats,
+} from "@/lib/brenner-loop/hypothesis-history";
 import {
   HYPOTHESIS_TEMPLATES,
   type HypothesisTemplate,
@@ -799,6 +814,85 @@ function HypothesisPageContent({ threadId }: { threadId: string }) {
     };
   }, [hypothesis, competitorHypothesis, sessionEvidence]);
 
+  const [selectedConfoundDomain, setSelectedConfoundDomain] = React.useState<
+    ResearchDomain | undefined
+  >(undefined);
+
+  const confoundDetection = React.useMemo(() => {
+    const result = detectConfounds(hypothesis, {
+      threshold: 0.2,
+      maxConfounds: 4,
+      forceDomain: selectedConfoundDomain,
+    });
+    const topTemplateId = result.confounds[0]?.id
+      .replace(/^auto-/, "")
+      .replace(/-\d+$/, "");
+    const probingQuestions = topTemplateId
+      ? getConfoundQuestions(topTemplateId, result.detectedDomain)
+      : [];
+    return {
+      ...result,
+      probingQuestions,
+      supportedDomains: getSupportedDomains(),
+    };
+  }, [hypothesis, selectedConfoundDomain]);
+
+  const evolutionGraphData = React.useMemo(() => {
+    const initialStore = createHistoryStore();
+    const baselineCard = createHypothesisCard({
+      id: generateHypothesisCardId(safeSessionId, 1, 1),
+      statement:
+        hypothesis.version > 1
+          ? `${hypothesis.statement.split("—")[0].trim()} (Initial baseline v1)`
+          : hypothesis.statement,
+      mechanism:
+        hypothesis.version > 1
+          ? "Initial unrefined mechanism prior to exclusion test"
+          : hypothesis.mechanism,
+      domain: hypothesis.domain,
+      predictionsIfTrue: hypothesis.predictionsIfTrue.slice(0, 1),
+      predictionsIfFalse: hypothesis.predictionsIfFalse.slice(0, 1),
+      impossibleIfTrue: hypothesis.impossibleIfTrue.slice(0, 1),
+      confidence: Math.max(25, hypothesis.confidence - 15),
+      sessionId: safeSessionId,
+    });
+
+    const { version: rootVersion, store: storeWithRoot } = addRootHypothesis(
+      initialStore,
+      baselineCard,
+      "Initial hypothesis formulation from research paradox",
+      "operator",
+    );
+
+    const { version: refinedVersion, store: storeWithEvolved } = evolveHypothesis(
+      storeWithRoot,
+      rootVersion.id,
+      {
+        statement: hypothesis.statement,
+        mechanism: hypothesis.mechanism,
+        predictionsIfTrue: hypothesis.predictionsIfTrue,
+        predictionsIfFalse: hypothesis.predictionsIfFalse,
+        impossibleIfTrue: hypothesis.impossibleIfTrue,
+        confidence: hypothesis.confidence,
+      },
+      "exclusion_test",
+      "Refined mechanism and discriminative falsifiers via Exclusion Test (⊘)",
+      "operator",
+    );
+
+    const diff = diffHypotheses(rootVersion.hypothesis, refinedVersion.hypothesis);
+    const graph = generateEvolutionGraph(storeWithEvolved);
+    const stats = getEvolutionStats(storeWithEvolved);
+
+    return {
+      diff,
+      graph,
+      stats,
+      rootVersion,
+      refinedVersion,
+    };
+  }, [hypothesis, safeSessionId]);
+
   const persistHypothesisToSession = React.useCallback(
     async (nextPrimary: HypothesisCard, nextCompetitor?: HypothesisCard) => {
       try {
@@ -1539,8 +1633,74 @@ function HypothesisPageContent({ threadId }: { threadId: string }) {
                     </div>
                   </CollapsibleTrigger>
                   <CollapsibleContent>
-                    <CardContent className="pt-0">
+                    <CardContent className="pt-0 space-y-4">
                       <EvolutionTimeline events={evolutionEvents} />
+
+                      {evolutionGraphData.diff && (
+                        <div
+                          data-testid="hypothesis-version-diff"
+                          className="rounded-xl border border-border bg-muted/20 p-4 space-y-3"
+                        >
+                          <div className="flex flex-wrap items-center justify-between gap-2">
+                            <div className="text-xs font-semibold text-foreground">
+                              Lineage Version Diff ({evolutionGraphData.diff.fromId} →{" "}
+                              {evolutionGraphData.diff.toId})
+                            </div>
+                            <div className="flex items-center gap-1.5">
+                              <Badge variant="outline" className="text-[11px] font-mono">
+                                {evolutionGraphData.stats.totalVersions} versions · depth{" "}
+                                {evolutionGraphData.stats.maxDepth}
+                              </Badge>
+                              <Badge variant="secondary" className="text-[11px] font-mono">
+                                Δconf{" "}
+                                {evolutionGraphData.diff.summary.confidenceDelta >= 0 ? "+" : ""}
+                                {evolutionGraphData.diff.summary.confidenceDelta}%
+                              </Badge>
+                            </div>
+                          </div>
+
+                          <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                            <span>
+                              {evolutionGraphData.diff.summary.fieldsChanged} fields changed
+                            </span>
+                            <span>•</span>
+                            <span>
+                              +{evolutionGraphData.diff.summary.predictionsAdded} predictions added
+                            </span>
+                            {evolutionGraphData.graph.edges[0] && (
+                              <>
+                                <span>•</span>
+                                <span className="font-mono text-primary">
+                                  Trigger:{" "}
+                                  {
+                                    EVOLUTION_TRIGGER_LABELS[
+                                      evolutionGraphData.graph.edges[0].trigger
+                                    ]
+                                  }
+                                </span>
+                              </>
+                            )}
+                          </div>
+
+                          {evolutionGraphData.diff.changes.length > 0 && (
+                            <div className="space-y-1.5">
+                              {evolutionGraphData.diff.changes.slice(0, 3).map((change, idx) => (
+                                <div
+                                  key={`${change.field}-${idx}`}
+                                  className="text-xs rounded-lg border border-border/60 bg-background/60 p-2 flex items-center justify-between gap-2"
+                                >
+                                  <span className="font-mono font-medium text-foreground">
+                                    {change.field}
+                                  </span>
+                                  <Badge variant="outline" className="text-[10px] uppercase">
+                                    {change.changeType}
+                                  </Badge>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </CardContent>
                   </CollapsibleContent>
                 </Card>
@@ -1763,6 +1923,76 @@ function HypothesisPageContent({ threadId }: { threadId: string }) {
                       Arena avg: {robustnessOverview.aggregate.averageScore}/100
                     </span>
                   </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+
+            {/* Domain Confound Detection Card */}
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.24 }}
+            >
+              <Card data-testid="hypothesis-confounds-card">
+                <CardHeader className="pb-2">
+                  <div className="flex items-center justify-between gap-2">
+                    <CardTitle className="text-lg">Domain Confound Detector</CardTitle>
+                    <Badge variant="secondary" className="font-mono text-xs">
+                      {confoundDetection.detectedDomain} (
+                      {Math.round(confoundDetection.domainConfidence * 100)}%)
+                    </Badge>
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-3 text-xs">
+                  <p className="text-muted-foreground">{confoundDetection.summary}</p>
+
+                  <div className="flex flex-wrap gap-1">
+                    {confoundDetection.supportedDomains.slice(0, 5).map((dom) => (
+                      <button
+                        key={dom}
+                        type="button"
+                        onClick={() =>
+                          setSelectedConfoundDomain((prev) => (prev === dom ? undefined : dom))
+                        }
+                        className={cn(
+                          "px-2 py-0.5 rounded text-[11px] font-mono border transition-colors",
+                          (selectedConfoundDomain ?? confoundDetection.detectedDomain) === dom
+                            ? "border-primary bg-primary/10 text-primary"
+                            : "border-border bg-muted/20 text-muted-foreground hover:text-foreground",
+                        )}
+                      >
+                        {dom}
+                      </button>
+                    ))}
+                  </div>
+
+                  <div className="space-y-2">
+                    {confoundDetection.confounds.map((cf) => (
+                      <div
+                        key={cf.id}
+                        className="rounded-lg border border-amber-500/25 bg-amber-500/5 p-2.5 space-y-1"
+                      >
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="font-semibold text-foreground">{cf.name}</span>
+                          <span className="font-mono text-[11px] text-amber-600 dark:text-amber-400">
+                            {Math.round(cf.likelihood * 100)}% risk
+                          </span>
+                        </div>
+                        <p className="text-muted-foreground leading-relaxed">{cf.description}</p>
+                      </div>
+                    ))}
+                  </div>
+
+                  {confoundDetection.probingQuestions.length > 0 && (
+                    <div className="pt-2 border-t border-border/60 space-y-1">
+                      <div className="font-medium text-foreground">
+                        Diagnostic Probing Question:
+                      </div>
+                      <p className="italic text-muted-foreground">
+                        “{confoundDetection.probingQuestions[0]}”
+                      </p>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             </motion.div>

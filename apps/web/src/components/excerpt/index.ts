@@ -8,4 +8,5 @@ export {
   ExcerptBasketProvider,
   ExcerptBasketTrigger,
   useExcerptBasket,
+  useOptionalExcerptBasket,
 } from "./ExcerptBasketContext";

@@ -21,9 +21,12 @@ import { nowMs, trackSystemLatency } from "@/lib/analytics";
 import {
   buildSessionPath,
   exportSession,
+  getActivePersonasForPhase,
   getPhaseName,
   getPhaseSymbol,
+  getSessionProgress,
   getSessionResumeEntry,
+  mapSessionPhaseToPersonaGroup,
   recordSessionResumeEntry,
   SESSION_RESUME_LOCATION_LABELS,
   type Session,
@@ -31,8 +34,13 @@ import {
   type SessionResumeEntry,
   type SessionResumeLocation,
   sessionStorage,
+  useSessionMachine,
 } from "@/lib/brenner-loop";
 import { CoachProvider } from "@/lib/brenner-loop/coach-context";
+import {
+  getHypothesisCounts,
+  hasThirdAlternative,
+} from "@/lib/brenner-loop/sessionHypothesis";
 import { cn } from "@/lib/utils";
 
 export interface LocalSessionHubProps {
@@ -163,6 +171,29 @@ export function LocalSessionHub({ sessionId, className }: LocalSessionHubProps) 
 
   const primaryHypothesis = session ? getPrimaryHypothesisPreview(session) : null;
   const phaseSymbol = session ? getPhaseSymbol(session.phase) : null;
+
+  const machine = useSessionMachine(session, {
+    onSessionUpdate: (updated) => {
+      setSession(updated);
+      void sessionStorage.save(updated);
+    },
+  });
+
+  const machineDiagnostics = React.useMemo(() => {
+    if (!session) return null;
+    const counts = getHypothesisCounts(session);
+    const thirdAltReady = hasThirdAlternative(session);
+    const personaGroup = mapSessionPhaseToPersonaGroup(session.phase) ?? "intake";
+    const activePersonas = getActivePersonasForPhase(session.phase);
+    const progress = getSessionProgress(session.phase);
+    return {
+      counts,
+      thirdAltReady,
+      personaGroup,
+      activePersonas,
+      progress,
+    };
+  }, [session]);
 
   const suggestedLocation = React.useMemo(() => {
     if (resumeEntry?.location && resumeEntry.location !== "overview") return resumeEntry.location;
@@ -427,6 +458,60 @@ export function LocalSessionHub({ sessionId, className }: LocalSessionHubProps) 
                   </div>
                 </CardContent>
               </Card>
+
+              {machine && machineDiagnostics && (
+                <Card data-testid="session-machine-diagnostics">
+                  <CardHeader className="pb-3">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <div>
+                        <CardTitle className="text-base">
+                          State Machine &amp; Hypothesis Containment Diagnostics
+                        </CardTitle>
+                        <CardDescription>{machine.phaseDescription}</CardDescription>
+                      </div>
+                      <div className="flex items-center gap-2 text-xs font-mono">
+                        <span className="px-2 py-0.5 rounded bg-primary/10 text-primary">
+                          Progress {machineDiagnostics.progress}%
+                        </span>
+                        <span className="px-2 py-0.5 rounded bg-muted text-muted-foreground">
+                          {machineDiagnostics.counts.total} Hypotheses (
+                          {machineDiagnostics.counts.primary}P /{" "}
+                          {machineDiagnostics.counts.alternatives}A /{" "}
+                          {machineDiagnostics.counts.archived}X)
+                        </span>
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="grid sm:grid-cols-3 gap-3 text-xs">
+                    <div className="rounded-lg border border-border bg-muted/20 p-3 space-y-1">
+                      <div className="font-semibold text-foreground">Reachable Transitions</div>
+                      <div className="text-muted-foreground font-mono">
+                        {machine.reachablePhases.map((p) => getPhaseName(p)).join(" → ") ||
+                          "Terminal phase"}
+                      </div>
+                    </div>
+                    <div className="rounded-lg border border-border bg-muted/20 p-3 space-y-1">
+                      <div className="font-semibold text-foreground">
+                        Third Alternative Invariant (§103)
+                      </div>
+                      <div className="text-muted-foreground">
+                        {machineDiagnostics.thirdAltReady
+                          ? `${machineDiagnostics.counts.alternatives} competing alternative(s) active`
+                          : "No competing alternative registered yet"}
+                      </div>
+                    </div>
+                    <div className="rounded-lg border border-border bg-muted/20 p-3 space-y-1">
+                      <div className="font-semibold text-foreground">
+                        Active Tribunal Personas ({machineDiagnostics.personaGroup})
+                      </div>
+                      <div className="text-muted-foreground">
+                        {machineDiagnostics.activePersonas.map((p) => p.displayName).join(", ") ||
+                          "Operator intake mode"}
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
 
               <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                 <Link href={`/sessions/${session.id}/hypothesis`} className="block">

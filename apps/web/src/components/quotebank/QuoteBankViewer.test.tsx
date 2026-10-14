@@ -7,7 +7,7 @@
  * Run with: cd apps/web && bun run test -- src/components/quotebank/QuoteBankViewer.test.tsx
  */
 
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { ParsedQuoteBank, Quote } from "@/lib/quotebank-parser";
 import { QuoteBankViewer } from "./QuoteBankViewer";
@@ -471,5 +471,14 @@ describe("Quote Content Rendering", () => {
 
     // JargonText is used, quote should still be visible
     expect(container.textContent).toContain("third alternative");
+  });
+
+  it("adds quote to Excerpt Basket when + Basket button is clicked", () => {
+    render(<QuoteBankViewer data={minimalQuoteBank} />);
+
+    const basketBtn = screen.getByTestId("quotebank-add-basket-§103");
+    expect(basketBtn).toHaveTextContent("+ Basket");
+    fireEvent.click(basketBtn);
+    expect(screen.getByTestId("quotebank-add-basket-§103")).toHaveTextContent("✓ In Basket");
   });
 });

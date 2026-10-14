@@ -7,7 +7,7 @@
  * Run with: cd apps/web && bun run test -- src/components/transcript/TranscriptViewer.test.tsx
  */
 
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type {
   ParsedTranscript,
@@ -470,5 +470,18 @@ describe("TranscriptViewer Accessibility", () => {
 
     const heroContainer = container.firstChild as HTMLElement;
     expect(heroContainer).toHaveAttribute("aria-hidden", "true");
+  });
+
+  it("TranscriptSection adds section to Excerpt Basket when + Basket is clicked", () => {
+    const section = createTestSection(103, "Third Alternative", [
+      createTestContent("brenner-quote", "Both could be wrong."),
+    ]);
+
+    render(<TranscriptSection section={section} isActive={true} />);
+
+    const basketBtn = screen.getByTestId("transcript-add-basket-103");
+    expect(basketBtn).toHaveTextContent("+ Basket");
+    fireEvent.click(basketBtn);
+    expect(screen.getByTestId("transcript-add-basket-103")).toHaveTextContent("✓ In Basket");
   });
 });

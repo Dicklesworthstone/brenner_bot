@@ -2,6 +2,7 @@
 
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useOptionalExcerptBasket } from "@/components/excerpt";
 import { JargonText } from "@/components/jargon-text";
 import { useSearch as useGlobalSearch } from "@/components/search";
 import { CopyButton } from "@/components/ui/copy-button";
@@ -453,6 +454,19 @@ export function TranscriptSection({
   const anchor = `§${section.number}`;
   const citation = buildTranscriptSectionCitation(section);
   const excerptBlock = useMemo(() => buildSectionExcerptBlock(section), [section]);
+  const basket = useOptionalExcerptBasket();
+  const [localAdded, setLocalAdded] = useState(false);
+  const inBasket =
+    localAdded || Boolean(basket?.items.some((item) => item.anchor === anchor));
+
+  const handleAddToBasket = () => {
+    setLocalAdded(true);
+    basket?.addItem({
+      anchor,
+      quote: extractSectionQuote(section, 150),
+      title: section.title,
+    });
+  };
 
   return (
     <section
@@ -485,6 +499,15 @@ export function TranscriptSection({
 
         {/* Copy actions (always visible on mobile, hover-to-show on desktop) */}
         <div className="flex flex-wrap items-center justify-end gap-2 pt-1 opacity-100 lg:opacity-0 lg:group-hover/section:opacity-100 lg:group-focus-within/section:opacity-100 transition-opacity">
+          <button
+            type="button"
+            data-testid={`transcript-add-basket-${section.number}`}
+            onClick={handleAddToBasket}
+            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium border border-border bg-card hover:bg-primary/10 hover:text-primary hover:border-primary/30 text-muted-foreground transition-colors"
+            title={inBasket ? "Added to Excerpt Basket" : "Add section to Excerpt Basket"}
+          >
+            {inBasket ? "✓ In Basket" : "+ Basket"}
+          </button>
           <CopyButton
             text={citation}
             variant="badge"

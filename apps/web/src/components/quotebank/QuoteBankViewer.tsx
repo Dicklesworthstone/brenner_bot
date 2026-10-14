@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useOptionalExcerptBasket } from "@/components/excerpt";
 import { JargonText } from "@/components/jargon-text";
 import { CopyButton, ReferenceCopyButton } from "@/components/ui/copy-button";
 import { useDebounce } from "@/hooks/useDebounce";
@@ -270,6 +271,20 @@ interface QuoteCardProps {
 }
 
 function QuoteCard({ quote, isHighlighted, onTagClick }: QuoteCardProps) {
+  const basket = useOptionalExcerptBasket();
+  const [localAdded, setLocalAdded] = useState(false);
+  const inBasket =
+    localAdded || Boolean(basket?.items.some((item) => item.anchor === quote.sectionId));
+
+  const handleAddToBasket = () => {
+    setLocalAdded(true);
+    basket?.addItem({
+      anchor: quote.sectionId,
+      quote: quote.quote,
+      title: quote.title,
+    });
+  };
+
   return (
     <article
       className={`
@@ -285,8 +300,17 @@ function QuoteCard({ quote, isHighlighted, onTagClick }: QuoteCardProps) {
       {/* Accent gradient bar */}
       <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-amber-500 via-orange-500 to-amber-600 opacity-60 group-hover:opacity-100 transition-opacity" />
 
-      {/* Reference badge - clickable to copy */}
-      <div className="absolute top-3 right-3 sm:top-4 sm:right-4 z-10">
+      {/* Reference badge + Excerpt Basket button */}
+      <div className="absolute top-3 right-3 sm:top-4 sm:right-4 z-10 flex items-center gap-1.5">
+        <button
+          type="button"
+          data-testid={`quotebank-add-basket-${quote.sectionId}`}
+          onClick={handleAddToBasket}
+          className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs font-medium border border-border/70 bg-background/80 hover:bg-primary/10 hover:text-primary hover:border-primary/30 text-muted-foreground transition-colors"
+          title={inBasket ? "Added to Excerpt Basket" : "Add quote to Excerpt Basket"}
+        >
+          {inBasket ? "✓ In Basket" : "+ Basket"}
+        </button>
         <ReferenceCopyButton
           reference={quote.sectionId}
           quoteText={quote.quote}

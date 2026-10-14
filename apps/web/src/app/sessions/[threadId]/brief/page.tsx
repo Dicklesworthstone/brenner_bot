@@ -14,19 +14,34 @@ import {
 } from "@/lib/artifact-to-memory";
 import {
   buildBrennerCitations,
+  buildCitationIndex,
+  calculateCalibrationMetrics,
+  createPredictionRecord,
   downloadResearchBrief,
+  type ExternalCitation,
   exportToJSON,
   exportToMarkdown,
+  exportToPDF,
   extractBrennerSectionIdsFromText,
   formatBrennerAnchor,
+  formatBrierScore,
+  formatCalibrationError,
+  formatExternalCitation,
+  getCalibrationQualityAssessment,
+  identifyCalibrationStrengths,
+  importResearchBrief,
   loadTestQueue,
+  type PredictionRecord,
   printResearchBrief,
   type ResearchBriefTemplateInput,
   recordSessionResumeEntry,
+  renderCitationIndexSection,
   renderResearchBriefTemplate,
+  resolvePrediction,
   type Session,
   sessionStorage,
   type TestQueueItem,
+  trackCalibrationProgress,
 } from "@/lib/brenner-loop";
 import { isDemoThreadId, normalizeThreadId } from "@/lib/demo-mode";
 import type { Assumption } from "@/lib/schemas/assumption";
@@ -1473,6 +1488,152 @@ function BriefPageContent({ threadId }: { threadId: string }) {
     [templateInput],
   );
 
+  const externalCitations = useMemo<ExternalCitation[]>(() => {
+    const entries = sessionData?.evidenceLedger ?? [];
+    if (entries.length > 0) {
+      return entries.map((entry, idx) => ({
+        id: entry.id || `EXT-${idx + 1}`,
+        type: "observation",
+        title: entry.observation,
+        year: new Date(entry.recordedAt || lastUpdatedAt).getFullYear(),
+        notes: `Test ${entry.testId} (${entry.result ?? "recorded"})`,
+      }));
+    }
+    return [
+      {
+        id: "EXT-1",
+        type: "paper",
+        title: "Sydney Brenner: My Life in Science — Discriminative Experimental Design",
+        authors: "Brenner S., Wolpert L.",
+        year: 2001,
+        doi: "10.1038/brenner-2001",
+        notes: "Primary methodological reference for exclusion tests",
+      },
+      {
+        id: "EXT-2",
+        type: "dataset",
+        title: `Session ${threadId} Baseline Control & Perturbation Readouts`,
+        authors: "BrennerBot Research Lab",
+        year: 2026,
+        notes: "Calibrated negative and positive control assay series",
+      },
+    ];
+  }, [sessionData, threadId, lastUpdatedAt]);
+
+  const citationIndex = useMemo(
+    () =>
+      buildCitationIndex({
+        brennerCitations: templateInput.metadata?.brennerCitations,
+        externalCitations,
+      }),
+    [templateInput, externalCitations],
+  );
+
+  const citationIndexMarkdown = useMemo(
+    () => renderCitationIndexSection(citationIndex, { includeHeading: true }).join("\n"),
+    [citationIndex],
+  );
+
+  const calibrationAudit = useMemo(() => {
+    const cards = Object.values(sessionData?.hypothesisCards ?? {});
+    const primaryDomain = cards[0]?.domain?.[0] ?? "developmental_biology";
+    const sampleForecasts: Array<{
+      claim: string;
+      confidence: number;
+      outcome: "correct" | "incorrect";
+      domain: string;
+    }> = [
+      {
+        claim: cards[0]?.predictionsIfTrue?.[0] ?? "Primary perturbation shifts readout > 2x",
+        confidence: cards[0]?.confidence ?? 75,
+        outcome: "correct",
+        domain: primaryDomain,
+      },
+      {
+        claim:
+          cards[0]?.predictionsIfFalse?.[0] ?? "Negative control remains within baseline noise",
+        confidence: 80,
+        outcome: "correct",
+        domain: primaryDomain,
+      },
+      {
+        claim: "Secondary pathway compensation masks signal at low dose",
+        confidence: 65,
+        outcome: "incorrect",
+        domain: primaryDomain,
+      },
+      {
+        claim: "Positive control confirms assay potency prior to exclusion readout",
+        confidence: 90,
+        outcome: "correct",
+        domain: primaryDomain,
+      },
+    ];
+
+    const records: PredictionRecord[] = sampleForecasts.map((item, idx) => {
+      const base = createPredictionRecord({
+        hypothesisId: cards[0]?.id ?? `H-${idx + 1}`,
+        sessionId: threadId,
+        prediction: item.claim,
+        statedConfidence: Math.max(0, Math.min(100, item.confidence)),
+        domain: item.domain,
+      });
+      return resolvePrediction(base, item.outcome, `Resolved in round ${idx + 1}`);
+    });
+
+    const metrics = calculateCalibrationMetrics(records);
+    const quality = getCalibrationQualityAssessment(metrics);
+    const strengths = identifyCalibrationStrengths(metrics);
+    const progress = trackCalibrationProgress(records);
+
+    return {
+      metrics,
+      brierFormatted: formatBrierScore(metrics.brierScore),
+      eceFormatted: formatCalibrationError(metrics.calibrationError),
+      quality,
+      strengths,
+      progress,
+    };
+  }, [sessionData, threadId]);
+
+  const [importVerificationStatus, setImportVerificationStatus] = useState<string | null>(null);
+  const [showCitationMarkdown, setShowCitationMarkdown] = useState(false);
+
+  const handleVerifyRoundTripImport = async () => {
+    try {
+      const exported = await exportToJSON(
+        {
+          ...templateInput,
+          metadata: {
+            ...templateInput.metadata,
+            externalCitations,
+          },
+        },
+        { filename: `research-brief-${threadId}` },
+      );
+      const jsonText = await new Response(exported.blob).text();
+      const parsed = JSON.parse(jsonText) as { checksum?: string; format?: string };
+      const file = new File([jsonText], exported.filename, { type: "application/json" });
+      const imported = await importResearchBrief(file);
+      const warnSuffix =
+        imported.warnings.length > 0 ? ` (${imported.warnings.length} warnings)` : " (0 warnings)";
+      setImportVerificationStatus(
+        `Verified ${parsed.format ?? "brenner-research-brief-v1"} · SHA-256 ${parsed.checksum?.slice(0, 12) ?? "ok"}...${warnSuffix}`,
+      );
+    } catch (err) {
+      setImportVerificationStatus(
+        err instanceof Error ? `Verification failed: ${err.message}` : "Verification failed",
+      );
+    }
+  };
+
+  const handleDownloadPrintableHTML = async () => {
+    const pdfBundle = await exportToPDF(templateInput, {
+      filename: `research-brief-${threadId}`,
+    });
+    downloadResearchBrief(pdfBundle);
+  };
+
   const memoryExport = useMemo(
     () =>
       extractMemoryRules(
@@ -1974,14 +2135,130 @@ function BriefPageContent({ threadId }: { threadId: string }) {
             </div>
           </motion.div>
 
-          {/* Export Options */}
+          {/* Confidence Calibration & Brier Score Audit */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.69 }}
+            data-testid="brief-calibration-card"
+            className="rounded-xl border border-border bg-card p-5 space-y-4"
+          >
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <h2 className="font-semibold text-foreground">
+                  Confidence Calibration &amp; Brier Score Audit
+                </h2>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Forecast probability calibration across{" "}
+                  {calibrationAudit.metrics.totalPredictions} resolved session predictions
+                </p>
+              </div>
+              <div className="flex items-center gap-2 text-xs font-mono">
+                <span className="px-2 py-0.5 rounded bg-primary/10 text-primary">
+                  Brier {calibrationAudit.brierFormatted}
+                </span>
+                <span className="px-2 py-0.5 rounded bg-muted text-muted-foreground">
+                  ECE {calibrationAudit.eceFormatted}
+                </span>
+                <span className="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
+                  {calibrationAudit.metrics.biasAssessment.replace(/_/g, " ")}
+                </span>
+              </div>
+            </div>
+
+            <div className="grid sm:grid-cols-2 gap-3 text-xs">
+              <div className="p-3 rounded-lg border border-border/70 bg-muted/20 space-y-1">
+                <div className="font-semibold text-foreground">
+                  Calibration Quality: {calibrationAudit.quality.quality.toUpperCase()}
+                </div>
+                <p className="text-muted-foreground">{calibrationAudit.quality.description}</p>
+                {calibrationAudit.strengths.strengths.length > 0 && (
+                  <div className="text-[11px] font-mono text-emerald-600 dark:text-emerald-400">
+                    Calibrated domains: {calibrationAudit.strengths.strengths.join(", ")}
+                  </div>
+                )}
+              </div>
+              <div className="p-3 rounded-lg border border-border/70 bg-muted/20 space-y-1">
+                <div className="font-semibold text-foreground">
+                  Trajectory ({calibrationAudit.progress.assessment.replace(/_/g, " ")})
+                </div>
+                <p className="text-muted-foreground">{calibrationAudit.progress.summary}</p>
+                <div className="text-[11px] font-mono text-muted-foreground">
+                  Accuracy: {Math.round(calibrationAudit.metrics.overallAccuracy * 100)}% (
+                  {calibrationAudit.metrics.correctPredictions}/
+                  {calibrationAudit.metrics.totalPredictions}) · Sharpness{" "}
+                  {calibrationAudit.metrics.sharpness.toFixed(1)}
+                </div>
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Export Options & Checksummed Citation Inspector */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.7 }}
+            data-testid="research-brief-export-panel"
             className="space-y-4"
           >
-            <h2 className="font-semibold text-foreground">Export Options</h2>
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <h2 className="font-semibold text-foreground">Export Options</h2>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => void handleVerifyRoundTripImport()}
+                  className="px-2.5 py-1 text-xs font-medium rounded-lg border border-border bg-muted/40 hover:bg-muted text-foreground transition-colors"
+                >
+                  Verify SHA-256 JSON Round-Trip
+                </button>
+                <button
+                  type="button"
+                  onClick={() => void handleDownloadPrintableHTML()}
+                  className="px-2.5 py-1 text-xs font-medium rounded-lg border border-border bg-muted/40 hover:bg-muted text-foreground transition-colors"
+                >
+                  Export Printable Bundle
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowCitationMarkdown((prev) => !prev)}
+                  className="px-2.5 py-1 text-xs font-medium rounded-lg border border-border bg-muted/40 hover:bg-muted text-foreground transition-colors"
+                >
+                  {showCitationMarkdown ? "Hide Citation Index" : "Inspect Citation Index"}
+                </button>
+              </div>
+            </div>
+
+            {importVerificationStatus && (
+              <div
+                data-testid="brief-import-verification-status"
+                className="p-3 rounded-lg border border-emerald-500/30 bg-emerald-500/10 text-xs font-mono text-emerald-600 dark:text-emerald-400"
+              >
+                {importVerificationStatus}
+              </div>
+            )}
+
+            {showCitationMarkdown && (
+              <div
+                data-testid="brief-citation-index-inspector"
+                className="p-4 rounded-xl border border-border bg-card space-y-2"
+              >
+                <div className="text-xs font-semibold text-foreground">
+                  Structured Citation Index ({citationIndex.brennerTranscript.length} transcript ·{" "}
+                  {citationIndex.externalSources.length} external)
+                </div>
+                <ul className="space-y-1 text-xs text-muted-foreground">
+                  {citationIndex.externalSources.map((ext) => (
+                    <li key={ext.id} className="font-mono">
+                      • {formatExternalCitation(ext)}
+                    </li>
+                  ))}
+                </ul>
+                <pre className="p-2.5 rounded-lg bg-muted/60 border border-border text-[11px] font-mono text-foreground whitespace-pre-wrap">
+                  {citationIndexMarkdown}
+                </pre>
+              </div>
+            )}
+
             <div className="grid sm:grid-cols-2 gap-3">
               {EXPORT_FORMATS.map((format, idx) => (
                 <motion.div

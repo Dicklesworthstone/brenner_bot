@@ -65,6 +65,10 @@ describe("SessionList & LocalSessionHub integration", () => {
     expect(
       screen.getByText(/11-Phase Interactive Brenner Loop Cockpit/i),
     ).toBeInTheDocument();
+    expect(screen.getByTestId("session-machine-diagnostics")).toBeInTheDocument();
+    expect(
+      screen.getByText(/State Machine & Hypothesis Containment Diagnostics/i),
+    ).toBeInTheDocument();
 
     // Open Coach Settings modal and close it
     const coachBtn = screen.getByRole("button", { name: /Coach Settings/i });

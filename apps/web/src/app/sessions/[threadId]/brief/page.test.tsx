@@ -74,6 +74,36 @@ describe("BriefPage", () => {
       expect(preview.textContent).toContain("type: research_brief");
       expect(preview.textContent).toContain("## References");
     });
+
+    // Verify Confidence Calibration & Brier Score Audit card
+    const calibrationCard = screen.getByTestId("brief-calibration-card");
+    expect(calibrationCard).toBeDefined();
+    expect(calibrationCard.textContent).toContain("Confidence Calibration & Brier Score Audit");
+    expect(calibrationCard.textContent).toContain("Brier");
+
+    // Verify Checksummed Export & Citation Index Inspector
+    const exportPanel = screen.getByTestId("research-brief-export-panel");
+    expect(exportPanel).toBeDefined();
+
+    const inspectCitationsBtn = screen.getByRole("button", { name: /Inspect Citation Index/i });
+    fireEvent.click(inspectCitationsBtn);
+
+    await waitFor(() => {
+      const citationInspector = screen.getByTestId("brief-citation-index-inspector");
+      expect(citationInspector).toBeDefined();
+      expect(citationInspector.textContent).toContain("Structured Citation Index");
+      expect(citationInspector.textContent).toContain("## References");
+    });
+
+    const verifyJsonBtn = screen.getByRole("button", {
+      name: /Verify SHA-256 JSON Round-Trip/i,
+    });
+    fireEvent.click(verifyJsonBtn);
+
+    await waitFor(() => {
+      const status = screen.getByTestId("brief-import-verification-status");
+      expect(status.textContent).toContain("Verified brenner-research-brief-v1");
+    });
   });
 });
 

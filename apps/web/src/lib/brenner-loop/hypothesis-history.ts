@@ -518,11 +518,13 @@ export function diffHypotheses(v1: HypothesisCard, v2: HypothesisCard): Hypothes
   }
 
   // Compare confounds
-  const oldConfoundIds = new Set(v1.confounds.map((c) => c.id));
-  const newConfoundIds = new Set(v2.confounds.map((c) => c.id));
+  const v1Confounds = v1.confounds ?? [];
+  const v2Confounds = v2.confounds ?? [];
+  const oldConfoundIds = new Set(v1Confounds.map((c) => c.id));
+  const newConfoundIds = new Set(v2Confounds.map((c) => c.id));
 
-  const confoundsAdded = v2.confounds.filter((c) => !oldConfoundIds.has(c.id));
-  const confoundsRemoved = v1.confounds.filter((c) => !newConfoundIds.has(c.id));
+  const confoundsAdded = v2Confounds.filter((c) => !oldConfoundIds.has(c.id));
+  const confoundsRemoved = v1Confounds.filter((c) => !newConfoundIds.has(c.id));
 
   if (confoundsAdded.length > 0) {
     changes.push({
@@ -541,8 +543,8 @@ export function diffHypotheses(v1: HypothesisCard, v2: HypothesisCard): Hypothes
   }
 
   // Check for modified confounds
-  for (const newConf of v2.confounds) {
-    const oldConf = v1.confounds.find((c) => c.id === newConf.id);
+  for (const newConf of v2Confounds) {
+    const oldConf = v1Confounds.find((c) => c.id === newConf.id);
     if (oldConf) {
       const confoundChanges = diffConfounds(oldConf, newConf);
       if (confoundChanges.length > 0) {

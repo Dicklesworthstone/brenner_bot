@@ -31,6 +31,14 @@ describe("HypothesisPage integration", () => {
     expect(screen.getByText(/semantic clusters/i)).toBeInTheDocument();
     expect(screen.getByTestId("hypothesis-robustness-card")).toBeInTheDocument();
     expect(screen.getByText(/Robustness & Rigor/i)).toBeInTheDocument();
+    expect(screen.getByTestId("hypothesis-confounds-card")).toBeInTheDocument();
+    expect(screen.getByText(/Domain Confound Detector/i)).toBeInTheDocument();
+
+    // Expand Evolution History to inspect Lineage Version Diff
+    const historyTrigger = screen.getByText(/Evolution History/i);
+    fireEvent.click(historyTrigger);
+    expect(await screen.findByTestId("hypothesis-version-diff")).toBeInTheDocument();
+    expect(screen.getByText(/Lineage Version Diff/i)).toBeInTheDocument();
 
     // Edit and save hypothesis statement
     const editBtn = screen.getByRole("button", { name: /^Edit$/i });

@@ -135,6 +135,50 @@ export function CommandPalette() {
         section: "Navigation",
       },
       {
+        id: "sessions",
+        title: "Go to Sessions",
+        subtitle: "Browse research sessions & workspace dashboard",
+        icon: <BeakerIcon />,
+        shortcut: ["G", "S"],
+        action: () => router.push("/sessions"),
+        section: "Navigation",
+      },
+      {
+        id: "operators",
+        title: "Go to Operators",
+        subtitle: "Explore cognitive operators & prompt cards",
+        icon: <SparklesIcon />,
+        shortcut: ["G", "O"],
+        action: () => router.push("/operators"),
+        section: "Navigation",
+      },
+      {
+        id: "glossary",
+        title: "Go to Glossary",
+        subtitle: "Brenner jargon & methodology lexicon",
+        icon: <BookIcon />,
+        shortcut: ["G", "L"],
+        action: () => router.push("/glossary"),
+        section: "Navigation",
+      },
+      {
+        id: "tutorial",
+        title: "Go to Tutorials",
+        subtitle: "Quick Start, Agent Assisted & Multi-Agent Cockpit",
+        icon: <BookIcon />,
+        shortcut: ["G", "T"],
+        action: () => router.push("/tutorial"),
+        section: "Navigation",
+      },
+      {
+        id: "analytics",
+        title: "Session Analytics",
+        subtitle: "Workspace KPIs & operator distribution",
+        icon: <SparklesIcon />,
+        action: () => router.push("/sessions/analytics"),
+        section: "Navigation",
+      },
+      {
         id: "transcript",
         title: "Read Full Transcript",
         subtitle: "Web of Stories interview",
@@ -290,7 +334,12 @@ export function CommandPalette() {
       />
 
       {/* Palette */}
-      <div className="command-palette">
+      <div
+        role="dialog"
+        aria-label="Command palette"
+        data-testid="command-palette-dialog"
+        className="command-palette"
+      >
         {/* Search Input */}
         <div className="relative">
           <div className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground">
@@ -397,13 +446,15 @@ export function CommandPalette() {
 export function CommandPaletteHint() {
   return (
     <button
-      className="hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-lg border border-border bg-muted/50 text-sm text-muted-foreground hover:text-foreground hover:bg-muted active:scale-[0.98] transition-all touch-manipulation focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      type="button"
+      data-testid="command-palette-hint"
+      aria-label="Open command palette"
+      className="hidden xl:flex items-center gap-2 px-2.5 py-1.5 rounded-lg border border-border bg-muted/50 text-sm text-muted-foreground hover:text-foreground hover:bg-muted active:scale-[0.98] transition-all touch-manipulation focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       onClick={() => {
         window.dispatchEvent(new KeyboardEvent("keydown", { key: "/", metaKey: true }));
       }}
     >
-      <SearchIcon />
-      <span>Search...</span>
+      <span>Commands</span>
       <div className="flex items-center gap-0.5">
         <kbd className="px-1.5 py-0.5 text-xs font-mono bg-background rounded border border-border">
           ⌘

@@ -110,6 +110,17 @@ import {
 } from "@/lib/brenner-loop/search/quote-matcher";
 import { isDemoThreadId, normalizeThreadId } from "@/lib/demo-mode";
 import type { Quote } from "@/lib/quotebank-parser";
+import {
+  detectLevelConflation,
+  type Hypothesis as SchemaHypothesis,
+  validateThirdAlternative,
+  warnMissingMechanism,
+} from "@/lib/schemas/hypothesis";
+import {
+  estimateDiscriminativePower,
+  type Prediction as SchemaPrediction,
+  validateDiscriminativePower,
+} from "@/lib/schemas/prediction";
 import { cn } from "@/lib/utils";
 
 // ============================================================================
@@ -966,6 +977,88 @@ function HypothesisPageContent({ threadId }: { threadId: string }) {
       summaryText: summarizeRobustness(primary),
     };
   }, [hypothesis, competitorHypothesis, sessionEvidence]);
+
+  const epistemicDiagnostics = React.useMemo(() => {
+    const nowIso = hypothesis.updatedAt.toISOString();
+    const primarySchemaHyp: SchemaHypothesis = {
+      id: "H1",
+      statement: hypothesis.statement,
+      mechanism: hypothesis.mechanism || undefined,
+      origin: "proposed",
+      category: "mechanistic",
+      confidence:
+        hypothesis.confidence >= 75
+          ? "high"
+          : hypothesis.confidence >= 45
+            ? "medium"
+            : "low",
+      sessionId: safeSessionId,
+      state: "active",
+      isInference: false,
+      unresolvedCritiqueCount: 0,
+      createdAt: hypothesis.createdAt.toISOString(),
+      updatedAt: nowIso,
+    };
+    const competitorSchemaHyp: SchemaHypothesis = {
+      id: "H2",
+      statement: competitorHypothesis.statement,
+      mechanism: competitorHypothesis.mechanism || undefined,
+      origin: "third_alternative",
+      category: "third_alternative",
+      confidence: "medium",
+      sessionId: safeSessionId,
+      state: "active",
+      isInference: false,
+      unresolvedCritiqueCount: 0,
+      createdAt: competitorHypothesis.createdAt.toISOString(),
+      updatedAt: competitorHypothesis.updatedAt.toISOString(),
+    };
+
+    const conflationFlags = detectLevelConflation(
+      `${hypothesis.statement} ${hypothesis.mechanism}`,
+    );
+    const mechanismWarning = warnMissingMechanism(primarySchemaHyp);
+    const thirdAlternativeStatus = validateThirdAlternative([
+      primarySchemaHyp,
+      competitorSchemaHyp,
+    ]);
+
+    const schemaPred: SchemaPrediction = {
+      id: `P-${safeSessionId}-001`,
+      condition: "Primary vs competing mechanism discriminative condition",
+      hypothesisPredictions: [
+        {
+          hypothesisId: "H-SESSION-001",
+          prediction:
+            hypothesis.predictionsIfTrue[0] ?? "Positive effect present under primary mechanism",
+        },
+        {
+          hypothesisId: "H-SESSION-002",
+          prediction:
+            competitorHypothesis.predictionsIfTrue[0] ??
+            hypothesis.predictionsIfFalse[0] ??
+            "Negative or absent effect under alternative mechanism",
+        },
+      ],
+      isDiscriminative: true,
+      sessionId: safeSessionId,
+      isInference: false,
+      status: "untested",
+      createdAt: nowIso,
+      updatedAt: nowIso,
+    };
+
+    const discValidation = validateDiscriminativePower(schemaPred);
+    const discPower = estimateDiscriminativePower(schemaPred);
+
+    return {
+      conflationFlags,
+      mechanismWarning,
+      thirdAlternativeStatus,
+      discValidation,
+      discPower,
+    };
+  }, [hypothesis, competitorHypothesis, safeSessionId]);
 
   const [selectedConfoundDomain, setSelectedConfoundDomain] = React.useState<
     ResearchDomain | undefined
@@ -2173,6 +2266,104 @@ function HypothesisPageContent({ threadId }: { threadId: string }) {
                     <span className="font-mono">
                       Arena avg: {robustnessOverview.aggregate.averageScore}/100
                     </span>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+
+            {/* Epistemic Guardrail Diagnostics Card */}
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.23 }}
+            >
+              <Card data-testid="hypothesis-epistemic-diagnostics">
+                <CardHeader className="pb-2">
+                  <div className="flex items-center justify-between gap-2">
+                    <CardTitle className="text-lg">Epistemic Guardrail Diagnostics</CardTitle>
+                    <Badge
+                      variant={
+                        epistemicDiagnostics.conflationFlags.length === 0 &&
+                        !epistemicDiagnostics.mechanismWarning &&
+                        epistemicDiagnostics.discValidation.isDiscriminative
+                          ? "outline"
+                          : "destructive"
+                      }
+                      className="font-mono text-xs"
+                    >
+                      Power {epistemicDiagnostics.discPower}/3
+                    </Badge>
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-2.5 text-xs">
+                  <div
+                    data-testid="diagnostic-level-separation"
+                    className="flex items-center justify-between gap-2 rounded-lg border border-border bg-muted/20 p-2"
+                  >
+                    <span className="text-muted-foreground">Level Separation (⊘)</span>
+                    <span
+                      className={cn(
+                        "font-semibold",
+                        epistemicDiagnostics.conflationFlags.length === 0
+                          ? "text-emerald-600 dark:text-emerald-400"
+                          : "text-destructive",
+                      )}
+                    >
+                      {epistemicDiagnostics.conflationFlags.length === 0
+                        ? "Clean (No Conflation)"
+                        : `${epistemicDiagnostics.conflationFlags.length} Flag(s): ${epistemicDiagnostics.conflationFlags.join(", ")}`}
+                    </span>
+                  </div>
+
+                  <div
+                    data-testid="diagnostic-mechanism-check"
+                    className="flex items-center justify-between gap-2 rounded-lg border border-border bg-muted/20 p-2"
+                  >
+                    <span className="text-muted-foreground">Causal Mechanism</span>
+                    <span
+                      className={cn(
+                        "font-semibold",
+                        !epistemicDiagnostics.mechanismWarning
+                          ? "text-emerald-600 dark:text-emerald-400"
+                          : "text-amber-600 dark:text-amber-400",
+                      )}
+                    >
+                      {epistemicDiagnostics.mechanismWarning ?? "Explicitly Specified"}
+                    </span>
+                  </div>
+
+                  <div
+                    data-testid="diagnostic-third-alternative"
+                    className="rounded-lg border border-border bg-muted/20 p-2 space-y-1"
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-muted-foreground">Third Alternative</span>
+                      <span className="font-mono font-semibold text-foreground">
+                        Q{epistemicDiagnostics.thirdAlternativeStatus.quality}/3
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-muted-foreground">
+                      {epistemicDiagnostics.thirdAlternativeStatus.message}
+                    </p>
+                  </div>
+
+                  <div
+                    data-testid="diagnostic-discriminative-power"
+                    className="rounded-lg border border-border bg-muted/20 p-2 space-y-1"
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-muted-foreground">Prediction Discriminability</span>
+                      <span className="font-mono font-semibold text-foreground">
+                        {epistemicDiagnostics.discValidation.isDiscriminative
+                          ? "Valid"
+                          : "Needs Sharpening"}
+                      </span>
+                    </div>
+                    {epistemicDiagnostics.discValidation.issues.length > 0 && (
+                      <p className="text-[11px] text-amber-600 dark:text-amber-400">
+                        {epistemicDiagnostics.discValidation.issues[0]}
+                      </p>
+                    )}
                   </div>
                 </CardContent>
               </Card>

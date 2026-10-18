@@ -24,7 +24,9 @@
  * ```
  */
 
-import { type UseQueryOptions, useQuery } from "@tanstack/react-query";
+import { QueryClientContext, type UseQueryOptions, useQuery } from "@tanstack/react-query";
+import { useContext } from "react";
+import { getQueryClient } from "@/components/providers/QueryProvider";
 import type { CorpusDoc, DocCategory } from "@/lib/corpus";
 import { fetchCorpusList } from "@/lib/corpusActions";
 
@@ -72,28 +74,32 @@ export const corpusListKeys = {
  * @returns Query result with array of corpus documents
  */
 export function useCorpusList(options?: UseCorpusListOptions) {
+  const contextClient = useContext(QueryClientContext);
   const { category, model, ...queryOptions } = options ?? {};
 
-  return useQuery({
-    // User options first (can be overridden by our required settings)
-    ...queryOptions,
-    // Required settings that should not be overridden
-    queryKey: corpusListKeys.all,
-    queryFn: fetchCorpusList,
-    // List changes less frequently than individual docs
-    staleTime: queryOptions?.staleTime ?? 10 * 60 * 1000, // 10 minutes default
-    // Apply client-side filtering via select (not user-overridable)
-    select: (data) => {
-      let filtered = data;
-      if (category) {
-        filtered = filtered.filter((doc) => doc.category === category);
-      }
-      if (model) {
-        filtered = filtered.filter((doc) => doc.model === model);
-      }
-      return filtered;
+  return useQuery(
+    {
+      // User options first (can be overridden by our required settings)
+      ...queryOptions,
+      // Required settings that should not be overridden
+      queryKey: corpusListKeys.all,
+      queryFn: fetchCorpusList,
+      // List changes less frequently than individual docs
+      staleTime: queryOptions?.staleTime ?? 10 * 60 * 1000, // 10 minutes default
+      // Apply client-side filtering via select (not user-overridable)
+      select: (data) => {
+        let filtered = data;
+        if (category) {
+          filtered = filtered.filter((doc) => doc.category === category);
+        }
+        if (model) {
+          filtered = filtered.filter((doc) => doc.model === model);
+        }
+        return filtered;
+      },
     },
-  });
+    contextClient ?? getQueryClient(),
+  );
 }
 
 /**
@@ -106,24 +112,29 @@ export function useCorpusList(options?: UseCorpusListOptions) {
  * ```
  */
 export function useCorpusListGrouped() {
-  return useQuery({
-    queryKey: corpusListKeys.all,
-    queryFn: fetchCorpusList,
-    staleTime: 10 * 60 * 1000,
-    select: (data) => {
-      const grouped: Record<DocCategory, CorpusDoc[]> = {
-        transcript: [],
-        "quote-bank": [],
-        distillation: [],
-        metaprompt: [],
-        "raw-response": [],
-      };
-      for (const doc of data) {
-        grouped[doc.category].push(doc);
-      }
-      return grouped;
+  const contextClient = useContext(QueryClientContext);
+
+  return useQuery(
+    {
+      queryKey: corpusListKeys.all,
+      queryFn: fetchCorpusList,
+      staleTime: 10 * 60 * 1000,
+      select: (data) => {
+        const grouped: Record<DocCategory, CorpusDoc[]> = {
+          transcript: [],
+          "quote-bank": [],
+          distillation: [],
+          metaprompt: [],
+          "raw-response": [],
+        };
+        for (const doc of data) {
+          grouped[doc.category].push(doc);
+        }
+        return grouped;
+      },
     },
-  });
+    contextClient ?? getQueryClient(),
+  );
 }
 
 /**

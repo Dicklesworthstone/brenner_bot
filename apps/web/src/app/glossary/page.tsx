@@ -5,6 +5,20 @@ import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Jargon } from "@/components/jargon";
 import {
+  BottomSheet,
+  BottomSheetActions,
+  useBottomSheet,
+} from "@/components/ui/bottom-sheet";
+import {
+  Sheet,
+  SheetClose,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
+import {
   getCategoryCounts,
   getTermCount,
   type JargonCategory,
@@ -156,10 +170,20 @@ interface TermCardProps {
   term: JargonTerm;
   isExpanded: boolean;
   onToggle: () => void;
+  onOpenSheet: (key: string) => void;
+  onOpenQuickActions: (key: string) => void;
   searchQuery: string;
 }
 
-function TermCard({ termKey, term, isExpanded, onToggle, searchQuery }: TermCardProps) {
+function TermCard({
+  termKey,
+  term,
+  isExpanded,
+  onToggle,
+  onOpenSheet,
+  onOpenQuickActions,
+  searchQuery,
+}: TermCardProps) {
   return (
     <motion.div
       id={termKey}
@@ -285,6 +309,29 @@ function TermCard({ termKey, term, isExpanded, onToggle, searchQuery }: TermCard
                   </div>
                 </motion.div>
               )}
+
+              {/* Deep-Dive Drawer & Quick Actions */}
+              <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-border/40">
+                <span className="font-mono text-xs text-muted-foreground">#{termKey}</span>
+                <div className="flex flex-wrap items-center gap-2">
+                  <button
+                    type="button"
+                    data-testid={`open-term-sheet-${termKey}`}
+                    onClick={() => onOpenSheet(termKey)}
+                    className="inline-flex items-center gap-1.5 rounded-lg border border-primary/30 bg-primary/10 px-2.5 py-1 text-xs font-medium text-primary hover:bg-primary/20 transition-colors"
+                  >
+                    Deep-Dive Drawer
+                  </button>
+                  <button
+                    type="button"
+                    data-testid={`open-term-actions-${termKey}`}
+                    onClick={() => onOpenQuickActions(termKey)}
+                    className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-muted/40 px-2.5 py-1 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    Quick Actions
+                  </button>
+                </div>
+              </div>
             </div>
           </motion.div>
         )}
@@ -301,6 +348,13 @@ export default function GlossaryPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState<FilterCategory>("all");
   const [expandedTerms, setExpandedTerms] = useState<Set<string>>(new Set());
+  const [activeSheetTermKey, setActiveSheetTermKey] = useState<string | null>(null);
+  const [activeActionTermKey, setActiveActionTermKey] = useState<string | null>(null);
+  const [copiedFeedback, setCopiedFeedback] = useState<string | null>(null);
+  const quickActionsSheet = useBottomSheet();
+
+  const activeSheetTerm = activeSheetTermKey ? jargonDictionary[activeSheetTermKey] : null;
+  const activeActionTerm = activeActionTermKey ? jargonDictionary[activeActionTermKey] : null;
 
   const totalCount = getTermCount();
   const categoryCounts = useMemo(() => getCategoryCounts(), []);
@@ -502,11 +556,143 @@ export default function GlossaryPage() {
               term={term}
               isExpanded={expandedTerms.has(key)}
               onToggle={() => toggleTerm(key)}
+              onOpenSheet={(k) => setActiveSheetTermKey(k)}
+              onOpenQuickActions={(k) => {
+                setActiveActionTermKey(k);
+                quickActionsSheet.open();
+              }}
               searchQuery={searchQuery}
             />
           ))
         )}
       </div>
+
+      {copiedFeedback && (
+        <div
+          data-testid="glossary-copied-feedback"
+          className="fixed bottom-4 right-4 z-50 rounded-xl border border-primary/30 bg-card px-3.5 py-2 text-xs font-medium text-foreground shadow-lg"
+        >
+          {copiedFeedback}
+        </div>
+      )}
+
+      {/* Term Deep-Dive Slide-Over Sheet */}
+      <Sheet
+        open={activeSheetTerm !== null}
+        onOpenChange={(open) => {
+          if (!open) setActiveSheetTermKey(null);
+        }}
+      >
+        <SheetContent side="right" data-testid="glossary-term-sheet" className="overflow-y-auto">
+          {activeSheetTerm && activeSheetTermKey && (
+            <>
+              <SheetHeader>
+                <div className="flex items-center gap-2">
+                  <span
+                    className={`px-2 py-0.5 text-xs rounded-full border ${CATEGORY_COLORS[activeSheetTerm.category]}`}
+                  >
+                    {CATEGORY_LABELS[activeSheetTerm.category]}
+                  </span>
+                  <span className="font-mono text-xs text-muted-foreground">
+                    #{activeSheetTermKey}
+                  </span>
+                </div>
+                <SheetTitle>{activeSheetTerm.term}</SheetTitle>
+                <SheetDescription>{activeSheetTerm.short}</SheetDescription>
+              </SheetHeader>
+
+              <div className="px-4 space-y-4 text-sm">
+                <div className="rounded-xl border border-border bg-muted/20 p-3 space-y-1.5">
+                  <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                    Deep-Dive Reference
+                  </div>
+                  <p className="text-foreground leading-relaxed">{activeSheetTerm.long}</p>
+                </div>
+
+                {activeSheetTerm.why && (
+                  <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-3 space-y-1">
+                    <div className="text-xs font-semibold uppercase tracking-wide text-emerald-600 dark:text-emerald-400">
+                      Epistemic Significance
+                    </div>
+                    <p className="text-muted-foreground">{activeSheetTerm.why}</p>
+                  </div>
+                )}
+
+                {activeSheetTerm.analogy && (
+                  <div className="rounded-xl border border-primary/20 bg-primary/5 p-3 space-y-1">
+                    <div className="text-xs font-semibold uppercase tracking-wide text-primary">
+                      Mental Model Analogy
+                    </div>
+                    <p className="text-muted-foreground">{activeSheetTerm.analogy}</p>
+                  </div>
+                )}
+              </div>
+
+              <SheetFooter>
+                <button
+                  type="button"
+                  data-testid="sheet-filter-category-btn"
+                  onClick={() => {
+                    setActiveCategory(activeSheetTerm.category);
+                    setActiveSheetTermKey(null);
+                  }}
+                  className="w-full rounded-lg border border-primary/30 bg-primary/10 px-3 py-2 text-xs font-medium text-primary hover:bg-primary/20 transition-colors"
+                >
+                  Filter Glossary to {CATEGORY_LABELS[activeSheetTerm.category]}
+                </button>
+                <SheetClose asChild>
+                  <button
+                    type="button"
+                    data-testid="close-term-sheet-btn"
+                    className="w-full rounded-lg border border-border bg-muted/40 px-3 py-2 text-xs font-medium text-foreground hover:bg-muted transition-colors"
+                  >
+                    Close Drawer
+                  </button>
+                </SheetClose>
+              </SheetFooter>
+            </>
+          )}
+        </SheetContent>
+      </Sheet>
+
+      {/* Quick Actions BottomSheet */}
+      <BottomSheet
+        open={quickActionsSheet.isOpen}
+        onClose={quickActionsSheet.close}
+        title={activeActionTerm ? `Actions: ${activeActionTerm.term}` : "Term Actions"}
+      >
+        {activeActionTerm && activeActionTermKey && (
+          <div data-testid="glossary-bottom-sheet">
+            <BottomSheetActions
+              onClose={quickActionsSheet.close}
+              actions={[
+                {
+                  id: "open-deep-dive",
+                  label: "Open Deep-Dive Reference Drawer",
+                  onClick: () => {
+                    setActiveSheetTermKey(activeActionTermKey);
+                  },
+                },
+                {
+                  id: "filter-category",
+                  label: `Show all ${CATEGORY_LABELS[activeActionTerm.category]} terms`,
+                  onClick: () => {
+                    setActiveCategory(activeActionTerm.category);
+                  },
+                },
+                {
+                  id: "copy-citation",
+                  label: `Bookmark Citation (#${activeActionTermKey})`,
+                  onClick: () => {
+                    window.location.hash = activeActionTermKey;
+                    setCopiedFeedback(`Bookmarked #${activeActionTermKey}`);
+                  },
+                },
+              ]}
+            />
+          </div>
+        )}
+      </BottomSheet>
     </div>
   );
 }

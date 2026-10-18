@@ -480,5 +480,17 @@ describe("CorpusIndexPage", () => {
       await user.click(toggleBtn);
       expect(toggleBtn).toHaveTextContent(/Deep Full-Text Search: ON/i);
     });
+
+    it("hydrates useCorpusList query cache and renders additional server-provided corpus documents", async () => {
+      const { getQueryClient } = await import("@/components/providers/QueryProvider");
+      const { corpusListKeys } = await import("@/hooks/queries");
+      const queryClient = getQueryClient();
+
+      render(<CorpusIndexPage />);
+
+      const cached = queryClient.getQueryData<Array<{ id: string }>>(corpusListKeys.all);
+      expect(cached).toBeDefined();
+      expect(cached?.some((d) => d.id === "transcript")).toBe(true);
+    });
   });
 });

@@ -6,7 +6,8 @@ import { type ReactNode, useCallback, useMemo, useState } from "react";
 import { Jargon } from "@/components/jargon";
 import { AnimatedElement, HeroBackground } from "@/components/ui/animated-element";
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { useCorpusSearch } from "@/hooks/queries";
+import { useCorpusList, useCorpusSearch } from "@/hooks/queries";
+import type { CorpusDoc as ServerCorpusDoc } from "@/lib/corpus";
 import {
   clearReadingPosition,
   getReadingPosition,
@@ -940,6 +941,25 @@ function CategoryPills({ activeCategory, onChange, counts }: CategoryPillsProps)
 // MAIN COMPONENT
 // ============================================================================
 
+const INITIAL_CORPUS_UPDATED_AT = Date.now();
+const INITIAL_CORPUS_LIST_DATA: ServerCorpusDoc[] = CORPUS_DOCS.map((doc) => ({
+  id: doc.id,
+  title: doc.title,
+  description: doc.description,
+  filename: doc.filename,
+  category:
+    doc.id === "transcript"
+      ? "transcript"
+      : doc.id === "quote-bank"
+        ? "quote-bank"
+        : doc.id.startsWith("distillation")
+          ? "distillation"
+          : doc.id.startsWith("raw-")
+            ? "raw-response"
+            : "metaprompt",
+  model: getModelFromId(doc.id) ?? undefined,
+}));
+
 export default function CorpusIndexPage() {
   // State
   const [searchQuery, setSearchQuery] = useState("");
@@ -952,6 +972,26 @@ export default function CorpusIndexPage() {
     prompts: true,
   });
 
+  // Corpus catalog query hydrated with static initialData
+  const corpusListQuery = useCorpusList({
+    initialData: INITIAL_CORPUS_LIST_DATA,
+    initialDataUpdatedAt: INITIAL_CORPUS_UPDATED_AT,
+  });
+
+  const activeCorpusDocs = useMemo<CorpusDoc[]>(() => {
+    const serverDocs = corpusListQuery.data ?? [];
+    const staticIds = new Set(CORPUS_DOCS.map((d) => d.id));
+    const extraServerDocs: CorpusDoc[] = serverDocs
+      .filter((d) => !staticIds.has(d.id))
+      .map((d) => ({
+        id: d.id,
+        title: d.title,
+        description: d.description ?? "",
+        filename: d.filename,
+      }));
+    return [...CORPUS_DOCS, ...extraServerDocs];
+  }, [corpusListQuery.data]);
+
   // Reading positions store subscription
   const readingPositions = useStore(readingStore, (state) => state.positions);
   const recentReadingItems = useMemo(() => {
@@ -959,7 +999,7 @@ export default function CorpusIndexPage() {
     const recentIds = getRecentDocs(4);
     return recentIds
       .map((docId) => {
-        const doc = CORPUS_DOCS.find((d) => d.id === docId);
+        const doc = activeCorpusDocs.find((d) => d.id === docId);
         const pos = getReadingPosition(docId);
         if (!doc || !pos) return null;
         return { doc, pos };
@@ -972,7 +1012,7 @@ export default function CorpusIndexPage() {
           pos: NonNullable<ReturnType<typeof getReadingPosition>>;
         } => item !== null,
       );
-  }, [readingPositions]);
+  }, [activeCorpusDocs, readingPositions]);
 
   // Full-text corpus search via TanStack Query hook
   const fullTextSearch = useCorpusSearch(searchQuery.trim(), {
@@ -982,7 +1022,7 @@ export default function CorpusIndexPage() {
 
   // Filter docs based on search and category
   const filteredDocs = useMemo(() => {
-    let docs = CORPUS_DOCS;
+    let docs = activeCorpusDocs;
 
     // Category filter
     if (activeCategory !== "all") {
@@ -1001,7 +1041,7 @@ export default function CorpusIndexPage() {
     }
 
     return docs;
-  }, [searchQuery, activeCategory]);
+  }, [activeCorpusDocs, searchQuery, activeCategory]);
 
   // Group filtered docs by category
   const groupedDocs = useMemo(() => {
@@ -1019,20 +1059,20 @@ export default function CorpusIndexPage() {
   // Category counts
   const categoryCounts = useMemo(() => {
     const counts: Record<CategoryKey | "all", number> = {
-      all: CORPUS_DOCS.length,
+      all: activeCorpusDocs.length,
       primary: 0,
       distillations: 0,
       "raw-responses": 0,
       prompts: 0,
     };
 
-    CORPUS_DOCS.forEach((doc) => {
+    activeCorpusDocs.forEach((doc) => {
       const cat = getCategory(doc.id);
       counts[cat]++;
     });
 
     return counts;
-  }, []);
+  }, [activeCorpusDocs]);
 
   // Toggle section expansion
   const toggleSection = useCallback((key: CategoryKey) => {

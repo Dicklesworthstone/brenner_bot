@@ -513,4 +513,51 @@ describe("GlossaryPage", () => {
       expect(screen.getByText(new RegExp(`Showing ${totalCount}`))).toBeInTheDocument();
     });
   });
+
+  describe("deep-dive sheet and quick actions bottom sheet", () => {
+    it("opens the Term Deep-Dive Sheet when Deep-Dive Drawer button is clicked", async () => {
+      const user = userEvent.setup();
+      render(<GlossaryPage />);
+
+      const card = document.getElementById("level-split");
+      expect(card).toBeInTheDocument();
+      const toggleButton = within(card as HTMLElement).getByRole("button");
+      await user.click(toggleButton);
+
+      const sheetBtn = await screen.findByTestId("open-term-sheet-level-split");
+      await user.click(sheetBtn);
+
+      const sheetContent = await screen.findByTestId("glossary-term-sheet");
+      expect(sheetContent).toBeInTheDocument();
+      expect(within(sheetContent).getByText("Deep-Dive Reference")).toBeInTheDocument();
+
+      const closeBtn = screen.getByTestId("close-term-sheet-btn");
+      await user.click(closeBtn);
+    });
+
+    it("opens the Quick Actions BottomSheet and triggers citation bookmark action", async () => {
+      const user = userEvent.setup();
+      render(<GlossaryPage />);
+
+      const card = document.getElementById("level-split");
+      expect(card).toBeInTheDocument();
+      const toggleButton = within(card as HTMLElement).getByRole("button");
+      await user.click(toggleButton);
+
+      const actionsBtn = await screen.findByTestId("open-term-actions-level-split");
+      await user.click(actionsBtn);
+
+      const bottomSheet = await screen.findByTestId("glossary-bottom-sheet");
+      expect(bottomSheet).toBeInTheDocument();
+
+      const bookmarkAction = within(bottomSheet).getByRole("button", {
+        name: /Bookmark Citation \(#level-split\)/i,
+      });
+      await user.click(bookmarkAction);
+
+      expect(await screen.findByTestId("glossary-copied-feedback")).toHaveTextContent(
+        "Bookmarked #level-split",
+      );
+    });
+  });
 });

@@ -8,7 +8,13 @@ import { FirstRunOnboarding, RefreshControls } from "@/components/sessions";
 import { DemoSessionsView } from "@/components/sessions/DemoSessionsView";
 import { AgentMailClient, type AgentMailMessage } from "@/lib/agentMail";
 import { checkOrchestrationAuth, isLabModeEnabled } from "@/lib/auth";
+import { getDemoThreadSummaries } from "@/lib/fixtures/demo-sessions";
 import { listRobotSessions, type RobotThreadSummary } from "@/lib/robot-sessions";
+import { createEmptyInterventionSummary } from "@/lib/schemas/operator-intervention";
+import { createResearchProgram } from "@/lib/schemas/research-program";
+import { InterventionStorage } from "@/lib/storage/intervention-storage";
+import { DashboardAggregator } from "@/lib/storage/program-dashboard";
+import { ProgramStorage } from "@/lib/storage/program-storage";
 import { computeThreadStatus, type SessionPhase } from "@/lib/threadStatus";
 
 export const metadata: Metadata = {
@@ -460,6 +466,45 @@ export default async function SessionsListPage() {
     // Robot sessions are optional — silently skip on error
   }
 
+  // Load stored research programs, aggregated dashboard metrics, and cross-session intervention summary
+  const programStorage = new ProgramStorage({ baseDir: repoRoot });
+  const dashboardAggregator = new DashboardAggregator({ baseDir: repoRoot });
+  const interventionStorage = new InterventionStorage({ baseDir: repoRoot });
+
+  const [storedPrograms, programStats, interventionSummary] = await Promise.all([
+    programStorage.loadPrograms().catch(() => []),
+    programStorage.getStatistics().catch(() => ({
+      total: 0,
+      byStatus: { active: 0, paused: 0, completed: 0, abandoned: 0 },
+      totalSessions: 0,
+      avgSessionsPerProgram: 0,
+    })),
+    interventionStorage.getProgramSummary().catch(() => createEmptyInterventionSummary()),
+  ]);
+
+  const discoveredSessionIds = Array.from(
+    new Set([
+      ...threads.map((t) => t.threadId),
+      ...robotSessions.map((r) => r.threadId),
+      ...(isDemoMode ? getDemoThreadSummaries().map((d) => d.threadId) : []),
+    ]),
+  );
+
+  const primaryProgram = storedPrograms[0]
+    ? {
+        ...storedPrograms[0],
+        sessions: Array.from(new Set([...storedPrograms[0].sessions, ...discoveredSessionIds])),
+      }
+    : createResearchProgram({
+        id: "RP-WORKSPACE-001",
+        name: "BrennerBot Research Workspace",
+        description:
+          "Cross-session hypothesis funnel, registry health, and discriminative test tracking.",
+        sessions: discoveredSessionIds,
+      });
+
+  const programDashboard = await dashboardAggregator.generateDashboard(primaryProgram);
+
   return (
     <div className="max-w-4xl mx-auto space-y-10">
       {/* Header */}
@@ -594,6 +639,99 @@ export default async function SessionsListPage() {
           </div>
         </section>
       )}
+
+      {/* Workspace Research Program & Registry Health */}
+      <section
+        data-testid="workspace-program-dashboard"
+        className="rounded-xl border border-border bg-card p-5 space-y-4 animate-fade-in-up"
+      >
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <h2 className="text-lg font-semibold text-foreground">{primaryProgram.name}</h2>
+              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-mono bg-primary/10 text-primary border border-primary/20">
+                {primaryProgram.id}
+              </span>
+              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-success/15 text-success border border-success/20">
+                {primaryProgram.status}
+              </span>
+            </div>
+            <p className="text-xs text-muted-foreground">{primaryProgram.description}</p>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2 text-xs font-mono">
+            <span className="px-2.5 py-1 rounded-lg bg-muted border border-border text-foreground">
+              {primaryProgram.sessions.length} linked session{primaryProgram.sessions.length !== 1 ? "s" : ""}
+            </span>
+            <span className="px-2.5 py-1 rounded-lg bg-muted border border-border text-foreground">
+              {programStats.total} stored program{programStats.total !== 1 ? "s" : ""}
+            </span>
+            <span
+              className={`px-2.5 py-1 rounded-lg border ${
+                !interventionSummary.has_major_interventions
+                  ? "bg-success/10 border-success/20 text-success"
+                  : "bg-warning/10 border-warning/20 text-warning"
+              }`}
+            >
+              {interventionSummary.total_count} audit interventions
+            </span>
+          </div>
+        </div>
+
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="rounded-lg border border-border/70 bg-muted/20 p-3">
+            <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+              Hypothesis Funnel
+            </div>
+            <div className="mt-1 text-sm font-semibold text-foreground">
+              {programDashboard.hypothesisFunnel.active} active /{" "}
+              {programDashboard.hypothesisFunnel.killed} killed
+            </div>
+            <div className="mt-0.5 text-[11px] text-muted-foreground font-mono">
+              {programDashboard.hypothesisFunnel.byOrigin.thirdAlternative} third-alt •{" "}
+              {programDashboard.hypothesisFunnel.validated} validated
+            </div>
+          </div>
+
+          <div className="rounded-lg border border-border/70 bg-muted/20 p-3">
+            <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+              Assumption & Scale Registry
+            </div>
+            <div className="mt-1 text-sm font-semibold text-foreground">
+              {programDashboard.registryHealth.assumptions.total} assumptions
+            </div>
+            <div className="mt-0.5 text-[11px] text-muted-foreground font-mono">
+              {programDashboard.registryHealth.assumptions.metrics?.scalePhysics ?? 0} scale checks
+            </div>
+          </div>
+
+          <div className="rounded-lg border border-border/70 bg-muted/20 p-3">
+            <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+              Anomalies & Critiques
+            </div>
+            <div className="mt-1 text-sm font-semibold text-foreground">
+              {programDashboard.registryHealth.anomalies.total} anomalies /{" "}
+              {programDashboard.registryHealth.critiques.total} critiques
+            </div>
+            <div className="mt-0.5 text-[11px] text-muted-foreground font-mono">
+              {programDashboard.registryHealth.anomalies.metrics?.paradigmShifting ?? 0} paradigm-shifting
+            </div>
+          </div>
+
+          <div className="rounded-lg border border-border/70 bg-muted/20 p-3">
+            <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+              Test Execution & Potency
+            </div>
+            <div className="mt-1 text-sm font-semibold text-foreground">
+              {programDashboard.testExecution.completed} completed /{" "}
+              {programDashboard.testExecution.designed} designed
+            </div>
+            <div className="mt-0.5 text-[11px] text-muted-foreground font-mono">
+              {Math.round(programDashboard.testExecution.potencyCoverage * 100)}% potency coverage
+            </div>
+          </div>
+        </div>
+      </section>
 
       <section className="space-y-3">
         <div>

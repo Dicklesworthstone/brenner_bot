@@ -98,4 +98,38 @@ describe("HypothesisPage integration", () => {
       await screen.findByText(/Theory-Kill & Falsification Ceremony/i),
     ).toBeInTheDocument();
   });
+
+  it("surfaces Epistemic Guardrail Diagnostics and detects level conflation when edited", async () => {
+    render(<HypothesisPage />);
+
+    expect(await screen.findByTestId("hypothesis-epistemic-diagnostics")).toBeInTheDocument();
+    expect(screen.getByTestId("diagnostic-level-separation")).toHaveTextContent(
+      /Clean \(No Conflation\)/i,
+    );
+    expect(screen.getByTestId("diagnostic-mechanism-check")).toHaveTextContent(
+      /Explicitly Specified/i,
+    );
+    expect(screen.getByTestId("diagnostic-third-alternative")).toHaveTextContent(/Q[1-3]\/3/);
+    expect(screen.getByTestId("diagnostic-discriminative-power")).toBeInTheDocument();
+
+    const editBtn = screen.getByRole("button", { name: /^Edit$/i });
+    fireEvent.click(editBtn);
+
+    const statementInput = screen.getByLabelText(/Hypothesis statement/i);
+    fireEvent.change(statementInput, {
+      target: {
+        value: "The gene tells the cell to differentiate when the organism decides to migrate.",
+      },
+    });
+
+    const saveBtn = screen.getByRole("button", { name: /Save Changes/i });
+    fireEvent.click(saveBtn);
+
+    await waitFor(() => {
+      expect(screen.getByTestId("diagnostic-level-separation")).toHaveTextContent(/Flag\(s\)/i);
+      expect(screen.getByTestId("diagnostic-level-separation")).toHaveTextContent(
+        /The gene tells/i,
+      );
+    });
+  });
 });

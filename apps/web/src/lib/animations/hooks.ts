@@ -281,8 +281,9 @@ export function useIntersectionAnimation<T extends HTMLElement = HTMLDivElement>
   const [hasAnimated, setHasAnimated] = useState(false);
   const prefersReducedMotion = useReducedMotion();
 
-  // If reduced motion or disabled, show immediately
-  const shouldSkipAnimation = disabled || prefersReducedMotion;
+  // If reduced motion, disabled, or IntersectionObserver is unavailable, show immediately
+  const shouldSkipAnimation =
+    disabled || prefersReducedMotion || typeof IntersectionObserver === "undefined";
 
   useEffect(() => {
     if (shouldSkipAnimation) {

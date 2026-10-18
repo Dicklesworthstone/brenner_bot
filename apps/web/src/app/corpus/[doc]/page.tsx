@@ -5,10 +5,27 @@ import { notFound } from "next/navigation";
 import { Jargon } from "@/components/jargon";
 import { corpusDocKeys } from "@/hooks/queries/keys";
 import { CORPUS_DOCS, readCorpusDoc } from "@/lib/corpus";
+import {
+  getAllSections,
+  getCacheStats,
+  getSectionByAnchor,
+  getSectionByNumber,
+  searchCorpus,
+} from "@/lib/corpusSearch";
 import { DocumentContentClient } from "./DocumentContentClient";
 import { DocumentSwipeNavClient } from "./DocumentSwipeNavClient";
 
 export const runtime = "nodejs";
+
+const DOC_RELATED_QUERY: Record<string, string> = {
+  transcript: "molecular",
+  "quote-bank": "experiment",
+  "distillation-opus-45": "genetic",
+  "distillation-gpt-52": "hypothesis",
+  "distillation-gemini-3": "organism",
+  metaprompt: "biology",
+  "initial-metaprompt": "chromosome",
+};
 
 // Generate metadata for the document
 export async function generateMetadata({
@@ -77,6 +94,18 @@ export default async function CorpusDocPage({ params }: { params: Promise<{ doc:
     });
   }
 
+  const relatedQuery = DOC_RELATED_QUERY[docId] ?? "hypothesis";
+  const [allSections, searchResult, openingSection, landmarkSection] = await Promise.all([
+    getAllSections(),
+    searchCorpus(relatedQuery, 4),
+    getSectionByNumber(1),
+    getSectionByAnchor("§103"),
+  ]);
+  const resolvedHitSections = await Promise.all(
+    searchResult.hits.map((hit) => getSectionByAnchor(hit.anchor)),
+  );
+  const cacheStats = getCacheStats();
+
   const { prev, next } = getNavLinks(docId);
 
   const content = (
@@ -114,6 +143,93 @@ export default async function CorpusDocPage({ params }: { params: Promise<{ doc:
       ) : (
         content
       )}
+
+      {/* Primary Transcript Cross-References & Section Index */}
+      <section
+        data-testid="corpus-related-transcript-sections"
+        className="mt-16 rounded-2xl border border-border bg-card/60 p-6 space-y-5 animate-fade-in-up"
+      >
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div className="space-y-1">
+            <h2 className="text-lg font-semibold text-foreground">
+              Primary Transcript Cross-References
+            </h2>
+            <p className="text-xs text-muted-foreground">
+              Direct anchor links into the 236-segment Web of Stories transcript related to{" "}
+              <span className="font-mono text-foreground">&ldquo;{searchResult.query}&rdquo;</span>.
+            </p>
+          </div>
+          <div className="flex flex-wrap items-center gap-2 text-xs font-mono">
+            <span className="px-2.5 py-1 rounded-lg bg-muted border border-border text-foreground">
+              {allSections.length} indexed sections
+            </span>
+            <span className="px-2.5 py-1 rounded-lg bg-primary/10 border border-primary/20 text-primary">
+              {searchResult.totalMatches} matches
+            </span>
+            <span className="px-2.5 py-1 rounded-lg bg-muted/60 border border-border text-muted-foreground">
+              {cacheStats.cached ? "index cached" : "freshly parsed"}
+            </span>
+          </div>
+        </div>
+
+        {(openingSection || landmarkSection) && (
+          <div className="flex flex-wrap items-center gap-2 text-xs">
+            <span className="text-muted-foreground font-medium">Landmark Anchors:</span>
+            {openingSection && (
+              <Link
+                href={`/corpus/transcript#section-${openingSection.sectionNumber}`}
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-border bg-muted/40 hover:border-primary/40 hover:text-primary transition-colors"
+              >
+                <span className="font-mono font-semibold text-primary">{openingSection.anchor}</span>
+                <span className="truncate max-w-[220px]">{openingSection.title}</span>
+              </Link>
+            )}
+            {landmarkSection && (
+              <Link
+                href={`/corpus/transcript#section-${landmarkSection.sectionNumber}`}
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-border bg-muted/40 hover:border-primary/40 hover:text-primary transition-colors"
+              >
+                <span className="font-mono font-semibold text-primary">
+                  {landmarkSection.anchor}
+                </span>
+                <span className="truncate max-w-[220px]">{landmarkSection.title}</span>
+              </Link>
+            )}
+          </div>
+        )}
+
+        <div className="grid gap-3 sm:grid-cols-2">
+          {searchResult.hits.map((hit, idx) => {
+            const resolvedSection = resolvedHitSections[idx];
+            const sectionNum =
+              resolvedSection?.sectionNumber ?? Number.parseInt(hit.anchor.replace("§", ""), 10);
+            return (
+              <Link
+                key={hit.id}
+                href={`/corpus/transcript#section-${sectionNum}`}
+                className="group rounded-xl border border-border/80 bg-background/70 p-4 hover:border-primary/40 hover:bg-muted/30 transition-all space-y-2"
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <span className="px-2 py-0.5 rounded-md text-xs font-mono font-semibold bg-primary/10 text-primary border border-primary/20">
+                      {hit.anchor}
+                    </span>
+                    <span className="text-sm font-medium text-foreground truncate group-hover:text-primary transition-colors">
+                      {hit.title}
+                    </span>
+                  </div>
+                  <span className="text-[11px] font-mono text-muted-foreground shrink-0">
+                    {hit.wordCount}w
+                  </span>
+                </div>
+                <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
+                  {hit.snippet}
+                </p>
+              </Link>
+            );
+          })}
+        </div>
+      </section>
 
       {/* Navigation */}
       <nav className="mt-20 pt-10 border-t border-border animate-fade-in-up">

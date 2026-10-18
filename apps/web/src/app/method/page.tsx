@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Jargon } from "@/components/jargon";
 import { BayesianCrosswalk } from "@/components/method/BayesianCrosswalk";
 import { BrennerLoopDiagram } from "@/components/method/BrennerLoopDiagram";
+import { AnimateOnScroll, InteractiveCard, StaggerChildren } from "@/lib/animations";
 
 export const metadata: Metadata = {
   title: "Method",
@@ -160,18 +161,18 @@ export default function MethodPage() {
       </section>
 
       {/* Operators */}
-      <section className="space-y-6 animate-fade-in-up">
+      <AnimateOnScroll as="section" className="space-y-6 animate-fade-in-up">
         <h2 className="text-xl font-semibold">Operators</h2>
         <p className="text-muted-foreground max-w-2xl">
           These are the cognitive primitives that compose the Brenner Loop. Each operator can be
           invoked independently or chained together in sequences.
         </p>
 
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <StaggerChildren className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {operators.map((op, index) => {
             const colors = colorClasses[op.color];
             return (
-              <div
+              <InteractiveCard
                 key={op.name}
                 className={`rounded-xl border bg-card p-5 transition-all hover:shadow-md ${colors.border} animate-fade-in-up stagger-${index + 1}`}
               >
@@ -194,11 +195,11 @@ export default function MethodPage() {
                     </span>
                   ))}
                 </div>
-              </div>
+              </InteractiveCard>
             );
           })}
-        </div>
-      </section>
+        </StaggerChildren>
+      </AnimateOnScroll>
 
       {/* Complete 15+1 Cognitive Operator Algebra */}
       <section className="space-y-6 animate-fade-in-up">
@@ -244,7 +245,7 @@ export default function MethodPage() {
             { symbol: "⊙", code: "HAL", name: "Have-A-Look", desc: "Observe directly before doing elaborate indirect inference" },
             { symbol: "⤴", code: "ESC", name: "Escape", desc: "Open a fresh angle when a field becomes overcrowded" },
           ].map((op) => (
-            <div
+            <InteractiveCard
               key={op.symbol}
               className="rounded-xl border border-border bg-card/70 p-3.5 hover:border-primary/30 transition-colors"
             >
@@ -260,7 +261,7 @@ export default function MethodPage() {
                 </span>
               </div>
               <p className="text-xs text-muted-foreground leading-relaxed">{op.desc}</p>
-            </div>
+            </InteractiveCard>
           ))}
         </div>
       </section>
@@ -324,10 +325,10 @@ export default function MethodPage() {
       </section>
 
       {/* Core Principles */}
-      <section className="space-y-6 animate-fade-in-up">
+      <AnimateOnScroll as="section" className="space-y-6 animate-fade-in-up">
         <h2 className="text-xl font-semibold">Core Principles</h2>
 
-        <div className="grid gap-4 sm:grid-cols-2">
+        <StaggerChildren className="grid gap-4 sm:grid-cols-2">
           {[
             {
               title: "Empirical Constraint",
@@ -355,7 +356,7 @@ export default function MethodPage() {
                 "Build intuition through direct experimentation. Understanding comes from doing, not just from reading or theorizing.",
             },
           ].map((principle, index) => (
-            <div
+            <InteractiveCard
               key={principle.title}
               className={`rounded-xl border border-border bg-gradient-to-br from-muted/20 to-transparent p-5 animate-fade-in-up stagger-${index + 1}`}
             >
@@ -363,10 +364,10 @@ export default function MethodPage() {
               <p className="text-sm text-muted-foreground leading-relaxed">
                 {principle.description}
               </p>
-            </div>
+            </InteractiveCard>
           ))}
-        </div>
-      </section>
+        </StaggerChildren>
+      </AnimateOnScroll>
 
       {/* Bayesian Crosswalk */}
       <section className="animate-fade-in-up">

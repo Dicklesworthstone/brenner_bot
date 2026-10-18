@@ -241,6 +241,20 @@ describe("MethodPage", () => {
       expect(screen.getByText(/the bayesian crosswalk/i)).toBeInTheDocument();
       expect(screen.getByText(/implicit bayesianism/i)).toBeInTheDocument();
     });
+
+    it("renders the 15+1 Cognitive Operator Algebra interactive cards and The One Rule", () => {
+      render(<MethodPage />);
+
+      expect(
+        screen.getByRole("heading", { name: /The 15\+1 Cognitive Operator Algebra/i }),
+      ).toBeInTheDocument();
+      expect(screen.getByText("Level-Split")).toBeInTheDocument();
+      expect(screen.getByText("Exclusion-Test")).toBeInTheDocument();
+      expect(screen.getByText("Theory-Kill")).toBeInTheDocument();
+      expect(
+        screen.getByRole("heading", { name: /Maximize Information Gain per Unit Cost/i }),
+      ).toBeInTheDocument();
+    });
   });
 
   describe("accessibility", () => {

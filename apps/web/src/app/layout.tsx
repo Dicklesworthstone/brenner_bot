@@ -6,6 +6,7 @@ import { ExcerptBasketTrigger } from "@/components/excerpt";
 import { Providers } from "@/components/providers";
 import { SearchProvider, SearchTrigger } from "@/components/search";
 import { Button } from "@/components/ui/button";
+import { CommandPalette, CommandPaletteHint } from "@/components/ui/command-palette";
 import {
   BackToTop,
   BottomNav,
@@ -150,8 +151,9 @@ export default function RootLayout({
                     <div className="flex items-center gap-2">
                       <HeaderNav />
 
-                      {/* Global Search */}
+                      {/* Global Search & Command Palette */}
                       <SearchTrigger className="flex" />
+                      <CommandPaletteHint />
                       <ExcerptBasketTrigger className="flex" />
 
                       {labModeEnabled && (
@@ -245,6 +247,9 @@ export default function RootLayout({
 
               {/* Back to Top Button */}
               <BackToTop />
+
+              {/* Navigation Command Palette (Cmd+/) */}
+              <CommandPalette />
 
               {/* Toast Notifications */}
               <Toaster />

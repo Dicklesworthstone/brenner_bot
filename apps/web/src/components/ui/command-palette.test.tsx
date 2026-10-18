@@ -120,6 +120,11 @@ describe("CommandPalette", () => {
       expect(screen.getByText("Go to Corpus")).toBeInTheDocument();
       expect(screen.getByText("Go to Distillations")).toBeInTheDocument();
       expect(screen.getByText("Go to Method")).toBeInTheDocument();
+      expect(screen.getByText("Go to Sessions")).toBeInTheDocument();
+      expect(screen.getByText("Go to Operators")).toBeInTheDocument();
+      expect(screen.getByText("Go to Glossary")).toBeInTheDocument();
+      expect(screen.getByText("Go to Tutorials")).toBeInTheDocument();
+      expect(screen.getByText("Session Analytics")).toBeInTheDocument();
 
       // Document commands
       expect(screen.getByText("Read Full Transcript")).toBeInTheDocument();
@@ -478,7 +483,7 @@ describe("CommandPaletteHint", () => {
     renderCommandPaletteHint();
 
     expect(screen.getByRole("button")).toBeInTheDocument();
-    expect(screen.getByText("Search...")).toBeInTheDocument();
+    expect(screen.getByText("Commands")).toBeInTheDocument();
   });
 
   it("shows keyboard shortcut indicators", () => {
@@ -511,6 +516,6 @@ describe("CommandPaletteHint", () => {
     renderCommandPaletteHint();
 
     const button = screen.getByRole("button");
-    expect(button).toHaveClass("hidden", "lg:flex");
+    expect(button).toHaveClass("hidden", "xl:flex");
   });
 });

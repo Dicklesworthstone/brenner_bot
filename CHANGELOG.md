@@ -8,6 +8,52 @@ Repository: <https://github.com/Dicklesworthstone/brenner_bot>
 
 ---
 
+## [v0.5.0] - 2026-11-21
+
+**Full Web Lab Wiring, Command Palette, Installer Hardening & Security Updates**
+
+Compare: [v0.4.1...v0.5.0](https://github.com/Dicklesworthstone/brenner_bot/compare/v0.4.1...v0.5.0)
+
+### Web App & Brenner Loop Cockpit
+
+- Mount global Command Palette in root layout with routes for sessions, operators, glossary, tutorials, and analytics ([5e3ffa8](https://github.com/Dicklesworthstone/brenner_bot/commit/5e3ffa8), [01518d9](https://github.com/Dicklesworthstone/brenner_bot/commit/01518d9))
+- Add dedicated `/corpus/[doc]` document page with cross-reference navigation and tighten `/method`, glossary, hypothesis, and tutorial example pages ([01e0537](https://github.com/Dicklesworthstone/brenner_bot/commit/01e0537), [1b9fd70](https://github.com/Dicklesworthstone/brenner_bot/commit/1b9fd70))
+- Wire local Brenner Loop cockpit, tribunal prompts, operator wizards, session subpages, 7-dimension Brenner scorecard, program storage, and cross-session intervention summaries into live routes ([344064c](https://github.com/Dicklesworthstone/brenner_bot/commit/344064c), [83dee66](https://github.com/Dicklesworthstone/brenner_bot/commit/83dee66), [02941d7](https://github.com/Dicklesworthstone/brenner_bot/commit/02941d7))
+- Wire hypothesis lifecycle, confounds & evolution diff, literature evidence, LaTeX/PDF/JSON brief export, persona inspector, ExcerptBasket + SessionMachine diagnostics, anomaly quarantine, critique ledger, operator audit, multi-round debate, robustness/test-binding, roster audit, Coach checkpoints, UndoRedo, semantic hypothesis similarity, and failure/calibration analytics ([890304b](https://github.com/Dicklesworthstone/brenner_bot/commit/890304b), [d790041](https://github.com/Dicklesworthstone/brenner_bot/commit/d790041), [dfaac85](https://github.com/Dicklesworthstone/brenner_bot/commit/dfaac85), [5b2a730](https://github.com/Dicklesworthstone/brenner_bot/commit/5b2a730), [9cb0667](https://github.com/Dicklesworthstone/brenner_bot/commit/9cb0667), [d994b98](https://github.com/Dicklesworthstone/brenner_bot/commit/d994b98))
+- Feature `/brennerbot-with-ntm` skill and NTM control plane on homepage & docs ([c900e84](https://github.com/Dicklesworthstone/brenner_bot/commit/c900e84))
+- Fix `SessionsListPage` demo/fresh-workspace crash when non-`RS*` thread IDs (e.g. `demo-*` fixtures) were passed into `createResearchProgram()`
+
+### Installer Reliability
+
+- Fix `install.sh` continuing with an empty version when GitHub latest-release lookup fails (bash command-substitution `errexit` loss), preventing spurious 404 requests to `releases/download/v/` (fixes [#18](https://github.com/Dicklesworthstone/brenner_bot/issues/18))
+- Add explicit empty-version guards in version resolution, URL builders, and argument parsing, plus subprocess regression tests in `brenner.test.ts`
+
+### Dependencies & Security
+
+- Upgrade `next` `16.1.1 -> 16.4.6` (patching critical/high Next.js advisories), `react`/`react-dom` `19.2.3 -> 19.3.1`, `tailwindcss`/`@tailwindcss/postcss` `4.1.18 -> 4.3.5`
+- Upgrade `@huggingface/transformers` `3.8.1 -> 4.3.2`, `@google-analytics/admin` `9.0.1 -> 10.2.0`, `@google-analytics/data` `5.2.1 -> 7.3.0`, `vitest`/`@vitest/coverage-v8` `4.0.16 -> 5.1.1`, `happy-dom` `20.0.11 -> 21.0.4`, `jsdom` `27.4.0 -> 31.0.1`, `lucide-react` `0.562.0 -> 1.77.0`, `@testing-library/jest-dom` `6.9.1 -> 8.0.0`, `@types/node` `20 -> 26.6.6`, plus Radix UI, TanStack Query/Form/Virtual/Store, Playwright, and transitive security refreshes (`bun audit` reduced from 147 vulnerabilities / 7 critical to 2 / 0 critical)
+
+### Testing & Quality
+
+- Web unit tests: 4,548 passed / 12 skipped / 0 failed across 187 test files (`vitest 5.1.1`)
+- CLI & installer tests: 186 passed / 0 failed across `brenner.test.ts` and `evidence-pack.test.ts`
+- `tsc --noEmit`, ESLint, Oxlint, Next.js 16.4.6 production build, `bash -n install.sh`, and `shellcheck install.sh` all pass
+
+---
+
+## [v0.4.1] - 2026-08-16
+
+**Doctor Status Rollup, Installer Domain Rewrite & Cockpit Update**
+
+Compare: [v0.4.0...v0.4.1](https://github.com/Dicklesworthstone/brenner_bot/compare/v0.4.0...v0.4.1)
+
+- Degrade `brenner doctor` overall status and exit code when `--agent-mail` fails ([34a59a8](https://github.com/Dicklesworthstone/brenner_bot/commit/34a59a8), fixes [#17](https://github.com/Dicklesworthstone/brenner_bot/issues/17))
+- Update cockpit default swarm spec from legacy `gmi` to Antigravity `agy` ([6e4403e](https://github.com/Dicklesworthstone/brenner_bot/commit/6e4403e))
+- Rewrite `https://brennerbot.org/install.sh` to GitHub raw `main/install.sh` ([f08d7e0](https://github.com/Dicklesworthstone/brenner_bot/commit/f08d7e0), fixes [#15](https://github.com/Dicklesworthstone/brenner_bot/issues/15))
+- Remove broken async `skipIf` in `agentMail.test.ts` ([a79cef7](https://github.com/Dicklesworthstone/brenner_bot/commit/a79cef7))
+
+---
+
 ## [v0.4.0] - 2026-03-31
 
 **Robot Mode, Session Replay, Scoring CLI & Web Integration**

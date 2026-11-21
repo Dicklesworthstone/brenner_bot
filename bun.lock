@@ -10,7 +10,7 @@
     },
     "apps/web": {
       "name": "web",
-      "version": "0.1.0",
+      "version": "0.5.0",
       "dependencies": {
         "@google-analytics/admin": "^10.2.0",
         "@google-analytics/data": "^7.3.0",

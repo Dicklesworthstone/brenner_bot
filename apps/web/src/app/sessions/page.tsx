@@ -11,7 +11,7 @@ import { checkOrchestrationAuth, isLabModeEnabled } from "@/lib/auth";
 import { getDemoThreadSummaries } from "@/lib/fixtures/demo-sessions";
 import { listRobotSessions, type RobotThreadSummary } from "@/lib/robot-sessions";
 import { createEmptyInterventionSummary } from "@/lib/schemas/operator-intervention";
-import { createResearchProgram } from "@/lib/schemas/research-program";
+import { createResearchProgram, isValidSessionId } from "@/lib/schemas/research-program";
 import { InterventionStorage } from "@/lib/storage/intervention-storage";
 import { DashboardAggregator } from "@/lib/storage/program-dashboard";
 import { ProgramStorage } from "@/lib/storage/program-storage";
@@ -488,7 +488,7 @@ export default async function SessionsListPage() {
       ...robotSessions.map((r) => r.threadId),
       ...(isDemoMode ? getDemoThreadSummaries().map((d) => d.threadId) : []),
     ]),
-  );
+  ).filter(isValidSessionId);
 
   const primaryProgram = storedPrograms[0]
     ? {

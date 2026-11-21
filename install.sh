@@ -12,6 +12,8 @@
 # @see specs/toolchain_manifest_v0.1.md
 
 set -euo pipefail
+# Propagate errexit into command substitutions on bash >= 4.4 (defensive alongside explicit checks)
+shopt -s inherit_errexit 2>/dev/null || true
 
 # -----------------------------------------------------------------------------
 # Constants
@@ -182,13 +184,20 @@ get_latest_version() {
 # Output: version without 'v' prefix
 resolve_version() {
   local version="$1"
+  local resolved
 
   if [[ "$version" == "latest" ]]; then
-    get_latest_version
+    resolved=$(get_latest_version) || return 1
   else
     # Strip 'v' prefix if present
-    echo "${version#v}"
+    resolved="${version#v}"
   fi
+
+  if [[ -z "$resolved" ]]; then
+    die "Resolved version is empty (requested: '${version}')"
+  fi
+
+  echo "$resolved"
 }
 
 get_resolved_version() {
@@ -197,7 +206,13 @@ get_resolved_version() {
     return 0
   fi
 
-  RESOLVED_VERSION=$(resolve_version "$VERSION")
+  local resolved
+  resolved=$(resolve_version "$VERSION") || return 1
+  if [[ -z "$resolved" ]]; then
+    die "Failed to resolve brenner version"
+  fi
+
+  RESOLVED_VERSION="$resolved"
   echo "${RESOLVED_VERSION}"
 }
 
@@ -213,6 +228,10 @@ build_artifact_url() {
   local platform="$2"
   local artifact_name
 
+  if [[ -z "$version" ]]; then
+    die "Cannot build artifact URL: version is empty"
+  fi
+
   artifact_name=$(get_artifact_name "$platform")
 
   echo "${GITHUB_RELEASE_BASE}/download/v${version}/${artifact_name}"
@@ -226,6 +245,10 @@ build_checksum_url() {
   local platform="$2"
   local artifact_name
 
+  if [[ -z "$version" ]]; then
+    die "Cannot build checksum URL: version is empty"
+  fi
+
   artifact_name=$(get_artifact_name "$platform")
 
   echo "${GITHUB_RELEASE_BASE}/download/v${version}/${artifact_name}.sha256"
@@ -237,6 +260,9 @@ build_checksum_url() {
 
 build_toolchain_manifest_url() {
   local version="$1"
+  if [[ -z "$version" ]]; then
+    die "Cannot build toolchain manifest URL: version is empty"
+  fi
   echo "https://raw.githubusercontent.com/${REPO_OWNER}/${REPO_NAME}/v${version}/specs/toolchain.manifest.json"
 }
 
@@ -247,10 +273,10 @@ fetch_toolchain_manifest() {
   fi
 
   local version manifest_url manifest_path
-  version=$(get_resolved_version)
-  manifest_url=$(build_toolchain_manifest_url "$version")
+  version=$(get_resolved_version) || return 1
+  manifest_url=$(build_toolchain_manifest_url "$version") || return 1
 
-  ensure_temp_dir
+  ensure_temp_dir || return 1
   manifest_path="${TEMP_DIR}/toolchain.manifest.json"
 
   log_debug "Fetching toolchain manifest from: ${manifest_url}"
@@ -413,7 +439,7 @@ install_toolchain() {
   fi
 
   local manifest
-  manifest=$(fetch_toolchain_manifest)
+  manifest=$(fetch_toolchain_manifest) || exit 1
 
   if [[ ":${PATH}:" != *":${DEST_DIR}:"* ]]; then
     export PATH="${DEST_DIR}:${PATH}"
@@ -614,7 +640,7 @@ install_brenner() {
   log_info "Installing brenner..."
 
   # Detect platform
-  platform=$(detect_platform)
+  platform=$(detect_platform) || exit 1
   log_info "Platform: ${platform}"
 
   # Determine artifact URL
@@ -625,9 +651,13 @@ install_brenner() {
     log_debug "Using override artifact URL: ${artifact_url}"
   else
     # Resolve version and build URL
-    version=$(get_resolved_version)
+    version=$(get_resolved_version) || exit 1
+    if [[ -z "$version" ]]; then
+      die "Failed to resolve brenner version"
+    fi
+    RESOLVED_VERSION="$version"
     log_info "Version: ${version}"
-    artifact_url=$(build_artifact_url "$version" "$platform")
+    artifact_url=$(build_artifact_url "$version" "$platform") || exit 1
     log_info "Artifact URL: ${artifact_url}"
   fi
 
@@ -641,8 +671,8 @@ install_brenner() {
     die "--checksum is required when using --artifact-url"
   else
     # Fetch checksum from release
-    checksum_url=$(build_checksum_url "$version" "$platform")
-    checksum=$(fetch_checksum "$checksum_url")
+    checksum_url=$(build_checksum_url "$version" "$platform") || exit 1
+    checksum=$(fetch_checksum "$checksum_url") || exit 1
   fi
 
   # Dry run check
@@ -844,10 +874,12 @@ parse_args() {
   while [[ $# -gt 0 ]]; do
     case "$1" in
       --version)
+        [[ $# -ge 2 ]] || die "--version requires a value"
         VERSION="$2"
         shift 2
         ;;
       --dest)
+        [[ $# -ge 2 ]] || die "--dest requires a value"
         DEST_DIR="$2"
         SYSTEM=false
         shift 2
@@ -858,10 +890,12 @@ parse_args() {
         shift
         ;;
       --artifact-url)
+        [[ $# -ge 2 ]] || die "--artifact-url requires a value"
         ARTIFACT_URL="$2"
         shift 2
         ;;
       --checksum)
+        [[ $# -ge 2 ]] || die "--checksum requires a value"
         CHECKSUM="$2"
         shift 2
         ;;

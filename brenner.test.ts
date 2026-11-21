@@ -10,7 +10,7 @@
 import { afterAll, describe, expect, it } from "bun:test";
 import { spawn } from "node:child_process";
 import { randomUUID } from "node:crypto";
-import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { chmodSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 
@@ -3879,5 +3879,122 @@ describe("evidence post", () => {
 
     expect(result.exitCode).toBe(1);
     expect(result.stderr).toContain("Run 'evidence init' first");
+  });
+});
+
+describe("install.sh version resolution guards (GH #18)", () => {
+  const INSTALL_SH_PATH = resolve(__dirname, "install.sh");
+
+  function runInstaller(args: string[], envOverrides: Record<string, string>) {
+    return new Promise<{ exitCode: number | null; stdout: string; stderr: string }>((resolvePromise) => {
+      const child = spawn("bash", [INSTALL_SH_PATH, ...args], {
+        env: {
+          ...process.env,
+          ...envOverrides,
+        },
+        stdio: ["ignore", "pipe", "pipe"],
+      });
+      let stdout = "";
+      let stderr = "";
+      child.stdout.on("data", (chunk) => {
+        stdout += String(chunk);
+      });
+      child.stderr.on("data", (chunk) => {
+        stderr += String(chunk);
+      });
+      child.on("close", (exitCode) => {
+        resolvePromise({ exitCode, stdout, stderr });
+      });
+    });
+  }
+
+  it("aborts immediately when latest-release lookup fails and never requests download/v/", async () => {
+    const stubDir = createTempDir("brenner-installer-curl-fail");
+    const logFile = join(stubDir, "curl-calls.log");
+    const curlStub = join(stubDir, "curl");
+    writeFileSync(
+      curlStub,
+      `#!/usr/bin/env bash
+if [[ "\${1:-}" == "--help" ]]; then
+  echo "--proto --proto-redir"
+  exit 0
+fi
+printf '%s\\n' "$*" >> ${JSON.stringify(logFile)}
+exit 22
+`,
+      "utf8",
+    );
+    chmodSync(curlStub, 0o755);
+
+    const destDir = createTempDir("brenner-installer-dest-fail");
+    const result = await runInstaller(
+      ["--dest", destDir, "--dry-run", "--skip-ntm", "--skip-cass", "--skip-cm"],
+      {
+        PATH: `${stubDir}:${process.env.PATH ?? ""}`,
+        BRENNER_VERSION: "latest",
+      },
+    );
+
+    expect(result.exitCode).toBe(1);
+    expect(result.stderr).toContain("Failed to fetch latest release from GitHub");
+    expect(result.stdout).not.toContain("→ Version:");
+    expect(result.stdout).not.toContain("releases/download/v/");
+    expect(result.stderr).not.toContain("releases/download/v/");
+
+    const calls = readFileSync(logFile, "utf8").trim().split("\n").filter(Boolean);
+    expect(calls.length).toBe(1);
+    expect(calls[0]).toContain("/releases/latest");
+  });
+
+  it("aborts immediately when latest-release redirect URL lacks a version tag", async () => {
+    const stubDir = createTempDir("brenner-installer-curl-notag");
+    const logFile = join(stubDir, "curl-calls.log");
+    const curlStub = join(stubDir, "curl");
+    writeFileSync(
+      curlStub,
+      `#!/usr/bin/env bash
+if [[ "\${1:-}" == "--help" ]]; then
+  echo "--proto --proto-redir"
+  exit 0
+fi
+printf '%s\\n' "$*" >> ${JSON.stringify(logFile)}
+printf 'https://github.com/Dicklesworthstone/brenner_bot/releases'
+exit 0
+`,
+      "utf8",
+    );
+    chmodSync(curlStub, 0o755);
+
+    const destDir = createTempDir("brenner-installer-dest-notag");
+    const result = await runInstaller(
+      ["--dest", destDir, "--dry-run", "--skip-ntm", "--skip-cass", "--skip-cm"],
+      {
+        PATH: `${stubDir}:${process.env.PATH ?? ""}`,
+        BRENNER_VERSION: "latest",
+      },
+    );
+
+    expect(result.exitCode).toBe(1);
+    expect(result.stderr).toContain("Could not parse version from release URL");
+    expect(result.stdout).not.toContain("releases/download/v/");
+    expect(result.stderr).not.toContain("releases/download/v/");
+
+    const calls = readFileSync(logFile, "utf8").trim().split("\n").filter(Boolean);
+    expect(calls.length).toBe(1);
+  });
+
+  it("rejects empty explicit versions (--version '' and --version v)", async () => {
+    const destDir = createTempDir("brenner-installer-dest-empty");
+
+    for (const badVersion of ["", "v"]) {
+      const result = await runInstaller(
+        ["--version", badVersion, "--dest", destDir, "--dry-run", "--skip-ntm", "--skip-cass", "--skip-cm"],
+        {},
+      );
+      expect(result.exitCode).toBe(1);
+      expect(result.stderr).toContain("Resolved version is empty");
+      expect(result.stdout).not.toContain("releases/download/v/");
+      expect(result.stderr).not.toContain("releases/download/v/");
+    }
   });
 });
